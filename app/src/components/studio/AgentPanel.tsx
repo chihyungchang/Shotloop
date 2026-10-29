@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { api, fileUrl, type FixRecord, type Job, type Project, type Shot } from '../../api'
+import { api, type FixRecord, type Job, type Project, type Shot } from '../../api'
 import { agentError } from '../../ai/errors'
 import { Icon } from '../Icon'
+import { CompareStills } from './CompareStills'
 import type { Key } from '../../i18n/en'
 import { formatDate, t } from '../../i18n'
 
@@ -123,16 +124,7 @@ function Exchange({ fix }: { fix: FixRecord }) {
         {fix.touched.length > 0 && (
           <div className="files">{fix.touched.map(f => <code key={f}>{f}</code>)}</div>
         )}
-        {fix.before && fix.after && (
-          <div className="ba">
-            {(['before', 'after'] as const).map(k => (
-              <div key={k}>
-                <span className="small muted">{t(k === 'before' ? 'agent.before' : 'agent.after')}</span>
-                <div className="ba-row">{fix[k]!.map(f => <img key={f} src={fileUrl(f)} alt={k} onClick={() => api.openPath(f)} />)}</div>
-              </div>
-            ))}
-          </div>
-        )}
+        {fix.before && fix.after && <CompareStills before={fix.before} after={fix.after} />}
         {own && (
           <span className={`check-pill ${failed.length ? 'bad' : 'ok'}`}>
             <Icon name={failed.length ? 'x' : 'check'} size={12} />

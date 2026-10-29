@@ -148,6 +148,7 @@ export const ptBR: Record<Key, string> = {
   'notes.failing': '{n} falhando',
   'notes.allPass': 'Todas as {n} ok',
   'notes.unchecked': 'não checado',
+  'compare.expand': 'Comparar em tamanho grande',
   'notes.empty': 'Nada escrito ainda (notes.md).',
   'notes.checks': 'Verificações',
   'notes.notChecked': 'Ainda não verificado. Verifique no assistente de IA.',

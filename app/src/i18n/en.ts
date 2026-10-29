@@ -149,6 +149,7 @@ export const en = {
   'notes.failing': '{n} failing',
   'notes.allPass': 'All {n} pass',
   'notes.unchecked': 'not checked',
+  'compare.expand': 'Compare large',
   'notes.empty': 'Nothing written yet (notes.md).',
   'notes.checks': 'Checks',
   'notes.notChecked': 'Not checked yet. Run checks in the AI assistant.',

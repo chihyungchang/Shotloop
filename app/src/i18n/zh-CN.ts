@@ -148,6 +148,7 @@ export const zhCN: Record<Key, string> = {
   'notes.failing': '{n} 项未通过',
   'notes.allPass': '{n} 项全部通过',
   'notes.unchecked': '未检查',
+  'compare.expand': '放大对比',
   'notes.empty': '还没有写（notes.md）。',
   'notes.checks': '检查',
   'notes.notChecked': '还没检查。在左边的 AI 助手里点“运行检查”。',
