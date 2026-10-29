@@ -77,7 +77,8 @@ export const ptBR: Record<Key, string> = {
 
   'studio.back': 'Voltar aos projetos',
   'studio.modeAria': 'Modo de renderização',
-  'studio.renderChanged': 'Renderizar {n} alterados · ~{time}',
+  'studio.renderChangedNote': 'Estes planos mudaram (código, cena ou tempo) desde a última renderização, ou nunca foram renderizados. Clique para renderizar de novo: {ids}',
+  'studio.renderChanged': 'Atualizar {n} planos · ~{time}',
   'studio.allCached': 'Tudo em dia',
   'studio.queue': 'Fila',
   'studio.export': 'Exportar',

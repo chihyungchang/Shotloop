@@ -78,7 +78,8 @@ export const en = {
 
   'studio.back': 'Back to projects',
   'studio.modeAria': 'Render mode',
-  'studio.renderChanged': 'Render {n} changed · ~{time}',
+  'studio.renderChangedNote': 'These shots changed (code, scene or timing) since their frames were rendered, or never rendered. Click to render them again: {ids}',
+  'studio.renderChanged': 'Update {n} shots · ~{time}',
   'studio.allCached': 'Up to date',
   'studio.queue': 'Queue',
   'studio.export': 'Export',

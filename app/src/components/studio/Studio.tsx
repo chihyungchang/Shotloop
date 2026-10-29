@@ -74,7 +74,8 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
     try {
       setFilm((await api.filmPreview(project.root, mode)).file)
     } catch (e) {
-      setFilmError(String(e))
+      // Shots without frames: say so in words, the details are in the queue
+      setFilmError(/not rendered/.test(String(e)) ? t('film.failed') : String(e))
     }
   }
   const failed = pending.some(s => views.get(s.id)!.state === 'failed')
@@ -106,7 +107,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         {filmError && <span className="small error ellipsis" title={filmError}>{filmError}</span>}
         {pending.length > 0
           ? (
-            <button onClick={renderPending} title={pending.map(s => s.id).join(', ')}>
+            <button onClick={renderPending} title={t('studio.renderChangedNote', { ids: pending.map(s => s.id).join(', ') })}>
               <Icon name="refresh" size={14} /> {t('studio.renderChanged', { n: pending.length, time: formatSeconds(pendingTime) })}
             </button>
           )

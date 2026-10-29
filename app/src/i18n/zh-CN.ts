@@ -77,7 +77,8 @@ export const zhCN: Record<Key, string> = {
 
   'studio.back': '返回项目',
   'studio.modeAria': '渲染模式',
-  'studio.renderChanged': '渲染 {n} 个改动 · 约 {time}',
+  'studio.renderChangedNote': '这些镜头的代码、场景或时长改过（或从没渲染过），画面还是旧的。点击重新渲染：{ids}',
+  'studio.renderChanged': '更新 {n} 个镜头 · 约 {time}',
   'studio.allCached': '已是最新',
   'studio.queue': '队列',
   'studio.export': '导出',
