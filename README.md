@@ -36,7 +36,7 @@ and the render queue and export in a drawer on the right. The layout
 follows [open-design](https://github.com/nexu-io/open-design)'s workspace
 and studio, adapted to video. Its look is a pro video editor's: dark
 first, dense, a lifted graphite stage where frames read true, with light,
-dark and follow-the-system modes and six accent colours to choose from,
+dark and follow-the-system modes and one teal accent,
 all as tokens in [`app/src/theme/tokens.css`](app/src/theme/tokens.css). The Setup panel checks
 Chrome, ffmpeg and Blender and takes your Anthropic API key for the agent.
 `pnpm app:build` makes `Shotloop.app`; it runs the engine and agent
