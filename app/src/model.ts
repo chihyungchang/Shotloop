@@ -79,8 +79,17 @@ export function jobEstimate(project: Project | null, job: Job): number | null {
 
 export function formatSeconds(s: number | null | undefined) {
   if (s == null) return '–'
-  if (s < 60) return t('unit.s', { n: Math.max(1, Math.round(s)) })
-  return t('unit.min', { m: Math.floor(s / 60), s: String(Math.round(s % 60)).padStart(2, '0') })
+  const n = Math.max(1, Math.round(s))
+  if (n < 60) return t('unit.s', { n })
+  return t('unit.min', { m: Math.floor(n / 60), s: String(n % 60).padStart(2, '0') })
+}
+
+// A time still to come, rounded the way people say it: seconds under a
+// minute, else whole minutes
+export function formatEta(s: number | null | undefined) {
+  if (s == null) return '–'
+  if (s < 50) return t('unit.s', { n: Math.max(5, Math.round(s / 5) * 5) })
+  return t('unit.minutes', { n: Math.max(1, Math.round(s / 60)) })
 }
 
 export const shotTime = (shot: Shot) => t('unit.s', { n: `${shot.start.toFixed(1)}–${(shot.start + shot.duration).toFixed(1)}` })

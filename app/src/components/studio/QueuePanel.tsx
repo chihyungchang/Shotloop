@@ -1,5 +1,6 @@
 import { api, type Job, type Project } from '../../api'
-import { activityLine, buildProgress, formatSeconds, jobEstimate, jobLabel, stageName } from '../../model'
+import { activityLine, buildProgress, formatEta, formatSeconds, jobEstimate, jobLabel, stageName } from '../../model'
+import { Icon } from '../Icon'
 import { useEffect, useState } from 'react'
 import { t } from '../../i18n'
 
@@ -8,15 +9,21 @@ import { t } from '../../i18n'
 export function QueuePanel({ project, jobs }: { project: Project; jobs: Job[] }) {
   const active = jobs.filter(j => j.state === 'running' || j.state === 'queued')
   const finished = jobs.filter(j => !(j.state === 'running' || j.state === 'queued')).reverse()
-  const total = active.filter(j => j.lane === 'render').reduce((t, j) => t + (jobEstimate(project, j) ?? 0), 0)
+  const left = active.filter(j => j.lane === 'render').reduce((t, j) => t + (jobEstimate(project, j) ?? 0), 0)
+  useTick(active.length > 0)
+  const doneAt = new Date(Date.now() + left * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
   return (
     <div className="queue">
-      <div className="row between">
-        <h3>{t('queue.active')}</h3>
-        {total > 0 && <span className="muted small">{t('queue.left', { time: formatSeconds(total) })}</span>}
-      </div>
-      {!active.length && <p className="muted small">{t('queue.idle')}</p>}
+      {active.length > 0
+        ? (
+          <div className="queue-summary">
+            <span className="small muted">{t('queue.summary', { n: active.length })}</span>
+            {left > 0 && <strong>{t('queue.leftShort', { time: formatEta(left) })}</strong>}
+            {left > 0 && <span className="small muted">{t('queue.doneAt', { at: doneAt })}</span>}
+          </div>
+        )
+        : <p className="muted small">{t('queue.idle')}</p>}
       {active.map(j => <JobRow key={j.id} job={j} project={project} />)}
       {finished.length > 0 && (
         <>
@@ -47,6 +54,7 @@ const ABOUT: Partial<Record<Job['kind'], 'act.about.build' | 'act.about.plan' | 
 
 function JobRow({ job, project }: { job: Job; project: Project }) {
   const running = job.state === 'running'
+  const queued = job.state === 'queued'
   useTick(running)
   const eta = jobEstimate(project, job)
   const elapsed = job.startedAt ? ((job.finishedAt ?? Date.now()) - job.startedAt) / 1000 : null
@@ -55,35 +63,43 @@ function JobRow({ job, project }: { job: Job; project: Project }) {
   // Agents report steps, renders report frames
   const p = job.progress ?? buildProgress(job, project.shots.length)
   const pTotal = p?.total ?? 0
+  const pct = pTotal ? Math.round((p!.done / pTotal) * 100) : null
   const now = job.log.at(-1)
   return (
-    <div className={`job ${job.state}`}>
-      <div className="row between">
+    <div className={`job ${job.state}`} title={elapsed != null && running ? t('act.elapsed', { time: formatSeconds(elapsed) }) : undefined}>
+      <div className="job-head">
+        {job.state === 'done' && <span className="job-ok"><Icon name="check" size={13} /></span>}
         <span className="job-name">
-          <span className={`lane ${job.lane}`}>{t(`lane.${job.lane}`)}</span>
-          <span>{jobLabel(job)}{other && <span className="muted small"> · {job.project.split('/').at(-1)}</span>}</span>
+          {agent && <span className="lane agent">{t('lane.agent')}</span>}
+          <span className="ellipsis">{jobLabel(job)}{other && <span className="muted small"> · {job.project.split('/').at(-1)}</span>}</span>
         </span>
-        {(running || job.state === 'queued') && (
-          <button className="link" onClick={() => api.cancel(job.id)}>{t(running ? 'queue.stop' : 'queue.remove')}</button>
+        <span className="job-side small muted">
+          {running && pct != null && `${pct}%`}
+          {queued && (eta != null ? `≈ ${formatEta(eta)}` : t('queue.waiting'))}
+          {job.state === 'done' && (job.result?.cached ? t('queue.cachedShort') : formatSeconds(elapsed))}
+          {job.state === 'cancelled' && t('queue.cancelled')}
+        </span>
+        {(running || queued) && (
+          <button className="icon-button job-x" onClick={() => api.cancel(job.id)} title={t(running ? 'queue.stop' : 'queue.remove')} aria-label={t(running ? 'queue.stop' : 'queue.remove')}>
+            <Icon name="x" size={12} />
+          </button>
         )}
       </div>
       {running && agent && ABOUT[job.kind] && <p className="job-about small muted">{t(ABOUT[job.kind]!)}</p>}
       {running && (
-        <div className={`bar${pTotal ? '' : ' indeterminate'}`}><i style={pTotal ? { width: `${Math.max(4, (p!.done / pTotal) * 100)}%` } : undefined} /></div>
+        <div className={`bar${pTotal ? '' : ' indeterminate'}`}><i style={pTotal ? { width: `${Math.max(3, (p!.done / pTotal) * 100)}%` } : undefined} /></div>
       )}
       {running && agent && now && (
         <div className="job-now small"><span className="pulse" /> <span className="ellipsis" title={now}>{activityLine(now)}</span></div>
       )}
-      <div className="muted small job-meta">
-        {running && job.progress && !agent && t('queue.stage', { stage: stageName(job.progress.stage), done: job.progress.done, total: job.progress.total })}
-        {running && !job.progress && p && t('act.shots', { done: p.done, total: p.total })}
-        {running && !job.progress && !p && !agent && (now ?? t('queue.starting'))}
-        {running && elapsed != null && <span>{t('act.elapsed', { time: formatSeconds(elapsed) })}</span>}
-        {running && eta != null && <span>{t('queue.etaLeft', { time: formatSeconds(eta) })}</span>}
-        {job.state === 'queued' && (eta != null ? t('queue.waitingEta', { time: formatSeconds(eta) }) : t('queue.waiting'))}
-        {job.state === 'done' && t(job.result?.cached ? 'queue.doneCached' : 'queue.doneIn', { time: formatSeconds(elapsed) })}
-        {job.state === 'cancelled' && t('queue.cancelled')}
-      </div>
+      {running && (
+        <div className="muted small job-meta">
+          {job.progress && !agent ? t('queue.stage', { stage: stageName(job.progress.stage), done: job.progress.done, total: job.progress.total })
+            : p ? t('act.shots', { done: p.done, total: p.total })
+            : !agent ? (now ?? t('queue.starting')) : t('act.elapsed', { time: formatSeconds(elapsed) })}
+          {eta != null && <span>{t('queue.etaLeft', { time: formatEta(eta) })}</span>}
+        </div>
+      )}
       {job.state === 'failed' && <pre className="error-box small">{job.error}</pre>}
     </div>
   )
