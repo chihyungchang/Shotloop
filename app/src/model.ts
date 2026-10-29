@@ -2,6 +2,7 @@
 // the queue: the state badge, the stills and clip to show, time estimates.
 
 import type { Job, Mode, Project, Shot, Take } from './api'
+import { t } from './i18n'
 
 export type ShotState = 'cached' | 'stale' | 'missing' | 'queued' | 'rendering' | 'failed'
 
@@ -71,9 +72,26 @@ export function jobEstimate(project: Project | null, job: Job): number | null {
 
 export function formatSeconds(s: number | null | undefined) {
   if (s == null) return '–'
-  if (s < 60) return `${Math.max(1, Math.round(s))} s`
-  const m = Math.floor(s / 60)
-  return `${m} min ${String(Math.round(s % 60)).padStart(2, '0')} s`
+  if (s < 60) return t('unit.s', { n: Math.max(1, Math.round(s)) })
+  return t('unit.min', { m: Math.floor(s / 60), s: String(Math.round(s % 60)).padStart(2, '0') })
 }
 
-export const shotTime = (shot: Shot) => `${shot.start.toFixed(1)}–${(shot.start + shot.duration).toFixed(1)} s`
+export const shotTime = (shot: Shot) => t('unit.s', { n: `${shot.start.toFixed(1)}–${(shot.start + shot.duration).toFixed(1)}` })
+
+// A job's label in the UI language, from its fields (the shell's own
+// label is English)
+export function jobLabel(job: Job): string {
+  const mode = job.mode ? t(`mode.${job.mode}`) : ''
+  switch (job.kind) {
+    case 'render':
+      return t(job.label.startsWith('Stills') ? 'job.stills' : 'job.render', { shot: job.shot ?? '', mode })
+    case 'export':
+      return t('job.export', { mode, aspects: job.label.match(/\(([^)]*)\)/)?.[1] ?? '' })
+    case 'fix':
+      return t('job.fix', { shot: job.shot ?? '', request: job.label.replace(/^Fix [^:]+: /, '') })
+    case 'check':
+      return t('job.check', { shot: job.shot ?? '' })
+    case 'publish':
+      return t('job.publish')
+  }
+}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, type Doctor, type Settings } from '../api'
+import { t } from '../i18n'
 
 // First-run checks (docs/PRD.md §9, External): what is installed, how to
 // install what is missing, and the user's own API key for the agent
@@ -27,7 +28,7 @@ export function Setup() {
 
   const rows: [string, string | null, string | null, boolean][] = doctor
     ? [
-        ['Node.js', doctor.nodePath ? `${doctor.node}` : null, 'brew install node (23 or newer)', true],
+        ['Node.js', doctor.nodePath ? `${doctor.node}` : null, t('setup.nodeHint'), true],
         ['Chrome', doctor.chrome?.version ?? null, doctor.install.chrome, true],
         ['ffmpeg', doctor.ffmpeg?.version?.replace(/ Copyright.*/, '') ?? null, doctor.install.ffmpeg, true],
         ['Blender', doctor.blender?.version ?? null, doctor.install.blender, false]
@@ -36,9 +37,9 @@ export function Setup() {
 
   return (
     <section className="panel setup">
-      <h3>Dependencies</h3>
+      <h3>{t('setup.deps')}</h3>
       {doctorError && <p className="error">{doctorError}</p>}
-      {!doctor && !doctorError && <p className="muted">Checking dependencies…</p>}
+      {!doctor && !doctorError && <p className="muted">{t('setup.checking')}</p>}
       {doctor && (
         <table className="deps">
           <tbody>
@@ -50,7 +51,7 @@ export function Setup() {
                 <td className={version ? '' : 'muted'}>
                   {version ?? (
                     <>
-                      Not found{required ? '' : ' (3D projects only)'}. <code>{hint}</code>
+                      {t(required ? 'setup.notFound' : 'setup.only3d')} <code>{hint}</code>
                     </>
                   )}
                 </td>
@@ -60,19 +61,19 @@ export function Setup() {
         </table>
       )}
 
-      <h3>Agent</h3>
+      <h3>{t('setup.agent')}</h3>
       <label className="field">
-        <span>Anthropic API key</span>
+        <span>{t('setup.apiKey')}</span>
         <input
           type="password"
           value={settings.apiKey}
           placeholder="sk-ant-…"
           onChange={e => setSettings({ ...settings, apiKey: e.target.value })}
         />
-        <small className="muted">Your own key. Used for fixes, checks and publish copy; stored on this Mac only.</small>
+        <small className="muted">{t('setup.apiKeyNote')}</small>
       </label>
       <details>
-        <summary className="muted">Tool paths</summary>
+        <summary className="muted">{t('setup.toolPaths')}</summary>
         <label className="field">
           <span>Blender</span>
           <input
@@ -91,10 +92,10 @@ export function Setup() {
         </label>
       </details>
       <div className="row gap">
-        <button onClick={save}>{saved ? 'Saved' : 'Save settings'}</button>
-        <button className="ghost" onClick={check}>Check again</button>
+        <button onClick={save}>{saved ? t('common.saved') : t('setup.save')}</button>
+        <button className="ghost" onClick={check}>{t('setup.checkAgain')}</button>
       </div>
-      {doctor && <p className="muted small">Engine: {doctor.root}</p>}
+      {doctor && <p className="muted small">{t('setup.engine', { path: doctor.root })}</p>}
     </section>
   )
 }

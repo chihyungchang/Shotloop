@@ -9,7 +9,9 @@
                inputs), --surface-hover
    Rules       --border (rules between cells; ink in light, a quiet
                green-grey hairline in dark), --border-strong (controls)
-   Text        --text, --text-2 (dates, meta), --text-3 (hints)
+   Text        --text, --text-2 (dates, meta), --text-3 (hints). Every
+               text token holds 4.5:1 on every surface in both themes;
+               --border-strong holds 3:1 (controls)
    Accent      --accent: one loud FILL per view (lime / mint), never a line
                or text on the ground. --accent-fg is text on it,
                --accent-soft a tinted fill, --accent-text accent as text,
@@ -58,7 +60,7 @@
   --border-strong: #0a0a0a;
   --text: #0a0a0a;
   --text-2: #5a5a55;
-  --text-3: #8f8f88;
+  --text-3: #6b6b65;
   --accent: #d4ff3a;
   --accent-fg: #0a0a0a;
   --accent-soft: #e8f8a8;
@@ -81,14 +83,14 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
   --bg: #050607;
-  --surface: #0b0f10;
-  --surface-2: #11161a;
-  --surface-hover: #161c20;
-  --border: #2a3330;
-  --border-strong: #5f6b66;
+  --surface: #0c1112;
+  --surface-2: #141a1d;
+  --surface-hover: #1a2125;
+  --border: #3a4641;
+  --border-strong: #73817a;
   --text: #e8f0ec;
-  --text-2: #8a958f;
-  --text-3: #5f6b66;
+  --text-2: #a7b3ad;
+  --text-3: #84918b;
   --accent: #38f2a9;
   --accent-fg: #050607;
   --accent-soft: #0f2e22;
@@ -99,8 +101,8 @@
   --focus: #7aa2ff;
   --stage: #000000;
   --stage-raised: #11161a;
-  --stage-border: #2a3330;
-  --stage-text: #8a958f;
+  --stage-border: #34403b;
+  --stage-text: #a7b3ad;
   --success: #38f2a9;
   --warning: #ffb340;
   --danger: #ff4d55;

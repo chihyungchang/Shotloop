@@ -50,3 +50,13 @@ For the AI-label settings: the video's visuals are rendered from code (2D pages 
 
 Write the file with write_file, then end with one sentence for the person.`
 }
+
+const LANGUAGES: Record<string, string> = { en: 'English', 'zh-CN': 'Simplified Chinese', 'pt-BR': 'Brazilian Portuguese' }
+
+// The app's UI language: replies and check notes are for the person, so
+// they follow it; code, comments and file contents stay as they are
+export function replyLanguage(lang?: string) {
+  const name = lang && LANGUAGES[lang]
+  if (!name || name === 'English') return ''
+  return `\n\nWrite everything meant for the person (your replies, check notes and summaries) in ${name}. Code, comments and the project's files keep their own language.`
+}

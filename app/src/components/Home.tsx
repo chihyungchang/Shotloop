@@ -4,22 +4,17 @@ import { api, fileUrl, type ProjectSummary } from '../api'
 import { formatSeconds } from '../model'
 import { baseName, projectsFolder, setProjectsFolder } from '../recent'
 import { Icon } from './Icon'
+import type { Key } from '../i18n/en'
+import { t, tSplit } from '../i18n'
 
 type Track = '2d' | '3d'
 type Aspect = '9:16' | '16:9'
 
-const TRACKS: Record<Track, { word: string; hint: string }> = {
-  '2d': { word: '2D explainer', hint: 'Numbers, comparisons, lists, text: an HTML page, recorded in Chrome.' },
-  '3d': { word: '3D explainer', hint: 'Places, objects and journeys: a Blender scene, one camera move per shot.' }
+const TRACKS: Record<Track, { word: Key; hint: Key; idea: Key }> = {
+  '2d': { word: 'home.track.2d', hint: 'home.hint.2d', idea: 'home.idea.2d' },
+  '3d': { word: 'home.track.3d', hint: 'home.hint.3d', idea: 'home.idea.3d' }
 }
 const LENGTHS = [15, 30, 45, 60]
-
-const IDEAS = [
-  'How long would a hacker need to crack your password?',
-  'What happens when you press Enter in Claude Code?',
-  'Why does your phone battery wear out?',
-  'How does a GPU draw one frame of a game?'
-]
 
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 6).join('-') || 'untitled'
@@ -41,7 +36,7 @@ export function Home({ open }: { open: (path: string) => void }) {
   }, [])
 
   const chooseFolder = async () => {
-    const dir = await pick({ directory: true, title: 'Where new projects go' })
+    const dir = await pick({ directory: true, title: t('home.dialog.folder') })
     if (typeof dir === 'string') {
       setProjectsFolder(dir)
       setFolder(dir)
@@ -76,7 +71,7 @@ export function Home({ open }: { open: (path: string) => void }) {
 
   const convert = async () => {
     setError(null)
-    const src = await pick({ directory: true, title: 'Legacy episode (with scene.py or index.html)' })
+    const src = await pick({ directory: true, title: t('home.dialog.legacy') })
     if (typeof src !== 'string') return
     const parent = folder ?? (await chooseFolder())
     if (!parent) return
@@ -88,18 +83,20 @@ export function Home({ open }: { open: (path: string) => void }) {
     }
   }
 
+  const [before, after] = tSplit('home.hero', 'mark')
+
   return (
     <div className="home">
       <h1 className="hero">
-        Let’s make a short <mark>{TRACKS[track].word}</mark>
+        {before}<mark>{t(TRACKS[track].word)}</mark>{after}
       </h1>
-      <p className="hero-sub muted">One idea, a handful of shots, each fixed on its own.</p>
+      <p className="hero-sub muted">{t('home.sub')}</p>
 
       <div className="composer">
         <textarea
           value={idea}
           rows={3}
-          placeholder={`${IDEAS[track === '2d' ? 0 : 1]} — what is the video about?`}
+          placeholder={t('home.placeholder', { example: t(TRACKS[track].idea) })}
           onChange={e => setIdea(e.target.value)}
           onKeyDown={e => {
             if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) create()
@@ -107,45 +104,45 @@ export function Home({ open }: { open: (path: string) => void }) {
         />
         <div className="composer-bar">
           <div className="chips">
-            <div className="chip-group" role="radiogroup" aria-label="Track">
-              {(['2d', '3d'] as Track[]).map(t => (
-                <button key={t} role="radio" aria-checked={track === t} className={`chip${track === t ? ' on' : ''}`}
-                  onClick={() => setTrack(t)} title={TRACKS[t].hint}>
-                  {t.toUpperCase()}
+            <div className="chip-group" role="radiogroup" aria-label={t('home.aria.track')}>
+              {(['2d', '3d'] as Track[]).map(tr => (
+                <button key={tr} role="radio" aria-checked={track === tr} className={`chip${track === tr ? ' on' : ''}`}
+                  onClick={() => setTrack(tr)} title={t(TRACKS[tr].hint)}>
+                  {tr.toUpperCase()}
                 </button>
               ))}
             </div>
-            <div className="chip-group" role="radiogroup" aria-label="Aspect">
+            <div className="chip-group" role="radiogroup" aria-label={t('home.aria.aspect')}>
               {(['9:16', '16:9'] as Aspect[]).map(a => (
                 <button key={a} role="radio" aria-checked={aspect === a} className={`chip${aspect === a ? ' on' : ''}`} onClick={() => setAspect(a)}>
                   <span className={`aspect-glyph a${a.replace(':', '')}`} /> {a}
                 </button>
               ))}
             </div>
-            <div className="chip-group" role="radiogroup" aria-label="Length">
+            <div className="chip-group" role="radiogroup" aria-label={t('home.aria.length')}>
               {LENGTHS.map(l => (
                 <button key={l} role="radio" aria-checked={length === l} className={`chip${length === l ? ' on' : ''}`} onClick={() => setLength(l)}>
-                  {l} s
+                  {t('unit.s', { n: l })}
                 </button>
               ))}
             </div>
           </div>
-          <button className="send" onClick={create} disabled={!idea.trim() || busy} aria-label="Create project" title="Create project (⌘↵)">
+          <button className="send" onClick={create} disabled={!idea.trim() || busy} aria-label={t('home.create')} title={t('home.create')}>
             {busy ? <span className="spinner" /> : <Icon name="send" size={18} />}
           </button>
         </div>
         <div className="composer-foot">
           <button className="link-muted" onClick={chooseFolder}>
-            <Icon name="folder" size={14} /> {folder ? folder : 'Choose where projects go'}
+            <Icon name="folder" size={14} /> {folder ?? t('home.chooseFolder')}
           </button>
-          <span className="muted small">{TRACKS[track].hint}</span>
+          <span className="muted small">{t(TRACKS[track].hint)}</span>
         </div>
       </div>
       {error && <p className="error">{error}</p>}
 
       {examples.length > 0 && (
         <section className="examples">
-          <span className="section-label">Start from an example</span>
+          <span className="section-label">{t('home.examples')}</span>
           {examples.map(p => (
             <button key={p.root} className="example" onClick={() => open(p.root)}>
               <div className={`example-poster${p.size.width > p.size.height ? ' wide' : ''}`}>
@@ -154,13 +151,13 @@ export function Home({ open }: { open: (path: string) => void }) {
               <div>
                 <strong><Icon name="spark" size={14} /> {p.title}</strong>
                 <span className="muted small">
-                  {p.track.toUpperCase()} · {p.shots} shots · {formatSeconds(p.duration)} · {p.size.width > p.size.height ? '16:9' : '9:16'}
+                  {p.track.toUpperCase()} · {t('common.shots', { n: p.shots })} · {formatSeconds(p.duration)} · {p.size.width > p.size.height ? '16:9' : '9:16'}
                 </span>
               </div>
             </button>
           ))}
           <button className="link-muted convert" onClick={convert}>
-            <Icon name="refresh" size={14} /> Convert a legacy episode (engine/video/explainers)…
+            <Icon name="refresh" size={14} /> {t('home.convert')}
           </button>
         </section>
       )}

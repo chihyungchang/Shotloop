@@ -1,16 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { api, fileUrl, type FixRecord, type Job, type Project, type Shot } from '../../api'
 import { Icon } from '../Icon'
+import type { Key } from '../../i18n/en'
+import { formatDate, t } from '../../i18n'
 
 // Plain-language fixes as a conversation with the agent, per shot
 // (docs/PRD.md §7.5, §7.6): what the person said, what the agent changed,
 // before/after stills and the checks, then the composer.
-const SUGGESTIONS = [
-  'The subject is too small to read',
-  'Something is hidden behind a prop',
-  'Keep the subject out of the caption zone',
-  'Nothing moves in this shot'
-]
+const SUGGESTIONS: Key[] = ['agent.s1', 'agent.s2', 'agent.s3', 'agent.s4']
 
 export function AgentPanel({ project, shot, jobs }: { project: Project; shot: Shot; jobs: Job[] }) {
   const [request, setRequest] = useState('')
@@ -37,34 +34,34 @@ export function AgentPanel({ project, shot, jobs }: { project: Project; shot: Sh
       <div className="agent-head">
         <span className="agent-avatar" aria-hidden><Icon name="spark" size={14} /></span>
         <div>
-          <strong>Agent</strong>
+          <strong>{t('agent.title')}</strong>
           <span className="muted small"> · {shot.id}</span>
         </div>
         <div className="spacer" />
-        <button className="small" onClick={check} disabled={!!active} title="Render stills, review them against the checklist, fix what it can">
-          <Icon name="check" size={13} /> Run checks
+        <button className="small" onClick={check} disabled={!!active} title={t('agent.runChecksHint')}>
+          <Icon name="check" size={13} /> {t('agent.runChecks')}
         </button>
       </div>
 
       <div className="thread" ref={thread}>
         {shot.fixes.length === 0 && !active && !failed && (
           <div className="thread-empty">
-            <p>Say what is wrong with this shot in plain words. The agent edits only this shot (or the world, and says so), renders stills and checks them before you look.</p>
+            <p>{t('agent.empty')}</p>
           </div>
         )}
         {shot.fixes.map((f, i) => <Exchange key={i} fix={f} />)}
         {active && (
           <>
-            <div className="bubble me">{active.kind === 'check' ? 'Run checks' : active.label.replace(/^Fix [^:]+: /, '')}</div>
+            <div className="bubble me">{active.kind === 'check' ? t('agent.runChecks') : active.label.replace(/^Fix [^:]+: /, '')}</div>
             <div className="bubble agent working">
-              <span className="status"><span className="spinner small" /> {active.state === 'queued' ? 'Queued' : 'Working'}</span>
+              <span className="status"><span className="spinner small" /> {t(active.state === 'queued' ? 'agent.queued' : 'agent.working')}</span>
               {active.log.slice(-5).map((l, i) => <div key={i} className="log-line">{l}</div>)}
             </div>
           </>
         )}
         {failed && !active && (
           <div className="bubble agent failed">
-            <span className="status">Couldn’t finish</span>
+            <span className="status">{t('agent.failed')}</span>
             <div className="small">{failed.error}</div>
           </div>
         )}
@@ -73,8 +70,8 @@ export function AgentPanel({ project, shot, jobs }: { project: Project; shot: Sh
       {shot.fixes.length === 0 && !active && (
         <div className="suggestions">
           {SUGGESTIONS.map(s => (
-            <button key={s} className="suggestion" onClick={() => setRequest(s)}>
-              <Icon name="spark" size={12} /> {s}
+            <button key={s} className="suggestion" onClick={() => setRequest(t(s))}>
+              <Icon name="spark" size={12} /> {t(s)}
             </button>
           ))}
         </div>
@@ -84,7 +81,7 @@ export function AgentPanel({ project, shot, jobs }: { project: Project; shot: Sh
         <textarea
           value={request}
           rows={3}
-          placeholder={`What’s wrong with ${shot.id}?`}
+          placeholder={t('agent.placeholder', { shot: shot.id })}
           onChange={e => setRequest(e.target.value)}
           onKeyDown={e => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -96,7 +93,7 @@ export function AgentPanel({ project, shot, jobs }: { project: Project; shot: Sh
         <div className="composer-bar">
           <span className="chip static"><Icon name="film" size={12} /> {shot.id}</span>
           <div className="spacer" />
-          <button className="send" onClick={() => send()} disabled={!request.trim() || !!active} aria-label="Send to the agent">
+          <button className="send" onClick={() => send()} disabled={!request.trim() || !!active} aria-label={t('agent.send')}>
             <Icon name="send" size={16} />
           </button>
         </div>
@@ -111,14 +108,14 @@ function Exchange({ fix }: { fix: FixRecord }) {
   return (
     <>
       <div className="bubble me">
-        {fix.task === 'fix' ? fix.request : 'Run checks'}
-        {fix.at && <span className="time">{new Date(fix.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>}
+        {fix.task === 'fix' ? fix.request : t('agent.runChecks')}
+        {fix.at && <span className="time">{formatDate(fix.at, { hour: '2-digit', minute: '2-digit' })}</span>}
       </div>
       <div className="bubble agent">
         <p>{fix.summary}</p>
         {fix.worldTouched && (
           <p className="world-note">
-            Changed the world ({fix.touched.filter(f => !f.startsWith('shots/')).join(', ')}): all {fix.affectedShots.length} shots re-render.
+            {t('agent.worldChanged', { files: fix.touched.filter(f => !f.startsWith('shots/')).join(', '), n: fix.affectedShots.length })}
           </p>
         )}
         {fix.touched.length > 0 && (
@@ -128,7 +125,7 @@ function Exchange({ fix }: { fix: FixRecord }) {
           <div className="ba">
             {(['before', 'after'] as const).map(k => (
               <div key={k}>
-                <span className="small muted">{k === 'before' ? 'Before' : 'After'}</span>
+                <span className="small muted">{t(k === 'before' ? 'agent.before' : 'agent.after')}</span>
                 <div className="ba-row">{fix[k]!.map(f => <img key={f} src={fileUrl(f)} alt={k} onClick={() => api.openPath(f)} />)}</div>
               </div>
             ))}
@@ -137,7 +134,7 @@ function Exchange({ fix }: { fix: FixRecord }) {
         {own && (
           <span className={`check-pill ${failed.length ? 'bad' : 'ok'}`}>
             <Icon name={failed.length ? 'x' : 'check'} size={12} />
-            {failed.length ? `${failed.length} check${failed.length > 1 ? 's' : ''} left: ${failed.map(r => r.rule).join(', ')}` : 'All checks pass'}
+            {failed.length ? t('agent.left', { n: failed.length, rules: failed.map(r => r.rule).join(', ') }) : t('agent.allPass')}
           </span>
         )}
       </div>

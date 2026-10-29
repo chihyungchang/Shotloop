@@ -7,6 +7,7 @@ import { Sidebar, type Page } from './components/Sidebar'
 import { Studio } from './components/studio/Studio'
 import { remember } from './recent'
 import { useTheme } from './theme/theme'
+import { useLanguage } from './i18n'
 
 // Two layouts, as in open-design: the workspace (sidebar + Home, All
 // projects, Settings) and the Studio, one project full-window.
@@ -17,6 +18,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const root = useRef<string | null>(null)
   const theme = useTheme()
+  // Changing the language re-renders the whole tree with the new strings
+  const language = useLanguage()
 
   const refresh = useCallback(async () => {
     if (!root.current) return
@@ -70,16 +73,16 @@ export default function App() {
     }
   }, [refresh])
 
-  if (project) return <Studio project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} />
+  if (project) return <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} />
 
   return (
-    <div className="workspace-shell">
+    <div className="workspace-shell" key={language.lang}>
       <Sidebar page={page} setPage={setPage} open={open} jobs={jobs} theme={theme} />
       <main className="workspace-main">
         {error && <p className="error banner">{error}</p>}
         {page === 'home' && <Home open={open} />}
         {page === 'projects' && <Projects open={open} />}
-        {page === 'settings' && <SettingsPage theme={theme} />}
+        {page === 'settings' && <SettingsPage theme={theme} language={language} />}
       </main>
     </div>
   )

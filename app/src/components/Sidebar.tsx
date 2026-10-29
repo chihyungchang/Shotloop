@@ -4,13 +4,15 @@ import { baseName, readRecent } from '../recent'
 import type { useTheme } from '../theme/theme'
 import { Icon } from './Icon'
 import { ThemeToggle } from './ThemeToggle'
+import type { Key } from '../i18n/en'
+import { t } from '../i18n'
 
 export type Page = 'home' | 'projects' | 'settings'
 
-const NAV: [Page, string, Parameters<typeof Icon>[0]['name']][] = [
-  ['home', 'Home', 'home'],
-  ['projects', 'All projects', 'grid'],
-  ['settings', 'Settings', 'settings']
+const NAV: [Page, Key, Parameters<typeof Icon>[0]['name']][] = [
+  ['home', 'nav.home', 'home'],
+  ['projects', 'nav.projects', 'grid'],
+  ['settings', 'nav.settings', 'settings']
 ]
 
 export function Sidebar({ page, setPage, open, jobs, theme }: {
@@ -24,7 +26,7 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
   const running = jobs.filter(j => j.state === 'running' || j.state === 'queued').length
 
   const openFolder = async () => {
-    const dir = await pick({ directory: true, title: 'Open a Shotloop project' })
+    const dir = await pick({ directory: true, title: t('dialog.openProject') })
     if (typeof dir === 'string') open(dir)
   }
 
@@ -37,16 +39,16 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
       <nav>
         {NAV.map(([id, label, icon]) => (
           <button key={id} className={`nav-item${page === id ? ' on' : ''}`} onClick={() => setPage(id)}>
-            <Icon name={icon} /> {label}
+            <Icon name={icon} /> {t(label)}
           </button>
         ))}
         <button className="nav-item" onClick={openFolder}>
-          <Icon name="folder" /> Open folder…
+          <Icon name="folder" /> {t('nav.openFolder')}
         </button>
       </nav>
       {recent.length > 0 && (
         <div className="recent">
-          <span className="section-label">Recent projects</span>
+          <span className="section-label">{t('nav.recent')}</span>
           {recent.slice(0, 8).map(p => (
             <button key={p} className="nav-item small" onClick={() => open(p)} title={p}>
               <Icon name="film" /> <span className="ellipsis">{baseName(p)}</span>
@@ -56,8 +58,8 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
       )}
       <div className="sidebar-foot">
         {running > 0
-          ? <span className="small"><span className="dot info pulse" /> {running} job{running > 1 ? 's' : ''} in the queue</span>
-          : <span className="small muted">Fix one shot, not the whole film.</span>}
+          ? <span className="small"><span className="dot info pulse" /> {t('sidebar.queue', { n: running })}</span>
+          : <span className="small muted">{t('sidebar.tagline')}</span>}
         <ThemeToggle pref={theme.pref} setPref={theme.setPref} />
       </div>
     </aside>

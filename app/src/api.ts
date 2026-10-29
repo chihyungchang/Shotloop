@@ -3,6 +3,7 @@
 
 import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
+import { lang } from './i18n'
 
 export type Mode = 'draft' | 'final'
 export type CacheState = 'cached' | 'stale' | 'missing'
@@ -114,8 +115,8 @@ export interface Job {
 export type Spec =
   | { kind: 'render'; project: string; shot: string; mode: Mode; stills: boolean }
   | { kind: 'export'; project: string; mode: Mode; aspects: string[] }
-  | { kind: 'fix'; project: string; shot: string; request: string }
-  | { kind: 'check'; project: string; shot: string }
+  | { kind: 'fix'; project: string; shot: string; request: string; lang?: string }
+  | { kind: 'check'; project: string; shot: string; lang?: string }
   | { kind: 'publish'; project: string }
 
 export interface Tool {
@@ -179,7 +180,8 @@ export const api = {
   listProjects: (paths: string[], examples = false) => invoke<ProjectSummary[]>('list_projects', { paths, examples }),
   readText: (project: string, path: string) => invoke<string>('read_text', { project, path }),
   writeText: (project: string, path: string, content: string) => invoke<void>('write_text', { project, path, content }),
-  enqueue: (spec: Spec) => invoke<number>('enqueue', { spec }),
+  // Agent jobs reply in the UI language
+  enqueue: (spec: Spec) => invoke<number>('enqueue', { spec: spec.kind === 'fix' || spec.kind === 'check' ? { ...spec, lang: lang() } : spec }),
   jobs: () => invoke<Job[]>('jobs'),
   cancel: (id: number) => invoke<void>('cancel_job', { id }),
   clearJobs: () => invoke<void>('clear_jobs'),

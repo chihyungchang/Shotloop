@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, relPath, type Project, type Shot } from '../../api'
+import { formatDate, t } from '../../i18n'
 
 // Under the filmstrip, like a deck's speaker notes: what the shot must
 // show (notes.md) and how it fared against the checklist
@@ -18,12 +19,12 @@ export function ShotNotes({ project, shot }: { project: Project; shot: Shot }) {
   return (
     <div className="shot-notes">
       <div className="notes-col">
-        <span className="section-label">Shot {index + 1} / {project.shots.length} · must show</span>
-        <p className="small">{must || <span className="muted">Nothing written yet (notes.md).</span>}</p>
+        <span className="section-label">{t('notes.mustShow', { i: index + 1, n: project.shots.length })}</span>
+        <p className="small">{must || <span className="muted">{t('notes.empty')}</span>}</p>
       </div>
       <div className="notes-col">
         <span className="section-label">
-          Checks{checks ? ` · ${new Date(checks.at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}` : ''}
+          {t('notes.checks')}{checks ? ` · ${formatDate(checks.at, { dateStyle: 'short', timeStyle: 'short' })}` : ''}
         </span>
         {checks ? (
           <ul className="check-list">
@@ -34,7 +35,7 @@ export function ShotNotes({ project, shot }: { project: Project; shot: Shot }) {
             ))}
           </ul>
         ) : (
-          <p className="small muted">Not checked yet. Run checks from the agent panel.</p>
+          <p className="small muted">{t('notes.notChecked')}</p>
         )}
       </div>
     </div>

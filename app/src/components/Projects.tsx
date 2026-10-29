@@ -3,6 +3,7 @@ import { api, fileUrl, type ProjectSummary } from '../api'
 import { formatSeconds } from '../model'
 import { forget, readRecent } from '../recent'
 import { Icon } from './Icon'
+import { formatDate, t } from '../i18n'
 
 // All projects: the recently opened ones and the examples, as cards
 // with a poster still (open-design's project grid)
@@ -22,14 +23,14 @@ export function Projects({ open }: { open: (path: string) => void }) {
 
   return (
     <div className="projects-page">
-      <h1>All projects</h1>
+      <h1>{t('projects.title')}</h1>
       <div className="tabs-row">
-        <button className={`pill${tab === 'recent' ? ' on' : ''}`} onClick={() => setTab('recent')}>Recently opened</button>
-        <button className={`pill${tab === 'examples' ? ' on' : ''}`} onClick={() => setTab('examples')}>Examples</button>
+        <button className={`pill${tab === 'recent' ? ' on' : ''}`} onClick={() => setTab('recent')}>{t('projects.recent')}</button>
+        <button className={`pill${tab === 'examples' ? ' on' : ''}`} onClick={() => setTab('examples')}>{t('projects.examples')}</button>
       </div>
-      {items === null && <p className="muted">Loading…</p>}
+      {items === null && <p className="muted">{t('common.loading')}</p>}
       {items?.length === 0 && (
-        <p className="muted">{tab === 'recent' ? 'Nothing opened yet. Start one on Home, or open an example.' : 'No examples found.'}</p>
+        <p className="muted">{t(tab === 'recent' ? 'projects.emptyRecent' : 'projects.emptyExamples')}</p>
       )}
       <div className="card-grid">
         {items?.map(p => (
@@ -42,7 +43,7 @@ export function Projects({ open }: { open: (path: string) => void }) {
             </div>
             <strong className="ellipsis">{p.title}</strong>
             <div className="card-meta">
-              <span className="muted small">{p.shots} shots · {new Date(p.changed).toLocaleDateString()}</span>
+              <span className="muted small">{t('common.shots', { n: p.shots })} · {formatDate(p.changed, { dateStyle: 'medium' })}</span>
               <span className="tag">{p.track.toUpperCase()} · {p.size.width > p.size.height ? '16:9' : '9:16'}</span>
             </div>
           </button>

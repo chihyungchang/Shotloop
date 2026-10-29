@@ -15,7 +15,7 @@ import { parseArgs } from 'node:util'
 import { renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
 import { emit, setJson } from './events.ts'
 import { MODELS, runAgent } from './loop.ts'
-import { checkSystem, fixSystem, publishSystem } from './prompts.ts'
+import { checkSystem, fixSystem, publishSystem, replyLanguage } from './prompts.ts'
 import type { ToolContext } from './tools.ts'
 
 const { values, positionals } = parseArgs({
@@ -25,6 +25,7 @@ const { values, positionals } = parseArgs({
     request: { type: 'string' },
     model: { type: 'string' },
     'review-only': { type: 'boolean' },
+    lang: { type: 'string' },
     json: { type: 'boolean' }
   }
 })
@@ -111,7 +112,7 @@ async function shotTask(kind: 'fix' | 'check') {
   const summary = await runAgent({
     model: values.model ?? (kind === 'fix' ? MODELS.code : MODELS.routine),
     effort: kind === 'fix' ? 'high' : 'medium',
-    system: kind === 'fix' ? fixSystem() : checkSystem(),
+    system: (kind === 'fix' ? fixSystem() : checkSystem()) + replyLanguage(values.lang),
     prompt: `${ask}\n\n${shotBrief(project, shot)}`,
     ctx
   })

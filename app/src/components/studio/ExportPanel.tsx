@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, fileUrl, type ExportResult, type Job, type Mode, type Project } from '../../api'
 import { estimate, formatSeconds } from '../../model'
+import { t } from '../../i18n'
 
 const ASPECTS = ['9:16', '16:9']
 
@@ -36,7 +37,7 @@ export function ExportPanel({ project, jobs }: { project: Project; jobs: Job[] }
     <div className="export">
       <div className="segmented">
         {(['draft', 'final'] as Mode[]).map(m => (
-          <button key={m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>{m === 'draft' ? 'Draft' : 'Final'}</button>
+          <button key={m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>{t(m === 'draft' ? 'mode.Draft' : 'mode.Final')}</button>
         ))}
       </div>
       <div className="row gap">
@@ -53,39 +54,39 @@ export function ExportPanel({ project, jobs }: { project: Project; jobs: Job[] }
       </div>
       <p className="small">
         {pending.length
-          ? <>Renders {pending.length} of {project.shots.length} shots first (~{formatSeconds(time)}): {pending.map(s => s.id).join(', ')}.</>
-          : <>All {project.shots.length} shots are cached for {mode}: export only joins them.</>}
+          ? t('export.renders', { n: pending.length, total: project.shots.length, time: formatSeconds(time), ids: pending.map(s => s.id).join(', ') })
+          : t('export.allCached', { total: project.shots.length, mode: t(`mode.${mode}`) })}
       </p>
       <button className="primary" onClick={run} disabled={!aspects.length || !!busy}>
-        {busy ? 'Exporting…' : `Export ${mode} MP4`}
+        {busy ? t('export.exporting') : t('export.button', { mode: t(`mode.${mode}`) })}
       </button>
       {exportJob?.state === 'failed' && <pre className="error-box small">{exportJob.error}</pre>}
 
       {latest && (
         <div className="latest">
-          <h3>Latest export <span className="muted small">{latest.mode} · {latest.at}</span></h3>
+          <h3>{t('export.latest')} <span className="muted small">{t(`mode.${latest.mode}`)} · {latest.at}</span></h3>
           <ul>
             {latest.films.map(f => (
               <li key={f.file}>
                 <button className="link" onClick={() => api.openPath(f.file)}>{f.aspect} MP4</button>
                 {' · '}
-                <button className="link" onClick={() => api.reveal(f.file)}>Show</button>
+                <button className="link" onClick={() => api.reveal(f.file)}>{t('export.show')}</button>
               </li>
             ))}
           </ul>
           {latest.cover && (
-            <img className="cover" src={fileUrl(latest.cover)} alt="Cover" onClick={() => api.openPath(latest.cover!)} />
+            <img className="cover" src={fileUrl(latest.cover)} alt={t('export.cover')} onClick={() => api.openPath(latest.cover!)} />
           )}
         </div>
       )}
 
-      <h3>Publish copy</h3>
-      <p className="muted small">publish.md: the post for YouTube Shorts, TikTok and Reels, from the copy's facts and sources only.</p>
+      <h3>{t('export.publish')}</h3>
+      <p className="muted small">{t('export.publishNote')}</p>
       <button
         onClick={() => api.enqueue({ kind: 'publish', project: project.root })}
         disabled={publishJob?.state === 'running' || publishJob?.state === 'queued'}
       >
-        {publishJob?.state === 'running' ? 'Writing…' : publish ? 'Rewrite with the agent' : 'Write with the agent'}
+        {publishJob?.state === 'running' ? t('export.writing') : t(publish ? 'export.rewrite' : 'export.write')}
       </button>
       {publishJob?.state === 'failed' && <pre className="error-box small">{publishJob.error}</pre>}
       {publish && <pre className="publish">{publish}</pre>}

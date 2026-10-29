@@ -10,6 +10,7 @@ import { Filmstrip } from './Filmstrip'
 import { QueuePanel } from './QueuePanel'
 import { ShotNotes } from './ShotNotes'
 import { Stage } from './Stage'
+import { t } from '../../i18n'
 
 type Drawer = 'queue' | 'export' | null
 
@@ -53,34 +54,34 @@ export function Studio({ project, jobs, refresh, close, theme }: {
   return (
     <div className={`studio${drawer ? ' with-drawer' : ''}`}>
       <header className="studio-top">
-        <button className="icon-button" onClick={close} title="All projects" aria-label="Back to projects">
+        <button className="icon-button" onClick={close} title={t('studio.back')} aria-label={t('studio.back')}>
           <Icon name="back" />
         </button>
         <div className="studio-title">
           <strong className="ellipsis">{project.title}</strong>
           <span className="muted small">
-            {project.track.toUpperCase()} · {project.size.width > project.size.height ? '16:9' : '9:16'} · {project.duration.toFixed(1)} s · {project.shots.length} shots
+            {project.track.toUpperCase()} · {project.size.width > project.size.height ? '16:9' : '9:16'} · {formatSeconds(project.duration)} · {t('common.shots', { n: project.shots.length })}
           </span>
         </div>
         <div className="spacer" />
-        <div className="segmented" role="radiogroup" aria-label="Render mode">
+        <div className="segmented" role="radiogroup" aria-label={t('studio.modeAria')}>
           {(['draft', 'final'] as Mode[]).map(m => (
             <button key={m} role="radio" aria-checked={mode === m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>
-              {m === 'draft' ? 'Draft' : 'Final'}
+              {t(m === 'draft' ? 'mode.Draft' : 'mode.Final')}
             </button>
           ))}
         </div>
         <button onClick={renderPending} disabled={!pending.length} title={pending.map(s => s.id).join(', ')}>
           <Icon name="refresh" size={14} />
-          {pending.length ? ` Render ${pending.length} changed · ~${formatSeconds(pendingTime)}` : ' All shots cached'}
+          {' '}{pending.length ? t('studio.renderChanged', { n: pending.length, time: formatSeconds(pendingTime) }) : t('studio.allCached')}
         </button>
         <button className={drawer === 'queue' ? 'on' : ''} onClick={() => toggle('queue')}>
-          <Icon name="queue" size={14} /> Queue{active.length ? <span className="count">{active.length}</span> : null}
+          <Icon name="queue" size={14} /> {t('studio.queue')}{active.length ? <span className="count">{active.length}</span> : null}
         </button>
         <button className="dark" onClick={() => toggle('export')}>
-          <Icon name="export" size={14} /> Export
+          <Icon name="export" size={14} /> {t('studio.export')}
         </button>
-        <button className="ghost small" onClick={() => api.reveal(project.root)} title={project.root}>Finder</button>
+        <button className="ghost small" onClick={() => api.reveal(project.root)} title={project.root}>{t('studio.finder')}</button>
         <ThemeToggle pref={theme.pref} setPref={theme.setPref} />
       </header>
 
@@ -91,7 +92,7 @@ export function Studio({ project, jobs, refresh, close, theme }: {
       <section className="center">
         {shot && view
           ? <Stage key={`stage-${shot.id}`} project={project} shot={shot} view={view} mode={mode} refresh={refresh} />
-          : <div className="stage empty">No shots.</div>}
+          : <div className="stage empty">{t('studio.noShots')}</div>}
         <Filmstrip project={project} views={views} mode={mode} selected={selected} onSelect={setSelected} />
         {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} />}
       </section>
@@ -99,8 +100,8 @@ export function Studio({ project, jobs, refresh, close, theme }: {
       {drawer && (
         <aside className="drawer">
           <div className="drawer-head">
-            <strong>{drawer === 'queue' ? 'Render queue' : 'Export'}</strong>
-            <button className="icon-button" onClick={() => setDrawer(null)} aria-label="Close"><Icon name="x" /></button>
+            <strong>{t(drawer === 'queue' ? 'drawer.queue' : 'drawer.export')}</strong>
+            <button className="icon-button" onClick={() => setDrawer(null)} aria-label={t('common.close')}><Icon name="x" /></button>
           </div>
           {drawer === 'queue' ? <QueuePanel project={project} jobs={jobs} /> : <ExportPanel project={project} jobs={jobs} />}
         </aside>

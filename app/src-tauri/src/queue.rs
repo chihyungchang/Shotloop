@@ -27,8 +27,8 @@ const LOG_LINES: usize = 80;
 pub enum Spec {
     Render { project: String, shot: String, mode: String, stills: bool },
     Export { project: String, mode: String, aspects: Vec<String> },
-    Fix { project: String, shot: String, request: String },
-    Check { project: String, shot: String },
+    Fix { project: String, shot: String, request: String, lang: Option<String> },
+    Check { project: String, shot: String, lang: Option<String> },
     Publish { project: String },
 }
 
@@ -90,12 +90,19 @@ impl Spec {
                 }
                 ("engine/shotloop/cli.mjs", a)
             }
-            Spec::Fix { project, shot, request } => (
-                "agent/src/main.ts",
-                vec![s("fix"), project.clone(), s("--shot"), shot.clone(), s("--request"), request.clone()],
-            ),
-            Spec::Check { project, shot } => {
-                ("agent/src/main.ts", vec![s("check"), project.clone(), s("--shot"), shot.clone()])
+            Spec::Fix { project, shot, request, lang } => {
+                let mut a = vec![s("fix"), project.clone(), s("--shot"), shot.clone(), s("--request"), request.clone()];
+                if let Some(l) = lang {
+                    a.extend([s("--lang"), l.clone()]);
+                }
+                ("agent/src/main.ts", a)
+            }
+            Spec::Check { project, shot, lang } => {
+                let mut a = vec![s("check"), project.clone(), s("--shot"), shot.clone()];
+                if let Some(l) = lang {
+                    a.extend([s("--lang"), l.clone()]);
+                }
+                ("agent/src/main.ts", a)
             }
             Spec::Publish { project } => ("agent/src/main.ts", vec![s("publish"), project.clone()]),
         }
