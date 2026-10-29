@@ -202,13 +202,5 @@ export const zhCN: Record<Key, string> = {
   'ai.connected.one': '已连接 · 1 个模型',
   'ai.visionNote': '检查要看静帧：请选择支持视觉和工具调用的模型（如 qwen2.5vl、gemma3、llama3.2-vision）。',
   'ai.key': 'API 密钥',
-  'ai.keyOptional': '可选',
-
-  'settings.accent': '主题色',
-  'accent.teal': '青绿',
-  'accent.azure': '天蓝',
-  'accent.amber': '琥珀',
-  'accent.coral': '珊瑚橙',
-  'accent.violet': '紫',
-  'accent.lime': '青柠'
+  'ai.keyOptional': '可选'
 }

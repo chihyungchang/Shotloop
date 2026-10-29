@@ -203,15 +203,7 @@ export const en = {
   'ai.connected.one': 'Connected · 1 model',
   'ai.visionNote': 'Checks look at stills: choose a vision model (e.g. qwen2.5vl, gemma3, llama3.2-vision) with tool calling.',
   'ai.key': 'API key',
-  'ai.keyOptional': 'Optional',
-
-  'settings.accent': 'Accent colour',
-  'accent.teal': 'Teal',
-  'accent.azure': 'Azure',
-  'accent.amber': 'Amber',
-  'accent.coral': 'Coral',
-  'accent.violet': 'Violet',
-  'accent.lime': 'Lime'
+  'ai.keyOptional': 'Optional'
 }
 
 export type Key = keyof typeof en

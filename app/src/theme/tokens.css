@@ -2,8 +2,7 @@
    tight radii, one accent that never competes with the footage.
 
    Components use only these tokens, never raw values. <html data-theme>
-   picks light or dark (theme.ts resolves "system" before first paint);
-   <html data-accent> picks the accent.
+   picks light or dark (theme.ts resolves "system" before first paint).
 
    Ground      --bg (window, sidebar), --surface (panels), --surface-2
                (insets, inputs), --surface-hover
@@ -17,7 +16,6 @@
                --nav-on-* (the current page), --focus
    Action      --primary / --primary-fg: the one main button per view
    Selected    --seg-on-*: the chosen segment of a segmented control
-   Logo        --logo-play, --logo-loop: the mark's two plays
    Stage       --stage*: the canvas frames are judged on, a dark graphite
                in both themes so colours read true and black frames show
                their edge
@@ -106,52 +104,15 @@
   --shadow-md: none;
 }
 
-/* ---------------------------------------------------------- accents
-   Each accent: a fill, text on the fill, a tint, the accent as text and
-   the current page's text, in light and in dark. */
+/* ---------------------------------------------------------- accent
+   One accent, teal, from the logo's aurora: a fill, text on the fill, a
+   tint, the accent as text and the current page's text. */
 
-:root,
-:root[data-accent='teal'] {
+:root {
   --accent: #0f766e; --accent-fg: #ffffff; --accent-soft: #d5f2ee; --accent-text: #0b766d; --nav-on-fg: #0b5f58;
 }
-:root[data-theme='dark'],
-:root[data-accent='teal'][data-theme='dark'] {
+:root[data-theme='dark'] {
   --accent: #2dd4bf; --accent-fg: #06201d; --accent-soft: #113f3a; --accent-text: #5eead4; --nav-on-fg: #99f6e4;
-}
-
-:root[data-accent='azure'] {
-  --accent: #0369a1; --accent-fg: #ffffff; --accent-soft: #dceffd; --accent-text: #0369a1; --nav-on-fg: #075985;
-}
-:root[data-accent='azure'][data-theme='dark'] {
-  --accent: #38bdf8; --accent-fg: #04202e; --accent-soft: #0f3550; --accent-text: #7dd3fc; --nav-on-fg: #bae6fd;
-}
-
-:root[data-accent='amber'] {
-  --accent: #c96a04; --accent-fg: #1c1300; --accent-soft: #fdf0c8; --accent-text: #a14a07; --nav-on-fg: #7c3a0a;
-}
-:root[data-accent='amber'][data-theme='dark'] {
-  --accent: #fbbf24; --accent-fg: #1c1300; --accent-soft: #42300b; --accent-text: #fcd34d; --nav-on-fg: #fde68a;
-}
-
-:root[data-accent='coral'] {
-  --accent: #c2410c; --accent-fg: #ffffff; --accent-soft: #fde7d6; --accent-text: #b93e09; --nav-on-fg: #9a3412;
-}
-:root[data-accent='coral'][data-theme='dark'] {
-  --accent: #fb923c; --accent-fg: #1f0b00; --accent-soft: #46200b; --accent-text: #fdba74; --nav-on-fg: #fed7aa;
-}
-
-:root[data-accent='violet'] {
-  --accent: #7c3aed; --accent-fg: #ffffff; --accent-soft: #ebe5fd; --accent-text: #6d28d9; --nav-on-fg: #5b21b6;
-}
-:root[data-accent='violet'][data-theme='dark'] {
-  --accent: #a78bfa; --accent-fg: #1a0b40; --accent-soft: #2f2160; --accent-text: #c4b5fd; --nav-on-fg: #ddd6fe;
-}
-
-:root[data-accent='lime'] {
-  --accent: #4d7c0f; --accent-fg: #ffffff; --accent-soft: #e6f7c4; --accent-text: #3f6212; --nav-on-fg: #365314;
-}
-:root[data-accent='lime'][data-theme='dark'] {
-  --accent: #a3e635; --accent-fg: #0b1400; --accent-soft: #263a0c; --accent-text: #bef264; --nav-on-fg: #d9f99d;
 }
 
 /* ---------------------------------------------------------- derived */
@@ -164,9 +125,6 @@
   --mark-bg: var(--accent-soft);
   --mark-fg: var(--accent-text);
   --focus: var(--accent);
-  /* The logo: the forward play in the accent, the back play in graphite */
-  --logo-play: var(--accent);
-  --logo-loop: var(--border-strong);
   --success-soft: color-mix(in srgb, var(--success) 13%, transparent);
   --warning-soft: color-mix(in srgb, var(--warning) 14%, transparent);
   --danger-soft: color-mix(in srgb, var(--danger) 12%, transparent);

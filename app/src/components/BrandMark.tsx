@@ -1,31 +1,14 @@
-import { useId } from 'react'
-
-// The Shotloop mark (design/logo/mark.svg): a forward play and a back
-// play woven like two links, in the accent and graphite (--logo-*).
-// Ids are made unique so several marks can share a page.
-const A = 'M48 48Q48 36 58.65 41.53L141.35 84.47Q152 90 141.35 95.53L58.65 138.47Q48 144 48 132Z'
-const B = 'M152 68Q152 56 141.35 61.53L58.65 104.47Q48 110 58.65 115.53L141.35 158.47Q152 164 152 152Z'
-
-export function BrandMark({ size = 22 }: { size?: number }) {
-  const id = 'mk' + useId().replace(/[^\w-]/g, '')
-  const ref = (name: string) => `url(#${id}-${name})`
+// The Shotloop mark (design/logo/mark.svg): an S built from six shots
+// and turns, mint to sky to violet. Fixed colours, the same in both themes.
+export function BrandMark({ size = 18 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="30 30 140 140" aria-hidden>
-      <defs>
-        <clipPath id={`${id}-left`}><rect width="100" height="200" /></clipPath>
-        <clipPath id={`${id}-right`}><rect x="100" width="100" height="200" /></clipPath>
-        {/* Over on the right, the back play cuts the forward one; over on the left, the other way round */}
-        <mask id={`${id}-cutA`} maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
-          <rect width="200" height="200" fill="#fff" />
-          <path clipPath={ref('right')} d={B} stroke="#000" strokeWidth="7" strokeLinejoin="round" />
-        </mask>
-        <mask id={`${id}-cutB`} maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
-          <rect width="200" height="200" fill="#fff" />
-          <path clipPath={ref('left')} d={A} stroke="#000" strokeWidth="7" strokeLinejoin="round" />
-        </mask>
-      </defs>
-      <path mask={ref('cutA')} fill="var(--logo-play)" d={A} />
-      <path mask={ref('cutB')} fill="var(--logo-loop)" d={B} />
+    <svg width={size} height={size} viewBox="34 34 132 132" aria-hidden>
+      <rect x="100" y="40" width="40" height="40" rx="6" fill="#a7f3d0" transform="translate(120 60) scale(.875) translate(-120 -60)" />
+      <path d="M100 80 L60 80 A40 40 0 0 1 100 40 Z" fill="#5eead4" transform="translate(80 60) scale(.875) translate(-80 -60)" />
+      <path d="M100 80 L60 80 A40 40 0 0 0 100 120 Z" fill="#38bdf8" transform="translate(80 100) scale(.875) translate(-80 -100)" />
+      <path d="M100 120 L140 120 A40 40 0 0 0 100 80 Z" fill="#60a5fa" transform="translate(120 100) scale(.875) translate(-120 -100)" />
+      <path d="M100 120 L140 120 A40 40 0 0 1 100 160 Z" fill="#818cf8" transform="translate(120 140) scale(.875) translate(-120 -140)" />
+      <rect x="60" y="120" width="40" height="40" rx="6" fill="#a78bfa" transform="translate(80 140) scale(.875) translate(-80 -140)" />
     </svg>
   )
 }

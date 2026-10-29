@@ -1,12 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="30 30 140 140">
-  <!-- Shotloop: a forward play (the accent) and a back play (graphite), woven like two links. For light grounds. -->
-  <defs>
-    <clipPath id="left"><rect width="100" height="200"/></clipPath>
-    <clipPath id="right"><rect x="100" width="100" height="200"/></clipPath>
-    <!-- Over on the right, the back play cuts the forward one; over on the left, the other way round -->
-    <mask id="cutA" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200"><rect width="200" height="200" fill="#fff"/><path clip-path="url(#right)" d="M152 68Q152 56 141.35 61.53L58.65 104.47Q48 110 58.65 115.53L141.35 158.47Q152 164 152 152Z" stroke="#000" stroke-width="7" stroke-linejoin="round"/></mask>
-    <mask id="cutB" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200"><rect width="200" height="200" fill="#fff"/><path clip-path="url(#left)" d="M48 48Q48 36 58.65 41.53L141.35 84.47Q152 90 141.35 95.53L58.65 138.47Q48 144 48 132Z" stroke="#000" stroke-width="7" stroke-linejoin="round"/></mask>
-  </defs>
-  <path mask="url(#cutA)" fill="#0f766e" d="M48 48Q48 36 58.65 41.53L141.35 84.47Q152 90 141.35 95.53L58.65 138.47Q48 144 48 132Z"/>
-  <path mask="url(#cutB)" fill="#87909a" d="M152 68Q152 56 141.35 61.53L58.65 104.47Q48 110 58.65 115.53L141.35 158.47Q152 164 152 152Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="34 34 132 132">
+  <!-- Shotloop: an S built from six shots and turns, mint to sky to violet -->
+  <rect x="100" y="40" width="40" height="40" rx="6" fill="#a7f3d0" transform="translate(120 60) scale(.875) translate(-120 -60)"/>
+  <path d="M100 80 L60 80 A40 40 0 0 1 100 40 Z" fill="#5eead4" transform="translate(80 60) scale(.875) translate(-80 -60)"/>
+  <path d="M100 80 L60 80 A40 40 0 0 0 100 120 Z" fill="#38bdf8" transform="translate(80 100) scale(.875) translate(-80 -100)"/>
+  <path d="M100 120 L140 120 A40 40 0 0 0 100 80 Z" fill="#60a5fa" transform="translate(120 100) scale(.875) translate(-120 -100)"/>
+  <path d="M100 120 L140 120 A40 40 0 0 1 100 160 Z" fill="#818cf8" transform="translate(120 140) scale(.875) translate(-120 -140)"/>
+  <rect x="60" y="120" width="40" height="40" rx="6" fill="#a78bfa" transform="translate(80 140) scale(.875) translate(-80 -140)"/>
 </svg>

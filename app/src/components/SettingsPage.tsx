@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, EMPTY_SETTINGS, type Settings } from '../api'
 import { LANGS, t, type LangPref, type useLanguage } from '../i18n'
-import { ACCENTS, type useTheme } from '../theme/theme'
+import type { useTheme } from '../theme/theme'
 import { AiSettings } from './AiSettings'
 import { Setup } from './Setup'
 import { ThemeToggle } from './ThemeToggle'
@@ -44,15 +44,6 @@ export function SettingsPage({ theme, language }: {
         <div className="field-row">
           <span>{t('settings.mode')}</span>
           <ThemeToggle pref={theme.pref} setPref={theme.setPref} />
-        </div>
-        <div className="field-row">
-          <span>{t('settings.accent')}</span>
-          <div className="swatches" role="radiogroup" aria-label={t('settings.accent')}>
-            {ACCENTS.map(a => (
-              <button key={a.id} role="radio" aria-checked={theme.accent === a.id} title={t(`accent.${a.id}`)} aria-label={t(`accent.${a.id}`)}
-                className={`swatch${theme.accent === a.id ? ' on' : ''}`} style={{ background: a.swatch }} onClick={() => theme.setAccent(a.id)} />
-            ))}
-          </div>
         </div>
         <div className="field-row">
           <span>{t('settings.language')}</span>

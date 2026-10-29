@@ -12,7 +12,6 @@
         const pref = get('shotloop.theme') || 'system'
         const dark = pref === 'dark' || (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
         document.documentElement.dataset.theme = dark ? 'dark' : 'light'
-        document.documentElement.dataset.accent = get('shotloop.accent') || 'teal'
       })()
     </script>
   </head>

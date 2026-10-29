@@ -66,7 +66,7 @@ textarea { resize: vertical; }
 .workspace-shell { display: grid; grid-template-columns: 232px 1fr; height: 100%; }
 .sidebar { display: flex; flex-direction: column; gap: 14px; padding: 16px 12px; overflow: auto; }
 .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 8px; font-size: 15px; }
-.brand-mark { display: grid; place-items: center; }
+.brand-mark { width: 26px; height: 26px; border-radius: var(--r-md); background: var(--stage); display: grid; place-items: center; }
 .sidebar nav, .recent { display: flex; flex-direction: column; gap: 2px; }
 .recent .section-label { padding: 0 10px; margin-top: 8px; }
 .nav-item { border: 0; background: transparent; justify-content: flex-start; padding: 8px 10px; border-radius: var(--r-md); color: var(--text); width: 100%; }
@@ -282,6 +282,3 @@ details { margin: 6px 0 10px; }
 .option { justify-content: flex-start; gap: 8px; border-radius: var(--r-md); margin-top: var(--cell-overlap); }
 .option.on { background: var(--accent-soft); border-color: var(--accent-line); position: relative; z-index: 1; }
 .option-meta { margin-left: auto; overflow: hidden; text-overflow: ellipsis; }
-.swatches { display: flex; gap: 8px; }
-.swatch { width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--border-strong); }
-.swatch.on { box-shadow: 0 0 0 2px var(--text); }
