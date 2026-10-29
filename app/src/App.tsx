@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { api, onProjectChanged, onQueue, type Job, type Project } from './api'
+import { api, onCheckUpdate, onProjectChanged, onQueue, type Job, type Project } from './api'
 import { Home } from './components/Home'
 import { LibraryPage } from './components/LibraryPage'
 import { PlanPage } from './components/plan/PlanPage'
@@ -8,6 +8,7 @@ import { SettingsPage, type Section } from './components/SettingsPage'
 import { Sidebar, type Page } from './components/Sidebar'
 import { Studio } from './components/studio/Studio'
 import { LeaveDraftDialog, WorkspaceDialog } from './components/WorkspaceDialog'
+import { checkForUpdate } from './update'
 import { projectsFolder, remember, setProjectsFolder } from './recent'
 import { useTheme } from './theme/theme'
 import { t, useLanguage } from './i18n'
@@ -44,6 +45,17 @@ export default function App() {
     setSettingsFrom(from)
     setPage('settings')
   }
+
+  // Check for Updates… in the menus: Settings → About, checking
+  useEffect(() => {
+    const off = onCheckUpdate(() => {
+      openSettings('about')
+      checkForUpdate()
+    })
+    return () => {
+      off.then(f => f())
+    }
+  }, [])
 
   // A project opens in the studio, or on its planning page when it is new.
   // An example opens as a draft: a copy kept only if the person saves it
@@ -181,12 +193,12 @@ export default function App() {
   // The menu bar menu speaks the UI's language
   const active = jobs.filter(j => j.state === 'running' || j.state === 'queued').length
   useEffect(() => {
-    api.setTrayText(active ? t('sidebar.queue', { n: active }) : t('tray.idle'), t('tray.show'), t('tray.quit'), t('notify.done'), t('notify.failed')).catch(() => {})
+    api.setTrayText(active ? t('sidebar.queue', { n: active }) : t('tray.idle'), t('tray.show'), t('tray.quit'), t('notify.done'), t('notify.failed'), t('update.menu')).catch(() => {})
   }, [active, language.lang])
 
   // Settings takes the whole window, with its own section list (as in
   // open-design); from a project, Back returns to it
-  if (page === 'settings') return <SettingsPage key={language.lang} theme={theme} language={language} start={settingsAt} back={() => setPage(settingsFrom)} backLabel={settingsFrom === 'library' ? 'settings.backLibrary' : 'settings.back'} />
+  if (page === 'settings') return <SettingsPage key={`${language.lang}-${settingsAt}`} theme={theme} language={language} start={settingsAt} back={() => setPage(settingsFrom)} backLabel={settingsFrom === 'library' ? 'settings.backLibrary' : 'settings.back'} />
 
   if (project && view === 'plan') {
     return <>{dialogs}<PlanPage key={language.lang} project={project} jobs={jobs} refresh={refresh} back={close} toStudio={() => setView('studio')} openSettings={() => openSettings()} /></>

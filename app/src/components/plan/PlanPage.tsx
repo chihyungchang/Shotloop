@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { agentError } from '../../ai/errors'
 import { api, fileUrl, type Job, type Project, type Storyboard, type StoryShot } from '../../api'
 import { t } from '../../i18n'
-import { activityLine, agentNow, buildSteps, formatSeconds } from '../../model'
+import { agentNow, buildStepList, buildSteps, formatSeconds, planSteps, type Step } from '../../model'
 import { Icon } from '../Icon'
 import { Title } from '../studio/Studio'
 
@@ -196,7 +196,8 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
               <span className="agent-avatar large"><Icon name="spark" size={22} /></span>
               <strong>{t(deriving || !loaded ? 'plan.reading' : planning ? 'plan.writing' : 'plan.none')}</strong>
               {!deriving && loaded && <p className="muted">{t('plan.writingNote')}</p>}
-              {planning && <PlanActivity job={planJob!} />}
+              {planning && (planJob!.state === 'running' ? <StepList steps={planSteps(planJob!)} /> : <p className="muted small">{t('queue.waiting')}</p>)}
+              {planning && <p className="muted small">{t('plan.usual')}</p>}
             </div>
           )
           : (
@@ -207,7 +208,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
                     <span className="agent-avatar large"><span className="spinner" /></span>
                     <strong>{t('plan.revising')}</strong>
                     <p className="muted small">{t('plan.revisingNote')}</p>
-                    <PlanActivity job={planJob!} />
+                    {planJob!.state === 'running' ? <StepList steps={planSteps(planJob!)} /> : <PlanActivity job={planJob!} />}
                     <button className="ghost small" onClick={() => api.cancel(planJob!.id)}>{t('queue.stop')}</button>
                   </div>
                 </div>
@@ -306,42 +307,25 @@ function BuildView({ project, job, toStudio, back }: { project: Project; job: Jo
   const stills = (s: Project['shots'][number]) => (project.track === '3d' ? s.draft : s.final).stills
   const ready = project.shots.filter(s => stills(s)).length
   const steps = buildSteps(job)
-  const written = project.shots.filter(s => steps.written.has(s.id) || stills(s)).length
   const elapsed = job?.startedAt ? ((job.finishedAt ?? Date.now()) - job.startedAt) / 1000 : null
-  // Before the first shot, the AI designs the look all shots share
-  const phase = !running ? null
-    : job!.state === 'queued' ? t('queue.waiting')
-    : !steps.current ? t(steps.world ? 'build.world' : 'build.reading')
-    : t('build.onShot', { n: project.shots.findIndex(s => s.id === steps.current) + 1, total: project.shots.length })
-  const now = job && running ? agentNow(job) : null
-  const pct = project.shots.length ? (written / project.shots.length) * 100 : 0
   return (
     <div className="build">
       <div className="build-head">
         <span className="agent-avatar large">{running ? <span className="spinner" /> : <Icon name="check" size={20} />}</span>
         <div>
           <strong>{t(running ? 'plan.building' : job?.state === 'failed' ? 'plan.buildFailed' : 'plan.built')}</strong>
-          <p className="muted small">{phase ?? t('plan.buildNote', { done: ready, total: project.shots.length })}</p>
+          <p className="muted small">
+            {running && elapsed != null
+              ? `${t('act.elapsed', { time: formatSeconds(elapsed) })} · ${t('build.usual')}`
+              : t('plan.buildNote', { done: ready, total: project.shots.length })}
+          </p>
         </div>
         <div className="spacer" />
         {!running && <button className="ghost" onClick={back}>{t('plan.backToPlan')}</button>}
         <button className={running ? '' : 'primary'} onClick={toStudio}>{t(running ? 'plan.openNow' : 'plan.openStudio')} <Icon name="arrow" size={13} /></button>
       </div>
-      {running && (
-        <div className="build-progress">
-          <div className="build-meta small">
-            <span>{t('build.counts', { written, ready, total: project.shots.length })}</span>
-            {elapsed != null && <span className="muted">{t('act.elapsed', { time: formatSeconds(elapsed) })} · {t('build.usual')}</span>}
-          </div>
-          <div className={`bar${written ? '' : ' indeterminate'}`}><i style={written ? { width: `${Math.max(3, pct)}%` } : undefined} /></div>
-          {now && <div className="job-now small"><span className="pulse" /> <span className="ellipsis">{now}</span></div>}
-          {job!.log.length > 1 && (
-            <ul className="build-log small muted">
-              {job!.log.slice(-4, -1).reverse().map((l, i) => <li key={i} className="ellipsis">{activityLine(l)}</li>)}
-            </ul>
-          )}
-        </div>
-      )}
+      {running && job!.state === 'queued' && <p className="muted small">{t('queue.waiting')}</p>}
+      {running && job!.state === 'running' && <StepList steps={buildStepList(job!, project.shots)} />}
       {job?.state === 'failed' && job.error && <pre className="error-box small">{job.error}</pre>}
       <div className="build-grid">
         {project.shots.map((s, i) => {
@@ -363,6 +347,24 @@ function BuildView({ project, job, toStudio, back }: { project: Project; job: Jo
         })}
       </div>
     </div>
+  )
+}
+
+// What the AI does, step by step: done, now (with what and how long), next
+function StepList({ steps }: { steps: Step[] }) {
+  useTicking(true)
+  return (
+    <ol className="steps">
+      {steps.map((s, i) => (
+        <li key={i} className={s.state}>
+          <span className="step-mark">{s.state === 'done' ? <Icon name="check" size={12} /> : s.state === 'active' ? <span className="spinner small" /> : i + 1}</span>
+          <span className="step-text">
+            <span>{s.label}</span>
+            {s.detail && <span className="small muted">{s.detail}</span>}
+          </span>
+        </li>
+      ))}
+    </ol>
   )
 }
 

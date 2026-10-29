@@ -191,6 +191,52 @@ export function buildSteps(job: Job | null) {
   return { current, action, written, world }
 }
 
+// Seconds since a running job's last event
+export const quietFor = (job: Job) => (job.state === 'running' && job.logAt ? (Date.now() - job.logAt) / 1000 : 0)
+
+export type StepState = 'done' | 'active' | 'todo'
+export interface Step { label: string; state: StepState; detail?: string }
+
+const stepStates = (n: number, at: number, finished: boolean): StepState[] =>
+  Array.from({ length: n }, (_, i) => (finished || i < at ? 'done' : i === at ? 'active' : 'todo'))
+
+// A plan's steps for the person: it reads, then writes everything in one
+// long quiet turn, then saves storyboard.json
+export function planSteps(job: Job): Step[] {
+  const log = job.log
+  const finished = job.state === 'done'
+  const saving = log.some(l => /^(write_file|edit_file)\s+storyboard\.json/i.test(l))
+  // Reading is quick; a few seconds of quiet after it is the writing
+  const at = saving ? 2 : log.length && (quietFor(job) > 5 || log.some(l => !/^(read_file|list_files|read_checklist|agent:)/i.test(l))) ? 1 : 0
+  const s = stepStates(3, at, finished)
+  const time = job.startedAt ? formatSeconds((Date.now() - job.startedAt) / 1000) : ''
+  return [
+    { label: t('planStep.read'), state: s[0] },
+    { label: t('planStep.write'), state: s[1], detail: s[1] === 'active' ? t('planStep.writeDetail', { time }) : undefined },
+    { label: t('planStep.save'), state: s[2] }
+  ]
+}
+
+// A build's steps: read the plan, design the shared look (world/), then
+// the shots one by one
+export function buildStepList(job: Job, shots: { id: string }[]): Step[] {
+  const { current, action, written, world } = buildSteps(job)
+  const finished = job.state === 'done'
+  const thinking = quietFor(job) > QUIET
+  const at = current ? 2 : world || thinking ? 1 : 0
+  const s = stepStates(3, at, finished)
+  const n = current ? shots.findIndex(x => x.id === current) + 1 : 0
+  const doing = action === 'stills' ? 'build.rendering' : action === 'check' ? 'build.checking' : 'build.writing'
+  return [
+    { label: t('buildStep.read'), state: s[0] },
+    { label: t('buildStep.look'), state: s[1], detail: s[1] === 'active' ? t('buildStep.lookDetail') : undefined },
+    {
+      label: t('buildStep.shots', { done: Math.min(written.size, shots.length), total: shots.length }), state: s[2],
+      detail: s[2] === 'active' && n ? `${t('build.onShot', { n, total: shots.length })} · ${thinking ? t('build.thinking') : t(doing)}` : undefined
+    }
+  ]
+}
+
 // A render's stage, in words
 const STAGES: Record<string, 'stage.frames' | 'stage.captions' | 'stage.screen' | 'stage.export'> = { frames: 'stage.frames', captions: 'stage.captions', screen: 'stage.screen', export: 'stage.export' }
 export const stageName = (s: string) => (STAGES[s] ? t(STAGES[s]) : s)

@@ -299,7 +299,7 @@ export const api = {
   trashProject: (path: string) => invoke<void>('trash_project', { path }),
   openPath: (path: string) => invoke<void>('open_path', { path }),
   openBlenderDownload: () => invoke<void>('open_blender_download'),
-  setTrayText: (status: string, show: string, quit: string, done: string, failed: string) => invoke<void>('set_tray_text', { status, show, quit, done, failed }),
+  setTrayText: (status: string, show: string, quit: string, done: string, failed: string, update: string) => invoke<void>('set_tray_text', { status, show, quit, done, failed, update }),
   // One tiny request through the backend as Settings shows it, saved or not
   aiTest: (settings: Settings) => invoke<{ ok: boolean; latencyMs: number; reply: string; backend: string }>('ai_test', { settings }),
   about: () => invoke<About>('about'),
@@ -329,6 +329,8 @@ export const api = {
 }
 
 export const onQueue = (f: (jobs: Job[]) => void): Promise<UnlistenFn> => listen<Job[]>('queue', e => f(e.payload))
+// The app menu's or the tray's Check for Updates…
+export const onCheckUpdate = (f: () => void): Promise<UnlistenFn> => listen('check-update', () => f())
 export const onProjectChanged = (f: (root: string) => void): Promise<UnlistenFn> =>
   listen<string>('project-changed', e => f(e.payload))
 
