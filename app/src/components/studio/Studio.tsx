@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api, type Job, type Mode, type Project } from '../../api'
 import { estimate, formatSeconds, shotView } from '../../model'
+import type { useTheme } from '../../theme/theme'
 import { Icon } from '../Icon'
+import { ThemeToggle } from '../ThemeToggle'
 import { AgentPanel } from './AgentPanel'
 import { ExportPanel } from './ExportPanel'
 import { Filmstrip } from './Filmstrip'
@@ -15,11 +17,12 @@ type Drawer = 'queue' | 'export' | null
 // conversation on the left, the shot on a dark stage in the middle with
 // the filmstrip and the shot's notes under it, queue and export in a
 // drawer on the right.
-export function Studio({ project, jobs, refresh, close }: {
+export function Studio({ project, jobs, refresh, close, theme }: {
   project: Project
   jobs: Job[]
   refresh: () => void
   close: () => void
+  theme: ReturnType<typeof useTheme>
 }) {
   const [mode, setMode] = useState<Mode>('draft')
   const [selected, setSelected] = useState(project.shots[0]?.id ?? '')
@@ -78,6 +81,7 @@ export function Studio({ project, jobs, refresh, close }: {
           <Icon name="export" size={14} /> Export
         </button>
         <button className="ghost small" onClick={() => api.reveal(project.root)} title={project.root}>Finder</button>
+        <ThemeToggle pref={theme.pref} setPref={theme.setPref} />
       </header>
 
       {shot && view ? (

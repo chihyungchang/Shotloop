@@ -18,7 +18,10 @@ const PATHS = {
   check: 'M5 12.5l4.5 4.5L19 7.5',
   x: 'M6 6l12 12M18 6 6 18',
   refresh: 'M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5',
-  plus: 'M12 5v14M5 12h14'
+  plus: 'M12 5v14M5 12h14',
+  sun: 'M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z',
+  monitor: 'M3 5h18v11H3zM8 20h8M12 16v4'
 } as const
 
 export function Icon({ name, size = 16 }: { name: keyof typeof PATHS; size?: number }) {

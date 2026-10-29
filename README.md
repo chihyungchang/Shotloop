@@ -34,7 +34,11 @@ selected shot is on the left, the shot (preview, stills, code) on a dark
 stage in the middle with the filmstrip and its notes and checks below,
 and the render queue and export in a drawer on the right. The layout
 follows [open-design](https://github.com/nexu-io/open-design)'s workspace
-and studio, adapted to video. The Setup panel checks
+and studio, adapted to video. Its look is the oliverz.dev Swiss design
+system (cool paper and lime, ink and mint; square cells; Archivo and
+JetBrains Mono), as tokens in
+[`app/src/theme/tokens.css`](app/src/theme/tokens.css), with light, dark
+and follow-the-system modes. The Setup panel checks
 Chrome, ffmpeg and Blender and takes your Anthropic API key for the agent.
 `pnpm app:build` makes `Shotloop.app`; it runs the engine and agent
 from `$SHOTLOOP_ROOT`, or from the checkout it was built from (bundling

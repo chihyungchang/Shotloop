@@ -9,3 +9,6 @@ distribution: the CC0 asset packs listed in engine/video/assets/README.md
 (Kenney, Poly Haven, Quaternius) are downloaded, not committed, and keep
 their own licenses. Music beds are synthesized by engine/video/music.mjs
 and contain no samples.
+
+The app bundles the Archivo and JetBrains Mono typefaces (via the
+@fontsource packages), both under the SIL Open Font License 1.1.

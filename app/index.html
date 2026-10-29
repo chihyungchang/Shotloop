@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Shotloop</title>
+    <script>
+      // Apply the saved theme before the first paint (src/theme/theme.ts)
+      ;(() => {
+        const get = k => { try { return localStorage.getItem(k) } catch { return null } }
+        const pref = get('shotloop.theme') || 'system'
+        const dark = pref === 'dark' || (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

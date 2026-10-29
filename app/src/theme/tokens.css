@@ -1,0 +1,120 @@
+/* Shotloop design tokens: the oliverz.dev "Swiss" design system
+   (oliverzdev/docs/design-system/tokens.json), extended with what a
+   video tool needs (the stage, render states).
+
+   Components use only these tokens, never raw values. <html data-theme>
+   picks light or dark (theme.ts resolves "system" before first paint).
+
+   Ground      --bg (window), --surface (panels), --surface-2 (insets,
+               inputs), --surface-hover
+   Rules       --border (rules between cells; ink in light, a quiet
+               green-grey hairline in dark), --border-strong (controls)
+   Text        --text, --text-2 (dates, meta), --text-3 (hints)
+   Accent      --accent: one loud FILL per view (lime / mint), never a line
+               or text on the ground. --accent-fg is text on it,
+               --accent-soft a tinted fill, --accent-text accent as text,
+               --accent-line accent as a border, --focus the focus ring
+   Action      --primary / --primary-fg: the inverted main button
+   Stage       --stage*: the canvas frames are judged on, dark in both
+               themes so colours read true
+   Status      --success, --warning, --danger, --info (+ -soft fills)
+   Shape       square cells (--r-* are 0); only dots, toggles and the
+               send button are round (--r-pill)
+   Type        Archivo for everything, JetBrains Mono for labels, code
+               and numbers; labels are small, uppercase and tracked
+*/
+
+:root {
+  --font-sans: 'Archivo Variable', Archivo, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', system-ui, sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-lg: 15px;
+  --text-xl: 24px;
+  --text-display: 44px;
+  --tracking-label: 0.08em;
+
+  --r-xs: 0;
+  --r-sm: 0;
+  --r-md: 0;
+  --r-lg: 0;
+  --r-xl: 0;
+  --r-pill: 999px;
+
+  /* Hover is an instant inversion; nothing animates longer than this */
+  --dur: 120ms;
+}
+
+:root {
+  color-scheme: light;
+  --bg: #e7e7e2;
+  --surface: #f1f1ee;
+  --surface-2: #e9e9e4;
+  --surface-hover: #dddcd6;
+  --border: #0a0a0a;
+  --border-strong: #0a0a0a;
+  --text: #0a0a0a;
+  --text-2: #5a5a55;
+  --text-3: #8f8f88;
+  --accent: #d4ff3a;
+  --accent-fg: #0a0a0a;
+  --accent-soft: #e8f8a8;
+  --accent-text: #3f5a00;
+  --accent-line: #0a0a0a;
+  --primary: #0a0a0a;
+  --primary-fg: #f1f1ee;
+  --focus: #2f5cff;
+  --stage: #050607;
+  --stage-raised: #11161a;
+  --stage-border: #2a3330;
+  --stage-text: #8a958f;
+  --success: #1d8a5c;
+  --warning: #b26b00;
+  --danger: #d92d37;
+  --info: #2f5cff;
+  --rule: 1px;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #050607;
+  --surface: #0b0f10;
+  --surface-2: #11161a;
+  --surface-hover: #161c20;
+  --border: #2a3330;
+  --border-strong: #5f6b66;
+  --text: #e8f0ec;
+  --text-2: #8a958f;
+  --text-3: #5f6b66;
+  --accent: #38f2a9;
+  --accent-fg: #050607;
+  --accent-soft: #0f2e22;
+  --accent-text: #38f2a9;
+  --accent-line: #38f2a9;
+  --primary: #e8f0ec;
+  --primary-fg: #050607;
+  --focus: #7aa2ff;
+  --stage: #000000;
+  --stage-raised: #11161a;
+  --stage-border: #2a3330;
+  --stage-text: #8a958f;
+  --success: #38f2a9;
+  --warning: #ffb340;
+  --danger: #ff4d55;
+  --info: #7aa2ff;
+  --rule: 1px;
+}
+
+/* Derived */
+:root {
+  --success-soft: color-mix(in srgb, var(--success) 13%, transparent);
+  --warning-soft: color-mix(in srgb, var(--warning) 14%, transparent);
+  --danger-soft: color-mix(in srgb, var(--danger) 12%, transparent);
+  --info-soft: color-mix(in srgb, var(--info) 12%, transparent);
+  /* Scrim for labels over frames, the same in both themes */
+  --scrim: rgb(0 0 0 / 0.6);
+  --stage-grid: rgb(255 255 255 / 0.035);
+}

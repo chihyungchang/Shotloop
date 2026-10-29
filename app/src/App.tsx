@@ -6,6 +6,7 @@ import { SettingsPage } from './components/SettingsPage'
 import { Sidebar, type Page } from './components/Sidebar'
 import { Studio } from './components/studio/Studio'
 import { remember } from './recent'
+import { useTheme } from './theme/theme'
 
 // Two layouts, as in open-design: the workspace (sidebar + Home, All
 // projects, Settings) and the Studio, one project full-window.
@@ -15,6 +16,7 @@ export default function App() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [error, setError] = useState<string | null>(null)
   const root = useRef<string | null>(null)
+  const theme = useTheme()
 
   const refresh = useCallback(async () => {
     if (!root.current) return
@@ -68,16 +70,16 @@ export default function App() {
     }
   }, [refresh])
 
-  if (project) return <Studio project={project} jobs={jobs} refresh={refresh} close={close} />
+  if (project) return <Studio project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} />
 
   return (
     <div className="workspace-shell">
-      <Sidebar page={page} setPage={setPage} open={open} jobs={jobs} />
+      <Sidebar page={page} setPage={setPage} open={open} jobs={jobs} theme={theme} />
       <main className="workspace-main">
         {error && <p className="error banner">{error}</p>}
         {page === 'home' && <Home open={open} />}
         {page === 'projects' && <Projects open={open} />}
-        {page === 'settings' && <SettingsPage />}
+        {page === 'settings' && <SettingsPage theme={theme} />}
       </main>
     </div>
   )

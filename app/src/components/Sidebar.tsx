@@ -1,7 +1,9 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
 import type { Job } from '../api'
 import { baseName, readRecent } from '../recent'
+import type { useTheme } from '../theme/theme'
 import { Icon } from './Icon'
+import { ThemeToggle } from './ThemeToggle'
 
 export type Page = 'home' | 'projects' | 'settings'
 
@@ -11,11 +13,12 @@ const NAV: [Page, string, Parameters<typeof Icon>[0]['name']][] = [
   ['settings', 'Settings', 'settings']
 ]
 
-export function Sidebar({ page, setPage, open, jobs }: {
+export function Sidebar({ page, setPage, open, jobs, theme }: {
   page: Page
   setPage: (p: Page) => void
   open: (path: string) => void
   jobs: Job[]
+  theme: ReturnType<typeof useTheme>
 }) {
   const recent = readRecent()
   const running = jobs.filter(j => j.state === 'running' || j.state === 'queued').length
@@ -55,6 +58,7 @@ export function Sidebar({ page, setPage, open, jobs }: {
         {running > 0
           ? <span className="small"><span className="dot info pulse" /> {running} job{running > 1 ? 's' : ''} in the queue</span>
           : <span className="small muted">Fix one shot, not the whole film.</span>}
+        <ThemeToggle pref={theme.pref} setPref={theme.setPref} />
       </div>
     </aside>
   )
