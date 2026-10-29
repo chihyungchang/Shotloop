@@ -149,3 +149,7 @@ export function buildProgress(job: Job, total: number): { done: number; total: n
   }
   return { done: Math.min(written.size, total), total }
 }
+
+// A render's stage, in words
+const STAGES: Record<string, 'stage.frames' | 'stage.captions' | 'stage.screen' | 'stage.export'> = { frames: 'stage.frames', captions: 'stage.captions', screen: 'stage.screen', export: 'stage.export' }
+export const stageName = (s: string) => (STAGES[s] ? t(STAGES[s]) : s)

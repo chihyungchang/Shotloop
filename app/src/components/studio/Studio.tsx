@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, type Job, type Project } from '../../api'
-import { editMode, estimate, formatSeconds, shotView } from '../../model'
+import { editMode, estimate, formatSeconds, jobEstimate, shotView } from '../../model'
 import type { useTheme } from '../../theme/theme'
 import { Icon } from '../Icon'
 import { ThemeToggle } from '../ThemeToggle'
@@ -57,8 +57,13 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   const exporting = active.some(j => j.project === project.root && j.kind === 'export')
 
   // Render every shot whose frames are out of date, one at a time
+  // The renders of this project under way, and how many the update began with
+  const [batch, setBatch] = useState(0)
+  const renders = active.filter(j => j.project === project.root && j.kind === 'render')
+  const rendersLeft = renders.reduce((t, j) => t + (jobEstimate(project, j) ?? 0), 0)
   const renderPending = () => {
     setFilmError(null)
+    setBatch(pending.length)
     for (const s of pending) api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false })
     setDrawer('queue')
   }
@@ -106,7 +111,15 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         <PlanLink project={project} openPlan={openPlan} />
         <div className="spacer" />
         {filmError && <span className="small error ellipsis" title={filmError}>{filmError}</span>}
-        {pending.length > 0
+        {renders.length > 0
+          ? (
+            <button className="updating" onClick={() => setDrawer('queue')} title={t('studio.updatingNote')}>
+              <span className="spinner small" /> {batch >= renders.length
+                ? t('studio.updating', { done: batch - renders.length + 1, total: batch, time: formatSeconds(rendersLeft) })
+                : t('studio.updatingN', { n: renders.length, time: formatSeconds(rendersLeft) })}
+            </button>
+          )
+          : pending.length > 0
           ? (
             <button onClick={renderPending} title={t('studio.renderChangedNote', { ids: pending.map(s => s.id).join(', ') })}>
               <Icon name="refresh" size={14} /> {t('studio.renderChanged', { n: pending.length, time: formatSeconds(pendingTime) })}
@@ -150,10 +163,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} />}
       </section>
 
-      {film && (
-        <FilmPreview project={project} file={film.file} stale={film.stale} time={formatSeconds(pendingTime)} close={() => setFilm(null)}
-          update={() => { setFilm(null); renderPending() }} />
-      )}
+      {film && <FilmPreview project={project} file={film.file} close={() => setFilm(null)} />}
 
       {drawer && (
         <aside className="drawer">

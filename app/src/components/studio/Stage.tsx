@@ -5,11 +5,10 @@ import { VideoPlayer } from './VideoPlayer'
 import { Icon } from '../Icon'
 import type { Key } from '../../i18n/en'
 import { formatDate, t } from '../../i18n'
+import { stageName } from '../../model'
 
 type Tab = 'preview' | 'stills' | 'code'
 
-const STAGES: Record<string, Key> = { frames: 'stage.frames', captions: 'stage.captions', screen: 'stage.screen', export: 'stage.export' }
-const stageName = (s: string) => (STAGES[s] ? t(STAGES[s]) : s)
 const STILLS: Key[] = ['stage.start', 'stage.middle', 'stage.end']
 
 // The shot on a dark stage: its clip with captions and music, its three

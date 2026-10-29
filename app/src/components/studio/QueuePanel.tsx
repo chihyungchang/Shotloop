@@ -1,5 +1,5 @@
 import { api, type Job, type Project } from '../../api'
-import { activityLine, buildProgress, formatSeconds, jobEstimate, jobLabel } from '../../model'
+import { activityLine, buildProgress, formatSeconds, jobEstimate, jobLabel, stageName } from '../../model'
 import { useEffect, useState } from 'react'
 import { t } from '../../i18n'
 
@@ -75,7 +75,7 @@ function JobRow({ job, project }: { job: Job; project: Project }) {
         <div className="job-now small"><span className="pulse" /> <span className="ellipsis" title={now}>{activityLine(now)}</span></div>
       )}
       <div className="muted small job-meta">
-        {running && job.progress && !agent && `${job.progress.stage} ${job.progress.done}/${job.progress.total}`}
+        {running && job.progress && !agent && t('queue.stage', { stage: stageName(job.progress.stage), done: job.progress.done, total: job.progress.total })}
         {running && !job.progress && p && t('act.shots', { done: p.done, total: p.total })}
         {running && !job.progress && !p && !agent && (now ?? t('queue.starting'))}
         {running && elapsed != null && <span>{t('act.elapsed', { time: formatSeconds(elapsed) })}</span>}

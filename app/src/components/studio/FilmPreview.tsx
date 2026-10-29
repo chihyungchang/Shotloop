@@ -6,7 +6,7 @@ import { VideoPlayer } from './VideoPlayer'
 
 // The whole film over the studio, with its music: what the export will
 // look like, before exporting. Esc or a click outside closes it.
-export function FilmPreview({ project, file, stale = [], time, close, update }: { project: Project; file: string; stale?: string[]; time?: string; close: () => void; update?: () => void }) {
+export function FilmPreview({ project, file, close }: { project: Project; file: string; close: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close()
     window.addEventListener('keydown', onKey)
@@ -21,13 +21,6 @@ export function FilmPreview({ project, file, stale = [], time, close, update }: 
           <span className="muted small">{t('film.note')}</span>
           <button className="icon-button" onClick={close} aria-label={t('common.close')}><Icon name="x" /></button>
         </div>
-        {stale.length > 0 && (
-          <div className="film-stale" title={stale.join(', ')}>
-            <Icon name="info" size={14} />
-            <span>{t('film.stale', { n: stale.length })}</span>
-            {update && <button className="small" onClick={update}><Icon name="refresh" size={12} /> {t('film.update', { time: time ?? '' })}</button>}
-          </div>
-        )}
         <VideoPlayer src={fileUrl(file)} className={`film${wide ? ' wide' : ''}`} loop={false} muted={false} sound />
       </div>
     </div>
