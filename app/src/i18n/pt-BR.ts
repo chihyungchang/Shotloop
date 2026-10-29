@@ -67,9 +67,6 @@ export const ptBR: Record<Key, string> = {
   'setup.notFound': 'Não encontrado.',
   'setup.only3d': 'Opcional: só projetos 3D precisam dele. Não instalado.',
   'setup.nodeHint': 'brew install node (23 ou mais recente)',
-  'setup.agent': 'Agente',
-  'setup.apiKey': 'Chave da API da Anthropic',
-  'setup.apiKeyNote': 'Sua própria chave. Usada em correções, verificações e textos de publicação; fica salva só neste Mac.',
   'setup.toolPaths': 'Caminhos das ferramentas',
   'setup.save': 'Salvar configurações',
   'setup.checkAgain': 'Verificar de novo',
@@ -181,8 +178,6 @@ export const ptBR: Record<Key, string> = {
 
   'ai.title': 'IA',
   'ai.intro': 'O que move o agente. Seja qual for a escolha, ele só usa as ferramentas do Shotloop: ler e escrever este plano (ou o mundo), renderizar quadros, verificá-los.',
-  'ai.anthropic': 'API da Anthropic',
-  'ai.anthropicNote': 'Sua própria chave. Opus para correções, Sonnet para verificações.',
   'ai.cli': 'Agente CLI local',
   'ai.cliNote': 'Claude Code, Codex ou Gemini CLI, já conectados neste Mac.',
   'ai.local': 'Modelo local',
@@ -215,5 +210,20 @@ export const ptBR: Record<Key, string> = {
   'blender.locate': 'Localizar o Blender…',
   'blender.anyway': 'Criar mesmo assim',
   'blender.dialog': 'Escolha o Blender.app',
-  'blender.notFound': 'O Blender ainda não foi encontrado.'
+  'blender.notFound': 'O Blender ainda não foi encontrado.',
+
+  'ai.api': 'API de modelo',
+  'ai.apiNote': 'Sua própria chave: Anthropic, OpenAI, Gemini, DeepSeek, Qwen, Kimi e outros.',
+  'ai.provider': 'Provedor',
+  'ai.region.global': 'Global',
+  'ai.region.cn': 'China',
+  'ai.getKey': 'Obter uma chave',
+  'ai.keyNote': 'Fica só neste Mac e só é passada ao agente.',
+  'ai.protocol': 'Protocolo',
+  'ai.protocol.openai': 'Compatível com OpenAI',
+  'ai.protocol.anthropic': 'Compatível com Anthropic',
+  'ai.fetchModels': 'Testar e listar modelos',
+  'ai.custom': 'Personalizado',
+  'ai.modelPick': 'Digite ou escolha um modelo',
+  'ai.noVision': 'Este modelo não vê imagens: as correções funcionam, mas as verificações precisam de um modelo com visão.'
 }

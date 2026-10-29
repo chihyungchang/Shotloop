@@ -345,7 +345,7 @@ impl Queue {
                 return Err("No API key: add yours in Settings, or choose a local CLI or a local model".into());
             }
             if !launch.api_key.is_empty() {
-                cmd.env("ANTHROPIC_API_KEY", &launch.api_key);
+                cmd.env("SHOTLOOP_API_KEY", &launch.api_key);
             }
         }
         let mut child = cmd.spawn().map_err(|e| format!("could not start {}: {}", script, e))?;

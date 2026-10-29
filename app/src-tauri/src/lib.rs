@@ -25,7 +25,7 @@ fn launch_for(root: PathBuf, settings: &Settings) -> Launch {
         node: env::node().ok(),
         path: env::child_path(),
         env: settings.env(),
-        api_key: settings.api_key.clone(),
+        api_key: settings.api_key(),
         needs_key: settings.needs_key(),
     }
 }
@@ -172,9 +172,10 @@ async fn ai_detect(handle: AppHandle) -> Result<Value, String> {
 
 /// The models an OpenAI-compatible server offers
 #[tauri::command]
-async fn ai_models(handle: AppHandle, url: String, key: String) -> Result<Value, String> {
+async fn ai_models(handle: AppHandle, url: String, key: String, protocol: Option<String>) -> Result<Value, String> {
     blocking(move || {
-        let mut args = vec!["models", "--url", url.as_str()];
+        let protocol = protocol.unwrap_or_else(|| "openai".into());
+        let mut args = vec!["models", "--url", url.as_str(), "--protocol", protocol.as_str()];
         if !key.is_empty() {
             args.extend(["--key", key.as_str()]);
         }
@@ -246,6 +247,15 @@ fn open_blender_download() -> Result<(), String> {
     tauri_plugin_opener::open_url("https://www.blender.org/download/", None::<&str>).map_err(|e| e.to_string())
 }
 
+/// A provider's key page: https links only
+#[tauri::command]
+fn open_url(url: String) -> Result<(), String> {
+    if !url.starts_with("https://") {
+        return Err("only https links can be opened".into());
+    }
+    tauri_plugin_opener::open_url(url, None::<&str>).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 fn open_path(path: String) -> Result<(), String> {
     tauri_plugin_opener::open_path(path, None::<&str>).map_err(|e| e.to_string())
@@ -304,6 +314,7 @@ pub fn run() {
             reveal,
             open_path,
             open_blender_download,
+            open_url,
             tray::set_tray_text
         ])
         .build(tauri::generate_context!())

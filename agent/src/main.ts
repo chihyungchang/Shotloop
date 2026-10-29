@@ -5,7 +5,8 @@
 //   shotloop-agent check   <project> --shot <id> [--review-only]
 //   shotloop-agent publish <project>
 //   shotloop-agent detect                     CLI agents and local model servers here
-//   shotloop-agent models  --url <…/v1>       the models a local server offers
+//   shotloop-agent models  --url <…> [--key k] [--protocol anthropic|openai]
+//                                             the chat models an endpoint offers
 //
 // --json prints one JSON event per line for the app. The model backend
 // (Anthropic API, a local CLI agent or a local model) comes from the
@@ -31,6 +32,7 @@ const { values, positionals } = parseArgs({
     lang: { type: 'string' },
     url: { type: 'string' },
     key: { type: 'string' },
+    protocol: { type: 'string' },
     json: { type: 'boolean' }
   }
 })
@@ -172,8 +174,9 @@ try {
   let value: unknown
   if (task === 'detect') value = await detect()
   else if (task === 'models') {
-    if (!values.url) throw new Error('models needs --url <base URL>')
-    value = await listModels(values.url, values.key)
+    const protocol = values.protocol === 'anthropic' ? 'anthropic' : 'openai'
+    if (!values.url && protocol === 'openai') throw new Error('models needs --url <base URL>')
+    value = await listModels(values.url ?? '', values.key, protocol)
   } else {
     if (!dir || !['fix', 'check', 'publish'].includes(task)) {
       console.error('usage: shotloop-agent fix|check|publish <project> [--shot <id>] [--request "…"] [--json] | detect | models --url <…>')

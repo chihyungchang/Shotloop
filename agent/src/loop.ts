@@ -20,13 +20,18 @@ export interface AgentOptions {
   prompt: string
   ctx: ToolContext
   maxTurns?: number
+  // Another Anthropic-compatible endpoint (MiniMax, DeepSeek, a proxy)
+  // and its key; by default Anthropic's own API and ANTHROPIC_API_KEY
+  baseURL?: string
+  apiKey?: string
 }
 
 // Returns the agent's last text: its summary for the person
-export async function runAgent({ model, effort, system, prompt, ctx, maxTurns = 40 }: AgentOptions): Promise<string> {
-  // Credentials come from the environment (ANTHROPIC_API_KEY); the app
-  // passes the user's own key
-  const client = new Anthropic()
+export async function runAgent({ model, effort, system, prompt, ctx, maxTurns = 40, baseURL, apiKey }: AgentOptions): Promise<string> {
+  // The user's own key, from the app; Anthropic-only request options are
+  // sent to Anthropic's API only
+  const client = new Anthropic({ ...(apiKey ? { apiKey } : {}), ...(baseURL ? { baseURL } : {}) })
+  const official = !baseURL || new URL(baseURL).hostname.endsWith('anthropic.com')
   const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: 'user', content: prompt }]
   let last = ''
 
@@ -37,11 +42,15 @@ export async function runAgent({ model, effort, system, prompt, ctx, maxTurns = 
       system,
       tools: TOOLS,
       messages,
-      output_config: { effort },
-      cache_control: { type: 'ephemeral' },
-      // If a safety classifier declines, the API retries on a fallback model
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default'
+      ...(official
+        ? {
+            output_config: { effort },
+            cache_control: { type: 'ephemeral' as const },
+            // If a safety classifier declines, the API retries on a fallback model
+            betas: ['server-side-fallback-2026-07-01'],
+            fallbacks: 'default' as const
+          }
+        : {})
     })
 
     for (const block of res.content) {

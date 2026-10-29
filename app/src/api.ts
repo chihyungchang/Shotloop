@@ -137,11 +137,16 @@ export interface Doctor {
   bundled: { node: boolean; ffmpeg: boolean }
 }
 
-export type Provider = 'anthropic' | 'cli' | 'local'
+export type Provider = 'api' | 'cli' | 'local'
 
 export interface Settings {
   provider: Provider | ''
-  apiKey: string
+  // api: a preset from ai/presets.ts, its protocol and base URL, and the
+  // user's key per preset
+  apiPreset: string
+  apiProtocol: 'anthropic' | 'openai' | ''
+  apiUrl: string
+  apiKeys: Record<string, string>
   cli: string
   model: string
   localUrl: string
@@ -152,7 +157,7 @@ export interface Settings {
 }
 
 export const EMPTY_SETTINGS: Settings = {
-  provider: '', apiKey: '', cli: '', model: '', localUrl: '', localModel: '', localKey: '', blender: '', chrome: ''
+  provider: '', apiPreset: '', apiProtocol: '', apiUrl: '', apiKeys: {}, cli: '', model: '', localUrl: '', localModel: '', localKey: '', blender: '', chrome: ''
 }
 
 export interface Detected {
@@ -206,7 +211,8 @@ export const api = {
   clearJobs: () => invoke<void>('clear_jobs'),
   getSettings: () => invoke<Settings>('get_settings'),
   aiDetect: () => invoke<Detected>('ai_detect'),
-  aiModels: (url: string, key: string) => invoke<string[]>('ai_models', { url, key }),
+  aiModels: (url: string, key: string, protocol: 'anthropic' | 'openai' = 'openai') => invoke<string[]>('ai_models', { url, key, protocol }),
+  openUrl: (url: string) => invoke<void>('open_url', { url }),
   saveSettings: (settings: Settings) => invoke<void>('save_settings', { settings }),
   initialProject: () => invoke<string | null>('initial_project'),
   reveal: (path: string) => invoke<void>('reveal', { path }),

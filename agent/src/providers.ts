@@ -1,23 +1,46 @@
 // Which model drives the agent, chosen in the app's Settings and passed
 // in the environment:
 //
-//   SHOTLOOP_PROVIDER    anthropic (default) | cli | local
-//   ANTHROPIC_API_KEY    anthropic: the user's own key
-//   SHOTLOOP_CLI         cli: claude | codex | gemini
-//   SHOTLOOP_MODEL       cli or anthropic: a model name (optional)
-//   SHOTLOOP_LOCAL_URL   local: OpenAI-compatible base URL (…/v1)
-//   SHOTLOOP_LOCAL_MODEL local: model name
-//   SHOTLOOP_LOCAL_KEY   local: API key, if the server wants one
+//   SHOTLOOP_PROVIDER     api (default) | cli | local; "anthropic" is the
+//                         api backend with Anthropic's own endpoint
+//   SHOTLOOP_API_PROTOCOL api: anthropic (/v1/messages) | openai (chat completions)
+//   SHOTLOOP_API_URL      api: base URL; empty for Anthropic's own API
+//   SHOTLOOP_API_KEY      api: the user's key (or ANTHROPIC_API_KEY)
+//   SHOTLOOP_CLI          cli: claude | codex | gemini
+//   SHOTLOOP_MODEL        api or cli: a model name (optional for Anthropic)
+//   SHOTLOOP_LOCAL_URL    local: OpenAI-compatible base URL (…/v1)
+//   SHOTLOOP_LOCAL_MODEL  local: model name
+//   SHOTLOOP_LOCAL_KEY    local: API key, if the server wants one
+//
+// The many hosted providers (OpenAI, Gemini, DeepSeek, OpenRouter, Qwen,
+// GLM, Kimi, MiniMax…) are presets in the app: a protocol and a URL.
 
 import { CLIS, findBin, runCli, type CliId } from './cli.ts'
-import { listModels, runLocal } from './local.ts'
+import { listModels as listOpenAiModels, runLocal } from './local.ts'
 import { MODELS, runAgent as runAnthropic, type AgentOptions } from './loop.ts'
 
-export type Provider = 'anthropic' | 'cli' | 'local'
+export type Provider = 'api' | 'cli' | 'local'
+export type Protocol = 'anthropic' | 'openai'
 
 export function provider(): Provider {
   const p = process.env.SHOTLOOP_PROVIDER
-  return p === 'cli' || p === 'local' ? p : 'anthropic'
+  return p === 'cli' || p === 'local' ? p : 'api'
+}
+
+function api() {
+  const protocol: Protocol = process.env.SHOTLOOP_API_PROTOCOL === 'openai' ? 'openai' : 'anthropic'
+  const url = process.env.SHOTLOOP_API_URL || ''
+  const key = process.env.SHOTLOOP_API_KEY || (protocol === 'anthropic' ? process.env.ANTHROPIC_API_KEY ?? '' : '')
+  return { protocol, url, key, model: process.env.SHOTLOOP_MODEL || '' }
+}
+
+// Servers on this machine need no key
+export const isLoopback = (url: string) => {
+  try {
+    return ['localhost', '127.0.0.1', '[::1]', '::1'].includes(new URL(url).hostname)
+  } catch {
+    return false
+  }
 }
 
 export function describe() {
@@ -26,19 +49,25 @@ export function describe() {
       return `${CLIS.find(c => c.id === process.env.SHOTLOOP_CLI)?.name ?? 'CLI'}${process.env.SHOTLOOP_MODEL ? ` (${process.env.SHOTLOOP_MODEL})` : ''}`
     case 'local':
       return `${process.env.SHOTLOOP_LOCAL_MODEL} @ ${process.env.SHOTLOOP_LOCAL_URL}`
-    default:
-      return 'Anthropic API'
+    default: {
+      const { url, model } = api()
+      return `${model || 'Claude'} @ ${url ? new URL(url).host : 'api.anthropic.com'}`
+    }
   }
 }
 
 // Fails early with what to set when the chosen backend is not usable
 export function preflight() {
   switch (provider()) {
-    case 'anthropic':
-      if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) {
+    case 'api': {
+      const { protocol, url, key, model } = api()
+      if (!key && !isLoopback(url) && !process.env.ANTHROPIC_AUTH_TOKEN) {
         throw new Error('no API key: add yours in Settings, or choose a local CLI or a local model')
       }
+      if (protocol === 'openai' && !url) throw new Error('no API base URL (Settings → AI)')
+      if (url && !model) throw new Error('no model chosen (Settings → AI)')
       break
+    }
     case 'cli': {
       const cli = CLIS.find(c => c.id === process.env.SHOTLOOP_CLI)
       if (!cli) throw new Error('no CLI chosen (Settings → AI)')
@@ -63,8 +92,11 @@ export function runAgent(task: 'code' | 'routine', opts: Omit<AgentOptions, 'mod
         model: process.env.SHOTLOOP_LOCAL_MODEL!,
         apiKey: process.env.SHOTLOOP_LOCAL_KEY || undefined
       }, opts.system, opts.prompt, opts.ctx)
-    default:
-      return runAnthropic({ ...opts, model: process.env.SHOTLOOP_MODEL || MODELS[task] })
+    default: {
+      const { protocol, url, key, model } = api()
+      if (protocol === 'openai') return runLocal({ url, model, apiKey: key || undefined }, opts.system, opts.prompt, opts.ctx)
+      return runAnthropic({ ...opts, model: model || MODELS[task], baseURL: url || undefined, apiKey: key || undefined })
+    }
   }
 }
 
@@ -85,10 +117,12 @@ export async function detect() {
   })
   const servers = await Promise.all([
     { id: 'ollama', name: 'Ollama', url: 'http://localhost:11434/v1' },
-    { id: 'lmstudio', name: 'LM Studio', url: 'http://localhost:1234/v1' }
+    { id: 'lmstudio', name: 'LM Studio', url: 'http://localhost:1234/v1' },
+    { id: 'vllm', name: 'vLLM', url: 'http://localhost:8000/v1' },
+    { id: 'llamacpp', name: 'llama.cpp', url: 'http://localhost:8080/v1' }
   ].map(async s => {
     try {
-      return { ...s, running: true, models: await listModels(s.url) }
+      return { ...s, running: true, models: await listOpenAiModels(s.url) }
     } catch {
       return { ...s, running: false, models: [] as string[] }
     }
@@ -96,4 +130,16 @@ export async function detect() {
   return { clis, servers }
 }
 
-export { listModels }
+// The chat models an endpoint offers, for the model picker; doubles as
+// the connection test
+export async function listModels(url: string, key?: string, protocol: Protocol = 'openai'): Promise<string[]> {
+  if (protocol === 'openai') return listOpenAiModels(url, key)
+  const base = (url || 'https://api.anthropic.com').replace(/\/+$/, '').replace(/\/v1$/, '')
+  const res = await fetch(`${base}/v1/models?limit=1000`, {
+    headers: { 'anthropic-version': '2023-06-01', ...(key ? { 'x-api-key': key, authorization: `Bearer ${key}` } : {}) },
+    signal: AbortSignal.timeout(8000)
+  })
+  if (!res.ok) throw new Error(`${base}: ${res.status} ${(await res.text()).slice(0, 200)}`)
+  const body = (await res.json()) as { data?: { id: string }[] }
+  return (body.data ?? []).map(d => d.id).sort()
+}

@@ -68,9 +68,6 @@ export const en = {
   'setup.notFound': 'Not found.',
   'setup.only3d': 'Optional: only 3D projects need it. Not installed.',
   'setup.nodeHint': 'brew install node (23 or newer)',
-  'setup.agent': 'Agent',
-  'setup.apiKey': 'Anthropic API key',
-  'setup.apiKeyNote': 'Your own key. Used for fixes, checks and publish copy; stored on this Mac only.',
   'setup.toolPaths': 'Tool paths',
   'setup.save': 'Save settings',
   'setup.checkAgain': 'Check again',
@@ -182,8 +179,6 @@ export const en = {
 
   'ai.title': 'AI',
   'ai.intro': 'What drives the agent. Whichever you choose, it only gets Shotloop’s tools: read and write this shot (or the world), render stills, check them.',
-  'ai.anthropic': 'Anthropic API',
-  'ai.anthropicNote': 'Your own API key. Opus for fixes, Sonnet for checks.',
   'ai.cli': 'Local CLI agent',
   'ai.cliNote': 'Claude Code, Codex or Gemini CLI, signed in on this Mac.',
   'ai.local': 'Local model',
@@ -216,7 +211,22 @@ export const en = {
   'blender.locate': 'Locate Blender…',
   'blender.anyway': 'Create anyway',
   'blender.dialog': 'Choose Blender.app',
-  'blender.notFound': 'Blender still isn’t found.'
+  'blender.notFound': 'Blender still isn’t found.',
+
+  'ai.api': 'Model API',
+  'ai.apiNote': 'Your own key with Anthropic, OpenAI, Gemini, DeepSeek, Qwen, Kimi and more.',
+  'ai.provider': 'Provider',
+  'ai.region.global': 'Global',
+  'ai.region.cn': 'China',
+  'ai.getKey': 'Get a key',
+  'ai.keyNote': 'Stored on this Mac only, and passed only to the agent.',
+  'ai.protocol': 'Protocol',
+  'ai.protocol.openai': 'OpenAI-compatible',
+  'ai.protocol.anthropic': 'Anthropic-compatible',
+  'ai.fetchModels': 'Test and list models',
+  'ai.custom': 'Custom',
+  'ai.modelPick': 'Type or pick a model',
+  'ai.noVision': 'This model can’t see images: fixes work, but checks need a model with vision.'
 }
 
 export type Key = keyof typeof en

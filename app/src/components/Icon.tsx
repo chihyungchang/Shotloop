@@ -1,5 +1,6 @@
-// A small inline icon set (stroke icons on a 24 px grid), so the app
-// needs no icon dependency.
+// A small inline icon set (1.6 px stroke icons on a 24 px grid), so the
+// app needs no icon dependency. Sizes: 18 in the sidebar, 16 in
+// controls, 14 inline.
 
 const PATHS = {
   home: 'M3 11.5 12 4l9 7.5M5.5 9.5V20h13V9.5',
@@ -21,13 +22,21 @@ const PATHS = {
   plus: 'M12 5v14M5 12h14',
   sun: 'M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
   moon: 'M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z',
-  monitor: 'M3 5h18v11H3zM8 20h8M12 16v4'
+  monitor: 'M3 5h18v11H3zM8 20h8M12 16v4',
+  arrow: 'M7 17 17 7M8 7h9v9',
+  chevron: 'M6 9l6 6 6-6',
+  key: 'M14.5 9.5a4 4 0 1 1-1.2-2.9M14 10l7 7M18 14l-2 2M20.5 16.5l-2 2',
+  cloud: 'M7 18a4.5 4.5 0 1 1 .9-8.9A6 6 0 0 1 19.5 11 3.5 3.5 0 0 1 18 18z',
+  terminal: 'M4 5h16v14H4zM8 10l3 2.5L8 15M13 15h4',
+  cpu: 'M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4',
+  palette: 'M12 3a9 9 0 1 0 0 18c1.1 0 1.5-.8 1.5-1.5 0-1.2-1-1.5-1-2.5s.7-1.5 1.7-1.5H17a4 4 0 0 0 4-4c0-4.7-4-8.5-9-8.5zM7.5 11.5h.01M10 7.5h.01M15 7.5h.01',
+  box: 'M12 3 4 7.5v9L12 21l8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9'
 } as const
 
 export function Icon({ name, size = 16 }: { name: keyof typeof PATHS; size?: number }) {
   return (
     <svg className="icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d={PATHS[name]} />
     </svg>
   )

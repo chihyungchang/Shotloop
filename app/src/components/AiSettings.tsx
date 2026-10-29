@@ -1,84 +1,151 @@
 import { useEffect, useState } from 'react'
+import { LOCAL_SERVERS, PRESETS, presetById, type Preset } from '../ai/presets'
 import { api, type Detected, type Provider, type Settings } from '../api'
 import { t } from '../i18n'
 import type { Key } from '../i18n/en'
 import { Icon } from './Icon'
 
-const PROVIDERS: { id: Provider; title: Key; note: Key }[] = [
-  { id: 'anthropic', title: 'ai.anthropic', note: 'ai.anthropicNote' },
-  { id: 'cli', title: 'ai.cli', note: 'ai.cliNote' },
-  { id: 'local', title: 'ai.local', note: 'ai.localNote' }
+const MODES: { id: Provider; title: Key; note: Key; icon: Parameters<typeof Icon>[0]['name'] }[] = [
+  { id: 'api', title: 'ai.api', note: 'ai.apiNote', icon: 'cloud' },
+  { id: 'cli', title: 'ai.cli', note: 'ai.cliNote', icon: 'terminal' },
+  { id: 'local', title: 'ai.local', note: 'ai.localNote', icon: 'cpu' }
 ]
 
-const PRESETS = [
-  { id: 'ollama', name: 'Ollama', url: 'http://localhost:11434/v1' },
-  { id: 'lmstudio', name: 'LM Studio', url: 'http://localhost:1234/v1' }
-]
+const unique = (xs: string[]) => [...new Set(xs.filter(Boolean))]
 
-// Which model drives the agent (after open-design's agent picker): the
-// Anthropic API with the user's key, a local CLI agent the user is
-// already signed in to, or a local model on an OpenAI-compatible server.
-// Whatever drives it, the agent only gets Shotloop's narrow tools.
+// Which model drives the agent (after open-design's execution settings):
+// a hosted model API with the user's key (Anthropic, OpenAI, Gemini,
+// DeepSeek, Qwen, Kimi, GLM… as presets), a local CLI agent the user is
+// signed in to, or a model on a local OpenAI-compatible server. Whatever
+// drives it, the agent only gets Shotloop's narrow tools.
 export function AiSettings({ settings, update }: { settings: Settings; update: (s: Partial<Settings>) => void }) {
   const [detected, setDetected] = useState<Detected | null>(null)
   const [models, setModels] = useState<string[] | null>(null)
-  const [probe, setProbe] = useState<string | null>(null)
-  const provider: Provider = settings.provider || 'anthropic'
+  const [probe, setProbe] = useState<{ ok: boolean; text: string } | null>(null)
+  const [busy, setBusy] = useState(false)
+  const mode: Provider = settings.provider === 'cli' || settings.provider === 'local' ? settings.provider : 'api'
+  const preset = presetById(settings.apiPreset || 'anthropic')
+  const key = settings.apiKeys[preset.id] ?? ''
 
   const detect = () => api.aiDetect().then(setDetected, () => setDetected({ clis: [], servers: [] }))
   useEffect(() => {
     detect()
   }, [])
-
-  // Models of the chosen local server, for the model picker
-  const test = async (url = settings.localUrl, key = settings.localKey) => {
-    if (!url) return
-    setProbe(null)
+  useEffect(() => {
     setModels(null)
+    setProbe(null)
+  }, [mode, preset.id])
+
+  const choosePreset = (p: Preset) =>
+    update({ provider: 'api', apiPreset: p.id, apiProtocol: p.protocol, apiUrl: p.url, model: p.id === 'anthropic' ? '' : p.models[0] ?? '' })
+
+  // Lists the endpoint's models: the connection test and the model picker
+  const test = async (url: string, k: string, protocol: 'anthropic' | 'openai') => {
+    setBusy(true)
+    setProbe(null)
     try {
-      const list = await api.aiModels(url, key)
+      const list = await api.aiModels(url, k, protocol)
       setModels(list)
-      if (!settings.localModel && list[0]) update({ localModel: list[0] })
-      setProbe(t('ai.connected', { n: list.length }))
+      setProbe({ ok: true, text: t('ai.connected', { n: list.length }) })
+      return list
     } catch (e) {
-      setProbe(String(e))
       setModels([])
+      setProbe({ ok: false, text: String(e) })
+      return []
+    } finally {
+      setBusy(false)
     }
   }
 
+  const status = probe && <small className={probe.ok ? 'probe ok' : 'probe bad'}>{probe.ok && <Icon name="check" size={12} />} {probe.text}</small>
+
   return (
-    <section className="panel setup ai-settings">
+    <section className="settings-block ai-settings">
       <div className="row between">
         <h3>{t('ai.title')}</h3>
-        <button className="ghost small" onClick={detect}>{t('setup.checkAgain')}</button>
+        <button className="ghost small" onClick={detect}><Icon name="refresh" size={14} /> {t('setup.checkAgain')}</button>
       </div>
-      <p className="muted small">{t('ai.intro')}</p>
+      <p className="hint">{t('ai.intro')}</p>
 
-      <div className="provider-cards" role="radiogroup" aria-label={t('ai.title')}>
-        {PROVIDERS.map(p => (
-          <button key={p.id} role="radio" aria-checked={provider === p.id}
-            className={`provider-card${provider === p.id ? ' on' : ''}`} onClick={() => update({ provider: p.id, model: '' })}>
-            <strong>{t(p.title)}</strong>
-            <span className="small muted">{t(p.note)}</span>
+      <div className="mode-cards" role="radiogroup" aria-label={t('ai.title')}>
+        {MODES.map(m => (
+          <button key={m.id} role="radio" aria-checked={mode === m.id} className={`mode-card${mode === m.id ? ' on' : ''}`}
+            onClick={() => (m.id === 'api' ? choosePreset(preset) : update({ provider: m.id, model: '' }))}>
+            <span className="mode-icon"><Icon name={m.icon} size={16} /></span>
+            <strong>{t(m.title)}</strong>
+            <span className="small muted">{t(m.note)}</span>
           </button>
         ))}
       </div>
 
-      {provider === 'anthropic' && (
+      {mode === 'api' && (
         <div className="provider-body">
+          <div className="field">
+            <span>{t('ai.provider')}</span>
+            {(['global', 'cn'] as const).map(region => (
+              <div key={region} className="chip-row">
+                <span className="chip-row-label">{t(`ai.region.${region}`)}</span>
+                {PRESETS.filter(p => p.region === region && p.id !== 'custom').concat(region === 'global' ? [presetById('custom')] : []).map(p => (
+                  <button key={p.id} className={`provider-chip${preset.id === p.id ? ' on' : ''}`} aria-pressed={preset.id === p.id} onClick={() => choosePreset(p)}>
+                    {settings.apiKeys[p.id] && <span className="dot ok" />}
+                    {p.id === 'custom' ? t('ai.custom') : p.name}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+
           <label className="field">
-            <span>{t('setup.apiKey')}</span>
-            <input type="password" value={settings.apiKey} placeholder="sk-ant-…" onChange={e => update({ apiKey: e.target.value })} />
-            <small className="muted">{t('setup.apiKeyNote')}</small>
+            <span className="row between">
+              {t('ai.key')}
+              {preset.keyUrl && (
+                <button type="button" className="link" onClick={() => api.openUrl(preset.keyUrl!)}>{t('ai.getKey')} <Icon name="arrow" size={12} /></button>
+              )}
+            </span>
+            <input type="password" value={key} placeholder={preset.keyHint ?? (preset.id === 'custom' ? t('ai.keyOptional') : '')}
+              onChange={e => update({ apiKeys: { ...settings.apiKeys, [preset.id]: e.target.value } })} />
+            <small className="muted">{t('ai.keyNote')}</small>
           </label>
+
+          {preset.id === 'custom' && (
+            <div className="field">
+              <span>{t('ai.protocol')}</span>
+              <div className="seg-control" role="radiogroup">
+                {(['openai', 'anthropic'] as const).map(p => (
+                  <button key={p} role="radio" aria-checked={settings.apiProtocol === p} className={settings.apiProtocol === p ? 'on' : ''}
+                    onClick={() => update({ apiProtocol: p })}>{t(`ai.protocol.${p}`)}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <label className="field">
+            <span>{t('ai.url')}</span>
+            <input value={settings.apiUrl} placeholder={preset.protocol === 'anthropic' ? 'https://api.anthropic.com' : 'https://…/v1'}
+              onChange={e => update({ apiUrl: e.target.value })} />
+          </label>
+
+          <div className="field">
             <span>{t('ai.model')}</span>
-            <input value={settings.model} placeholder={t('ai.anthropicDefault')} onChange={e => update({ model: e.target.value })} />
-          </label>
+            <div className="row gap">
+              <input list="api-models" value={settings.model}
+                placeholder={preset.id === 'anthropic' ? t('ai.anthropicDefault') : t('ai.modelPick')}
+                onChange={e => update({ model: e.target.value })} />
+              <datalist id="api-models">
+                {unique([...preset.models, ...(models ?? [])]).map(m => <option key={m} value={m} />)}
+              </datalist>
+              <button className="small" disabled={busy || (!key && preset.id !== 'custom')}
+                onClick={() => test(settings.apiUrl, key, (settings.apiProtocol || preset.protocol) as 'anthropic' | 'openai')}>
+                {busy ? <span className="spinner small" /> : <Icon name="refresh" size={14} />} {t('ai.fetchModels')}
+              </button>
+            </div>
+            {status}
+            {preset.vision === false && <small className="warn-note">{t('ai.noVision')}</small>}
+          </div>
         </div>
       )}
 
-      {provider === 'cli' && (
+      {mode === 'cli' && (
         <div className="provider-body">
           {!detected && <p className="muted small">{t('setup.checking')}</p>}
           <div className="option-list" role="radiogroup">
@@ -96,21 +163,22 @@ export function AiSettings({ settings, update }: { settings: Settings; update: (
             <span>{t('ai.model')}</span>
             <input value={settings.model} placeholder={t('ai.cliDefault')} onChange={e => update({ model: e.target.value })} />
           </label>
-          <p className="muted small"><Icon name="check" size={12} /> {t('ai.cliSafety')}</p>
+          <p className="hint"><Icon name="check" size={12} /> {t('ai.cliSafety')}</p>
         </div>
       )}
 
-      {provider === 'local' && (
+      {mode === 'local' && (
         <div className="provider-body">
           <div className="option-list" role="radiogroup">
-            {PRESETS.map(p => {
+            {LOCAL_SERVERS.map(p => {
               const server = detected?.servers.find(s => s.id === p.id)
               return (
                 <button key={p.id} role="radio" aria-checked={settings.localUrl === p.url}
                   className={`option${settings.localUrl === p.url ? ' on' : ''}`}
-                  onClick={() => {
+                  onClick={async () => {
                     update({ localUrl: p.url, localModel: '' })
-                    test(p.url, '')
+                    const list = await test(p.url, '', 'openai')
+                    if (list[0]) update({ localModel: list[0] })
                   }}>
                   <span className={`dot ${server?.running ? 'ok' : ''}`} />
                   <strong>{p.name}</strong>
@@ -125,20 +193,16 @@ export function AiSettings({ settings, update }: { settings: Settings; update: (
             <span>{t('ai.url')}</span>
             <div className="row gap">
               <input value={settings.localUrl} placeholder="http://localhost:11434/v1" onChange={e => update({ localUrl: e.target.value })} />
-              <button className="small" onClick={() => test()} disabled={!settings.localUrl}>{t('ai.test')}</button>
+              <button className="small" onClick={() => test(settings.localUrl, settings.localKey, 'openai')} disabled={!settings.localUrl || busy}>
+                {busy ? <span className="spinner small" /> : null} {t('ai.test')}
+              </button>
             </div>
-            {probe && <small className={models?.length ? 'muted' : 'error'}>{probe}</small>}
+            {status}
           </label>
           <label className="field">
             <span>{t('ai.model')}</span>
-            {models?.length
-              ? (
-                <select value={settings.localModel} onChange={e => update({ localModel: e.target.value })}>
-                  {!models.includes(settings.localModel) && settings.localModel && <option value={settings.localModel}>{settings.localModel}</option>}
-                  {models.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
-              )
-              : <input value={settings.localModel} placeholder="qwen2.5vl:7b" onChange={e => update({ localModel: e.target.value })} />}
+            <input list="local-models" value={settings.localModel} placeholder="qwen2.5vl:7b" onChange={e => update({ localModel: e.target.value })} />
+            <datalist id="local-models">{(models ?? []).map(m => <option key={m} value={m} />)}</datalist>
             <small className="muted">{t('ai.visionNote')}</small>
           </label>
           <label className="field">

@@ -67,9 +67,6 @@ export const zhCN: Record<Key, string> = {
   'setup.notFound': '未找到。',
   'setup.only3d': '可选：只有 3D 项目需要，当前未安装。',
   'setup.nodeHint': 'brew install node（23 或更高版本）',
-  'setup.agent': 'Agent',
-  'setup.apiKey': 'Anthropic API 密钥',
-  'setup.apiKeyNote': '你自己的密钥。用于修改、检查和发布文案；只保存在这台 Mac 上。',
   'setup.toolPaths': '工具路径',
   'setup.save': '保存设置',
   'setup.checkAgain': '重新检查',
@@ -181,8 +178,6 @@ export const zhCN: Record<Key, string> = {
 
   'ai.title': 'AI',
   'ai.intro': '由谁来驱动 Agent。无论选哪种，它都只能用 Shotloop 的工具：读写这个镜头（或共享场景）、渲染静帧、检查。',
-  'ai.anthropic': 'Anthropic API',
-  'ai.anthropicNote': '你自己的 API 密钥。修改用 Opus，检查用 Sonnet。',
   'ai.cli': '本地 CLI',
   'ai.cliNote': '这台 Mac 上已登录的 Claude Code、Codex 或 Gemini CLI。',
   'ai.local': '本地大模型',
@@ -215,5 +210,20 @@ export const zhCN: Record<Key, string> = {
   'blender.locate': '指定 Blender 位置…',
   'blender.anyway': '仍然创建',
   'blender.dialog': '选择 Blender.app',
-  'blender.notFound': '仍然没有找到 Blender。'
+  'blender.notFound': '仍然没有找到 Blender。',
+
+  'ai.api': '模型 API',
+  'ai.apiNote': '用你自己的密钥：Anthropic、OpenAI、Gemini、DeepSeek、通义千问、Kimi 等。',
+  'ai.provider': '服务商',
+  'ai.region.global': '国际',
+  'ai.region.cn': '国内',
+  'ai.getKey': '获取密钥',
+  'ai.keyNote': '只保存在这台 Mac 上，只交给 Agent 使用。',
+  'ai.protocol': '协议',
+  'ai.protocol.openai': 'OpenAI 兼容',
+  'ai.protocol.anthropic': 'Anthropic 兼容',
+  'ai.fetchModels': '测试并获取模型',
+  'ai.custom': '自定义',
+  'ai.modelPick': '输入或选择模型',
+  'ai.noVision': '这个模型不能看图：修改可以用，但自动检查需要能看图的模型。'
 }

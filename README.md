@@ -38,7 +38,7 @@ and studio, adapted to video. Its look is a pro video editor's: dark
 first, dense, a lifted graphite stage where frames read true, with light,
 dark and follow-the-system modes and one teal accent,
 all as tokens in [`app/src/theme/tokens.css`](app/src/theme/tokens.css). The Setup panel checks
-Chrome, ffmpeg and Blender and takes your Anthropic API key for the agent.
+Chrome, ffmpeg and Blender, and Settings → AI picks what drives the agent.
 `pnpm app:build` makes `Shotloop.app`, and a disk image of it
 ([`app/scripts/dmg.mjs`](app/scripts/dmg.mjs)), with Node.js and ffmpeg inside
 (fetched at pinned versions and checked by
@@ -97,9 +97,11 @@ engine, read the checklist, report checks. It cannot run shell commands
 
 | Backend | How |
 | --- | --- |
-| Anthropic API | Your own key; `claude-opus-5-5` for fixes and publish copy, `claude-sonnet-5-5` for checks. |
+| Model API | Your own key with a hosted provider, chosen from presets ([`app/src/ai/presets.ts`](app/src/ai/presets.ts)): Anthropic (`claude-opus-5-5` for fixes and publish copy, `claude-sonnet-5-5` for checks by default), OpenAI, Google Gemini, OpenRouter, xAI, Mistral, Together, DeepSeek, Qwen, Kimi, GLM, MiniMax, Doubao, SiliconFlow, or any Anthropic- or OpenAI-compatible endpoint. Keys stay on this Mac, one per provider. |
 | Local CLI agent | Claude Code (Codex and Gemini CLI experimental), signed in on this Mac. It runs headless with its own tools off; Shotloop's tools reach it as an MCP server ([`agent/src/mcp.ts`](agent/src/mcp.ts)). |
-| Local model | Ollama, LM Studio or any OpenAI-compatible server; checks need a vision model with tool calling. |
+| Local model | Ollama, LM Studio, vLLM, llama.cpp or any OpenAI-compatible server. |
+
+Whatever the backend, the model needs tool calling, and checks need one that sees images.
 
 The checklist is [`engine/shotloop/checklist.md`](engine/shotloop/checklist.md);
 a project may bring its own.

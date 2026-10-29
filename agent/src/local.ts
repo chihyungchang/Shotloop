@@ -1,5 +1,6 @@
-// Local models through an OpenAI-compatible chat API (Ollama, LM Studio,
-// llama.cpp server, vLLM, …): the same narrow tools and the same loop as
+// Models through an OpenAI-compatible chat API: local servers (Ollama,
+// LM Studio, llama.cpp, vLLM…) and hosted ones (OpenAI, Gemini, DeepSeek,
+// OpenRouter, Qwen, GLM, Kimi…): the same narrow tools and the same loop as
 // the Anthropic backend. Checks need a vision model (Qwen2.5-VL, Gemma 3,
 // Llama 3.2 Vision…): stills go back to the model as images.
 
@@ -35,15 +36,18 @@ async function post(m: LocalModel, path: string, body: unknown) {
   return res.json()
 }
 
-// The models a server offers (GET /models)
+// Not chat models: embeddings, speech, images, video, moderation…
+const NOT_CHAT = /embed|moderation|rerank|whisper|tts|transcri|speech|dall-e|stable-diffusion|flux|image-|imagen|veo|sora|bge-|\b(t2i|i2v|asr|ocr)\b/i
+
+// The chat models a server offers (GET /models)
 export async function listModels(url: string, apiKey?: string): Promise<string[]> {
   const res = await fetch(`${base(url)}/models`, {
     headers: apiKey ? { authorization: `Bearer ${apiKey}` } : {},
-    signal: AbortSignal.timeout(2500)
+    signal: AbortSignal.timeout(8000)
   })
-  if (!res.ok) throw new Error(`${url}: ${res.status}`)
+  if (!res.ok) throw new Error(`${url}: ${res.status} ${(await res.text()).slice(0, 200)}`)
   const body = (await res.json()) as { data?: { id: string }[] }
-  return (body.data ?? []).map(d => d.id).sort()
+  return (body.data ?? []).map(d => d.id.replace(/^models\//, '')).filter(id => !NOT_CHAT.test(id)).sort()
 }
 
 const tools = TOOLS.map(t => ({
