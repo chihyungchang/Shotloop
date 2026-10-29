@@ -45,6 +45,9 @@
       "icons/icon.png"
     ],
     "category": "Video",
-    "shortDescription": "Fix one shot, not the whole film."
+    "shortDescription": "Fix one shot, not the whole film.",
+    "copyright": "Copyright 2026 Oliver Zhang. Licensed under the Apache License 2.0.",
+    "license": "Apache-2.0",
+    "licenseFile": "../../LICENSE"
   }
 }

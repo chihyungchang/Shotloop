@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "description": "Shotloop's agent sidecar: plain-language shot fixes, automatic checks, publish copy",
   "bin": {
     "shotloop-agent": "src/main.ts"

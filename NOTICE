@@ -1,0 +1,11 @@
+Shotloop
+Copyright 2026 Oliver Zhang
+
+This product is licensed under the Apache License, Version 2.0 (see
+LICENSE).
+
+Third-party material that projects may use is not part of this
+distribution: the CC0 asset packs listed in engine/video/assets/README.md
+(Kenney, Poly Haven, Quaternius) are downloaded, not committed, and keep
+their own licenses. Music beds are synthesized by engine/video/music.mjs
+and contain no samples.

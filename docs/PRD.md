@@ -217,9 +217,8 @@ shell commands.
 
 ## 13. Open questions
 
-- Distribution: free (like the other oliverz.dev apps) or paid; open
-  source or not.
+- Distribution: free (like the other oliverz.dev apps) or paid. The code
+  is open source under Apache-2.0 (LICENSE).
 - Bundle a headless Chrome, or require the user's Chrome.
 - Whether 2D shots should share one page (as today) or one page per
   shot.
-- Licence for the engine and templates.

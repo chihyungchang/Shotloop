@@ -3,6 +3,7 @@ name = "shotloop"
 version = "0.1.0"
 description = "Make short videos from code, one shot at a time"
 authors = ["Oliver Zhang"]
+license = "Apache-2.0"
 edition = "2021"
 
 [lib]

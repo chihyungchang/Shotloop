@@ -95,3 +95,8 @@ is a few pixels at the edge of the frame (checklist rule `readable`).
 Node 23+, Chrome, ffmpeg; Blender for 3D projects
 (`brew install --cask blender`) and the CC0 assets in
 [engine/video/assets/README.md](engine/video/assets/README.md) for ep02.
+
+## License
+
+[Apache License 2.0](LICENSE); see [NOTICE](NOTICE). The CC0 asset
+packs a project downloads keep their own licenses.
