@@ -319,6 +319,12 @@ export const zhCN: Record<Key, string> = {
   'ai.change': '更换模型（设置）',
   'ai.mode.api': 'API',
   'ai.mode.cli': '本机 CLI',
+  'usage.fiveHour': '5 小时额度',
+  'usage.week': '每周额度',
+  'usage.fiveHourShort': '5小时',
+  'usage.weekShort': '本周',
+  'usage.resets': '{at} 重置',
+  'usage.asOf': '截至 {at}（来自上一次 AI 任务）',
   'ai.mode.local': '本地模型',
   'setup.bundledNote': 'Node.js 和 ffmpeg 已内置在 Shotloop 里。',
 

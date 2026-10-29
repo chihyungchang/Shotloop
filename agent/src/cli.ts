@@ -122,6 +122,10 @@ export async function runCli(cli: CliId, model: string | undefined, system: stri
             if (b.type === 'text' && b.text.trim()) emit({ type: 'text', text: (last = b.text.trim()) })
             if (b.type === 'tool_use') emit({ type: 'tool', name: shortTool(b.name), summary: brief(b.input) })
           }
+        } else if (ev.type === 'rate_limit_event') {
+          // The subscription's limits (5-hour and weekly windows), for the app
+          const info = ev.rate_limit_info ?? {}
+          emit({ type: 'usage', cli: 'claude', status: info.status, windows: info.unifiedWindows ?? null })
         } else if (ev.type === 'result') {
           if (ev.is_error) failed = String(ev.result ?? ev.subtype ?? 'error')
           else result = ev.result ?? null

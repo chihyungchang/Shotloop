@@ -530,6 +530,9 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
 .mode-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; text-align: left; }
 .mode-text strong { font-size: 12.5px; font-weight: 600; color: var(--text-strong); }
 .mode-text span { font-size: 11px; font-weight: 500; color: var(--text-3); }
+.usage-line { display: flex; gap: 4px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.usage-line .warn { color: var(--warning); }
+.usage-line .bad { color: var(--danger); font-weight: 600; }
 .foot-row .mode-pill { min-height: 42px; padding: 0 10px 0 7px; gap: 9px; }
 .bell { width: 34px; color: var(--text-2); }
 .bell[aria-pressed='true'] { color: var(--accent-text); }

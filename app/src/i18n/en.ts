@@ -324,6 +324,12 @@ export const en = {
   'ai.change': 'Change the model (Settings)',
   'ai.mode.api': 'API',
   'ai.mode.cli': 'Local CLI',
+  'usage.fiveHour': '5-hour limit',
+  'usage.week': 'Weekly limit',
+  'usage.fiveHourShort': '5h',
+  'usage.weekShort': 'week',
+  'usage.resets': 'resets {at}',
+  'usage.asOf': 'as of {at}, from the last AI job',
   'ai.mode.local': 'Local model',
   'setup.bundledNote': 'Node.js and ffmpeg are built into Shotloop.',
 

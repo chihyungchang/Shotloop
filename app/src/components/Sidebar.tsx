@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import type { Job } from '../api'
+import type { Job, Usage, UsageWindow } from '../api'
 import { baseName, cleanRecent, readRecent } from '../recent'
 import { installUpdate, useUpdate } from '../update'
 import type { useTheme } from '../theme/theme'
 import { aiSummary, useSettings } from '../ai/useSettings'
+import { useUsage, windowUse } from '../ai/useUsage'
 import { api } from '../api'
 import { BrandIcon, hasBrand } from '../ai/BrandIcon'
 import { BrandMark } from './BrandMark'
@@ -11,7 +12,7 @@ import { ActivityBell } from './ActivityBell'
 import { Icon } from './Icon'
 import { ThemeToggle } from './ThemeToggle'
 import type { Key } from '../i18n/en'
-import { t } from '../i18n'
+import { formatDate, t } from '../i18n'
 
 const REPO = 'https://github.com/chihyungchang/Shotloop'
 
@@ -33,6 +34,7 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
 }) {
   const settings = useSettings()
   const ai = settings && aiSummary(settings)
+  const usage = useUsage()
   const [recent, setRecent] = useState(readRecent)
   useEffect(() => {
     cleanRecent().then(setRecent)
@@ -79,7 +81,9 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
                 : <span className={`mode-tile ${ai.mode}`}><Icon name={ai.mode === 'local' ? 'cpu' : 'spark'} size={13} /></span>}
               <span className="mode-text">
                 <strong className="ellipsis">{ai.name}</strong>
-                <span className="ellipsis">{t(`ai.mode.${ai.mode}`)}</span>
+                {ai.brand === 'cli:claude' && usage?.windows
+                  ? <UsageLine usage={usage} />
+                  : <span className="ellipsis">{t(`ai.mode.${ai.mode}`)}</span>}
               </span>
               {!ai.ready && <span className="dot warn" />}
             </button>
@@ -88,6 +92,24 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
         )}
       </div>
     </aside>
+  )
+}
+
+// Claude's subscription limits under its name: the 5-hour window and the
+// week, amber from 80%, red when a limit is hit; reset times on hover
+function UsageLine({ usage }: { usage: Usage }) {
+  const w = usage.windows ?? {}
+  const five = windowUse(w.five_hour)
+  const week = windowUse(w.seven_day)
+  const level = (n: number | null, win?: UsageWindow) => (win?.status && win.status !== 'allowed') || (n ?? 0) >= 95 ? 'bad' : (n ?? 0) >= 80 ? 'warn' : ''
+  const at = (win?: UsageWindow) => (win ? formatDate(win.resetsAt * 1000, { weekday: 'short', hour: '2-digit', minute: '2-digit' }) : '–')
+  const title = `${t('usage.fiveHour')}: ${five ?? '–'}% · ${t('usage.resets', { at: at(w.five_hour) })}\n${t('usage.week')}: ${week ?? '–'}% · ${t('usage.resets', { at: at(w.seven_day) })}\n${t('usage.asOf', { at: formatDate(usage.at, { hour: '2-digit', minute: '2-digit' }) })}`
+  return (
+    <span className="usage-line" title={title}>
+      <span className={level(five, w.five_hour)}>{t('usage.fiveHourShort')} {five ?? '–'}%</span>
+      <span className="muted">·</span>
+      <span className={level(week, w.seven_day)}>{t('usage.weekShort')} {week ?? '–'}%</span>
+    </span>
   )
 }
 

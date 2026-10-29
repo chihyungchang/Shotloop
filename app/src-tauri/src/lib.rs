@@ -225,6 +225,12 @@ fn enqueue(handle: AppHandle, app: State<'_, App>, spec: Spec) -> u64 {
     app.queue.enqueue(&handle, spec)
 }
 
+/// The AI subscription's last reported usage (see queue::load_usage)
+#[tauri::command]
+fn ai_usage(handle: AppHandle) -> Option<Value> {
+    queue::load_usage(&handle)
+}
+
 #[tauri::command]
 fn jobs(app: State<'_, App>) -> Vec<Job> {
     app.queue.list()
@@ -573,6 +579,7 @@ pub fn run() {
             write_text,
             enqueue,
             jobs,
+            ai_usage,
             cancel_job,
             clear_jobs,
             get_settings,

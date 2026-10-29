@@ -17,7 +17,7 @@ use std::os::unix::process::CommandExt;
 use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 
 pub const LANES: [&str; 2] = ["render", "agent"];
 const LOG_LINES: usize = 240;
@@ -445,6 +445,11 @@ impl Queue {
         for line in BufReader::new(stdout).lines().map_while(Result::ok) {
             let Ok(ev) = serde_json::from_str::<Value>(&line) else { continue };
             let kind = ev["type"].as_str().unwrap_or("");
+            // The subscription's limits: kept for the sidebar, not the job's log
+            if kind == "usage" {
+                save_usage(app, ev);
+                continue;
+            }
             match kind {
                 "result" => result = Some(ev["value"].clone()),
                 "error" => error = ev["message"].as_str().map(String::from),
@@ -496,6 +501,24 @@ impl Queue {
             Err(error.unwrap_or(if tail.is_empty() { format!("exited with {}", status) } else { tail }))
         }
     }
+}
+
+/// The last usage a CLI agent reported (Claude Code's 5-hour and weekly
+/// windows), with when: kept across launches, sent to the UI
+fn usage_file(app: &AppHandle) -> Option<PathBuf> {
+    app.path().app_data_dir().ok().map(|d| d.join("usage.json"))
+}
+
+fn save_usage(app: &AppHandle, mut ev: Value) {
+    ev["at"] = Value::from(now());
+    if let Some(f) = usage_file(app) {
+        let _ = std::fs::write(f, ev.to_string());
+    }
+    let _ = app.emit("ai-usage", ev);
+}
+
+pub fn load_usage(app: &AppHandle) -> Option<Value> {
+    serde_json::from_str(&std::fs::read_to_string(usage_file(app)?).ok()?).ok()
 }
 
 /// SIGKILL to a process group (a job's node and everything it started)

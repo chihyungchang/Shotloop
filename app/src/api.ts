@@ -96,6 +96,15 @@ export interface Project {
   shots: Shot[]
 }
 
+// Claude Code's subscription limits, from its last run
+export interface UsageWindow { utilization: number; resetsAt: number; status?: string }
+export interface Usage {
+  at: number
+  cli: string
+  status?: string
+  windows: { five_hour?: UsageWindow; seven_day?: UsageWindow } | null
+}
+
 export interface Progress {
   stage: string
   done: number
@@ -291,6 +300,7 @@ export const api = {
   writeText: (project: string, path: string, content: string) => invoke<void>('write_text', { project, path, content }),
   // Agent jobs reply in the UI language
   enqueue: (spec: Spec) => invoke<number>('enqueue', { spec: ['fix', 'check', 'plan', 'build', 'publish'].includes(spec.kind) ? { ...spec, lang: lang() } : spec }),
+  aiUsage: () => invoke<Usage | null>('ai_usage'),
   jobs: () => invoke<Job[]>('jobs'),
   cancel: (id: number) => invoke<void>('cancel_job', { id }),
   clearJobs: () => invoke<void>('clear_jobs'),
@@ -334,6 +344,8 @@ export const api = {
 }
 
 export const onQueue = (f: (jobs: Job[]) => void): Promise<UnlistenFn> => listen<Job[]>('queue', e => f(e.payload))
+export const onUsage = (f: (u: Usage) => void): Promise<UnlistenFn> => listen<Usage>('ai-usage', e => f(e.payload))
+
 // The app menu's or the tray's Check for Updates…
 export const onCheckUpdate = (f: () => void): Promise<UnlistenFn> => listen('check-update', () => f())
 export const onProjectChanged = (f: (root: string) => void): Promise<UnlistenFn> =>

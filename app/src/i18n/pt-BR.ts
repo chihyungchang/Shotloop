@@ -323,6 +323,12 @@ export const ptBR: Record<Key, string> = {
   'ai.change': 'Trocar o modelo (Configurações)',
   'ai.mode.api': 'API',
   'ai.mode.cli': 'CLI local',
+  'usage.fiveHour': 'Limite de 5 horas',
+  'usage.week': 'Limite semanal',
+  'usage.fiveHourShort': '5h',
+  'usage.weekShort': 'semana',
+  'usage.resets': 'renova {at}',
+  'usage.asOf': 'em {at}, da última tarefa de IA',
   'ai.mode.local': 'Modelo local',
   'setup.bundledNote': 'O Node.js e o ffmpeg vêm embutidos no Shotloop.',
 
