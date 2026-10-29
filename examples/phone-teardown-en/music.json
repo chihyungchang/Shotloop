@@ -1,0 +1,42 @@
+{
+  "preset": "tech",
+  "bpm": 96,
+  "duration": 24,
+  "chords": [
+    [
+      52,
+      55,
+      59
+    ],
+    [
+      48,
+      52,
+      55
+    ],
+    [
+      55,
+      59,
+      62
+    ],
+    [
+      50,
+      54,
+      57
+    ]
+  ],
+  "sections": [
+    {
+      "from": 0,
+      "to": 24,
+      "layers": [
+        "pad",
+        "arp",
+        "hat"
+      ]
+    }
+  ],
+  "hits": [],
+  "risers": [],
+  "fadeIn": 0.2,
+  "fadeOut": 1.5
+}

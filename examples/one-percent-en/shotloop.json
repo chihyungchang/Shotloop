@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "title": "1% better every day: what's a year worth?",
+  "description": "1.01 and 0.99 to the 365th power: compounding explained in charts.",
+  "slug": "one-percent-en",
+  "lang": "en",
+  "track": "2d",
+  "fps": 30,
+  "size": {
+    "width": 1920,
+    "height": 1080
+  },
+  "shots": [
+    { "id": "01-hook", "title": "1.01 vs 0.99: the question", "duration": 4.5 },
+    { "id": "02-up", "title": "1.01 to the 365th: the curve climbs to 37.78", "duration": 5 },
+    { "id": "03-down", "title": "0.99 to the 365th: the curve sinks to 0.026", "duration": 4.5 },
+    { "id": "04-gap", "title": "Both on a log scale: about 1,480 times apart", "duration": 5 },
+    { "id": "05-habits", "title": "The caveat: a year of small habits", "duration": 4.5 },
+    { "id": "06-end", "title": "End card", "duration": 2.5 }
+  ],
+  "captions": null,
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md"
+}

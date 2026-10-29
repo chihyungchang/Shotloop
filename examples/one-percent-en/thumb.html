@@ -1,0 +1,25 @@
+<!doctype html>
+<!-- Cover, 1080×1920; the text stays inside the centred 3:4 crop (y 240–1680). -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; width: 1080px; height: 1920px; background: #f4efe6; color: #17150f;
+        font-family: -apple-system, 'Helvetica Neue', 'PingFang SC', sans-serif; }
+      .k { position: absolute; left: 100px; top: 380px; font: 600 30px 'SF Mono', ui-monospace, monospace; letter-spacing: 0.08em; color: #7a7266; }
+      h1 { position: absolute; left: 100px; right: 100px; top: 460px; margin: 0; font-size: 82px; font-weight: 800; line-height: 1.12; letter-spacing: -0.02em; }
+      .n { position: absolute; left: 100px; font-family: -apple-system, sans-serif; font-variant-numeric: tabular-nums;
+        font-size: 230px; font-weight: 700; line-height: 1; letter-spacing: -0.03em; }
+      .n sup { font-size: 0.32em; vertical-align: top; position: relative; top: 0.12em; }
+      .rule { position: absolute; left: 100px; right: 100px; top: 1560px; height: 2px; background: #17150f; }
+    </style>
+  </head>
+  <body>
+    <div class="k">Compounding · 1% a day</div>
+    <h1>1% better every day:<br />what's a year worth?</h1>
+    <div class="n" style="top: 820px; color: #0d6b47">1.01<sup>365</sup></div>
+    <div class="n" style="top: 1110px; color: #b5483c">0.99<sup>365</sup></div>
+    <div class="rule"></div>
+    <script>window.ready = document.fonts.ready</script>
+  </body>
+</html>

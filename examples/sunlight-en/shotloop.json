@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "title": "How long does sunlight take to reach Earth?",
+  "description": "1 astronomical unit ÷ the speed of light: the Sun you see is 8 minutes old.",
+  "slug": "sunlight-en",
+  "lang": "en",
+  "track": "2d",
+  "fps": 30,
+  "size": {
+    "width": 1080,
+    "height": 1920
+  },
+  "shots": [
+    {
+      "id": "01-hook",
+      "title": "The Sun, and the question",
+      "duration": 3.5
+    },
+    {
+      "id": "02-distance",
+      "title": "Sun to Earth: 149.6 million km = 1 AU",
+      "duration": 4.5
+    },
+    {
+      "id": "03-speed",
+      "title": "Speed of light: 299,792 km/s",
+      "duration": 4
+    },
+    {
+      "id": "04-journey",
+      "title": "A light pulse crosses 1 AU in 8 min 19 s",
+      "duration": 6
+    },
+    {
+      "id": "05-compare",
+      "title": "Moon 1.3 s, Sun 8 min 19 s, Neptune about 4 h",
+      "duration": 5
+    },
+    {
+      "id": "06-past",
+      "title": "The sunlight on your face left 8 minutes ago",
+      "duration": 3
+    },
+    {
+      "id": "07-end",
+      "title": "End card",
+      "duration": 2
+    }
+  ],
+  "captions": null,
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md"
+}

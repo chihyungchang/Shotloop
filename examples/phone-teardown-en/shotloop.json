@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "title": "Take a phone apart: what’s inside?",
+  "description": "An exploded-view teardown of a phone: screen, mainboard, battery and cameras.",
+  "slug": "phone-teardown-en",
+  "lang": "en",
+  "track": "3d",
+  "fps": 30,
+  "size": {
+    "width": 1080,
+    "height": 1920
+  },
+  "shots": [
+    {
+      "id": "01-hero",
+      "title": "Hero: the phone turns, the question",
+      "duration": 3.5
+    },
+    {
+      "id": "02-explode",
+      "title": "The phone comes apart in layers",
+      "duration": 4.5
+    },
+    {
+      "id": "03-screen",
+      "title": "Screen (OLED)",
+      "duration": 3.5
+    },
+    {
+      "id": "04-board",
+      "title": "Mainboard and chips",
+      "duration": 4
+    },
+    {
+      "id": "05-battery-camera",
+      "title": "Battery and camera module",
+      "duration": 4.5
+    },
+    {
+      "id": "06-end",
+      "title": "Back together; end card",
+      "duration": 4
+    }
+  ],
+  "captions": "captions.html",
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md"
+}
