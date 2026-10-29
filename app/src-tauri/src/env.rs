@@ -29,6 +29,7 @@ fn home() -> PathBuf {
 /// Extra folders searched for tools, before the inherited PATH
 fn tool_dirs() -> Vec<PathBuf> {
     let mut dirs = vec![
+        home().join(".local/bin"),
         PathBuf::from("/opt/homebrew/bin"),
         PathBuf::from("/usr/local/bin"),
         home().join(".volta/bin"),

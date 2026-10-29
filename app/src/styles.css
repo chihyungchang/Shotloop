@@ -271,3 +271,16 @@ details { margin: 6px 0 10px; }
 .field-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 0; }
 .field-row .segmented button { text-transform: capitalize; }
 .inline-select { width: auto; min-width: 200px; }
+
+/* AI settings */
+.settings-head { align-items: flex-start; margin-bottom: 16px; }
+.settings-page > .panel { max-width: 720px; margin-bottom: 16px; }
+.provider-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin: 10px 0 14px; }
+.provider-card { flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; white-space: normal; padding: 12px; border-radius: var(--r-md); margin-left: -1px; }
+.provider-card.on { background: var(--accent-soft); border-color: var(--accent-line); position: relative; z-index: 1; }
+.provider-card.on strong::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-text); margin-right: 6px; vertical-align: 1px; }
+.provider-body { display: flex; flex-direction: column; gap: 4px; }
+.option-list { display: flex; flex-direction: column; margin-bottom: 6px; }
+.option { justify-content: flex-start; gap: 8px; border-radius: var(--r-md); margin-top: -1px; }
+.option.on { background: var(--accent-soft); border-color: var(--accent-line); position: relative; z-index: 1; }
+.option-meta { margin-left: auto; overflow: hidden; text-overflow: ellipsis; }

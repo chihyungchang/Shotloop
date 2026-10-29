@@ -25,15 +25,22 @@ fn launch_for(root: PathBuf, settings: &Settings) -> Launch {
         path: env::child_path(),
         env: settings.env(),
         api_key: settings.api_key.clone(),
+        needs_key: settings.needs_key(),
     }
 }
 
 /// Runs an engine command to completion and returns its `result` event
 fn engine(app: &State<'_, App>, args: &[&str]) -> Result<Value, String> {
+    run_script(app, "engine/shotloop/cli.mjs", args)
+}
+
+/// Runs a sidecar script (engine or agent) with --json and returns its
+/// `result` event
+fn run_script(app: &State<'_, App>, script: &str, args: &[&str]) -> Result<Value, String> {
     let launch = app.queue.launch.lock().unwrap().clone();
     let node = launch.node.clone().ok_or_else(|| env::node().unwrap_err())?;
     let out = Command::new(node)
-        .arg(launch.root.join("engine/shotloop/cli.mjs"))
+        .arg(launch.root.join(script))
         .args(args)
         .arg("--json")
         .env("PATH", &launch.path)
@@ -151,6 +158,26 @@ async fn list_projects(handle: AppHandle, paths: Vec<String>, examples: bool) ->
     .await
 }
 
+/// CLI agents and local model servers on this machine (the agent's
+/// `detect`)
+#[tauri::command]
+async fn ai_detect(handle: AppHandle) -> Result<Value, String> {
+    blocking(move || run_script(&handle.state::<App>(), "agent/src/main.ts", &["detect"])).await
+}
+
+/// The models an OpenAI-compatible server offers
+#[tauri::command]
+async fn ai_models(handle: AppHandle, url: String, key: String) -> Result<Value, String> {
+    blocking(move || {
+        let mut args = vec!["models", "--url", url.as_str()];
+        if !key.is_empty() {
+            args.extend(["--key", key.as_str()]);
+        }
+        run_script(&handle.state::<App>(), "agent/src/main.ts", &args)
+    })
+    .await
+}
+
 #[tauri::command]
 fn read_text(project: String, path: String) -> Result<String, String> {
     std::fs::read_to_string(project_file(&project, &path)?).map_err(|e| e.to_string())
@@ -235,6 +262,8 @@ pub fn run() {
             convert_episode,
             create_project,
             list_projects,
+            ai_detect,
+            ai_models,
             read_text,
             write_text,
             enqueue,

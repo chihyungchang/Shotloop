@@ -178,7 +178,32 @@ export const en = {
   'export.publishNote': 'publish.md: the post for YouTube Shorts, TikTok and Reels, from the copy’s facts and sources only.',
   'export.writing': 'Writing…',
   'export.rewrite': 'Rewrite with the agent',
-  'export.write': 'Write with the agent'
+  'export.write': 'Write with the agent',
+
+  'ai.title': 'AI',
+  'ai.intro': 'What drives the agent. Whichever you choose, it only gets Shotloop’s tools: read and write this shot (or the world), render stills, check them.',
+  'ai.anthropic': 'Anthropic API',
+  'ai.anthropicNote': 'Your own API key. Opus for fixes, Sonnet for checks.',
+  'ai.cli': 'Local CLI agent',
+  'ai.cliNote': 'Claude Code, Codex or Gemini CLI, signed in on this Mac.',
+  'ai.local': 'Local model',
+  'ai.localNote': 'Ollama, LM Studio or any OpenAI-compatible server. Nothing leaves this Mac.',
+  'ai.model': 'Model',
+  'ai.anthropicDefault': 'Default: claude-opus-5-5 for fixes, claude-sonnet-5-5 for checks',
+  'ai.cliDefault': 'The CLI’s own default',
+  'ai.experimental': 'experimental',
+  'ai.notInstalled': 'Not installed',
+  'ai.cliSafety': 'The CLI runs with its own tools switched off; it works only through Shotloop’s tools.',
+  'ai.running': 'Running · {n} models',
+  'ai.running.one': 'Running · 1 model',
+  'ai.notRunning': 'Not running',
+  'ai.url': 'Server URL',
+  'ai.test': 'Test',
+  'ai.connected': 'Connected · {n} models',
+  'ai.connected.one': 'Connected · 1 model',
+  'ai.visionNote': 'Checks look at stills: choose a vision model (e.g. qwen2.5vl, gemma3, llama3.2-vision) with tool calling.',
+  'ai.key': 'API key',
+  'ai.keyOptional': 'Optional'
 }
 
 export type Key = keyof typeof en

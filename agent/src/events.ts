@@ -4,11 +4,20 @@
 export type AgentEvent = { type: string; [k: string]: unknown }
 
 let json = false
+let quiet = false
 export const setJson = (on: boolean) => {
   json = on
 }
+// In the MCP server stdout is the protocol: events go to stderr
+export const toStderr = () => {
+  quiet = true
+}
 
 export function emit(ev: AgentEvent) {
+  if (quiet) {
+    process.stderr.write(JSON.stringify(ev) + '\n')
+    return
+  }
   if (json) {
     process.stdout.write(JSON.stringify(ev) + '\n')
     return

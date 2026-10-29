@@ -4,9 +4,12 @@
 //   shotloop-agent fix     <project> --shot <id> --request "the cable is hidden"
 //   shotloop-agent check   <project> --shot <id> [--review-only]
 //   shotloop-agent publish <project>
+//   shotloop-agent detect                     CLI agents and local model servers here
+//   shotloop-agent models  --url <…/v1>       the models a local server offers
 //
-// --model overrides the model, --json prints one JSON event per line for
-// the app. Needs ANTHROPIC_API_KEY (the user's own key).
+// --json prints one JSON event per line for the app. The model backend
+// (Anthropic API, a local CLI agent or a local model) comes from the
+// environment: see providers.ts.
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -14,7 +17,7 @@ import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
 import { emit, setJson } from './events.ts'
-import { MODELS, runAgent } from './loop.ts'
+import { describe, detect, listModels, preflight, runAgent } from './providers.ts'
 import { checkSystem, fixSystem, publishSystem, replyLanguage } from './prompts.ts'
 import type { ToolContext } from './tools.ts'
 
@@ -26,10 +29,14 @@ const { values, positionals } = parseArgs({
     model: { type: 'string' },
     'review-only': { type: 'boolean' },
     lang: { type: 'string' },
+    url: { type: 'string' },
+    key: { type: 'string' },
     json: { type: 'boolean' }
   }
 })
 setJson(!!values.json)
+// --model picks the model of the chosen backend (see providers.ts)
+if (values.model) process.env.SHOTLOOP_MODEL = values.model
 const [task, dir] = positionals
 
 const STILLS = ['start', 'middle', 'end']
@@ -109,8 +116,8 @@ async function shotTask(kind: 'fix' | 'check') {
     : reviewOnly
       ? `Review shot ${shot.id} against the checklist and report. Do not edit files.`
       : `Check shot ${shot.id} against the checklist. Fix what you can, then report the rest.`
-  const summary = await runAgent({
-    model: values.model ?? (kind === 'fix' ? MODELS.code : MODELS.routine),
+  emit({ type: 'log', message: `agent: ${describe()}` })
+  const summary = await runAgent(kind === 'fix' ? 'code' : 'routine', {
     effort: kind === 'fix' ? 'high' : 'medium',
     system: (kind === 'fix' ? fixSystem() : checkSystem()) + replyLanguage(values.lang),
     prompt: `${ask}\n\n${shotBrief(project, shot)}`,
@@ -152,8 +159,7 @@ async function publishTask() {
   const docs = ['copy.md', 'script.md', 'publish.md']
     .map(f => `${f}:\n${read(path.join(project.root, f))}`)
     .join('\n\n')
-  const summary = await runAgent({
-    model: values.model ?? MODELS.code,
+  const summary = await runAgent('code', {
     effort: 'high',
     system: publishSystem(),
     prompt: `Write publish.md for "${project.title}" (${project.duration} s, ${project.track.toUpperCase()}).\n\n${docs}`,
@@ -163,14 +169,19 @@ async function publishTask() {
 }
 
 try {
-  if (!dir || !['fix', 'check', 'publish'].includes(task)) {
-    console.error('usage: shotloop-agent fix|check|publish <project> [--shot <id>] [--request "…"] [--json]')
-    process.exit(1)
+  let value: unknown
+  if (task === 'detect') value = await detect()
+  else if (task === 'models') {
+    if (!values.url) throw new Error('models needs --url <base URL>')
+    value = await listModels(values.url, values.key)
+  } else {
+    if (!dir || !['fix', 'check', 'publish'].includes(task)) {
+      console.error('usage: shotloop-agent fix|check|publish <project> [--shot <id>] [--request "…"] [--json] | detect | models --url <…>')
+      process.exit(1)
+    }
+    preflight()
+    value = task === 'publish' ? await publishTask() : await shotTask(task as 'fix' | 'check')
   }
-  if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) {
-    throw new Error('no API key: set ANTHROPIC_API_KEY (Shotloop → Settings in the app)')
-  }
-  const value = task === 'publish' ? await publishTask() : await shotTask(task as 'fix' | 'check')
   emit({ type: 'result', value })
 } catch (err) {
   emit({ type: 'error', message: err instanceof Error ? err.message : String(err) })

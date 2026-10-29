@@ -159,6 +159,7 @@ pub struct Launch {
     pub path: String,
     pub env: Vec<(String, String)>,
     pub api_key: String,
+    pub needs_key: bool,
 }
 
 #[derive(Default)]
@@ -337,10 +338,12 @@ impl Queue {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
         if spec.lane() == "agent" {
-            if launch.api_key.is_empty() {
-                return Err("No API key: add yours in Settings".into());
+            if launch.needs_key && launch.api_key.is_empty() {
+                return Err("No API key: add yours in Settings, or choose a local CLI or a local model".into());
             }
-            cmd.env("ANTHROPIC_API_KEY", &launch.api_key);
+            if !launch.api_key.is_empty() {
+                cmd.env("ANTHROPIC_API_KEY", &launch.api_key);
+            }
         }
         let mut child = cmd.spawn().map_err(|e| format!("could not start {}: {}", script, e))?;
         let stdout = child.stdout.take().unwrap();

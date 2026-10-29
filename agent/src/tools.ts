@@ -200,3 +200,27 @@ export async function runTool(ctx: ToolContext, name: string, input: Record<stri
       throw new Error(`unknown tool ${name}`)
   }
 }
+
+// ---------------------------------------------------------------- session
+
+// When a local CLI agent drives the tools, they run in an MCP server
+// process the CLI starts (mcp.ts); what they did comes back to the
+// sidecar through this file
+interface Session {
+  touched: string[]
+  renders: [string, string[]][]
+  checks: ToolContext['checks']
+}
+
+export function saveSession(ctx: ToolContext, file: string) {
+  const s: Session = { touched: [...ctx.touched], renders: [...ctx.renders], checks: ctx.checks }
+  fs.writeFileSync(file, JSON.stringify(s))
+}
+
+export function loadSession(ctx: ToolContext, file: string) {
+  if (!fs.existsSync(file)) return
+  const s = JSON.parse(fs.readFileSync(file, 'utf8')) as Session
+  for (const f of s.touched) ctx.touched.add(f)
+  for (const [shot, stills] of s.renders) ctx.renders.set(shot, stills)
+  ctx.checks.push(...s.checks)
+}

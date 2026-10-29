@@ -135,10 +135,27 @@ export interface Doctor {
   install: Record<'chrome' | 'ffmpeg' | 'blender', string>
 }
 
+export type Provider = 'anthropic' | 'cli' | 'local'
+
 export interface Settings {
+  provider: Provider | ''
   apiKey: string
+  cli: string
+  model: string
+  localUrl: string
+  localModel: string
+  localKey: string
   blender: string
   chrome: string
+}
+
+export const EMPTY_SETTINGS: Settings = {
+  provider: '', apiKey: '', cli: '', model: '', localUrl: '', localModel: '', localKey: '', blender: '', chrome: ''
+}
+
+export interface Detected {
+  clis: { id: string; name: string; bin: string; note?: string; path: string | null; version: string | null }[]
+  servers: { id: string; name: string; url: string; running: boolean; models: string[] }[]
 }
 
 export interface ExportResult {
@@ -186,6 +203,8 @@ export const api = {
   cancel: (id: number) => invoke<void>('cancel_job', { id }),
   clearJobs: () => invoke<void>('clear_jobs'),
   getSettings: () => invoke<Settings>('get_settings'),
+  aiDetect: () => invoke<Detected>('ai_detect'),
+  aiModels: (url: string, key: string) => invoke<string[]>('ai_models', { url, key }),
   saveSettings: (settings: Settings) => invoke<void>('save_settings', { settings }),
   initialProject: () => invoke<string | null>('initial_project'),
   reveal: (path: string) => invoke<void>('reveal', { path }),

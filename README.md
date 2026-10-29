@@ -84,18 +84,26 @@ my-video/
 
 ## Agent
 
-The sidecar uses the Anthropic SDK with a deliberately narrow tool set:
-read/write files of the shot, the world and the caption layer, render
-stills through the engine, read the checklist, report checks. It cannot
-run shell commands (PRD §9). Fixes and publish copy use
-`claude-opus-5-5`, routine checks `claude-sonnet-5-5`. The checklist is
-[`engine/shotloop/checklist.md`](engine/shotloop/checklist.md); a project
-may bring its own.
+The agent works through a deliberately narrow tool set: read/write files
+of the shot, the world and the caption layer, render stills through the
+engine, read the checklist, report checks. It cannot run shell commands
+(PRD §9). What drives it is chosen in Settings → AI:
+
+| Backend | How |
+| --- | --- |
+| Anthropic API | Your own key; `claude-opus-5-5` for fixes and publish copy, `claude-sonnet-5-5` for checks. |
+| Local CLI agent | Claude Code (Codex and Gemini CLI experimental), signed in on this Mac. It runs headless with its own tools off; Shotloop's tools reach it as an MCP server ([`agent/src/mcp.ts`](agent/src/mcp.ts)). |
+| Local model | Ollama, LM Studio or any OpenAI-compatible server; checks need a vision model with tool calling. |
+
+The checklist is [`engine/shotloop/checklist.md`](engine/shotloop/checklist.md);
+a project may bring its own.
 
 ```bash
 ANTHROPIC_API_KEY=… node agent/src/main.ts fix examples/hello-3d --shot 01-wide \
   --request "the packet is too small to see"
-pnpm test                    # agent loop against a scripted API stand-in
+SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check examples/hello-3d --shot 01-wide
+node agent/src/main.ts detect   # CLI agents and local model servers on this Mac
+pnpm test                       # every backend against scripted stand-ins
 ```
 
 `examples/hello-3d` ships with a seeded mistake: in `01-wide` the packet
