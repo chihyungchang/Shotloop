@@ -265,6 +265,19 @@ fn open_blender_download() -> Result<(), String> {
     tauri_plugin_opener::open_url("https://www.blender.org/download/", None::<&str>).map_err(|e| e.to_string())
 }
 
+/// The whole film to watch: the shots' clips joined, with music (cached)
+#[tauri::command]
+async fn film_preview(handle: AppHandle, path: String, final_mode: bool) -> Result<Value, String> {
+    blocking(move || {
+        let mut args = vec!["preview", path.as_str()];
+        if final_mode {
+            args.push("--final");
+        }
+        engine(&handle.state::<App>(), &args)
+    })
+    .await
+}
+
 /// Settings → About: what this build is and where it runs
 #[tauri::command]
 fn about(handle: AppHandle) -> Value {
@@ -350,6 +363,7 @@ pub fn run() {
             open_blender_download,
             open_url,
             about,
+            film_preview,
             tray::set_tray_text
         ])
         .build(tauri::generate_context!())

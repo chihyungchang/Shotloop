@@ -233,7 +233,9 @@ export const api = {
   setTrayText: (status: string, show: string, quit: string, done: string, failed: string) => invoke<void>('set_tray_text', { status, show, quit, done, failed }),
   // One tiny request through the backend as Settings shows it, saved or not
   aiTest: (settings: Settings) => invoke<{ ok: boolean; latencyMs: number; reply: string; backend: string }>('ai_test', { settings }),
-  about: () => invoke<About>('about')
+  about: () => invoke<About>('about'),
+  // The whole film, joined from the shots' clips with music (cached)
+  filmPreview: (path: string, mode: Mode) => invoke<{ file: string }>('film_preview', { path, finalMode: mode === 'final' })
 }
 
 export const onQueue = (f: (jobs: Job[]) => void): Promise<UnlistenFn> => listen<Job[]>('queue', e => f(e.payload))

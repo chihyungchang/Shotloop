@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, type Job, type Mode, type Project } from '../../api'
 import { estimate, formatSeconds, shotView } from '../../model'
 import type { useTheme } from '../../theme/theme'
@@ -6,6 +6,7 @@ import { Icon } from '../Icon'
 import { ThemeToggle } from '../ThemeToggle'
 import { AgentPanel } from './AgentPanel'
 import { ExportPanel } from './ExportPanel'
+import { FilmPreview } from './FilmPreview'
 import { Filmstrip } from './Filmstrip'
 import { QueuePanel } from './QueuePanel'
 import { ShotNotes } from './ShotNotes'
@@ -14,10 +15,12 @@ import { t } from '../../i18n'
 
 type Drawer = 'queue' | 'export' | null
 
-// One project, full-window (open-design's Studio, for a film): the agent
-// conversation on the left, the shot on a dark stage in the middle with
-// the filmstrip and the shot's notes under it, queue and export in a
-// drawer on the right.
+// One project, full-window (open-design's Studio, for a film), with one
+// main line: pick a shot in the filmstrip, watch it, tell the agent what
+// is wrong, watch the whole film, export. The agent conversation is on
+// the left, the shot on a dark stage in the middle with the filmstrip and
+// the shot's notes under it, queue and export in a drawer on the right;
+// quality, Finder and theme sit in the "more" menu.
 export function Studio({ project, jobs, refresh, close, theme }: {
   project: Project
   jobs: Job[]
@@ -28,6 +31,11 @@ export function Studio({ project, jobs, refresh, close, theme }: {
   const [mode, setMode] = useState<Mode>('draft')
   const [selected, setSelected] = useState(project.shots[0]?.id ?? '')
   const [drawer, setDrawer] = useState<Drawer>(null)
+  const [film, setFilm] = useState<string | null>(null)
+  // Asked for the whole film while shots were still out of date
+  const [wantFilm, setWantFilm] = useState(false)
+  const [filmError, setFilmError] = useState<string | null>(null)
+  const [menu, setMenu] = useState(false)
 
   // Keep the selection valid when shots are renamed or removed
   useEffect(() => {
@@ -51,6 +59,32 @@ export function Studio({ project, jobs, refresh, close, theme }: {
   }
   const toggle = (d: Drawer) => setDrawer(cur => (cur === d ? null : d))
 
+  // The whole film: render what is out of date first, then open it
+  const openFilm = async () => {
+    setFilmError(null)
+    if (pending.length) {
+      setWantFilm(true)
+      for (const s of pending) api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false })
+      return
+    }
+    try {
+      setFilm((await api.filmPreview(project.root, mode)).file)
+    } catch (e) {
+      setFilmError(String(e))
+    }
+  }
+  const failed = pending.some(s => views.get(s.id)!.state === 'failed')
+  useEffect(() => {
+    if (!wantFilm) return
+    if (!pending.length) {
+      setWantFilm(false)
+      openFilm()
+    } else if (failed && !active.length) {
+      setWantFilm(false)
+      setFilmError(t('film.failed'))
+    }
+  }, [wantFilm, pending.length, failed, active.length])
+
   return (
     <div className={`studio${drawer ? ' with-drawer' : ''}`}>
       <header className="studio-top">
@@ -64,16 +98,16 @@ export function Studio({ project, jobs, refresh, close, theme }: {
           </span>
         </div>
         <div className="spacer" />
-        <div className="segmented" role="radiogroup" aria-label={t('studio.modeAria')}>
-          {(['draft', 'final'] as Mode[]).map(m => (
-            <button key={m} role="radio" aria-checked={mode === m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>
-              {t(m === 'draft' ? 'mode.Draft' : 'mode.Final')}
+        {filmError && <span className="small error ellipsis" title={filmError}>{filmError}</span>}
+        {pending.length > 0
+          ? (
+            <button onClick={renderPending} title={pending.map(s => s.id).join(', ')}>
+              <Icon name="refresh" size={14} /> {t('studio.renderChanged', { n: pending.length, time: formatSeconds(pendingTime) })}
             </button>
-          ))}
-        </div>
-        <button onClick={renderPending} disabled={!pending.length} title={pending.map(s => s.id).join(', ')}>
-          <Icon name="refresh" size={14} />
-          {' '}{pending.length ? t('studio.renderChanged', { n: pending.length, time: formatSeconds(pendingTime) }) : t('studio.allCached')}
+          )
+          : <span className="small muted up-to-date"><Icon name="check" size={13} /> {t('studio.allCached')}</span>}
+        <button onClick={openFilm} disabled={wantFilm}>
+          {wantFilm ? <span className="spinner small" /> : <Icon name="play" size={14} />} {t(wantFilm ? 'film.rendering' : 'film.watch')}
         </button>
         <button className={drawer === 'queue' ? 'on' : ''} onClick={() => toggle('queue')}>
           <Icon name="queue" size={14} /> {t('studio.queue')}{active.length ? <span className="count">{active.length}</span> : null}
@@ -81,8 +115,25 @@ export function Studio({ project, jobs, refresh, close, theme }: {
         <button className="dark" onClick={() => toggle('export')}>
           <Icon name="export" size={14} /> {t('studio.export')}
         </button>
-        <button className="ghost small" onClick={() => api.reveal(project.root)} title={project.root}>{t('studio.finder')}</button>
-        <ThemeToggle pref={theme.pref} setPref={theme.setPref} />
+        <MoreMenu open={menu} setOpen={setMenu}>
+          <div className="menu-row">
+            <span>{t('studio.quality')}</span>
+            <div className="segmented" role="radiogroup" aria-label={t('studio.modeAria')}>
+              {(['draft', 'final'] as Mode[]).map(m => (
+                <button key={m} role="radio" aria-checked={mode === m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>
+                  {t(m === 'draft' ? 'mode.Draft' : 'mode.Final')}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="menu-row">
+            <span>{t('theme.label')}</span>
+            <ThemeToggle pref={theme.pref} setPref={theme.setPref} />
+          </div>
+          <button className="menu-item" onClick={() => { setMenu(false); api.reveal(project.root) }}>
+            <Icon name="folder" size={14} /> {t('studio.revealFinder')}
+          </button>
+        </MoreMenu>
       </header>
 
       {shot && view ? (
@@ -97,6 +148,8 @@ export function Studio({ project, jobs, refresh, close, theme }: {
         {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} />}
       </section>
 
+      {film && <FilmPreview project={project} file={film} close={() => setFilm(null)} />}
+
       {drawer && (
         <aside className="drawer">
           <div className="drawer-head">
@@ -106,6 +159,30 @@ export function Studio({ project, jobs, refresh, close, theme }: {
           {drawer === 'queue' ? <QueuePanel project={project} jobs={jobs} /> : <ExportPanel project={project} jobs={jobs} />}
         </aside>
       )}
+    </div>
+  )
+}
+
+// The studio's "more" menu: closes on a click outside or Esc
+function MoreMenu({ open, setOpen, children }: { open: boolean; setOpen: (o: boolean) => void; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const away = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false)
+    const key = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    window.addEventListener('mousedown', away)
+    window.addEventListener('keydown', key)
+    return () => {
+      window.removeEventListener('mousedown', away)
+      window.removeEventListener('keydown', key)
+    }
+  }, [open, setOpen])
+  return (
+    <div className="more" ref={ref}>
+      <button className={`icon-button${open ? ' on' : ''}`} onClick={() => setOpen(!open)} aria-label={t('studio.more')} aria-expanded={open}>
+        <Icon name="more" size={18} />
+      </button>
+      {open && <div className="menu" role="menu">{children}</div>}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, fileUrl, relPath, type Mode, type Project, type Shot, type Take } from '../../api'
 import { estimate, formatSeconds, shotTime, type ShotView } from '../../model'
+import { VideoPlayer } from './VideoPlayer'
 import { Icon } from '../Icon'
 import type { Key } from '../../i18n/en'
 import { formatDate, t } from '../../i18n'
@@ -12,7 +13,8 @@ const stageName = (s: string) => (STAGES[s] ? t(STAGES[s]) : s)
 const STILLS: Key[] = ['stage.start', 'stage.middle', 'stage.end']
 
 // The shot on a dark stage: its clip with captions and music, its three
-// stills, or its code (docs/PRD.md §7.4), with the shot's render actions
+// stills, or its code (docs/PRD.md §7.4); rendering is the studio's
+// "Render changed", or the button here when the shot has no clip yet
 export function Stage({ project, shot, view, mode, refresh }: {
   project: Project
   shot: Shot
@@ -43,7 +45,7 @@ export function Stage({ project, shot, view, mode, refresh }: {
           <strong>{shot.id}</strong> <span className="muted small">{shotTime(shot)}</span>
         </span>
         <div className="spacer" />
-        {tab !== 'code' && (
+        {tab !== 'code' && takes.length > 1 && (
           <select
             className="take-select"
             value={take?.take ?? ''}
@@ -58,9 +60,6 @@ export function Stage({ project, shot, view, mode, refresh }: {
             ))}
           </select>
         )}
-        <button className="small" onClick={() => render('draft', true)} title={`~${formatSeconds(estimate(project, shot, 'draft', true))}`}>{t('stage.renderStillsBtn')}</button>
-        <button className="small" onClick={() => render('draft', false)} title={`~${formatSeconds(estimate(project, shot, 'draft'))}`}>{t('mode.Draft')}</button>
-        <button className="small" onClick={() => render('final', false)} title={`~${formatSeconds(estimate(project, shot, 'final'))}`}>{t('mode.Final')}</button>
       </div>
 
       <div className={`stage${tab === 'code' ? ' code' : ''}`}>
@@ -68,7 +67,7 @@ export function Stage({ project, shot, view, mode, refresh }: {
           <pre className="stage-error">{t('stage.failed', { mode: t(`mode.${shot.error.mode}`), message: shot.error.message })}</pre>
         )}
         {tab === 'preview' && (clip
-          ? <video key={clip} className={wide ? 'wide' : ''} src={fileUrl(clip, version)} controls loop autoPlay muted playsInline />
+          ? <VideoPlayer key={clip} src={fileUrl(clip, version)} className={`shot${wide ? ' wide' : ''}`} />
           : <div className="stage-empty">
               <p>{t('stage.noClip', { mode: t(`mode.${mode}`) })}</p>
               <button onClick={() => render(mode, false)}>{t('stage.renderMode', { mode: t(`mode.${mode}`), time: formatSeconds(estimate(project, shot, mode)) })}</button>

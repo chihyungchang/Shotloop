@@ -9,6 +9,7 @@
 //   shotloop cover    <project>
 //   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d] [--aspect 9:16|16:9] [--duration 30]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
+//   shotloop preview  <project> [--final]                the whole film to watch (cached)
 //   shotloop prune    <project>                          drop unused cache entries
 //   shotloop doctor                                      Chrome, ffmpeg, Blender
 //
@@ -23,7 +24,7 @@ import { parseArgs } from 'node:util'
 import { prune, status, worldKey } from './cache.mjs'
 import { emit, setJson } from './compose.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
-import { assemble, exportFilm, renderCover } from './film.mjs'
+import { assemble, exportFilm, preview, renderCover } from './film.mjs'
 import { findShot, loadProject } from './project.mjs'
 import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
@@ -138,6 +139,9 @@ try {
       result(await exportFilm(project, { mode: values.draft ? 'draft' : 'final', aspects: aspects() }))
       break
     }
+    case 'preview':
+      result(await preview(loadProject(args[0]), { mode: values.final ? 'final' : 'draft' }))
+      break
     case 'cover':
       result(await renderCover(loadProject(args[0])))
       break

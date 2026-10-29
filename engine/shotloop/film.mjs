@@ -6,6 +6,7 @@
 // out/latest.json points at the newest export, so an older file can't
 // be mistaken for a new one.
 
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -88,6 +89,43 @@ export async function assemble(project, { mode = 'draft', aspects = ['9:16', '16
   } finally {
     fs.rmSync(work, { recursive: true, force: true })
   }
+}
+
+// The whole film to watch in the app: the shots' clips joined as they
+// are, with the music under them, at the project's own aspect. Cached by
+// what went in, so watching it again costs nothing.
+export async function preview(project, { mode = 'draft' } = {}) {
+  const missing = pendingShots(project, mode)
+  if (missing.length) {
+    throw new Error(`not rendered (${mode}): ${missing.map(s => s.id).join(', ')}; render them first`)
+  }
+  const clips = project.shots.map(s => entry(project, s, mode).clip)
+  const music = musicWav(project)
+  const key = createHash('sha256').update(JSON.stringify([clips, music, project.duration])).digest('hex').slice(0, 16)
+  const dir = path.join(project.state, 'film')
+  const file = path.join(dir, `${mode}-${key}.mp4`)
+  if (fs.existsSync(file)) return { mode, file, cached: true }
+
+  fs.mkdirSync(dir, { recursive: true })
+  // One preview per mode: older ones go
+  for (const f of fs.readdirSync(dir)) if (f.startsWith(`${mode}-`)) fs.rmSync(path.join(dir, f), { force: true })
+  const list = path.join(dir, `${mode}-list.txt`)
+  fs.writeFileSync(list, clips.map(c => `file '${c.replaceAll("'", "'\\''")}'`).join('\n') + '\n')
+  const joined = path.join(dir, `${mode}-joined.mp4`)
+  try {
+    emit({ type: 'log', message: `joining ${clips.length} shots` })
+    await ffmpeg(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', joined])
+    if (music) {
+      await ffmpeg(['-i', joined, '-i', music, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k',
+        '-t', String(project.duration), '-movflags', '+faststart', file])
+    } else {
+      fs.renameSync(joined, file)
+    }
+  } finally {
+    fs.rmSync(list, { force: true })
+    fs.rmSync(joined, { force: true })
+  }
+  return { mode, file, cached: false }
 }
 
 // The cover: thumb.html at 1080×1920, text kept inside the 3:4 crop by

@@ -326,8 +326,8 @@ details .field + .field { margin-top: 10px; }
 .stage { position: relative; flex: 1; min-height: 0; background: var(--stage); display: flex; align-items: center; justify-content: center; padding: 18px; overflow: hidden;
   background-image: linear-gradient(var(--stage-grid-major) 1px, transparent 1px), linear-gradient(90deg, var(--stage-grid-major) 1px, transparent 1px), linear-gradient(var(--stage-grid) 1px, transparent 1px), linear-gradient(90deg, var(--stage-grid) 1px, transparent 1px); background-size: 96px 96px, 96px 96px, 24px 24px, 24px 24px; background-position: -1px -1px; }
 .stage.code { background: var(--surface); background-image: none; padding: 0; align-items: stretch; }
-.stage video { height: 100%; max-width: 100%; border-radius: var(--r-md); background: #000; box-shadow: 0 0 0 1px var(--stage-frame), 0 12px 40px rgb(0 0 0 / 0.55); }
-.stage video.wide { height: auto; width: 100%; max-height: 100%; }
+.player.shot video { display: block; cursor: pointer; height: 100%; max-width: 100%; border-radius: var(--r-md); background: #000; box-shadow: 0 0 0 1px var(--stage-frame), 0 12px 40px rgb(0 0 0 / 0.55); }
+.player.shot.wide video { height: auto; width: 100%; max-height: 100%; }
 .stage-stills { display: flex; gap: 14px; height: 100%; align-items: center; justify-content: center; }
 .stage-stills figure { margin: 0; height: 100%; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
 .stage-stills img { height: calc(100% - 22px); max-width: 100%; object-fit: contain; border-radius: var(--r-md); cursor: zoom-in; box-shadow: 0 0 0 1px var(--stage-frame), 0 10px 30px rgb(0 0 0 / 0.5); }
@@ -405,3 +405,45 @@ details .field + .field { margin-top: 10px; }
   .studio.with-drawer { grid-template-columns: 300px 1fr 300px; }
 }
 
+
+/* Player: the system controls replaced by a quiet bar that fades in on
+   hover */
+.player { position: relative; display: flex; justify-content: center; align-items: center; max-width: 100%; max-height: 100%; }
+.player.shot { height: 100%; }
+.player.shot.wide { height: auto; width: 100%; }
+.player-bar { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; align-items: center; gap: 10px; padding: 4px 12px 4px 6px;
+  border-radius: var(--r-pill); background: rgb(14 15 17 / 0.6); backdrop-filter: blur(14px) saturate(1.4); color: #fff;
+  opacity: 0; transform: translateY(4px); transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); }
+.player:hover .player-bar, .player:focus-within .player-bar { opacity: 1; transform: none; }
+.player-btn { border: 0; background: transparent; color: #fff; width: 28px; min-height: 28px; padding: 0; justify-content: center; border-radius: 50%; }
+.player-btn:hover:not(:disabled) { background: rgb(255 255 255 / 0.14); border: 0; }
+.player-track { flex: 1; height: 16px; display: flex; align-items: center; cursor: pointer; position: relative; touch-action: none; }
+.player-track::before { content: ''; position: absolute; left: 0; right: 0; height: 3px; border-radius: 2px; background: rgb(255 255 255 / 0.28); transition: height var(--dur-fast) var(--ease); }
+.player-track i { position: relative; display: block; height: 3px; border-radius: 2px; background: #fff; transition: height var(--dur-fast) var(--ease); }
+.player-track:hover::before, .player-track:hover i { height: 5px; }
+.player-time { font: 500 11px var(--font-mono); font-variant-numeric: tabular-nums; color: rgb(255 255 255 / 0.85); white-space: nowrap; }
+
+/* The whole film, over the studio */
+.film-overlay { position: fixed; inset: 0; z-index: 50; background: rgb(0 0 0 / 0.74); backdrop-filter: blur(10px); display: grid; place-items: center; animation: fade-in 160ms var(--ease) both; }
+.film-box { display: flex; flex-direction: column; gap: 10px; height: 88vh; max-width: 92vw; animation: fade-up 220ms var(--ease) both; }
+.film-box.wide { height: auto; width: min(92vw, 1440px); }
+.film-head { display: flex; align-items: center; gap: 12px; color: #fff; min-width: 0; }
+.film-head .muted { color: rgb(255 255 255 / 0.6); }
+.film-head .icon-button { color: #fff; margin-left: auto; }
+.film-head .icon-button:hover:not(:disabled) { background: rgb(255 255 255 / 0.12); color: #fff; }
+.player.film { flex: 1; min-height: 0; }
+.player.film video { display: block; height: 100%; max-width: 92vw; border-radius: var(--r-lg); background: #000; box-shadow: 0 24px 80px rgb(0 0 0 / 0.5); }
+.player.film.wide video { width: 100%; height: auto; max-height: 82vh; }
+
+/* Studio: the "more" menu, and the quiet up-to-date note */
+.more { position: relative; }
+.menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 270px; padding: 6px; display: flex; flex-direction: column; gap: 2px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); animation: pop 140ms var(--ease) both; transform-origin: top right; }
+@keyframes pop { from { opacity: 0; transform: scale(0.96) translateY(-3px); } to { opacity: 1; transform: none; } }
+.menu-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 8px; font-size: 12.5px; font-weight: 600; }
+.menu-item { border: 0; background: transparent; justify-content: flex-start; min-height: 32px; padding: 0 8px; border-radius: var(--r-md); font-size: 12.5px; }
+.menu-item:hover:not(:disabled) { background: var(--veil); border: 0; }
+.up-to-date { display: inline-flex; gap: 4px; align-items: center; padding: 0 6px; }
+.player-big { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 64px; height: 64px; min-height: 64px; padding: 0 0 0 4px; justify-content: center;
+  border-radius: 50%; border: 0; background: rgb(14 15 17 / 0.55); backdrop-filter: blur(14px); color: #fff; box-shadow: 0 8px 30px rgb(0 0 0 / 0.35); }
+.player-big:hover:not(:disabled) { background: rgb(14 15 17 / 0.72); border: 0; transform: translate(-50%, -50%) scale(1.04); }
