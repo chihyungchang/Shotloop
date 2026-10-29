@@ -7,7 +7,7 @@
 //
 // ctx = { window, document, world, start, duration, fps, id }, where
 // `world` is the page's own window.render (film time) if it defines one,
-// so a converted episode can delegate: world(ctx.start + t).
+// so a shot can delegate to it: world(ctx.start + t).
 
 import fs from 'node:fs'
 import path from 'node:path'

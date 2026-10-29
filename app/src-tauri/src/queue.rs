@@ -160,6 +160,9 @@ pub struct Launch {
     pub env: Vec<(String, String)>,
     pub api_key: String,
     pub needs_key: bool,
+    /// Alerts when the queue runs dry (Settings → General)
+    pub notify_sound: bool,
+    pub notify_desktop: bool,
 }
 
 #[derive(Default)]
@@ -167,6 +170,9 @@ struct Inner {
     jobs: Vec<Job>,
     next_id: u64,
     children: HashMap<u64, Arc<Mutex<Child>>>,
+    // When the queue last went from idle to busy: the batch the
+    // finished alert sums up
+    batch_start: Option<u64>,
 }
 
 pub struct Queue {
@@ -300,7 +306,9 @@ impl Queue {
                     if let Some(j) = inner.jobs.iter_mut().find(|j| j.lane == lane && j.state == "queued") {
                         j.state = "running".into();
                         j.started_at = Some(now());
-                        break (j.id, j.spec.clone().unwrap());
+                        let job = (j.id, j.spec.clone().unwrap());
+                        inner.batch_start.get_or_insert_with(now);
+                        break job;
                     }
                     inner = self.wake.wait(inner).unwrap();
                 }
@@ -323,6 +331,21 @@ impl Queue {
                     }
                 }
             });
+            // The queue ran dry: one alert for the whole batch
+            let batch = {
+                let mut inner = self.inner.lock().unwrap();
+                if inner.jobs.iter().any(|j| matches!(j.state.as_str(), "queued" | "running")) {
+                    None
+                } else {
+                    let since = inner.batch_start.take().unwrap_or(0);
+                    let done: Vec<&Job> = inner.jobs.iter().filter(|j| j.finished_at.is_some_and(|t| t >= since) && j.state != "cancelled").collect();
+                    Some((done.len(), done.iter().filter(|j| j.state == "failed").count()))
+                }
+            };
+            if let Some((n, failed)) = batch {
+                let launch = self.launch.lock().unwrap().clone();
+                crate::tray::batch_finished(&app, &launch, n, failed);
+            }
         }
     }
 

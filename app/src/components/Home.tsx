@@ -2,6 +2,7 @@ import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useEffect, useState } from 'react'
 import { api, EMPTY_SETTINGS, fileUrl, type ProjectSummary } from '../api'
 import { formatSeconds } from '../model'
+import { aiSummary, useSettings } from '../ai/useSettings'
 import { baseName, projectsFolder, setProjectsFolder } from '../recent'
 import { Icon } from './Icon'
 import type { Key } from '../i18n/en'
@@ -21,7 +22,9 @@ const slugify = (s: string) =>
 
 // Home: start a short from an idea (open-design's composer, for video),
 // or open one of the examples
-export function Home({ open }: { open: (path: string) => void }) {
+export function Home({ open, openSettings }: { open: (path: string) => void; openSettings: () => void }) {
+  const settings = useSettings()
+  const ai = settings && aiSummary(settings)
   const [idea, setIdea] = useState('')
   const [track, setTrack] = useState<Track>('2d')
   const [aspect, setAspect] = useState<Aspect>('9:16')
@@ -96,20 +99,6 @@ export function Home({ open }: { open: (path: string) => void }) {
     checkBlender()
   }
 
-  const convert = async () => {
-    setError(null)
-    const src = await pick({ directory: true, title: t('home.dialog.legacy') })
-    if (typeof src !== 'string') return
-    const parent = folder ?? (await chooseFolder())
-    if (!parent) return
-    try {
-      const r = await api.convert(src, `${parent}/${baseName(src)}`)
-      open(r.dst)
-    } catch (e) {
-      setError(String(e))
-    }
-  }
-
   const [before, after] = tSplit('home.hero', 'mark')
 
   return (
@@ -136,7 +125,7 @@ export function Home({ open }: { open: (path: string) => void }) {
               {(['2d', '3d'] as Track[]).map(tr => (
                 <button key={tr} role="radio" aria-checked={track === tr} className={`chip${track === tr ? ' on' : ''}`}
                   onClick={() => setTrack(tr)} title={t(TRACKS[tr].hint)}>
-                  {tr.toUpperCase()}
+                  {track === tr && <Icon name="spark" size={12} />}{t(TRACKS[tr].word)}
                 </button>
               ))}
             </div>
@@ -155,14 +144,20 @@ export function Home({ open }: { open: (path: string) => void }) {
               ))}
             </div>
           </div>
+          {ai && (
+            <button className="model-chip" onClick={openSettings} title={t('ai.change')}>
+              <span className={`dot ${ai.ready ? 'ok' : 'warn'}`} />
+              <span className="ellipsis">{ai.name}{ai.model ? ` · ${ai.model}` : ''}</span>
+            </button>
+          )}
           <button className="send" onClick={() => create()} disabled={!idea.trim() || busy} aria-label={t('home.create')} title={t('home.create')}>
             {busy ? <span className="spinner" /> : <Icon name="send" size={18} />}
           </button>
         </div>
         </div>
         <div className="composer-foot">
-          <button className="link-muted" onClick={chooseFolder}>
-            <Icon name="folder" size={14} /> {folder ?? t('home.chooseFolder')}
+          <button className="workdir" onClick={chooseFolder} title={folder ?? ''}>
+            <Icon name="folder" size={14} /> <span className="ellipsis">{folder ? baseName(folder) : t('home.chooseFolder')}</span> <Icon name="chevron" size={12} />
           </button>
           <span className="muted small">{t(TRACKS[track].hint)}</span>
         </div>
@@ -201,9 +196,6 @@ export function Home({ open }: { open: (path: string) => void }) {
             </button>
           ))}
           </div>
-          <button className="link-muted convert" onClick={convert}>
-            <Icon name="refresh" size={14} /> {t('home.convert')}
-          </button>
         </section>
       )}
     </div>

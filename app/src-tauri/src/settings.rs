@@ -33,6 +33,9 @@ pub struct Settings {
     pub blender: String,
     /// Chrome or headless shell binary, if not in /Applications
     pub chrome: String,
+    /// A sound and a desktop notification when the queue runs dry
+    pub notify_sound: bool,
+    pub notify_desktop: bool,
 }
 
 pub fn load(dir: &Path) -> Settings {

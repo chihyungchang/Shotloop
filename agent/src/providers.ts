@@ -15,9 +15,13 @@
 // The many hosted providers (OpenAI, Gemini, DeepSeek, OpenRouter, Qwen,
 // GLM, Kimi, MiniMax…) are presets in the app: a protocol and a URL.
 
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { CLIS, findBin, runCli, type CliId } from './cli.ts'
 import { listModels as listOpenAiModels, runLocal } from './local.ts'
 import { MODELS, runAgent as runAnthropic, type AgentOptions } from './loop.ts'
+import type { ToolContext } from './tools.ts'
 
 export type Provider = 'api' | 'cli' | 'local'
 export type Protocol = 'anthropic' | 'openai'
@@ -142,4 +146,25 @@ export async function listModels(url: string, key?: string, protocol: Protocol =
   if (!res.ok) throw new Error(`${base}: ${res.status} ${(await res.text()).slice(0, 200)}`)
   const body = (await res.json()) as { data?: { id: string }[] }
   return (body.data ?? []).map(d => d.id).sort()
+}
+
+// The Test button: one tiny request through the chosen backend, outside
+// any project (an empty folder, nothing writable)
+export async function smokeTest() {
+  preflight()
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-test-'))
+  const ctx: ToolContext = { root, checklist: path.join(root, 'checklist.md'), writable: [], touched: new Set(), renders: new Map(), checks: [] }
+  fs.writeFileSync(ctx.checklist, '')
+  const started = Date.now()
+  try {
+    const reply = await runAgent('routine', {
+      effort: 'low',
+      system: 'This is a connection test. Do not call any tools.',
+      prompt: 'Reply with the single word OK.',
+      ctx
+    })
+    return { ok: true, latencyMs: Date.now() - started, reply: reply.slice(0, 200), backend: describe() }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true })
+  }
 }

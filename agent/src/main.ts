@@ -5,6 +5,7 @@
 //   shotloop-agent check   <project> --shot <id> [--review-only]
 //   shotloop-agent publish <project>
 //   shotloop-agent detect                     CLI agents and local model servers here
+//   shotloop-agent test                       one tiny request through the chosen backend
 //   shotloop-agent models  --url <…> [--key k] [--protocol anthropic|openai]
 //                                             the chat models an endpoint offers
 //
@@ -18,7 +19,7 @@ import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
 import { emit, setJson } from './events.ts'
-import { describe, detect, listModels, preflight, runAgent } from './providers.ts'
+import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
 import { checkSystem, fixSystem, publishSystem, replyLanguage } from './prompts.ts'
 import type { ToolContext } from './tools.ts'
 
@@ -173,6 +174,7 @@ async function publishTask() {
 try {
   let value: unknown
   if (task === 'detect') value = await detect()
+  else if (task === 'test') value = await smokeTest()
   else if (task === 'models') {
     const protocol = values.protocol === 'anthropic' ? 'anthropic' : 'openai'
     if (!values.url && protocol === 'openai') throw new Error('models needs --url <base URL>')

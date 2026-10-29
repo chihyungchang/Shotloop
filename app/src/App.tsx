@@ -76,19 +76,22 @@ export default function App() {
   // The menu bar menu speaks the UI's language
   const active = jobs.filter(j => j.state === 'running' || j.state === 'queued').length
   useEffect(() => {
-    api.setTrayText(active ? t('sidebar.queue', { n: active }) : t('tray.idle'), t('tray.show'), t('tray.quit')).catch(() => {})
+    api.setTrayText(active ? t('sidebar.queue', { n: active }) : t('tray.idle'), t('tray.show'), t('tray.quit'), t('notify.done'), t('notify.failed')).catch(() => {})
   }, [active, language.lang])
 
   if (project) return <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} />
+
+  // Settings takes the whole window, with its own section list (as in
+  // open-design)
+  if (page === 'settings') return <SettingsPage key={language.lang} theme={theme} language={language} back={() => setPage('home')} />
 
   return (
     <div className="workspace-shell" key={language.lang}>
       <Sidebar page={page} setPage={setPage} open={open} jobs={jobs} theme={theme} />
       <main className="workspace-main">
         {error && <p className="error banner">{error}</p>}
-        {page === 'home' && <Home open={open} />}
+        {page === 'home' && <Home open={open} openSettings={() => setPage('settings')} />}
         {page === 'projects' && <Projects open={open} />}
-        {page === 'settings' && <SettingsPage theme={theme} language={language} />}
       </main>
     </div>
   )

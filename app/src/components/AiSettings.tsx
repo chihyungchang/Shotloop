@@ -5,43 +5,53 @@ import { t } from '../i18n'
 import type { Key } from '../i18n/en'
 import { Icon } from './Icon'
 
-const MODES: { id: Provider; title: Key; note: Key; icon: Parameters<typeof Icon>[0]['name'] }[] = [
-  { id: 'api', title: 'ai.api', note: 'ai.apiNote', icon: 'cloud' },
-  { id: 'cli', title: 'ai.cli', note: 'ai.cliNote', icon: 'terminal' },
-  { id: 'local', title: 'ai.local', note: 'ai.localNote', icon: 'cpu' }
+const MODES: { id: Provider; title: Key }[] = [
+  { id: 'cli', title: 'ai.cli' },
+  { id: 'api', title: 'ai.api' },
+  { id: 'local', title: 'ai.local' }
 ]
 
 const unique = (xs: string[]) => [...new Set(xs.filter(Boolean))]
+type Probe = { ok: boolean; text: string } | null
 
-// Which model drives the agent (after open-design's execution settings):
-// a hosted model API with the user's key (Anthropic, OpenAI, Gemini,
-// DeepSeek, Qwen, Kimi, GLM… as presets), a local CLI agent the user is
-// signed in to, or a model on a local OpenAI-compatible server. Whatever
-// drives it, the agent only gets Shotloop's narrow tools.
+// The outcome of a Test or a model listing, on one line
+function ProbeLine({ probe }: { probe: Probe }) {
+  if (!probe) return null
+  return <small className={probe.ok ? 'probe ok' : 'probe bad'}>{probe.ok && <Icon name="check" size={12} />} {probe.text}</small>
+}
+
+// Which model drives the agent, after open-design's "Models and
+// providers": a local CLI agent the user is signed in to, a hosted model
+// API with the user's own key (presets over the Anthropic and OpenAI
+// protocols), or a model on a local server. Each can be tested with one
+// tiny request. Whatever drives it, the agent only gets Shotloop's
+// narrow tools.
 export function AiSettings({ settings, update }: { settings: Settings; update: (s: Partial<Settings>) => void }) {
   const [detected, setDetected] = useState<Detected | null>(null)
   const [models, setModels] = useState<string[] | null>(null)
-  const [probe, setProbe] = useState<{ ok: boolean; text: string } | null>(null)
-  const [busy, setBusy] = useState(false)
+  const [probe, setProbe] = useState<Probe>(null)
+  const [busy, setBusy] = useState<string | null>(null)
   const mode: Provider = settings.provider === 'cli' || settings.provider === 'local' ? settings.provider : 'api'
   const preset = presetById(settings.apiPreset || 'anthropic')
   const key = settings.apiKeys[preset.id] ?? ''
 
-  const detect = () => api.aiDetect().then(setDetected, () => setDetected({ clis: [], servers: [] }))
-  useEffect(() => {
-    detect()
-  }, [])
+  const detect = () => {
+    setDetected(null)
+    api.aiDetect().then(setDetected, () => setDetected({ clis: [], servers: [] }))
+  }
+  useEffect(detect, [])
   useEffect(() => {
     setModels(null)
     setProbe(null)
-  }, [mode, preset.id])
+  }, [mode, preset.id, settings.cli])
 
   const choosePreset = (p: Preset) =>
     update({ provider: 'api', apiPreset: p.id, apiProtocol: p.protocol, apiUrl: p.url, model: p.id === 'anthropic' ? '' : p.models[0] ?? '' })
+  const chooseMode = (m: Provider) => (m === 'api' ? choosePreset(preset) : update({ provider: m, model: '' }))
 
-  // Lists the endpoint's models: the connection test and the model picker
-  const test = async (url: string, k: string, protocol: 'anthropic' | 'openai') => {
-    setBusy(true)
+  // Lists an endpoint's models: the model picker's live half
+  const listModels = async (url: string, k: string, protocol: 'anthropic' | 'openai') => {
+    setBusy('models')
     setProbe(null)
     try {
       const list = await api.aiModels(url, k, protocol)
@@ -53,33 +63,103 @@ export function AiSettings({ settings, update }: { settings: Settings; update: (
       setProbe({ ok: false, text: String(e) })
       return []
     } finally {
-      setBusy(false)
+      setBusy(null)
     }
   }
 
-  const status = probe && <small className={probe.ok ? 'probe ok' : 'probe bad'}>{probe.ok && <Icon name="check" size={12} />} {probe.text}</small>
+  // One tiny request through the backend as shown, saved or not
+  const test = async (patch: Partial<Settings> = {}, id = 'test') => {
+    setBusy(id)
+    setProbe(null)
+    try {
+      const r = await api.aiTest({ ...settings, ...patch })
+      setProbe({ ok: true, text: t('ai.testOk', { s: (r.latencyMs / 1000).toFixed(1), reply: r.reply.slice(0, 40) }) })
+    } catch (e) {
+      setProbe({ ok: false, text: String(e).replace(/^Error: /, '') })
+    } finally {
+      setBusy(null)
+    }
+  }
+  const testButton = (patch: Partial<Settings> = {}, id = 'test') => (
+    <button className="pill-button" onClick={() => test(patch, id)} disabled={!!busy}>
+      {busy === id ? <span className="spinner small" /> : <Icon name="play" size={12} />} {t('ai.test')}
+    </button>
+  )
+
+  const installed = detected?.clis.filter(c => c.path) ?? []
+  const missing = detected?.clis.filter(c => !c.path) ?? []
 
   return (
     <section className="settings-block ai-settings">
-      <div className="row between">
-        <h3>{t('ai.title')}</h3>
-        <button className="ghost small" onClick={detect}><Icon name="refresh" size={14} /> {t('setup.checkAgain')}</button>
-      </div>
-      <p className="hint">{t('ai.intro')}</p>
-
-      <div className="mode-cards" role="radiogroup" aria-label={t('ai.title')}>
+      <div className="seg-control wide" role="tablist" aria-label={t('settings.ai')}>
         {MODES.map(m => (
-          <button key={m.id} role="radio" aria-checked={mode === m.id} className={`mode-card${mode === m.id ? ' on' : ''}`}
-            onClick={() => (m.id === 'api' ? choosePreset(preset) : update({ provider: m.id, model: '' }))}>
-            <span className="mode-icon"><Icon name={m.icon} size={16} /></span>
-            <strong>{t(m.title)}</strong>
-            <span className="small muted">{t(m.note)}</span>
-          </button>
+          <button key={m.id} role="tab" aria-selected={mode === m.id} className={mode === m.id ? 'on' : ''} onClick={() => chooseMode(m.id)}>{t(m.title)}</button>
         ))}
       </div>
 
+      {mode === 'cli' && (
+        <div className="provider-body">
+          <p className="hint">{t('ai.cliIntro')}</p>
+          <div className="row between">
+            <h4>{t('ai.yourClis', { n: installed.length })}</h4>
+            <button className="pill-button" onClick={detect} disabled={!detected}><Icon name="refresh" size={12} /> {t('ai.rescan')}</button>
+          </div>
+          {!detected && <p className="muted small">{t('setup.checking')}</p>}
+          {detected && installed.length === 0 && <p className="empty">{t('ai.noClis')}</p>}
+          <div className="cli-list" role="radiogroup">
+            {installed.map(c => {
+              const on = settings.cli === c.id
+              return (
+                <div key={c.id} className={`cli-card${on ? ' on' : ''}`}>
+                  <button role="radio" aria-checked={on} className="cli-card-head" onClick={() => update({ provider: 'cli', cli: c.id, model: on ? settings.model : '' })}>
+                    <span className={`cli-logo ${c.id}`}><Icon name="terminal" size={18} /></span>
+                    <span className="cli-name">
+                      <strong>{c.name} <span className="muted">· {c.vendor}</span></strong>
+                      <span className="muted small">{c.version ?? c.path}</span>
+                    </span>
+                    {c.note && <span className="tag">{t('ai.experimental')}</span>}
+                    {on && <span className="tag on"><Icon name="check" size={11} /> {t('ai.inUse')}</span>}
+                  </button>
+                  <span className="cli-test">{testButton({ provider: 'cli', cli: c.id, model: on ? settings.model : '' }, c.id)}</span>
+                  {on && (
+                    <div className="cli-body">
+                      <label className="field">
+                        <span>{t('ai.model')} <span className="muted">· {t('ai.builtInList')}</span></span>
+                        <select value={settings.model} onChange={e => update({ model: e.target.value })}>
+                          <option value="">{t('ai.cliDefault')}</option>
+                          {unique([...c.models, settings.model]).map(m => <option key={m} value={m}>{m}</option>)}
+                        </select>
+                      </label>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          {mode === 'cli' && busy !== 'models' && <ProbeLine probe={probe} />}
+          {missing.length > 0 && (
+            <details className="install-list">
+              <summary>{t('ai.installable', { n: missing.length })}</summary>
+              {missing.map(c => (
+                <div key={c.id} className="install-row">
+                  <span className="cli-logo"><Icon name="terminal" size={16} /></span>
+                  <span className="cli-name">
+                    <strong>{c.name} <span className="muted">· {c.vendor}</span></strong>
+                    <code>{c.install}</code>
+                  </span>
+                  <button className="pill-button" onClick={() => navigator.clipboard?.writeText(c.install)}>{t('ai.copy')}</button>
+                  <button className="pill-button" onClick={() => api.openUrl(c.url)}>{t('ai.website')} <Icon name="arrow" size={12} /></button>
+                </div>
+              ))}
+            </details>
+          )}
+          <p className="hint"><Icon name="check" size={12} /> {t('ai.cliSafety')}</p>
+        </div>
+      )}
+
       {mode === 'api' && (
         <div className="provider-body">
+          <p className="hint">{t('ai.apiNote')}</p>
           <div className="field">
             <span>{t('ai.provider')}</span>
             {(['global', 'cn'] as const).map(region => (
@@ -134,41 +214,25 @@ export function AiSettings({ settings, update }: { settings: Settings; update: (
               <datalist id="api-models">
                 {unique([...preset.models, ...(models ?? [])]).map(m => <option key={m} value={m} />)}
               </datalist>
-              <button className="small" disabled={busy || (!key && preset.id !== 'custom')}
-                onClick={() => test(settings.apiUrl, key, (settings.apiProtocol || preset.protocol) as 'anthropic' | 'openai')}>
-                {busy ? <span className="spinner small" /> : <Icon name="refresh" size={14} />} {t('ai.fetchModels')}
+              <button className="pill-button" disabled={!!busy || (!key && preset.id !== 'custom')}
+                onClick={() => listModels(settings.apiUrl, key, (settings.apiProtocol || preset.protocol) as 'anthropic' | 'openai')}>
+                {busy === 'models' ? <span className="spinner small" /> : <Icon name="refresh" size={12} />} {t('ai.fetchModels')}
               </button>
+              {testButton()}
             </div>
-            {status}
+            <ProbeLine probe={probe} />
             {preset.vision === false && <small className="warn-note">{t('ai.noVision')}</small>}
           </div>
         </div>
       )}
 
-      {mode === 'cli' && (
-        <div className="provider-body">
-          {!detected && <p className="muted small">{t('setup.checking')}</p>}
-          <div className="option-list" role="radiogroup">
-            {detected?.clis.map(c => (
-              <button key={c.id} role="radio" aria-checked={settings.cli === c.id} disabled={!c.path}
-                className={`option${settings.cli === c.id ? ' on' : ''}`} onClick={() => update({ cli: c.id })}>
-                <span className={`dot ${c.path ? 'ok' : ''}`} />
-                <strong>{c.name}</strong>
-                {c.note && <span className="tag">{t('ai.experimental')}</span>}
-                <span className="muted small option-meta">{c.path ? c.version ?? c.path : t('ai.notInstalled')}</span>
-              </button>
-            ))}
-          </div>
-          <label className="field">
-            <span>{t('ai.model')}</span>
-            <input value={settings.model} placeholder={t('ai.cliDefault')} onChange={e => update({ model: e.target.value })} />
-          </label>
-          <p className="hint"><Icon name="check" size={12} /> {t('ai.cliSafety')}</p>
-        </div>
-      )}
-
       {mode === 'local' && (
         <div className="provider-body">
+          <p className="hint">{t('ai.localNote')}</p>
+          <div className="row between">
+            <h4>{t('ai.servers')}</h4>
+            <button className="pill-button" onClick={detect} disabled={!detected}><Icon name="refresh" size={12} /> {t('ai.rescan')}</button>
+          </div>
           <div className="option-list" role="radiogroup">
             {LOCAL_SERVERS.map(p => {
               const server = detected?.servers.find(s => s.id === p.id)
@@ -177,7 +241,7 @@ export function AiSettings({ settings, update }: { settings: Settings; update: (
                   className={`option${settings.localUrl === p.url ? ' on' : ''}`}
                   onClick={async () => {
                     update({ localUrl: p.url, localModel: '' })
-                    const list = await test(p.url, '', 'openai')
+                    const list = await listModels(p.url, '', 'openai')
                     if (list[0]) update({ localModel: list[0] })
                   }}>
                   <span className={`dot ${server?.running ? 'ok' : ''}`} />
@@ -191,20 +255,21 @@ export function AiSettings({ settings, update }: { settings: Settings; update: (
           </div>
           <label className="field">
             <span>{t('ai.url')}</span>
-            <div className="row gap">
-              <input value={settings.localUrl} placeholder="http://localhost:11434/v1" onChange={e => update({ localUrl: e.target.value })} />
-              <button className="small" onClick={() => test(settings.localUrl, settings.localKey, 'openai')} disabled={!settings.localUrl || busy}>
-                {busy ? <span className="spinner small" /> : null} {t('ai.test')}
-              </button>
-            </div>
-            {status}
+            <input value={settings.localUrl} placeholder="http://localhost:11434/v1" onChange={e => update({ localUrl: e.target.value })} />
           </label>
-          <label className="field">
+          <div className="field">
             <span>{t('ai.model')}</span>
-            <input list="local-models" value={settings.localModel} placeholder="qwen2.5vl:7b" onChange={e => update({ localModel: e.target.value })} />
-            <datalist id="local-models">{(models ?? []).map(m => <option key={m} value={m} />)}</datalist>
+            <div className="row gap">
+              <input list="local-models" value={settings.localModel} placeholder="qwen2.5vl:7b" onChange={e => update({ localModel: e.target.value })} />
+              <datalist id="local-models">{(models ?? []).map(m => <option key={m} value={m} />)}</datalist>
+              <button className="pill-button" onClick={() => listModels(settings.localUrl, settings.localKey, 'openai')} disabled={!settings.localUrl || !!busy}>
+                {busy === 'models' ? <span className="spinner small" /> : <Icon name="refresh" size={12} />} {t('ai.fetchModels')}
+              </button>
+              {testButton()}
+            </div>
+            <ProbeLine probe={probe} />
             <small className="muted">{t('ai.visionNote')}</small>
-          </label>
+          </div>
           <label className="field">
             <span>{t('ai.key')}</span>
             <input type="password" value={settings.localKey} placeholder={t('ai.keyOptional')} onChange={e => update({ localKey: e.target.value })} />

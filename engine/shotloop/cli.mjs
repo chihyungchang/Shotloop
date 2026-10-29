@@ -7,7 +7,6 @@
 //   shotloop assemble <project> [--final] [--aspect 9:16,16:9]
 //   shotloop export   <project> [--draft] [--aspect 9:16,16:9]
 //   shotloop cover    <project>
-//   shotloop convert  <legacy episode dir> <project dir> [--force]
 //   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d] [--aspect 9:16|16:9] [--duration 30]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop prune    <project>                          drop unused cache entries
@@ -23,7 +22,6 @@ import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { prune, status, worldKey } from './cache.mjs'
 import { emit, setJson } from './compose.mjs'
-import { convert } from './convert.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
 import { assemble, exportFilm, renderCover } from './film.mjs'
 import { findShot, loadProject } from './project.mjs'
@@ -142,10 +140,6 @@ try {
     }
     case 'cover':
       result(await renderCover(loadProject(args[0])))
-      break
-    case 'convert':
-      if (args.length < 2) throw new Error('convert needs <legacy episode dir> <project dir>')
-      result(convert(args[0], args[1], { force: !!values.force }))
       break
     case 'new':
       if (!args[0]) throw new Error('new needs <project dir>')

@@ -27,6 +27,8 @@ fn launch_for(root: PathBuf, settings: &Settings) -> Launch {
         env: settings.env(),
         api_key: settings.api_key(),
         needs_key: settings.needs_key(),
+        notify_sound: settings.notify_sound,
+        notify_desktop: settings.notify_desktop,
     }
 }
 
@@ -38,6 +40,12 @@ fn engine(app: &State<'_, App>, args: &[&str]) -> Result<Value, String> {
 /// Runs a sidecar script (engine or agent) with --json and returns its
 /// `result` event
 fn run_script(app: &State<'_, App>, script: &str, args: &[&str]) -> Result<Value, String> {
+    let env = app.queue.launch.lock().unwrap().env.clone();
+    run_script_with(app, script, args, env)
+}
+
+/// run_script with the given settings' environment instead of the saved one
+fn run_script_with(app: &State<'_, App>, script: &str, args: &[&str], env: Vec<(String, String)>) -> Result<Value, String> {
     let launch = app.queue.launch.lock().unwrap().clone();
     let node = launch.node.clone().ok_or_else(|| env::node().unwrap_err())?;
     let out = Command::new(node)
@@ -45,7 +53,7 @@ fn run_script(app: &State<'_, App>, script: &str, args: &[&str]) -> Result<Value
         .args(args)
         .arg("--json")
         .env("PATH", &launch.path)
-        .envs(launch.env.iter().cloned())
+        .envs(env)
         .output()
         .map_err(|e| e.to_string())?;
     let mut error = None;
@@ -110,11 +118,6 @@ async fn open_project(handle: AppHandle, path: String) -> Result<Value, String> 
 #[tauri::command]
 async fn project_status(handle: AppHandle, path: String) -> Result<Value, String> {
     blocking(move || engine(&handle.state::<App>(), &["status", &path])).await
-}
-
-#[tauri::command]
-async fn convert_episode(handle: AppHandle, src: String, dst: String) -> Result<Value, String> {
-    blocking(move || engine(&handle.state::<App>(), &["convert", &src, &dst])).await
 }
 
 /// Creates a starter project from an idea (`shotloop new`)
@@ -184,6 +187,21 @@ async fn ai_models(handle: AppHandle, url: String, key: String, protocol: Option
     .await
 }
 
+/// The Test button: one tiny request through the backend as Settings
+/// shows it now, saved or not
+#[tauri::command]
+async fn ai_test(handle: AppHandle, settings: Settings) -> Result<Value, String> {
+    blocking(move || {
+        let mut env = settings.env();
+        let key = settings.api_key();
+        if !key.is_empty() {
+            env.push(("SHOTLOOP_API_KEY".into(), key));
+        }
+        run_script_with(&handle.state::<App>(), "agent/src/main.ts", &["test"], env)
+    })
+    .await
+}
+
 #[tauri::command]
 fn read_text(project: String, path: String) -> Result<String, String> {
     std::fs::read_to_string(project_file(&project, &path)?).map_err(|e| e.to_string())
@@ -247,6 +265,21 @@ fn open_blender_download() -> Result<(), String> {
     tauri_plugin_opener::open_url("https://www.blender.org/download/", None::<&str>).map_err(|e| e.to_string())
 }
 
+/// Settings → About: what this build is and where it runs
+#[tauri::command]
+fn about(handle: AppHandle) -> Value {
+    let launch = handle.state::<App>().queue.launch.lock().unwrap().clone();
+    let bundled = handle.path().resource_dir().ok().is_some_and(|d| d == launch.root);
+    serde_json::json!({
+        "version": handle.package_info().version.to_string(),
+        "os": std::env::consts::OS,
+        "arch": std::env::consts::ARCH,
+        "bundled": bundled,
+        "root": launch.root.display().to_string(),
+        "data": handle.path().app_data_dir().ok().map(|d| d.display().to_string()),
+    })
+}
+
 /// A provider's key page: https links only
 #[tauri::command]
 fn open_url(url: String) -> Result<(), String> {
@@ -266,6 +299,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_notification::init())
         .setup(|app| {
             let config_dir = app.path().app_config_dir()?;
             let settings = settings::load(&config_dir);
@@ -297,11 +331,11 @@ pub fn run() {
             doctor,
             open_project,
             project_status,
-            convert_episode,
             create_project,
             list_projects,
             ai_detect,
             ai_models,
+            ai_test,
             read_text,
             write_text,
             enqueue,
@@ -315,6 +349,7 @@ pub fn run() {
             open_path,
             open_blender_download,
             open_url,
+            about,
             tray::set_tray_text
         ])
         .build(tauri::generate_context!())

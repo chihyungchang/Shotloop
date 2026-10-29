@@ -13,7 +13,7 @@ Status: MVP (docs/PRD.md §7, P0). The product plan is
 | Path | What |
 | --- | --- |
 | [`app/`](app/) | The desktop app: Tauri 2 (Rust) shell with the render queue and process supervision, React + TypeScript UI (timeline, shot view, fixes, checks, queue, export). |
-| [`engine/shotloop/`](engine/shotloop/) | The shot engine: project format, per-shot render cache, 2D (Chrome) and 3D (Blender) shot renders, film assembly, MP4 export, publish kit, legacy converter. CLI used by the app. |
+| [`engine/shotloop/`](engine/shotloop/) | The shot engine: project format, per-shot render cache, 2D (Chrome) and 3D (Blender) shot renders, film assembly, MP4 export, publish kit. CLI used by the app. |
 | [`agent/`](agent/) | The agent sidecar: plain-language fixes, automatic checks against the checklist, publish copy. |
 | [`engine/video/`](engine/video/README.md) | The original explainer pipeline (recorder, Blender driver, music synth, episodes). |
 | [`examples/`](examples/) | ep01 (2D) and ep02 (3D) converted to the shot format, and `hello-3d`, a 3D project that needs no downloaded assets. |
@@ -57,7 +57,6 @@ pnpm shotloop status   examples/hello-3d
 pnpm shotloop render   examples/hello-3d --shot 02-close --stills   # start/middle/end
 pnpm shotloop render   examples/hello-3d --shot 02-close            # draft clip
 pnpm shotloop export   examples/hello-3d --draft                    # only changed shots render
-pnpm shotloop convert  engine/video/explainers/3d/ep02-claude-code-enter my-ep02
 pnpm shotloop new      my-short --idea "Why does your phone battery age?" --track 2d --duration 30
 pnpm shotloop doctor
 ```

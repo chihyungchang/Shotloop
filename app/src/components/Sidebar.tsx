@@ -2,6 +2,7 @@ import { open as pick } from '@tauri-apps/plugin-dialog'
 import type { Job } from '../api'
 import { baseName, readRecent } from '../recent'
 import type { useTheme } from '../theme/theme'
+import { aiSummary, useSettings } from '../ai/useSettings'
 import { BrandMark } from './BrandMark'
 import { Icon } from './Icon'
 import { ThemeToggle } from './ThemeToggle'
@@ -23,6 +24,8 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
   jobs: Job[]
   theme: ReturnType<typeof useTheme>
 }) {
+  const settings = useSettings()
+  const ai = settings && aiSummary(settings)
   const recent = readRecent()
   const running = jobs.filter(j => j.state === 'running' || j.state === 'queued').length
 
@@ -58,9 +61,14 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
         </div>
       )}
       <div className="sidebar-foot">
-        {running > 0
-          ? <span className="small"><span className="dot info pulse" /> {t('sidebar.queue', { n: running })}</span>
-          : <span className="small muted">{t('sidebar.tagline')}</span>}
+        {running > 0 && <span className="small queue-note"><span className="dot info pulse" /> {t('sidebar.queue', { n: running })}</span>}
+        {ai && (
+          <button className="mode-pill" onClick={() => setPage('settings')} title={t('ai.change')}>
+            <Icon name={ai.mode === 'cli' ? 'terminal' : ai.mode === 'local' ? 'cpu' : 'cloud'} size={16} />
+            <span className="ellipsis">{t(`ai.mode.${ai.mode}`)} · {ai.name}</span>
+            <span className={`dot ${ai.ready ? 'ok' : 'warn'}`} />
+          </button>
+        )}
         <ThemeToggle pref={theme.pref} setPref={theme.setPref} />
       </div>
     </aside>

@@ -15,10 +15,16 @@ import { loadSession, type ToolContext } from './tools.ts'
 
 export type CliId = 'claude' | 'codex' | 'gemini'
 
-export const CLIS: { id: CliId; name: string; bin: string; note?: string }[] = [
-  { id: 'claude', name: 'Claude Code', bin: 'claude' },
-  { id: 'codex', name: 'Codex CLI', bin: 'codex', note: 'experimental' },
-  { id: 'gemini', name: 'Gemini CLI', bin: 'gemini', note: 'experimental' }
+// Each CLI with its maker, a few models for the picker (the CLI's own
+// default when none is chosen) and how to install it
+export const CLIS: { id: CliId; name: string; bin: string; vendor: string; note?: string; models: string[]; install: string; url: string }[] = [
+  { id: 'claude', name: 'Claude Code', bin: 'claude', vendor: 'Anthropic',
+    models: ['opus', 'sonnet', 'haiku', 'claude-opus-5-5', 'claude-sonnet-5-5'],
+    install: 'npm install -g @anthropic-ai/claude-code', url: 'https://docs.anthropic.com/en/docs/claude-code' },
+  { id: 'codex', name: 'Codex CLI', bin: 'codex', vendor: 'OpenAI', note: 'experimental',
+    models: ['gpt-5.5', 'gpt-5.2'], install: 'npm install -g @openai/codex', url: 'https://github.com/openai/codex' },
+  { id: 'gemini', name: 'Gemini CLI', bin: 'gemini', vendor: 'Google', note: 'experimental',
+    models: ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-2.5-pro'], install: 'npm install -g @google/gemini-cli', url: 'https://github.com/google-gemini/gemini-cli' }
 ]
 
 const MCP = fileURLToPath(new URL('./mcp.ts', import.meta.url))

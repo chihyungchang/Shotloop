@@ -154,14 +154,26 @@ export interface Settings {
   localKey: string
   blender: string
   chrome: string
+  // A sound and a desktop notification when the queue runs dry
+  notifySound: boolean
+  notifyDesktop: boolean
 }
 
 export const EMPTY_SETTINGS: Settings = {
-  provider: '', apiPreset: '', apiProtocol: '', apiUrl: '', apiKeys: {}, cli: '', model: '', localUrl: '', localModel: '', localKey: '', blender: '', chrome: ''
+  provider: '', apiPreset: '', apiProtocol: '', apiUrl: '', apiKeys: {}, cli: '', model: '', localUrl: '', localModel: '', localKey: '', blender: '', chrome: '', notifySound: false, notifyDesktop: false
+}
+
+export interface About {
+  version: string
+  os: string
+  arch: string
+  bundled: boolean
+  root: string
+  data: string | null
 }
 
 export interface Detected {
-  clis: { id: string; name: string; bin: string; note?: string; path: string | null; version: string | null }[]
+  clis: { id: string; name: string; bin: string; vendor: string; note?: string; models: string[]; install: string; url: string; path: string | null; version: string | null }[]
   servers: { id: string; name: string; url: string; running: boolean; models: string[] }[]
 }
 
@@ -199,7 +211,6 @@ export const api = {
   doctor: () => invoke<Doctor>('doctor'),
   openProject: (path: string) => invoke<Project>('open_project', { path }),
   status: (path: string) => invoke<Project>('project_status', { path }),
-  convert: (src: string, dst: string) => invoke<{ dst: string }>('convert_episode', { src, dst }),
   createProject: (p: NewProject) => invoke<{ root: string }>('create_project', { ...p }),
   listProjects: (paths: string[], examples = false) => invoke<ProjectSummary[]>('list_projects', { paths, examples }),
   readText: (project: string, path: string) => invoke<string>('read_text', { project, path }),
@@ -218,7 +229,10 @@ export const api = {
   reveal: (path: string) => invoke<void>('reveal', { path }),
   openPath: (path: string) => invoke<void>('open_path', { path }),
   openBlenderDownload: () => invoke<void>('open_blender_download'),
-  setTrayText: (status: string, show: string, quit: string) => invoke<void>('set_tray_text', { status, show, quit })
+  setTrayText: (status: string, show: string, quit: string, done: string, failed: string) => invoke<void>('set_tray_text', { status, show, quit, done, failed }),
+  // One tiny request through the backend as Settings shows it, saved or not
+  aiTest: (settings: Settings) => invoke<{ ok: boolean; latencyMs: number; reply: string; backend: string }>('ai_test', { settings }),
+  about: () => invoke<About>('about')
 }
 
 export const onQueue = (f: (jobs: Job[]) => void): Promise<UnlistenFn> => listen<Job[]>('queue', e => f(e.payload))
