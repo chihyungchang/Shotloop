@@ -285,6 +285,13 @@ async fn apply_storyboard(handle: AppHandle, path: String) -> Result<Value, Stri
     blocking(move || engine(&handle.state::<App>(), &["storyboard", &path])).await
 }
 
+/// The plan of a project that has shots, read back from them (null when
+/// they are still starters)
+#[tauri::command]
+async fn derive_storyboard(handle: AppHandle, path: String) -> Result<Value, String> {
+    blocking(move || engine(&handle.state::<App>(), &["storyboard", &path, "--derive"])).await
+}
+
 /// Asset library: search a source with the person's key
 #[tauri::command]
 async fn library_search(handle: AppHandle, source: String, query: String, cursor: Option<String>, all: bool, category: Option<String>) -> Result<Value, String> {
@@ -460,6 +467,7 @@ pub fn run() {
             film_preview,
             set_title,
             apply_storyboard,
+            derive_storyboard,
             library_search,
             library,
             music,

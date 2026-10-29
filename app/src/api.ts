@@ -300,6 +300,7 @@ export const api = {
   libraryImport: (file: string) => invoke<Asset>('library', { action: 'import', id: file }),
   libraryUse: (project: string, id: string) => invoke<Asset>('library', { action: 'use', project, id }),
   libraryUnuse: (project: string, id: string) => invoke<void>('library', { action: 'unuse', project, id }),
+  deriveStoryboard: (path: string) => invoke<unknown | null>('derive_storyboard', { path }),
   applyStoryboard: (path: string) => invoke<{ shots: string[]; duration: number }>('apply_storyboard', { path }),
   setTitle: (path: string, title: string) => invoke<{ title: string }>('set_title', { path, title }),
   // The music bed: read with no change, or set a preset, a file, none, a volume

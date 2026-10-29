@@ -10,7 +10,8 @@
 //   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d] [--aspect 9:16|16:9] [--duration 30]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop preview  <project> [--final]                the whole film to watch (cached)
-//   shotloop storyboard <project>                        apply storyboard.json to the project
+//   shotloop storyboard <project> [--derive]             apply storyboard.json to the project
+//                     (--derive: write it from the project's shots and notes instead)
 //   shotloop title    <project> <title>                  rename the project
 //   shotloop library  search --source polypizza|smithsonian --query … [--key] [--cursor] [--all]
 //                     get --item '<search result>' | list [<project>] | remove <id>
@@ -33,7 +34,7 @@ import { newProject, projectsIn, summaries } from './create.mjs'
 import { assemble, exportFilm, preview, renderCover } from './film.mjs'
 import { findShot, loadProject } from './project.mjs'
 import { musicInfo, setMusic, setTitle } from './settings.mjs'
-import { applyStoryboard } from './storyboard.mjs'
+import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
 import * as library from './library.mjs'
 import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
@@ -53,6 +54,7 @@ const { values, positionals } = parseArgs({
     cursor: { type: 'string' },
     item: { type: 'string' },
     category: { type: 'string' },
+    derive: { type: 'boolean' },
     all: { type: 'boolean' },
     file: { type: 'string' },
     none: { type: 'boolean' },
@@ -173,7 +175,7 @@ try {
       break
     }
     case 'storyboard':
-      result(applyStoryboard(loadProject(args[0])))
+      result(values.derive ? deriveStoryboard(loadProject(args[0])) : applyStoryboard(loadProject(args[0])))
       break
     case 'title':
       result(setTitle(loadProject(args[0]), args[1]))

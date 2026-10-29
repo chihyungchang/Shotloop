@@ -68,7 +68,10 @@ export function applyStoryboard(project) {
   if (!sb) throw new Error(`no ${FILE} yet: plan the video first`)
   const used = new Set()
   const shots = sb.shots.map((s, i) => {
-    let id = `${String(i + 1).padStart(2, '0')}-${slug(s.title) || 'shot'}`
+    // A shot read back from the project keeps its folder; a new one gets
+    // its own from its place and title
+    const keep = typeof s.id === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(s.id) && !used.has(s.id)
+    let id = keep ? s.id : `${String(i + 1).padStart(2, '0')}-${slug(s.title) || 'shot'}`
     while (used.has(id)) id += '-b'
     used.add(id)
     return { id, title: String(s.title).trim().slice(0, 80), duration: round1(s.duration), show: s.show, text: s.text, motion: s.motion }
@@ -125,4 +128,45 @@ ${facts.map(f => `- ${f.text}${f.source ? ` (source: ${f.source})` : ''}`).join(
   }
   saveConfig(project.root, cfg)
   return { shots: shots.map(s => s.id), duration: film }
+}
+
+// A "## Heading" section of a markdown file, trimmed
+function section(text, heading) {
+  const m = text.match(new RegExp(`^## ${heading}\\s*\\n([\\s\\S]*?)(?=^## |$(?![\\s\\S]))`, 'm'))
+  return m ? m[1].trim() : ''
+}
+const placeholder = s => !s || /^\(.*\)$/.test(s.trim())
+
+// The plan of a project that already has shots, read back from them (the
+// shot list, each shot's notes, copy.md) without asking the AI, so the
+// planning page shows what the project is. Null when the shots are still
+// the starters: then there is nothing to read and the AI plans.
+export function deriveStoryboard(project) {
+  const read = f => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '')
+  const shots = project.shots.map(s => {
+    const notes = read(s.notes)
+    return {
+      id: s.id, title: s.title ?? s.id, duration: s.duration,
+      show: section(notes, 'Must show'), text: section(notes, 'On screen'), motion: section(notes, 'Motion')
+    }
+  })
+  const starter = project.shots.every(s => !fs.existsSync(s.code) || isStarter(s.code)) && shots.every(s => placeholder(s.show))
+  if (starter) return null
+  const copy = read(path.join(project.root, 'copy.md'))
+  // One fact per bullet, its wrapped lines joined
+  const bullets = section(copy, 'Facts').split(/\n(?=[-*]\s)/).map(b => b.replace(/^[-*]\s*/, '').replace(/\s*\n\s*/g, ' ').trim())
+  const facts = bullets.filter(l => l && !placeholder(l)).map(l => {
+    const m = l.match(/^(.*?)\s*\((?:source:\s*)?([^()]*)\)\s*$/)
+    return m ? { text: m[1].trim(), source: m[2].trim() } : { text: l, source: '' }
+  })
+  const sb = {
+    target: project.duration,
+    copy: {
+      idea: section(copy, 'Idea'), hook: section(copy, 'Hook'),
+      body: section(copy, 'Copy') || section(copy, 'Script'), facts
+    },
+    shots: shots.map(s => ({ ...s, show: placeholder(s.show) ? '' : s.show, text: placeholder(s.text) ? '' : s.text, motion: placeholder(s.motion) ? '' : s.motion }))
+  }
+  fs.writeFileSync(path.join(project.root, FILE), JSON.stringify(sb, null, 2) + '\n')
+  return sb
 }

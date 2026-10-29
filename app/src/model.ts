@@ -99,3 +99,46 @@ export function jobLabel(job: Job): string {
       return t('job.build')
   }
 }
+
+// What a file in a project is, in words
+function fileWords(file: string): string {
+  const shot = file.match(/shots\/(\d+)[^/]*\/(notes\.md)?/)
+  if (shot) return t(shot[2] ? 'act.notes' : 'act.shot', { n: shot[1] })
+  if (/^world\//.test(file)) return t('act.world')
+  if (/captions/.test(file)) return t('act.captions')
+  if (/storyboard/.test(file)) return t('act.storyboard')
+  if (/copy\.md/.test(file)) return t('act.copy')
+  return t('act.file')
+}
+
+// An agent's activity log line, in words: tool lines ("read_file
+// shots/05-x/shot.py", "Write /abs/path") become a sentence; anything
+// else (the agent's own text) is shown as it is
+export function activityLine(line: string): string {
+  const m = line.match(/^(\w+)\s*(.*)$/)
+  if (!m) return line
+  const [, name, rest] = m
+  const what = fileWords(rest.replace(/^.*?\/(shots|world)\//, '$1/'))
+  switch (name.toLowerCase()) {
+    case 'read_file': case 'read': return t('act.read', { what })
+    case 'write_file': case 'write': return t('act.write', { what })
+    case 'edit_file': case 'edit': case 'multiedit': return t('act.edit', { what })
+    case 'list_files': case 'glob': case 'grep': case 'ls': return t('act.list')
+    case 'render_stills': return t('act.stills', { what: rest ? t('act.shot', { n: rest.match(/\d+/)?.[0] ?? rest }) : t('act.shot', { n: '' }) })
+    case 'read_checklist': case 'report_checks': return t('act.checks', { what: rest ? t('act.shot', { n: rest.match(/\d+/)?.[0] ?? rest }) : '' })
+    case 'bash': return t('act.run')
+    case 'agent': return t('act.think')
+  }
+  return line.replace(/^agent:\s*/, '')
+}
+
+// A build's progress: the shots it has written so far
+export function buildProgress(job: Job, total: number): { done: number; total: number } | null {
+  if (job.kind !== 'build' || !total) return null
+  const written = new Set<string>()
+  for (const l of job.log) {
+    const m = l.match(/^(write_file|write|edit_file|edit)\s.*shots\/(\d+)[^/]*\/shot\./i)
+    if (m) written.add(m[2])
+  }
+  return { done: Math.min(written.size, total), total }
+}

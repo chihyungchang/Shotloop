@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { agentError } from '../../ai/errors'
 import { api, fileUrl, type Job, type Project, type Storyboard, type StoryShot } from '../../api'
 import { t } from '../../i18n'
+import { activityLine, formatSeconds } from '../../model'
 import { Icon } from '../Icon'
 import { Title } from '../studio/Studio'
 
@@ -29,6 +30,9 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
   const [request, setRequest] = useState('')
   const [phase, setPhase] = useState<Phase>('plan')
   const [error, setError] = useState<string | null>(null)
+  // A step that replaces work, waiting for a yes
+  const [confirm, setConfirm] = useState<'again' | 'make' | null>(null)
+  const [deriving, setDeriving] = useState(false)
   const saveTimer = useRef<number | null>(null)
 
   const mine = jobs.filter(j => j.project === project.root)
@@ -37,6 +41,8 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
   const planning = !!planJob && (planJob.state === 'queued' || planJob.state === 'running')
   const building = !!buildJob && (buildJob.state === 'queued' || buildJob.state === 'running')
   const target = sb?.target ?? project.duration
+  // Shots with frames already: rebuilding them replaces finished work
+  const built = project.shots.some(s => s.draft.state === 'cached' || s.final.state === 'cached')
 
   const load = () =>
     api.readText(project.root, FILE).then(
@@ -50,12 +56,23 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
       }
     )
 
-  // First visit: no plan yet, so the AI writes one
+  // First visit, no plan yet: a project with shots has its plan read back
+  // from them; only a new one has the AI write it
   useEffect(() => {
     load().then(() => undefined)
   }, [project.root])
   useEffect(() => {
-    if (loaded && !sb && !planJob) api.enqueue({ kind: 'plan', project: project.root })
+    if (!loaded || sb || planJob || deriving) return
+    setDeriving(true)
+    api.deriveStoryboard(project.root)
+      .then(async v => {
+        if (v) await load()
+        else await api.enqueue({ kind: 'plan', project: project.root })
+      })
+      .catch(() => {
+        api.enqueue({ kind: 'plan', project: project.root })
+      })
+      .finally(() => setDeriving(false))
   }, [loaded, sb, planJob])
   // A plan job finished: read what it wrote
   useEffect(() => {
@@ -107,6 +124,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
     }
   }
   const make = async () => {
+    setConfirm(null)
     if (await apply()) {
       api.enqueue({ kind: 'build', project: project.root })
       setPhase('build')
@@ -137,12 +155,28 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
         {phase === 'plan' && (
           <>
             <button className="ghost" onClick={skip} disabled={!sb || planning}>{t('plan.skip')}</button>
-            <button className="primary" onClick={make} disabled={!sb || planning || !sb.shots.length}>
+            <button className="primary" onClick={() => (built ? setConfirm('make') : make())} disabled={!sb || planning || !sb.shots.length}>
               <Icon name="spark" size={14} /> {t('plan.make')}
             </button>
           </>
         )}
       </header>
+
+      {confirm && (
+        <div className="plan-confirm" role="alertdialog">
+          <Icon name="info" size={16} />
+          <span>{t(confirm === 'make' ? 'plan.makeAsk' : 'plan.againAsk')}</span>
+          <span className="spacer" />
+          <button className="ghost small" onClick={() => setConfirm(null)}>{t('plan.cancel')}</button>
+          <button className="primary small" onClick={() => {
+            if (confirm === 'make') make()
+            else {
+              setConfirm(null)
+              revise('')
+            }
+          }}>{t('plan.confirm')}</button>
+        </div>
+      )}
 
       {(error || why) && (
         <div className="plan-error error-box">
@@ -158,13 +192,24 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
           ? (
             <div className="plan-wait">
               <span className="agent-avatar large"><Icon name="spark" size={22} /></span>
-              <strong>{t(planning || !loaded ? 'plan.writing' : 'plan.none')}</strong>
-              <p className="muted">{t('plan.writingNote')}</p>
-              {planJob?.log.slice(-1).map((l, i) => <code key={i} className="small muted">{l}</code>)}
+              <strong>{t(deriving || !loaded ? 'plan.reading' : planning ? 'plan.writing' : 'plan.none')}</strong>
+              {!deriving && loaded && <p className="muted">{t('plan.writingNote')}</p>}
+              {planning && <PlanActivity job={planJob!} />}
             </div>
           )
           : (
             <div className={`plan-body${planning ? ' busy' : ''}`}>
+              {planning && (
+                <div className="plan-overlay" role="status">
+                  <div className="plan-overlay-card">
+                    <span className="agent-avatar large"><span className="spinner" /></span>
+                    <strong>{t('plan.revising')}</strong>
+                    <p className="muted small">{t('plan.revisingNote')}</p>
+                    <PlanActivity job={planJob!} />
+                    <button className="ghost small" onClick={() => api.cancel(planJob!.id)}>{t('queue.stop')}</button>
+                  </div>
+                </div>
+              )}
               <section className="plan-copy">
                 <div className="plan-head">
                   <h3>{t('plan.copy')}</h3>
@@ -196,12 +241,12 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
                       if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) revise()
                     }} />
                   <div className="row between">
-                    <button className="ghost small" onClick={() => revise('')} disabled={planning}><Icon name="refresh" size={13} /> {t('plan.again')}</button>
+                    <button className="ghost small" onClick={() => setConfirm('again')} disabled={planning}><Icon name="refresh" size={13} /> {t('plan.again')}</button>
                     <button className="send" onClick={() => revise()} disabled={planning || !request.trim()} aria-label={t('plan.ask')}>
                       {planning ? <span className="spinner small" /> : <Icon name="send" size={16} />}
                     </button>
                   </div>
-                  {planning && <span className="small muted">{t('plan.revising')}</span>}
+                  {!planning && <span className="small muted">{t('plan.askHint')}</span>}
                 </div>
               </section>
 
@@ -276,6 +321,23 @@ function BuildView({ project, job, toStudio, back }: { project: Project; job: Jo
           </figure>
         ))}
       </div>
+    </div>
+  )
+}
+
+// What the planning AI is doing now, in words, and for how long
+function PlanActivity({ job }: { job: Job }) {
+  const [, tick] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => tick(n => n + 1), 1000)
+    return () => clearInterval(id)
+  }, [])
+  const now = job.log.at(-1)
+  const elapsed = job.startedAt ? (Date.now() - job.startedAt) / 1000 : null
+  return (
+    <div className="plan-activity small">
+      {now && <span className="job-now"><span className="pulse" /> <span className="ellipsis">{activityLine(now)}</span></span>}
+      <span className="muted">{job.state === 'queued' ? t('queue.waiting') : elapsed != null ? t('act.elapsed', { time: formatSeconds(elapsed) }) : ''}</span>
     </div>
   )
 }
