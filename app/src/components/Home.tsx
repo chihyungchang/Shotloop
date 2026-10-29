@@ -140,13 +140,13 @@ export function Home({ open, openSettings }: { open: (path: string, plan?: boole
                 </button>
               ))}
             </div>
-            <div className="chip-group" role="radiogroup" aria-label={t('home.aria.length')}>
-              {LENGTHS.map(l => (
-                <button key={l} role="radio" aria-checked={length === l} className={`chip${length === l ? ' on' : ''}`} onClick={() => setLength(l)}>
-                  {t('unit.s', { n: l })}
-                </button>
-              ))}
-            </div>
+            {/* Length as one chip with a menu: four buttons would wrap the row */}
+            <label className="chip-select" title={t('home.aria.length')}>
+              <Icon name="clock" size={13} />
+              <select value={length} onChange={e => setLength(Number(e.target.value))} aria-label={t('home.aria.length')}>
+                {LENGTHS.map(l => <option key={l} value={l}>{t('unit.s', { n: l })}</option>)}
+              </select>
+            </label>
           </div>
           {ai && (
             <button className="model-chip" onClick={openSettings} title={t('ai.change')}>
