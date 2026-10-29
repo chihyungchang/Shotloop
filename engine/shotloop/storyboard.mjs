@@ -167,12 +167,14 @@ export function deriveStoryboard(project) {
     const m = l.match(/^(.*?)\s*\((?:source:\s*)?([^()]*)\)\s*$/)
     return m ? { text: m[1].trim(), source: m[2].trim() } : { text: l, source: '' }
   })
+  // The script: copy.md's own section, or script.md (one numbered line
+  // per beat), whose first line is the hook when copy.md has none
+  const script = read(path.join(project.root, 'script.md')).replace(/^#.*\n+/, '').trim()
+  const body = section(copy, 'Copy') || section(copy, 'Script') || script
+  const hook = section(copy, 'Hook') || (script.split('\n')[0] ?? '').replace(/^\d+[.)]\s*/, '').trim()
   const sb = {
     target: project.duration,
-    copy: {
-      idea: section(copy, 'Idea'), hook: section(copy, 'Hook'),
-      body: section(copy, 'Copy') || section(copy, 'Script'), facts
-    },
+    copy: { idea: section(copy, 'Idea'), hook, body, facts },
     shots: shots.map(s => ({ ...s, show: placeholder(s.show) ? '' : s.show, text: placeholder(s.text) ? '' : s.text, motion: placeholder(s.motion) ? '' : s.motion }))
   }
   fs.writeFileSync(path.join(project.root, FILE), JSON.stringify(sb, null, 2) + '\n')
