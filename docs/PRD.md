@@ -81,6 +81,7 @@ where the time goes:
 idea → copy → script → storyboard → shot list → world + shot code
      → per shot: render stills → AI checks → person reviews → fix ⟲
      → draft film → final film (only changed shots re-render) → mp4
+     → cover + publish copy
 ```
 
 Each step is a document the person can read and edit; the next step
@@ -118,6 +119,11 @@ workflows map onto it:
    transparent, composited) and music bed (`music.json` → `music.mjs`),
    both aligned to shots.
 9. **Export.** MP4 (H.264 + AAC), 9:16 and 16:9.
+10. **Publish kit.** With every export: a cover (`thumb.html` → 1080×1920
+    PNG, text inside the 3:4 crop) and `publish.md`, the post for each
+    platform (YouTube Shorts title, description, tags; TikTok caption and
+    pinned comment; Reels caption), written from the copy's facts and
+    sources only, with each platform's AI-label setting.
 
 ### P1
 
