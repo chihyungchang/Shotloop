@@ -88,20 +88,29 @@ export function pageGeometry(project, mode) {
 
 // ---------------------------------------------------------------- pages
 
-const waitForRender = `new Promise(r => { const c = () => typeof window.render === 'function' ? r() : setTimeout(c, 50); c() })`
+// Module scripts define render() after load; give up after 20 s rather
+// than hang on a page that never defines it
+const waitForRender = `new Promise((r, j) => { const t0 = Date.now(); const c = () => typeof window.render === 'function' ? r()
+  : Date.now() - t0 > 20000 ? j(new Error('the page did not define window.render(t)')) : setTimeout(c, 50); c() })`
 
 // Opens a page that follows the contract (window.render(t), optional
-// window.ready) and returns it ready to draw
-export async function openRenderPage(file, geometry, { transparent = false, query = {} } = {}) {
+// window.ready) and returns it ready to draw. A 2D world page need not
+// define render(t): its shots draw it (render: false)
+export async function openRenderPage(file, geometry, { transparent = false, query = {}, render = true } = {}) {
   const page = await openPage(geometry)
   if (transparent) {
     await page.send('Emulation.setDefaultBackgroundColorOverride', { color: { r: 0, g: 0, b: 0, a: 0 } })
   }
   const url = pathToFileURL(file)
   for (const [k, v] of Object.entries(query)) url.searchParams.set(k, v)
-  await page.goto(url.href)
-  await page.evaluate(waitForRender)
-  await page.evaluate('window.ready')
+  try {
+    await page.goto(url.href)
+    if (render) await page.evaluate(waitForRender)
+    await page.evaluate('window.ready')
+  } catch (err) {
+    await page.close()
+    throw err
+  }
   return page
 }
 

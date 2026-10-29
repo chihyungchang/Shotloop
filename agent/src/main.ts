@@ -122,6 +122,7 @@ async function shotTask(kind: 'fix' | 'check') {
   const touched = [...ctx.touched].sort()
   const worldTouched = touched.some(f => f.startsWith('world/') || f === 'captions.html')
   const result = {
+    at: new Date().toISOString(),
     task: kind,
     shot: shot.id,
     request: values.request ?? null,

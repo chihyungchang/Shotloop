@@ -20,7 +20,7 @@ export async function renderFrames2d(project, shot, mode, framesDir, frames) {
   if (!fs.existsSync(shot.code)) throw new Error(`missing ${path.relative(project.root, shot.code)}`)
   fs.mkdirSync(framesDir, { recursive: true })
 
-  const p = await openRenderPage(page, pageGeometry(project, mode), { query: { shotloop: shot.id } })
+  const p = await openRenderPage(page, pageGeometry(project, mode), { query: { shotloop: shot.id }, render: false })
   try {
     const ctx = JSON.stringify({ start: shot.start, duration: shot.duration, fps: project.fps, id: shot.id })
     // Cache-bust the module URL so an edited shot.js is always re-read

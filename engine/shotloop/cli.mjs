@@ -8,6 +8,8 @@
 //   shotloop export   <project> [--draft] [--aspect 9:16,16:9]
 //   shotloop cover    <project>
 //   shotloop convert  <legacy episode dir> <project dir> [--force]
+//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d] [--aspect 9:16|16:9] [--duration 30]
+//   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop prune    <project>                          drop unused cache entries
 //   shotloop doctor                                      Chrome, ffmpeg, Blender
 //
@@ -16,10 +18,12 @@
 
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { prune, status, worldKey } from './cache.mjs'
 import { emit, setJson } from './compose.mjs'
 import { convert } from './convert.mjs'
+import { newProject, projectsIn, summaries } from './create.mjs'
 import { assemble, exportFilm, renderCover } from './film.mjs'
 import { findShot, loadProject } from './project.mjs'
 import { BLENDER } from './render3d.mjs'
@@ -34,6 +38,11 @@ const { values, positionals } = parseArgs({
     stills: { type: 'boolean' },
     force: { type: 'boolean' },
     aspect: { type: 'string' },
+    title: { type: 'string' },
+    idea: { type: 'string' },
+    track: { type: 'string' },
+    duration: { type: 'string' },
+    examples: { type: 'boolean' },
     json: { type: 'boolean' }
   }
 })
@@ -130,6 +139,22 @@ try {
       if (args.length < 2) throw new Error('convert needs <legacy episode dir> <project dir>')
       result(convert(args[0], args[1], { force: !!values.force }))
       break
+    case 'new':
+      if (!args[0]) throw new Error('new needs <project dir>')
+      result(newProject(args[0], {
+        title: values.title,
+        idea: values.idea,
+        track: values.track ?? '2d',
+        aspect: values.aspect ?? '9:16',
+        duration: Number(values.duration ?? 30)
+      }))
+      break
+    case 'list':
+      result(summaries([
+        ...args,
+        ...(values.examples ? projectsIn(fileURLToPath(new URL('../../examples', import.meta.url))) : [])
+      ]))
+      break
     case 'prune':
       result({ removed: prune(loadProject(args[0])) })
       break
@@ -137,7 +162,7 @@ try {
       result(doctor())
       break
     default:
-      console.error(fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1, 15).map(l => l.replace(/^\/\/ ?/, '')).join('\n'))
+      console.error(fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1, 17).map(l => l.replace(/^\/\/ ?/, '')).join('\n'))
       process.exit(cmd ? 1 : 0)
   }
   // Chrome sessions and sockets can keep the event loop alive

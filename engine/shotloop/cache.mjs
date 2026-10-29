@@ -176,10 +176,14 @@ export function status(project, shot) {
   out.takes = takes(project, shot)
   out.error = readJson(path.join(base, 'error.json'), null)
   out.checks = readJson(path.join(base, 'checks.json'), null)
-  // The agent's latest fix or check of this shot, with before/after stills
+  // The agent's fixes and checks of this shot, oldest first, with
+  // before/after stills: the shot's conversation in the app
   const fixes = path.join(base, 'fixes')
-  const last = fs.existsSync(fixes) ? fs.readdirSync(fixes).filter(d => fs.existsSync(path.join(fixes, d, 'fix.json'))).sort().at(-1) : null
-  out.fix = last ? readJson(path.join(fixes, last, 'fix.json'), null) : null
+  out.fixes = (fs.existsSync(fixes) ? fs.readdirSync(fixes).sort() : [])
+    .map(d => readJson(path.join(fixes, d, 'fix.json'), null))
+    .filter(Boolean)
+    .slice(-20)
+  out.fix = out.fixes.at(-1) ?? null
   return out
 }
 
