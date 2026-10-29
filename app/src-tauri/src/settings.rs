@@ -2,7 +2,7 @@
 //! is the user's own and is passed only to the agent sidecar.
 
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::Path;
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "camelCase", default)]
@@ -14,14 +14,14 @@ pub struct Settings {
     pub chrome: String,
 }
 
-pub fn load(dir: &PathBuf) -> Settings {
+pub fn load(dir: &Path) -> Settings {
     std::fs::read_to_string(dir.join("settings.json"))
         .ok()
         .and_then(|s| serde_json::from_str(&s).ok())
         .unwrap_or_default()
 }
 
-pub fn save(dir: &PathBuf, settings: &Settings) -> Result<(), String> {
+pub fn save(dir: &Path, settings: &Settings) -> Result<(), String> {
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     let file = dir.join("settings.json");
     let json = serde_json::to_string_pretty(settings).map_err(|e| e.to_string())?;

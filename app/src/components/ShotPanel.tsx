@@ -176,7 +176,17 @@ function Tabs({ project, shot, refresh, onTake, current }: {
         <button className={tab === 'notes' ? 'on' : ''} onClick={() => setTab('notes')}>notes.md</button>
         <button className={tab === 'takes' ? 'on' : ''} onClick={() => setTab('takes')}>Takes ({shot.takes.length})</button>
       </div>
-      {tab === 'code' && <Editor project={project} file={relPath(project, shot.code)} onSaved={refresh} />}
+      {tab === 'code' && (
+        <Editor
+          project={project}
+          file={relPath(project, shot.code)}
+          onSaved={() => {
+            // New code, new stills: the person sees the change right away
+            api.enqueue({ kind: 'render', project: project.root, shot: shot.id, mode: 'draft', stills: true })
+            refresh()
+          }}
+        />
+      )}
       {tab === 'notes' && <Editor project={project} file={relPath(project, shot.notes)} onSaved={refresh} />}
       {tab === 'takes' && (
         <table className="takes">
