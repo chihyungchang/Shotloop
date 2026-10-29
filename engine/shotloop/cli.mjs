@@ -10,6 +10,7 @@
 //   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d] [--aspect 9:16|16:9] [--duration 30]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop preview  <project> [--final]                the whole film to watch (cached)
+//   shotloop storyboard <project>                        apply storyboard.json to the project
 //   shotloop title    <project> <title>                  rename the project
 //   shotloop music    <project> [--preset calm|bright|groove|tech | --file <audio> | --none] [--gain 0–2]
 //   shotloop prune    <project>                          drop unused cache entries
@@ -29,6 +30,7 @@ import { newProject, projectsIn, summaries } from './create.mjs'
 import { assemble, exportFilm, preview, renderCover } from './film.mjs'
 import { findShot, loadProject } from './project.mjs'
 import { musicInfo, setMusic, setTitle } from './settings.mjs'
+import { applyStoryboard } from './storyboard.mjs'
 import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
 
@@ -146,6 +148,9 @@ try {
       result(await exportFilm(project, { mode: values.draft ? 'draft' : 'final', aspects: aspects() }))
       break
     }
+    case 'storyboard':
+      result(applyStoryboard(loadProject(args[0])))
+      break
     case 'title':
       result(setTitle(loadProject(args[0]), args[1]))
       break

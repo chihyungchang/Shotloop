@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, onProjectChanged, onQueue, type Job, type Project } from './api'
 import { Home } from './components/Home'
+import { PlanPage } from './components/plan/PlanPage'
 import { Projects } from './components/Projects'
 import { SettingsPage } from './components/SettingsPage'
 import { Sidebar, type Page } from './components/Sidebar'
@@ -30,12 +31,15 @@ export default function App() {
     }
   }, [])
 
-  const open = useCallback(async (path: string) => {
+  // A project opens in the studio, or on its planning page when it is new
+  const [view, setView] = useState<'studio' | 'plan'>('studio')
+  const open = useCallback(async (path: string, plan = false) => {
     setError(null)
     try {
       const p = await api.openProject(path)
       root.current = p.root
       remember(p.root)
+      setView(plan ? 'plan' : 'studio')
       setProject(p)
     } catch (e) {
       setError(String(e))
@@ -83,7 +87,10 @@ export default function App() {
   // open-design); from a project, Back returns to it
   if (page === 'settings') return <SettingsPage key={language.lang} theme={theme} language={language} back={() => setPage('home')} />
 
-  if (project) return <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} openSettings={() => setPage('settings')} />
+  if (project && view === 'plan') {
+    return <PlanPage key={language.lang} project={project} jobs={jobs} refresh={refresh} back={close} toStudio={() => setView('studio')} openSettings={() => setPage('settings')} />
+  }
+  if (project) return <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} openSettings={() => setPage('settings')} openPlan={() => setView('plan')} />
 
   return (
     <div className="workspace-shell" key={language.lang}>

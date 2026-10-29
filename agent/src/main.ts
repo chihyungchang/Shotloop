@@ -6,6 +6,8 @@
 //   shotloop-agent publish <project>
 //   shotloop-agent detect                     CLI agents and local model servers here
 //   shotloop-agent test                       one tiny request through the chosen backend
+//   shotloop-agent plan    <project> [--request "…"]  copy and storyboard (storyboard.json)
+//   shotloop-agent build   <project>             the world and every shot, from the plan
 //   shotloop-agent models  --url <…> [--key k] [--protocol anthropic|openai]
 //                                             the chat models an endpoint offers
 //
@@ -20,7 +22,7 @@ import { parseArgs } from 'node:util'
 import { renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
 import { emit, setJson } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
-import { checkSystem, fixSystem, publishSystem, replyLanguage } from './prompts.ts'
+import { buildSystem, checkSystem, fixSystem, planSystem, publishSystem, replyLanguage } from './prompts.ts'
 import type { ToolContext } from './tools.ts'
 
 const { values, positionals } = parseArgs({
@@ -156,6 +158,68 @@ async function shotTask(kind: 'fix' | 'check') {
   return result
 }
 
+// The idea, from copy.md's Idea section
+function ideaOf(project: ProjectStatus) {
+  const copy = read(path.join(project.root, 'copy.md'))
+  return copy.match(/## Idea\n+([\s\S]*?)(\n## |$)/)?.[1]?.trim() || project.title
+}
+
+// Copy and storyboard in storyboard.json, from the idea (or revised on request)
+async function planTask() {
+  const project = await status(dir)
+  const file = path.join(project.root, 'storyboard.json')
+  const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null
+  const ctx = context(project.root, ['storyboard.json'])
+  const size = `${project.size.width}×${project.size.height}`
+  const ask = existing && values.request
+    ? `The person asks for changes to the plan: "${values.request}"\n\nThe current storyboard.json:\n${existing}`
+    : existing
+      ? `Plan this video again, from the idea, with fresh ideas. The current storyboard.json, for reference:\n${existing}`
+      : 'Plan this video.'
+  emit({ type: 'log', message: `agent: ${describe()}` })
+  const summary = await runAgent('code', {
+    effort: 'high',
+    system: planSystem() + replyLanguage(values.lang),
+    prompt: `${ask}
+
+Idea: ${ideaOf(project)}
+Title: ${project.title}
+Track: ${project.track.toUpperCase()} · frame ${size} · target length ${project.duration} s`,
+    ctx
+  })
+  // The page reads it: it has to be valid
+  const sb = JSON.parse(fs.readFileSync(file, 'utf8'))
+  if (!Array.isArray(sb.shots) || !sb.shots.length) throw new Error('the plan has no shots; try again')
+  return { task: 'plan', summary, shots: sb.shots.length }
+}
+
+// The world and every shot, from the applied storyboard
+async function buildTask() {
+  const project = await status(dir)
+  const ctx = context(project.root, ['world/', 'shots/', 'captions.html'])
+  const worldFiles = fs.existsSync(path.join(project.root, 'world'))
+    ? fs.readdirSync(path.join(project.root, 'world')).map(f => `world/${f}:\n${read(path.join(project.root, 'world', f))}`).join('\n\n')
+    : ''
+  const shots = project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')
+  emit({ type: 'log', message: `agent: ${describe()}` })
+  const summary = await runAgent('code', {
+    effort: 'high',
+    system: buildSystem() + replyLanguage(values.lang),
+    prompt: `Build "${project.title}" (${project.track.toUpperCase()}, ${project.size.width}×${project.size.height}, ${project.duration} s, ${project.shots.length} shots) from its plan.
+
+copy.md:
+${read(path.join(project.root, 'copy.md'))}
+
+${worldFiles}
+
+${shots}`,
+    ctx,
+    maxTurns: 40 + 20 * project.shots.length
+  })
+  saveChecks(project, ctx)
+  return { task: 'build', summary, touched: [...ctx.touched].sort() }
+}
+
 async function publishTask() {
   const project = await status(dir)
   const ctx = context(project.root, ['publish.md'])
@@ -180,12 +244,12 @@ try {
     if (!values.url && protocol === 'openai') throw new Error('models needs --url <base URL>')
     value = await listModels(values.url ?? '', values.key, protocol)
   } else {
-    if (!dir || !['fix', 'check', 'publish'].includes(task)) {
-      console.error('usage: shotloop-agent fix|check|publish <project> [--shot <id>] [--request "…"] [--json] | detect | models --url <…>')
+    if (!dir || !['fix', 'check', 'publish', 'plan', 'build'].includes(task)) {
+      console.error('usage: shotloop-agent fix|check|publish|plan|build <project> [--shot <id>] [--request "…"] [--json] | detect | models --url <…>')
       process.exit(1)
     }
     preflight()
-    value = task === 'publish' ? await publishTask() : await shotTask(task as 'fix' | 'check')
+    value = task === 'publish' ? await publishTask() : task === 'plan' ? await planTask() : task === 'build' ? await buildTask() : await shotTask(task as 'fix' | 'check')
   }
   emit({ type: 'result', value })
 } catch (err) {

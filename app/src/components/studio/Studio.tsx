@@ -21,13 +21,14 @@ type Drawer = 'queue' | 'export' | null
 // the left, the shot on a dark stage in the middle with the filmstrip and
 // the shot's notes under it, queue and export in a drawer on the right;
 // quality, Finder and theme sit in the "more" menu.
-export function Studio({ project, jobs, refresh, close, theme, openSettings }: {
+export function Studio({ project, jobs, refresh, close, theme, openSettings, openPlan }: {
   project: Project
   jobs: Job[]
   refresh: () => void
   close: () => void
   theme: ReturnType<typeof useTheme>
   openSettings: () => void
+  openPlan: () => void
 }) {
   const [mode, setMode] = useState<Mode>('draft')
   const [selected, setSelected] = useState(project.shots[0]?.id ?? '')
@@ -99,6 +100,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings }: {
             {project.track.toUpperCase()} · {project.size.width > project.size.height ? '16:9' : '9:16'} · {formatSeconds(project.duration)} · {t('common.shots', { n: project.shots.length })}
           </span>
         </div>
+        <button className="ghost plan-link" onClick={openPlan}><Icon name="edit" size={14} /> {t('plan.link')}</button>
         <div className="spacer" />
         {filmError && <span className="small error ellipsis" title={filmError}>{filmError}</span>}
         {pending.length > 0
@@ -191,7 +193,7 @@ function MoreMenu({ open, setOpen, children }: { open: boolean; setOpen: (o: boo
 
 // The project's name: click to rename, Enter or leaving the field saves,
 // Esc cancels
-function Title({ project, refresh }: { project: Project; refresh: () => void }) {
+export function Title({ project, refresh }: { project: Project; refresh: () => void }) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState(project.title)
   const save = async () => {

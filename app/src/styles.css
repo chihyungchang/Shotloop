@@ -492,3 +492,83 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
 .player-big { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 64px; height: 64px; min-height: 64px; padding: 0 0 0 4px; justify-content: center;
   border-radius: 50%; border: 0; background: rgb(14 15 17 / 0.55); backdrop-filter: blur(14px); color: #fff; box-shadow: 0 8px 30px rgb(0 0 0 / 0.35); }
 .player-big:hover:not(:disabled) { background: rgb(14 15 17 / 0.72); border: 0; transform: translate(-50%, -50%) scale(1.04); }
+
+/* Sidebar foot, as in open-design: a row of bare icons, then what drives
+   the agent as a pill, and the alerts bell */
+.theme-plain { display: flex; gap: 2px; padding: 0 2px; }
+.theme-plain button { border: 0; background: transparent; width: 30px; min-height: 28px; padding: 0; justify-content: center; border-radius: var(--r-md); color: var(--text-3); }
+.theme-plain button:hover:not(:disabled) { background: var(--veil); color: var(--text); border: 0; }
+.theme-plain button.on { color: var(--text-strong); background: var(--veil); }
+.foot-row { display: flex; align-items: center; gap: 4px; width: 100%; }
+.foot-row .mode-pill { flex: 1; min-width: 0; background: var(--veil); }
+.mode-tile { width: 24px; height: 24px; flex: none; border-radius: var(--r-sm); display: grid; place-items: center; background: var(--surface); box-shadow: var(--shadow-xs), 0 0 0 1px var(--border-soft); color: var(--text-2); }
+.bell { width: 34px; color: var(--text-2); }
+.bell[aria-pressed='true'] { color: var(--accent-text); }
+
+/* Planning: copy on the left, storyboard on the right, both on cards over
+   the ground, as in the studio */
+.plan { display: grid; grid-template-rows: auto auto 1fr; height: 100%; animation: fade-in 180ms var(--ease) both; }
+.stepper { display: flex; align-items: center; gap: 6px; list-style: none; margin: 0 0 0 18px; padding: 0; font-size: 12.5px; font-weight: 600; color: var(--text-3); }
+.stepper li { display: flex; align-items: center; gap: 6px; }
+.stepper li + li::before { content: ''; width: 22px; height: 1px; background: var(--border); margin-right: 2px; }
+.stepper li span { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; background: var(--surface-2); color: var(--text-2); }
+.stepper li.on { color: var(--text-strong); }
+.stepper li.on span { background: var(--accent); color: var(--accent-fg); }
+.stepper li.done span { background: var(--accent-soft); color: var(--accent-text); }
+.plan-error { margin: 0 12px 8px; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.plan-body { display: grid; grid-template-columns: minmax(340px, 0.85fr) minmax(0, 1.4fr); gap: 12px; min-height: 0; padding: 0 12px 12px; }
+.plan-body.busy .plan-board, .plan-body.busy .plan-copy > :not(.plan-ask) { opacity: 0.55; pointer-events: none; transition: opacity var(--dur) var(--ease); }
+.plan-copy, .plan-board { background: var(--surface); border-radius: var(--r-xl); box-shadow: var(--shadow-sm), 0 0 0 1px var(--border-soft); padding: 18px 20px; overflow: auto; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.plan-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.plan-head h3 { font-size: 15px; }
+.plan-idea { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-2); font-weight: 500; }
+.plan-copy textarea { resize: vertical; line-height: 1.55; }
+.fact { display: grid; grid-template-columns: 1fr 0.8fr 32px; gap: 6px; align-items: center; }
+.fact .source { font-size: 12px; color: var(--text-2); }
+.add { align-self: flex-start; }
+.plan-ask { margin-top: auto; display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: var(--r-lg); background: var(--surface-2); }
+.plan-ask textarea { border: 0; background: transparent; resize: none; min-height: 44px; }
+.plan-ask textarea:focus-visible { outline: none; }
+.plan-ask .send { width: 32px; height: 32px; min-height: 32px; border-radius: 12px; }
+/* The timeline: one bar per shot, its width its duration */
+.timeline { display: flex; gap: 3px; height: 26px; }
+.timeline i { display: grid; place-items: center; min-width: 18px; border-radius: 6px; font: 600 11px var(--font-sans); font-style: normal; color: #0b1220; opacity: 0.9; }
+.shot-cards { display: flex; flex-direction: column; gap: 10px; }
+.shot-card { border: 1px solid var(--border); border-radius: var(--r-lg); padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; background: var(--surface); transition: border-color var(--dur-fast) var(--ease); }
+.shot-card:focus-within { border-color: var(--border-strong); }
+.shot-card-head { display: flex; align-items: center; gap: 8px; }
+.shot-no { width: 22px; height: 22px; flex: none; border-radius: 6px; display: inline-grid; place-items: center; font: 700 11px var(--font-sans); color: #0b1220; }
+.shot-title { border-color: transparent; background: transparent; font-weight: 600; color: var(--text-strong); padding: 4px 6px; min-height: 30px; }
+.shot-title:hover { border-color: var(--border); }
+.duration { display: flex; align-items: center; gap: 4px; flex: none; }
+.duration input { width: 64px; min-height: 30px; padding: 4px 6px; text-align: right; font-variant-numeric: tabular-nums; }
+.shot-actions { display: flex; flex: none; }
+.shot-actions .icon-button { width: 28px; min-height: 28px; }
+.shot-actions .icon-button:first-child .icon { transform: rotate(180deg); }
+.shot-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-left: 30px; }
+.shot-fields label { display: flex; flex-direction: column; gap: 4px; }
+.shot-fields label:first-child { grid-column: 1 / -1; }
+.shot-fields span { font-size: 11.5px; font-weight: 600; color: var(--text-3); }
+.shot-fields textarea { resize: vertical; min-height: 52px; }
+.add-shot { justify-content: center; min-height: 42px; border-style: dashed; color: var(--text-2); background: transparent; }
+.plan-wait { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 40px; margin: 0 12px 12px; border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--shadow-sm), 0 0 0 1px var(--border-soft); }
+.plan-wait strong { font-size: 16px; color: var(--text-strong); }
+.plan-wait p { max-width: 440px; }
+.agent-avatar.large { width: 52px; height: 52px; animation: breathe 2.4s ease-in-out infinite; }
+@keyframes breathe { 50% { transform: scale(1.06); box-shadow: 0 6px 22px color-mix(in srgb, #38bdf8 45%, transparent), inset 0 0 0 1px rgb(255 255 255 / 0.25); } }
+/* The build: progress, the AI's last steps, each shot as it lands */
+.build { margin: 0 12px 12px; padding: 20px 22px; border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--shadow-sm), 0 0 0 1px var(--border-soft); overflow: auto; display: flex; flex-direction: column; gap: 16px; }
+.build-head { display: flex; align-items: center; gap: 14px; }
+.build-head strong { font-size: 16px; color: var(--text-strong); }
+.build-head .agent-avatar.large { animation: none; }
+.build-log { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-2); }
+.build-log code { font-size: 11.5px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.build-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.build-shot { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.build-frame { aspect-ratio: 9 / 16; border-radius: var(--r-lg); overflow: hidden; background: var(--surface-2); display: grid; }
+.build-frame.wide { aspect-ratio: 16 / 9; }
+.build-frame img { width: 100%; height: 100%; object-fit: cover; animation: fade-in 300ms var(--ease) both; }
+.build-shot figcaption { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; min-width: 0; }
+.shimmer { background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--text) 7%, transparent) 50%, transparent 70%) var(--surface-2); background-size: 200% 100%; animation: sheen 1.4s linear infinite; }
+@keyframes sheen { to { background-position: -200% 0; } }
+.plan-link { margin-left: 6px; }

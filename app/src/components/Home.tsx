@@ -24,7 +24,7 @@ const slugify = (s: string) =>
 
 // Home: start a short from an idea (open-design's composer, for video),
 // or open one of the examples
-export function Home({ open, openSettings }: { open: (path: string) => void; openSettings: () => void }) {
+export function Home({ open, openSettings }: { open: (path: string, plan?: boolean) => void; openSettings: () => void }) {
   const settings = useSettings()
   const ai = settings && aiSummary(settings)
   const [idea, setIdea] = useState('')
@@ -78,7 +78,8 @@ export function Home({ open, openSettings }: { open: (path: string) => void; ope
         aspect,
         duration: length
       })
-      open(r.root)
+      // A new project starts on its planning page: copy and storyboard first
+      open(r.root, true)
     } catch (e) {
       setError(String(e))
     } finally {

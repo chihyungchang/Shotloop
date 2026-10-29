@@ -146,7 +146,7 @@ const MOVES_3D = [
   "move='crane', frm=(-2, -6, 3.5), to=(-1, -5, 1.6)"
 ]
 
-function shot3d(shot, i) {
+export function shot3d(shot, i) {
   return `# ${shot.id}: ${shot.title}. Starter shot: one camera move on the subject.
 # Shot-local time: at(t) is t seconds into this shot; DUR is its length.
 kit.Shot(${JSON.stringify(shot.id).replace(/"/g, "'")}, at(0), at(DUR), lens=35, target=subject,
@@ -154,17 +154,17 @@ kit.Shot(${JSON.stringify(shot.id).replace(/"/g, "'")}, at(0), at(DUR), lens=35,
 `
 }
 
-function captions({ width, height }, shots) {
+export function captions({ width, height }, shots) {
   const w = Math.round(width / 1.5)
   const h = Math.round(height / 1.5)
   let t = 0
   const lines = shots.map((s, i) => {
     const at = round1(t)
     t += s.duration
-    return [at, s.title]
+    return [at, s.text ?? s.title]
   })
   return `<!doctype html>
-<!-- Caption layer: transparent, drawn over every frame on the film's timeline. -->
+<!-- Caption layer: transparent, drawn over every frame on the film's timeline. (starter) -->
 <html lang="en">
   <head>
     <meta charset="utf-8" />

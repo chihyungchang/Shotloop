@@ -10,9 +10,10 @@ const OPTIONS: [ThemePref, 'monitor' | 'sun' | 'moon', Key][] = [
 ]
 
 // Light / dark / system, as three icon buttons
-export function ThemeToggle({ pref, setPref }: { pref: ThemePref; setPref: (p: ThemePref) => void }) {
+// plain: three bare icons, as in the sidebar foot
+export function ThemeToggle({ pref, setPref, plain = false }: { pref: ThemePref; setPref: (p: ThemePref) => void; plain?: boolean }) {
   return (
-    <div className="segmented theme-toggle" role="radiogroup" aria-label={t('theme.label')}>
+    <div className={plain ? 'theme-plain' : 'segmented theme-toggle'} role="radiogroup" aria-label={t('theme.label')}>
       {OPTIONS.map(([value, icon, key]) => {
         const label = t(key)
         return (

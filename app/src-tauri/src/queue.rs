@@ -30,6 +30,10 @@ pub enum Spec {
     Fix { project: String, shot: String, request: String, lang: Option<String> },
     Check { project: String, shot: String, lang: Option<String> },
     Publish { project: String },
+    /// Copy and storyboard (storyboard.json), or a revision of them
+    Plan { project: String, request: Option<String>, lang: Option<String> },
+    /// The world and every shot, from the applied storyboard
+    Build { project: String, lang: Option<String> },
 }
 
 impl Spec {
@@ -46,7 +50,9 @@ impl Spec {
             | Spec::Export { project, .. }
             | Spec::Fix { project, .. }
             | Spec::Check { project, .. }
-            | Spec::Publish { project } => project,
+            | Spec::Publish { project }
+            | Spec::Plan { project, .. }
+            | Spec::Build { project, .. } => project,
         }
     }
 
@@ -66,6 +72,9 @@ impl Spec {
             Spec::Fix { shot, request, .. } => format!("Fix {}: {}", shot, request),
             Spec::Check { shot, .. } => format!("Check {}", shot),
             Spec::Publish { .. } => "Write publish copy".into(),
+            Spec::Plan { request: Some(r), .. } => format!("Plan: {}", r),
+            Spec::Plan { .. } => "Plan the copy and storyboard".into(),
+            Spec::Build { .. } => "Build the shots".into(),
         }
     }
 
@@ -105,6 +114,23 @@ impl Spec {
                 ("agent/src/main.ts", a)
             }
             Spec::Publish { project } => ("agent/src/main.ts", vec![s("publish"), project.clone()]),
+            Spec::Plan { project, request, lang } => {
+                let mut a = vec![s("plan"), project.clone()];
+                if let Some(r) = request {
+                    a.extend([s("--request"), r.clone()]);
+                }
+                if let Some(l) = lang {
+                    a.extend([s("--lang"), l.clone()]);
+                }
+                ("agent/src/main.ts", a)
+            }
+            Spec::Build { project, lang } => {
+                let mut a = vec![s("build"), project.clone()];
+                if let Some(l) = lang {
+                    a.extend([s("--lang"), l.clone()]);
+                }
+                ("agent/src/main.ts", a)
+            }
         }
     }
 
@@ -235,6 +261,8 @@ impl Queue {
                 Spec::Fix { .. } => "fix",
                 Spec::Check { .. } => "check",
                 Spec::Publish { .. } => "publish",
+                Spec::Plan { .. } => "plan",
+                Spec::Build { .. } => "build",
             };
             inner.jobs.push(Job {
                 id,

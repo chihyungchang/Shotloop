@@ -2,7 +2,8 @@ import { open as pick } from '@tauri-apps/plugin-dialog'
 import type { Job } from '../api'
 import { baseName, readRecent } from '../recent'
 import type { useTheme } from '../theme/theme'
-import { aiSummary, useSettings } from '../ai/useSettings'
+import { aiSummary, SAVED, useSettings } from '../ai/useSettings'
+import { api } from '../api'
 import { BrandMark } from './BrandMark'
 import { Icon } from './Icon'
 import { ThemeToggle } from './ThemeToggle'
@@ -26,6 +27,7 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
 }) {
   const settings = useSettings()
   const ai = settings && aiSummary(settings)
+  const alerts = !!(settings?.notifySound || settings?.notifyDesktop)
   const recent = readRecent()
   const running = jobs.filter(j => j.state === 'running' || j.state === 'queued').length
 
@@ -62,14 +64,23 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
       )}
       <div className="sidebar-foot">
         {running > 0 && <span className="small queue-note"><span className="dot info pulse" /> {t('sidebar.queue', { n: running })}</span>}
-        {ai && (
-          <button className="mode-pill" onClick={() => setPage('settings')} title={t('ai.change')}>
-            <Icon name={ai.mode === 'cli' ? 'terminal' : ai.mode === 'local' ? 'cpu' : 'cloud'} size={16} />
-            <span className="ellipsis">{t(`ai.mode.${ai.mode}`)} · {ai.name}</span>
-            <span className={`dot ${ai.ready ? 'ok' : 'warn'}`} />
-          </button>
+        <ThemeToggle pref={theme.pref} setPref={theme.setPref} plain />
+        {ai && settings && (
+          <div className="foot-row">
+            <button className="mode-pill" onClick={() => setPage('settings')} title={t('ai.change')}>
+              <span className="mode-tile"><Icon name={ai.mode === 'cli' ? 'terminal' : ai.mode === 'local' ? 'cpu' : 'cloud'} size={14} /></span>
+              <span className="ellipsis">{ai.mode === 'api' ? ai.name : t(`ai.mode.${ai.mode}`)}</span>
+              {!ai.ready && <span className="dot warn" />}
+            </button>
+            <button className="icon-button bell" aria-pressed={alerts} title={t(alerts ? 'sidebar.alertsOn' : 'sidebar.alertsOff')} aria-label={t('settings.alerts')}
+              onClick={async () => {
+                await api.saveSettings({ ...settings, notifySound: !alerts, notifyDesktop: !alerts })
+                window.dispatchEvent(new Event(SAVED))
+              }}>
+              <Icon name={alerts ? 'bellOn' : 'bell'} size={17} />
+            </button>
+          </div>
         )}
-        <ThemeToggle pref={theme.pref} setPref={theme.setPref} />
       </div>
     </aside>
   )

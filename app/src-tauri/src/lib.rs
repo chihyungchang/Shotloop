@@ -278,6 +278,13 @@ async fn film_preview(handle: AppHandle, path: String, final_mode: bool) -> Resu
     .await
 }
 
+/// The planning page's storyboard.json into the project: shot list,
+/// notes, copy.md, starter code for new shots
+#[tauri::command]
+async fn apply_storyboard(handle: AppHandle, path: String) -> Result<Value, String> {
+    blocking(move || engine(&handle.state::<App>(), &["storyboard", &path])).await
+}
+
 /// Rename the project (shotloop.json title)
 #[tauri::command]
 async fn set_title(handle: AppHandle, path: String, title: String) -> Result<Value, String> {
@@ -395,6 +402,7 @@ pub fn run() {
             about,
             film_preview,
             set_title,
+            apply_storyboard,
             music,
             tray::set_tray_text
         ])

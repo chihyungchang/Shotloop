@@ -95,10 +95,10 @@ export function runAgent(task: 'code' | 'routine', opts: Omit<AgentOptions, 'mod
         url: process.env.SHOTLOOP_LOCAL_URL!,
         model: process.env.SHOTLOOP_LOCAL_MODEL!,
         apiKey: process.env.SHOTLOOP_LOCAL_KEY || undefined
-      }, opts.system, opts.prompt, opts.ctx)
+      }, opts.system, opts.prompt, opts.ctx, opts.maxTurns)
     default: {
       const { protocol, url, key, model } = api()
-      if (protocol === 'openai') return runLocal({ url, model, apiKey: key || undefined }, opts.system, opts.prompt, opts.ctx)
+      if (protocol === 'openai') return runLocal({ url, model, apiKey: key || undefined }, opts.system, opts.prompt, opts.ctx, opts.maxTurns)
       return runAnthropic({ ...opts, model: model || MODELS[task], baseURL: url || undefined, apiKey: key || undefined })
     }
   }

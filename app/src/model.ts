@@ -93,5 +93,9 @@ export function jobLabel(job: Job): string {
       return t('job.check', { shot: job.shot ?? '' })
     case 'publish':
       return t('job.publish')
+    case 'plan':
+      return t('job.plan')
+    case 'build':
+      return t('job.build')
   }
 }

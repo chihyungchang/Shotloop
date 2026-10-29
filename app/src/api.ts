@@ -96,7 +96,7 @@ export type JobState = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
 
 export interface Job {
   id: number
-  kind: 'render' | 'export' | 'fix' | 'check' | 'publish'
+  kind: 'render' | 'export' | 'fix' | 'check' | 'publish' | 'plan' | 'build'
   lane: 'render' | 'agent'
   label: string
   project: string
@@ -118,6 +118,22 @@ export type Spec =
   | { kind: 'fix'; project: string; shot: string; request: string; lang?: string }
   | { kind: 'check'; project: string; shot: string; lang?: string }
   | { kind: 'publish'; project: string }
+  | { kind: 'plan'; project: string; request?: string; lang?: string }
+  | { kind: 'build'; project: string; lang?: string }
+
+// The plan the planning page edits (storyboard.json)
+export interface StoryShot {
+  title: string
+  duration: number
+  show: string
+  text: string
+  motion: string
+}
+export interface Storyboard {
+  target?: number
+  copy: { idea?: string; hook: string; body: string; facts: { text: string; source: string }[] }
+  shots: StoryShot[]
+}
 
 export interface Tool {
   path: string
@@ -224,7 +240,7 @@ export const api = {
   readText: (project: string, path: string) => invoke<string>('read_text', { project, path }),
   writeText: (project: string, path: string, content: string) => invoke<void>('write_text', { project, path, content }),
   // Agent jobs reply in the UI language
-  enqueue: (spec: Spec) => invoke<number>('enqueue', { spec: spec.kind === 'fix' || spec.kind === 'check' ? { ...spec, lang: lang() } : spec }),
+  enqueue: (spec: Spec) => invoke<number>('enqueue', { spec: ['fix', 'check', 'plan', 'build'].includes(spec.kind) ? { ...spec, lang: lang() } : spec }),
   jobs: () => invoke<Job[]>('jobs'),
   cancel: (id: number) => invoke<void>('cancel_job', { id }),
   clearJobs: () => invoke<void>('clear_jobs'),
@@ -242,6 +258,7 @@ export const api = {
   aiTest: (settings: Settings) => invoke<{ ok: boolean; latencyMs: number; reply: string; backend: string }>('ai_test', { settings }),
   about: () => invoke<About>('about'),
   // The whole film, joined from the shots' clips with music (cached)
+  applyStoryboard: (path: string) => invoke<{ shots: string[]; duration: number }>('apply_storyboard', { path }),
   setTitle: (path: string, title: string) => invoke<{ title: string }>('set_title', { path, title }),
   // The music bed: read with no change, or set a preset, a file, none, a volume
   music: (path: string, change: { preset?: string; file?: string; none?: boolean; gain?: number } = {}) => invoke<MusicInfo>('music', { path, ...change }),
