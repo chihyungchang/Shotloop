@@ -693,3 +693,13 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
 .switch:checked { background: var(--accent); }
 .switch:checked::after { transform: translateX(14px); }
 .foot-row .activity .bell.on, .foot-row .activity .bell:hover:not(:disabled) { background: var(--veil); border-color: transparent; }
+/* The sidebar scrolls, so it clips: the popover spans the sidebar foot's
+   own width instead of reaching past it, and the bell keeps its size */
+.sidebar-foot { position: relative; }
+.foot-row { width: 100%; min-width: 0; }
+.foot-row .activity { position: static; flex: none; }
+.activity-pop { left: 0; right: 0; width: auto; bottom: calc(100% + 6px); transform-origin: bottom center; }
+/* One line per job: name, then "waiting" on the right; the running one's bar below */
+.activity-jobs li { flex-direction: row; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 8px; }
+.activity-jobs li > .ellipsis { flex: 1; min-width: 0; }
+.activity-jobs li > .bar { flex-basis: 100%; }
