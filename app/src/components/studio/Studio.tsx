@@ -29,7 +29,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   close: () => void
   theme: ReturnType<typeof useTheme>
   openSettings: () => void
-  openPlan: () => void
+  openPlan: () => Promise<void> | void
 }) {
   const [mode, setMode] = useState<Mode>('draft')
   const [selected, setSelected] = useState(project.shots[0]?.id ?? '')
@@ -101,7 +101,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
             {project.track.toUpperCase()} · {project.size.width > project.size.height ? '16:9' : '9:16'} · {formatSeconds(project.duration)} · {t('common.shots', { n: project.shots.length })}
           </span>
         </div>
-        <button className="ghost plan-link" onClick={openPlan}><Icon name="edit" size={14} /> {t('plan.link')}</button>
+        <PlanLink project={project} openPlan={openPlan} />
         <div className="spacer" />
         {filmError && <span className="small error ellipsis" title={filmError}>{filmError}</span>}
         {pending.length > 0
@@ -225,5 +225,26 @@ export function Title({ project, refresh }: { project: Project; refresh: () => v
           setEditing(false)
         }
       }} />
+  )
+}
+
+// The way to the copy and storyboard; on an example it first makes the
+// person's own copy of it (a draft project in their folder)
+function PlanLink({ project, openPlan }: { project: Project; openPlan: () => Promise<void> | void }) {
+  const [busy, setBusy] = useState(false)
+  return (
+    <>
+      {project.example && <span className="tag" title={t('example.note')}>{t('example.tag')}</span>}
+      <button className="ghost plan-link" disabled={busy} title={project.example ? t('example.note') : undefined} onClick={async () => {
+        setBusy(true)
+        try {
+          await openPlan()
+        } finally {
+          setBusy(false)
+        }
+      }}>
+        {busy ? <span className="spinner small" /> : <Icon name="edit" size={14} />} {t('plan.link')}
+      </button>
+    </>
   )
 }

@@ -74,6 +74,8 @@ export interface Shot {
 
 export interface Project {
   root: string
+  // One of the bundled examples: changing its plan makes a copy first
+  example?: boolean
   title: string
   slug: string
   track: '2d' | '3d'
@@ -242,6 +244,7 @@ export interface ExportResult {
 
 export interface ProjectSummary {
   root: string
+  example?: boolean
   title: string
   description: string
   slug: string
@@ -300,6 +303,7 @@ export const api = {
   libraryImport: (file: string) => invoke<Asset>('library', { action: 'import', id: file }),
   libraryUse: (project: string, id: string) => invoke<Asset>('library', { action: 'use', project, id }),
   libraryUnuse: (project: string, id: string) => invoke<void>('library', { action: 'unuse', project, id }),
+  forkProject: (path: string, to: string) => invoke<{ root: string }>('fork_project', { path, to }),
   deriveStoryboard: (path: string) => invoke<unknown | null>('derive_storyboard', { path }),
   applyStoryboard: (path: string) => invoke<{ shots: string[]; duration: number }>('apply_storyboard', { path }),
   setTitle: (path: string, title: string) => invoke<{ title: string }>('set_title', { path, title }),

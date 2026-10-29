@@ -34,6 +34,11 @@ export const ptBR: Record<Key, string> = {
   'home.chooseFolder': 'Escolha onde salvar os projetos',
   'home.dialog.folder': 'Onde salvar os novos projetos',
   'home.examples': 'Comece por um exemplo',
+  'example.tag': 'Exemplo',
+  'example.note': 'Este é um exemplo. Abrir o texto e storyboard cria antes uma cópia sua, na sua pasta de projetos.',
+  'home.mine': 'Seus projetos',
+  'home.draft': 'Rascunho',
+  'home.all': 'Todos os projetos',
 
   'common.shots': '{n} planos',
   'common.shots.one': '1 plano',

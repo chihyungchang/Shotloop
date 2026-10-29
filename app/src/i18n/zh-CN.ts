@@ -34,6 +34,11 @@ export const zhCN: Record<Key, string> = {
   'home.chooseFolder': '选择项目存放位置',
   'home.dialog.folder': '新项目存放位置',
   'home.examples': '从示例开始',
+  'example.tag': '示例',
+  'example.note': '这是示例。打开文案与分镜时，会先在你的项目文件夹里复制一份草稿工程，示例本身不会被改动。',
+  'home.mine': '我的项目',
+  'home.draft': '草稿',
+  'home.all': '全部项目',
 
   'common.shots': '{n} 个镜头',
   'common.shots.one': '1 个镜头',

@@ -721,3 +721,5 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
 .activity-jobs li > .ellipsis { flex: 1; min-width: 0; }
 .activity-jobs li > .bar { flex-basis: 100%; }
 .link.try { display: inline-flex; gap: 4px; align-items: center; align-self: flex-start; font-size: 12px; }
+
+.draft-tag { margin-left: 8px; vertical-align: 2px; background: var(--accent-soft); color: var(--accent-text); }

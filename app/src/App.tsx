@@ -7,7 +7,7 @@ import { Projects } from './components/Projects'
 import { SettingsPage, type Section } from './components/SettingsPage'
 import { Sidebar, type Page } from './components/Sidebar'
 import { Studio } from './components/studio/Studio'
-import { remember } from './recent'
+import { projectsFolder, remember, setProjectsFolder } from './recent'
 import { useTheme } from './theme/theme'
 import { t, useLanguage } from './i18n'
 
@@ -55,6 +55,26 @@ export default function App() {
       setError(String(e))
     }
   }, [])
+
+  // The plan of an example is changed on a copy: the example stays as it is
+  const openPlan = async () => {
+    if (!project?.example) return setView('plan')
+    setError(null)
+    let parent = projectsFolder()
+    if (!parent) {
+      const { open: pick } = await import('@tauri-apps/plugin-dialog')
+      const dir = await pick({ directory: true, title: t('home.dialog.folder') })
+      if (typeof dir !== 'string') return
+      setProjectsFolder(dir)
+      parent = dir
+    }
+    try {
+      const r = await api.forkProject(project.root, parent)
+      await open(r.root, true)
+    } catch (e) {
+      setError(String(e))
+    }
+  }
 
   const close = () => {
     root.current = null
@@ -113,7 +133,7 @@ export default function App() {
   if (project && view === 'plan') {
     return <PlanPage key={language.lang} project={project} jobs={jobs} refresh={refresh} back={close} toStudio={() => setView('studio')} openSettings={() => openSettings()} />
   }
-  if (project) return <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} openSettings={() => openSettings()} openPlan={() => setView('plan')} />
+  if (project) return <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} openSettings={() => openSettings()} openPlan={openPlan} />
 
   return (
     <div className="workspace-shell" key={language.lang}>

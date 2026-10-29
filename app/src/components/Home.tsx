@@ -4,7 +4,7 @@ import { api, EMPTY_SETTINGS, fileUrl, type ProjectSummary } from '../api'
 import { formatSeconds } from '../model'
 import { BrandIcon, hasBrand } from '../ai/BrandIcon'
 import { aiSummary, useSettings } from '../ai/useSettings'
-import { baseName, projectsFolder, setProjectsFolder } from '../recent'
+import { baseName, forget, projectsFolder, readRecent, setProjectsFolder } from '../recent'
 import { Icon } from './Icon'
 import type { Key } from '../i18n/en'
 import { t, tSplit } from '../i18n'
@@ -39,8 +39,15 @@ export function Home({ open, openSettings }: { open: (path: string, plan?: boole
   // 3D needs Blender: null until checked, 'missing' shows the install prompt
   const [blender, setBlender] = useState<null | 'missing' | 'stillMissing'>(null)
 
+  const [mine, setMine] = useState<ProjectSummary[]>([])
   useEffect(() => {
     api.listProjects([], true).then(setExamples, () => setExamples([]))
+    // The person's own recent projects (drafts included), newest first
+    const recent = readRecent()
+    api.listProjects(recent).then(list => {
+      for (const p of recent) if (!list.some(x => x.root === p)) forget(p)
+      setMine(recent.map(p => list.find(x => x.root === p)).filter((x): x is ProjectSummary => !!x && !x.example).slice(0, 4))
+    }, () => setMine([]))
   }, [])
 
   const chooseFolder = async () => {
@@ -182,28 +189,43 @@ export function Home({ open, openSettings }: { open: (path: string, plan?: boole
       )}
       {error && <p className="error">{error}</p>}
 
+      {mine.length > 0 && (
+        <section className="examples">
+          <span className="section-label">{t('home.mine')}</span>
+          <div className="example-list">
+            {mine.map(p => <ProjectCard key={p.root} p={p} onClick={() => open(p.root, !p.poster)} />)}
+          </div>
+        </section>
+      )}
+
       {examples.length > 0 && (
         <section className="examples">
           <span className="section-label">{t('home.examples')}</span>
           <div className="example-list">
-          {examples.map(p => (
-            <button key={p.root} className="example" onClick={() => open(p.root)}>
-              <div className={`example-poster${p.size.width > p.size.height ? ' wide' : ''}`}>
-                {p.poster ? <img src={fileUrl(p.poster)} alt="" /> : <Icon name="film" size={20} />}
-              </div>
-              <div className="example-text">
-                <strong>{p.title}</strong>
-                {p.description && <span className="example-desc ellipsis">{p.description}</span>}
-                <span className="example-meta">
-                  {p.track.toUpperCase()} · {t('common.shots', { n: p.shots })} · {formatSeconds(p.duration)} · {p.size.width > p.size.height ? '16:9' : '9:16'}
-                </span>
-              </div>
-              <span className="example-go"><Icon name="arrow" size={14} /></span>
-            </button>
-          ))}
+          {examples.map(p => <ProjectCard key={p.root} p={p} onClick={() => open(p.root)} />)}
           </div>
         </section>
       )}
     </div>
+  )
+}
+
+// A project as a card: its poster, title and shape; a draft (nothing
+// rendered yet) says so
+function ProjectCard({ p, onClick }: { p: ProjectSummary; onClick: () => void }) {
+  return (
+    <button className="example" onClick={onClick}>
+      <div className={`example-poster${p.size.width > p.size.height ? ' wide' : ''}`}>
+        {p.poster ? <img src={fileUrl(p.poster)} alt="" /> : <Icon name="film" size={20} />}
+      </div>
+      <div className="example-text">
+        <strong>{p.title}{!p.example && !p.poster && <span className="tag draft-tag">{t('home.draft')}</span>}</strong>
+        {p.description && <span className="example-desc ellipsis">{p.description}</span>}
+        <span className="example-meta">
+          {p.track.toUpperCase()} · {t('common.shots', { n: p.shots })} · {formatSeconds(p.duration)} · {p.size.width > p.size.height ? '16:9' : '9:16'}
+        </span>
+      </div>
+      <span className="example-go"><Icon name="arrow" size={14} /></span>
+    </button>
   )
 }

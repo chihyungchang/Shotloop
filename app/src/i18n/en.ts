@@ -35,6 +35,11 @@ export const en = {
   'home.chooseFolder': 'Choose where projects go',
   'home.dialog.folder': 'Where new projects go',
   'home.examples': 'Start from an example',
+  'example.tag': 'Example',
+  'example.note': 'This is an example. Opening its copy & storyboard makes your own copy of it first, in your projects folder.',
+  'home.mine': 'Your projects',
+  'home.draft': 'Draft',
+  'home.all': 'All projects',
 
   'common.shots': '{n} shots',
   'common.shots.one': '1 shot',

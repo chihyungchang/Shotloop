@@ -9,6 +9,7 @@
 //   shotloop cover    <project>
 //   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d] [--aspect 9:16|16:9] [--duration 30]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
+//   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
 //   shotloop preview  <project> [--final]                the whole film to watch (cached)
 //   shotloop storyboard <project> [--derive]             apply storyboard.json to the project
 //                     (--derive: write it from the project's shots and notes instead)
@@ -55,6 +56,7 @@ const { values, positionals } = parseArgs({
     item: { type: 'string' },
     category: { type: 'string' },
     derive: { type: 'boolean' },
+    to: { type: 'string' },
     all: { type: 'boolean' },
     file: { type: 'string' },
     none: { type: 'boolean' },
@@ -78,6 +80,7 @@ const result = value => {
 
 // The example projects: $SHOTLOOP_EXAMPLES (the app's writable copy) or the repository's
 const EXAMPLES = process.env.SHOTLOOP_EXAMPLES ?? fileURLToPath(new URL('../../examples', import.meta.url))
+const isExample = dir => path.resolve(dir).startsWith(path.resolve(EXAMPLES) + path.sep)
 
 // The first `name` on PATH, as the shell would run it
 const onPath = name =>
@@ -138,7 +141,7 @@ const aspects = () => values.aspect?.split(',')
 try {
   switch (cmd) {
     case 'status':
-      result(projectStatus(loadProject(args[0])))
+      result({ ...projectStatus(loadProject(args[0])), example: isExample(args[0]) })
       break
     case 'render': {
       const project = loadProject(args[0])
@@ -206,8 +209,19 @@ try {
       result(summaries([
         ...args,
         ...(values.examples ? projectsIn(EXAMPLES) : [])
-      ]))
+      ]).map(s => ({ ...s, example: isExample(s.root) })))
       break
+    case 'fork': {
+      // An example copied into the person's own folder, to change freely
+      // (its frames come along, so it plays at once; exports don't)
+      const project = loadProject(args[0])
+      if (!values.to) throw new Error('fork needs --to <folder>')
+      let dest = path.join(values.to, project.slug)
+      for (let n = 2; fs.existsSync(dest); n++) dest = path.join(values.to, `${project.slug}-${n}`)
+      fs.cpSync(project.root, dest, { recursive: true, filter: src => path.relative(project.root, src) !== 'out' })
+      result({ root: dest })
+      break
+    }
     case 'prune':
       result({ removed: prune(loadProject(args[0])) })
       break

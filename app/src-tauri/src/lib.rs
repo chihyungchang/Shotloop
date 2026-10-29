@@ -285,6 +285,20 @@ async fn apply_storyboard(handle: AppHandle, path: String) -> Result<Value, Stri
     blocking(move || engine(&handle.state::<App>(), &["storyboard", &path])).await
 }
 
+/// A copy of a project (an example) in the person's folder, to change
+#[tauri::command]
+async fn fork_project(handle: AppHandle, path: String, to: String) -> Result<Value, String> {
+    blocking(move || {
+        let app = handle.state::<App>();
+        let out = engine(&app, &["fork", &path, "--to", &to])?;
+        if let Some(root) = out["root"].as_str() {
+            let _ = handle.asset_protocol_scope().allow_directory(root, true);
+        }
+        Ok(out)
+    })
+    .await
+}
+
 /// The plan of a project that has shots, read back from them (null when
 /// they are still starters)
 #[tauri::command]
@@ -468,6 +482,7 @@ pub fn run() {
             set_title,
             apply_storyboard,
             derive_storyboard,
+            fork_project,
             library_search,
             library,
             music,
