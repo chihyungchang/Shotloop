@@ -151,7 +151,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
       </section>
 
       {film && (
-        <FilmPreview project={project} file={film.file} stale={film.stale} close={() => setFilm(null)}
+        <FilmPreview project={project} file={film.file} stale={film.stale} time={formatSeconds(pendingTime)} close={() => setFilm(null)}
           update={() => { setFilm(null); renderPending() }} />
       )}
 

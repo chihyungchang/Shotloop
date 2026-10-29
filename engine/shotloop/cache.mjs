@@ -90,7 +90,7 @@ export function shotKey(project, shot, mode) {
     start: shot.start,
     duration: shot.duration,
     // 3D final frames: the render samples
-    samples: project.track === '3d' && mode === 'final' ? finalSamples(project) : undefined
+    samples: project.track === '3d' && mode === 'final' ? finalSamples(project) : null
   }))
   hashFiles(h, ENGINE, RENDERER_FILES[project.track].map(f => path.join(ENGINE, f)))
   hashFiles(h, project.root, listFiles(project.world))
