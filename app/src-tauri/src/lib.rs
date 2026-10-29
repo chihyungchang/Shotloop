@@ -299,6 +299,23 @@ async fn fork_project(handle: AppHandle, path: String, to: String) -> Result<Val
     .await
 }
 
+/// 3D final render samples: read, set, or back to the default
+#[tauri::command]
+async fn quality(handle: AppHandle, path: String, samples: Option<u32>, reset: Option<bool>) -> Result<Value, String> {
+    blocking(move || {
+        let n = samples.map(|s| s.to_string());
+        let mut args = vec!["quality", path.as_str()];
+        if let Some(n) = n.as_deref() {
+            args.extend(["--samples", n]);
+        }
+        if reset == Some(true) {
+            args.push("--reset");
+        }
+        engine(&handle.state::<App>(), &args)
+    })
+    .await
+}
+
 /// The plan of a project that has shots, read back from them (null when
 /// they are still starters)
 #[tauri::command]
@@ -483,6 +500,7 @@ pub fn run() {
             apply_storyboard,
             derive_storyboard,
             fork_project,
+            quality,
             library_search,
             library,
             music,

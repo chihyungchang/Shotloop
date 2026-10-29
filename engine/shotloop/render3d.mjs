@@ -12,6 +12,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ASSETS, KIT_3D } from './cache.mjs'
 import { capture, frameName, openRenderPage, progress, run } from './compose.mjs'
+import { finalSamples } from './settings.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 export const BLENDER = process.env.BLENDER ?? '/Applications/Blender.app/Contents/MacOS/Blender'
@@ -58,7 +59,7 @@ export async function renderFrames3d(project, shot, mode, framesDir, frames) {
     '--start', String(shot.start), '--duration', String(shot.duration), '--fps', String(project.fps),
     '--size', `${project.size.width}x${project.size.height}`,
     '--out', framesDir, '--shot-frames', frames.join(','),
-    ...(mode === 'draft' ? ['--draft'] : [])
+    ...(mode === 'draft' ? ['--draft'] : ['--samples', String(finalSamples(project))])
   ], {
     env: {
       SHOTLOOP_ASSETS: ASSETS,

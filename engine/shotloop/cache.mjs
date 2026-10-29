@@ -12,6 +12,7 @@ import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { finalSamples } from './settings.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 export const ENGINE = path.resolve(HERE, '..')
@@ -82,7 +83,9 @@ export function shotKey(project, shot, mode) {
     fps: project.fps,
     size: project.size,
     start: shot.start,
-    duration: shot.duration
+    duration: shot.duration,
+    // 3D final frames: the render samples
+    samples: project.track === '3d' && mode === 'final' ? finalSamples(project) : null
   }))
   hashFiles(h, ENGINE, RENDERER_FILES[project.track].map(f => path.join(ENGINE, f)))
   hashFiles(h, project.root, listFiles(project.world))

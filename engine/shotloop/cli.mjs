@@ -10,6 +10,7 @@
 //   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d] [--aspect 9:16|16:9] [--duration 30]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
+//   shotloop quality  <project> [--samples N | --reset]     3D final render samples
 //   shotloop preview  <project> [--final]                the whole film to watch (cached)
 //   shotloop storyboard <project> [--derive]             apply storyboard.json to the project
 //                     (--derive: write it from the project's shots and notes instead)
@@ -34,7 +35,7 @@ import { emit, setJson } from './compose.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
 import { assemble, exportFilm, preview, renderCover } from './film.mjs'
 import { findShot, loadProject } from './project.mjs'
-import { musicInfo, setMusic, setTitle } from './settings.mjs'
+import { DEFAULT_SAMPLES, finalSamples, musicInfo, setMusic, setSamples, setTitle } from './settings.mjs'
 import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
 import * as library from './library.mjs'
 import { BLENDER } from './render3d.mjs'
@@ -57,6 +58,8 @@ const { values, positionals } = parseArgs({
     category: { type: 'string' },
     derive: { type: 'boolean' },
     to: { type: 'string' },
+    reset: { type: 'boolean' },
+    samples: { type: 'string' },
     all: { type: 'boolean' },
     file: { type: 'string' },
     none: { type: 'boolean' },
@@ -141,7 +144,10 @@ const aspects = () => values.aspect?.split(',')
 try {
   switch (cmd) {
     case 'status':
-      result({ ...projectStatus(loadProject(args[0])), example: isExample(args[0]) })
+      {
+        const project = loadProject(args[0])
+        result({ ...projectStatus(project), example: isExample(args[0]), samples: project.track === '3d' ? finalSamples(project) : null })
+      }
       break
     case 'render': {
       const project = loadProject(args[0])
@@ -187,6 +193,14 @@ try {
       const project = loadProject(args[0])
       const change = values.preset || values.file || values.none || values.gain != null
       result(change ? setMusic(project, { preset: values.preset, file: values.file, none: values.none, gain: values.gain }) : musicInfo(project))
+      break
+    }
+    case 'quality': {
+      // 3D final samples: read, set (--samples N) or back to the default (--reset)
+      const project = loadProject(args[0])
+      result(values.reset ? setSamples(project, null)
+        : values.samples ? setSamples(project, values.samples)
+        : { samples: finalSamples(project), custom: project.config.samples != null, default: DEFAULT_SAMPLES })
       break
     }
     case 'preview':

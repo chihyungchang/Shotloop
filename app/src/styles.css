@@ -723,3 +723,7 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
 .link.try { display: inline-flex; gap: 4px; align-items: center; align-self: flex-start; font-size: 12px; }
 
 .draft-tag { margin-left: 8px; vertical-align: 2px; background: var(--accent-soft); color: var(--accent-text); }
+.samples { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.samples .hint { margin: 0; }
+.samples-input { padding: 0 6px; }
+.samples-input input { width: 52px; border: 0; background: transparent; font: inherit; color: inherit; text-align: center; padding: 0; outline: none; }

@@ -5,7 +5,7 @@ Run by engine/shotloop/render3d.mjs:
   blender -b --python-exit-code 1 -P run_shot.py -- \
     --world world/world.py --shot shots/01-room/shot.py \
     --start 0 --duration 2.4 --fps 30 --size 1080x1920 \
-    --out <frames dir> --shot-frames 1,2,3 [--draft]
+    --out <frames dir> --shot-frames 1,2,3 [--draft] [--samples N]
 
 The world script builds what every shot shares (sets, assets, lights,
 anything animated on the film's timeline). The shot script then runs in
@@ -78,6 +78,9 @@ s.render.resolution_percentage = 100
 s.render.fps = FPS
 if a['draft']:
     kit.draft()
+elif 'samples' in a:
+    # The project's final quality, whatever the world script asked for
+    s.eevee.taa_render_samples = int(a['samples'])
 s.render.image_settings.file_format = 'PNG'
 
 first = round(T0 * FPS)  # the film frame before the shot's first frame

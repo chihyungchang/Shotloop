@@ -101,6 +101,7 @@ export function ExportPanel({ project, jobs, refresh, openSettings }: {
               <button key={m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>{t(m === 'draft' ? 'mode.Draft' : 'mode.Final')}</button>
             ))}
           </div>
+          {project.track === '3d' && mode === 'final' && <Samples project={project} refresh={refresh} />}
         </section>
 
         <section>
@@ -264,6 +265,56 @@ function CopyBlock({ label, body }: { label: string; body: string }) {
         </button>
       </div>
       <p>{body}</p>
+    </div>
+  )
+}
+
+const SAMPLE_PRESETS = [
+  { n: 16, label: 'samples.fast' },
+  { n: 24, label: 'samples.standard' },
+  { n: 64, label: 'samples.fine' }
+] as const
+
+// 3D final quality, for those who want it: EEVEE samples per frame. More
+// cleans up glossy reflections and fast motion, at more time a frame
+function Samples({ project, refresh }: { project: Project; refresh: () => void }) {
+  const current = project.samples ?? 24
+  const preset = SAMPLE_PRESETS.some(p => p.n === current)
+  const [custom, setCustom] = useState(!preset)
+  const [draft, setDraft] = useState(String(current))
+  const set = async (change: { samples?: number; reset?: boolean }) => {
+    await api.quality(project.root, change)
+    refresh()
+  }
+  const commit = () => {
+    const n = Math.round(Number(draft))
+    if (n >= 4 && n <= 512 && n !== current) set({ samples: n })
+    else setDraft(String(current))
+  }
+  return (
+    <div className="samples">
+      <div className="row between">
+        <span className="small">{t('samples.title')}</span>
+        <span className="small muted">{t('samples.perFrame', { s: (0.35 + 0.028 * current).toFixed(1) })}</span>
+      </div>
+      <div className="music-chips">
+        {SAMPLE_PRESETS.map(p => (
+          <button key={p.n} className={`provider-chip${!custom && current === p.n ? ' on' : ''}`}
+            onClick={() => { setCustom(false); setDraft(String(p.n)); set(p.n === 24 ? { reset: true } : { samples: p.n }) }}>
+            {t(p.label)} <span className="muted">{p.n}</span>
+          </button>
+        ))}
+        {custom
+          ? (
+            <label className="provider-chip on samples-input">
+              <input type="number" min={4} max={512} step={1} value={draft} autoFocus aria-label={t('samples.title')}
+                onChange={e => setDraft(e.target.value)} onBlur={commit}
+                onKeyDown={e => e.key === 'Enter' && (e.currentTarget as HTMLInputElement).blur()} />
+            </label>
+          )
+          : <button className="provider-chip" onClick={() => setCustom(true)}>{t('samples.custom')}</button>}
+      </div>
+      <p className="hint">{t('samples.hint')}</p>
     </div>
   )
 }

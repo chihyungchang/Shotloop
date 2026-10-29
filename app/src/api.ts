@@ -76,6 +76,8 @@ export interface Project {
   root: string
   // One of the bundled examples: changing its plan makes a copy first
   example?: boolean
+  // 3D: render samples per final frame
+  samples?: number | null
   title: string
   slug: string
   track: '2d' | '3d'
@@ -309,6 +311,7 @@ export const api = {
   setTitle: (path: string, title: string) => invoke<{ title: string }>('set_title', { path, title }),
   // The music bed: read with no change, or set a preset, a file, none, a volume
   music: (path: string, change: { preset?: string; file?: string; none?: boolean; gain?: number } = {}) => invoke<MusicInfo>('music', { path, ...change }),
+  quality: (path: string, change: { samples?: number; reset?: boolean } = {}) => invoke<{ samples: number; custom: boolean; default: number }>('quality', { path, ...change }),
   filmPreview: (path: string, mode: Mode) => invoke<{ file: string }>('film_preview', { path, finalMode: mode === 'final' })
 }
 
