@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { BrandIcon } from '../ai/BrandIcon'
 import { LOCAL_SERVERS, PRESETS, presetById, type Preset } from '../ai/presets'
 import { api, type Detected, type Provider, type Settings } from '../api'
 import { t } from '../i18n'
@@ -112,7 +113,7 @@ export function AiSettings({ settings, update }: { settings: Settings; update: (
               return (
                 <div key={c.id} className={`cli-card${on ? ' on' : ''}`}>
                   <button role="radio" aria-checked={on} className="cli-card-head" onClick={() => update({ provider: 'cli', cli: c.id, model: on ? settings.model : '' })}>
-                    <span className={`cli-logo ${c.id}`}><Icon name="terminal" size={18} /></span>
+                    <span className="cli-logo"><BrandIcon id={`cli:${c.id}`} size={22} /></span>
                     <span className="cli-name">
                       <strong>{c.name} <span className="muted">· {c.vendor}</span></strong>
                       <span className="muted small">{c.version ?? c.path}</span>
@@ -142,7 +143,7 @@ export function AiSettings({ settings, update }: { settings: Settings; update: (
               <summary>{t('ai.installable', { n: missing.length })}</summary>
               {missing.map(c => (
                 <div key={c.id} className="install-row">
-                  <span className="cli-logo"><Icon name="terminal" size={16} /></span>
+                  <span className="cli-logo"><BrandIcon id={`cli:${c.id}`} size={20} /></span>
                   <span className="cli-name">
                     <strong>{c.name} <span className="muted">· {c.vendor}</span></strong>
                     <code>{c.install}</code>
@@ -167,8 +168,9 @@ export function AiSettings({ settings, update }: { settings: Settings; update: (
                 <span className="chip-row-label">{t(`ai.region.${region}`)}</span>
                 {PRESETS.filter(p => p.region === region && p.id !== 'custom').concat(region === 'global' ? [presetById('custom')] : []).map(p => (
                   <button key={p.id} className={`provider-chip${preset.id === p.id ? ' on' : ''}`} aria-pressed={preset.id === p.id} onClick={() => choosePreset(p)}>
-                    {settings.apiKeys[p.id] && <span className="dot ok" />}
+                    {p.id === 'custom' ? <Icon name="settings" size={14} /> : <BrandIcon id={`api:${p.id}`} size={15} />}
                     {p.id === 'custom' ? t('ai.custom') : p.name}
+                    {settings.apiKeys[p.id] && <span className="dot ok" />}
                   </button>
                 ))}
               </div>
@@ -244,8 +246,9 @@ export function AiSettings({ settings, update }: { settings: Settings; update: (
                     const list = await listModels(p.url, '', 'openai')
                     if (list[0]) update({ localModel: list[0] })
                   }}>
-                  <span className={`dot ${server?.running ? 'ok' : ''}`} />
+                  <span className="option-logo">{p.id === 'llamacpp' ? <Icon name="cpu" size={15} /> : <BrandIcon id={`local:${p.id}`} size={17} />}</span>
                   <strong>{p.name}</strong>
+                  <span className={`dot ${server?.running ? 'ok' : ''}`} />
                   <span className="muted small option-meta">
                     {server?.running ? t('ai.running', { n: server.models.length }) : t('ai.notRunning')}
                   </span>

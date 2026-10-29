@@ -36,6 +36,9 @@ pub struct Settings {
     /// A sound and a desktop notification when the queue runs dry
     pub notify_sound: bool,
     pub notify_desktop: bool,
+    /// Asset library sources: the person's own keys
+    pub polypizza_key: String,
+    pub smithsonian_key: String,
 }
 
 pub fn load(dir: &Path) -> Settings {

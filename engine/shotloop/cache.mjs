@@ -91,6 +91,9 @@ export function shotKey(project, shot, mode) {
   if (project.track === '3d') {
     hashFiles(h, ENGINE, listFiles(KIT_3D))
     h.update(hashAssets())
+    // Models from the asset library, copied into the project
+    const own = path.join(project.root, 'assets')
+    if (fs.existsSync(own)) hashFiles(h, project.root, listFiles(own))
   }
   return h.digest('hex').slice(0, 16)
 }

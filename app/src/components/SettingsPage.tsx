@@ -9,12 +9,13 @@ import { Icon } from './Icon'
 import { Setup } from './Setup'
 import { ThemeToggle } from './ThemeToggle'
 
-type Section = 'ai' | 'general' | 'deps' | 'about'
+type Section = 'ai' | 'assets' | 'general' | 'deps' | 'about'
 
 const SECTIONS: [Section, Key, Parameters<typeof Icon>[0]['name']][] = [
   ['ai', 'settings.ai', 'spark'],
+  ['assets', 'settings.assets', 'cube'],
   ['general', 'settings.general', 'settings'],
-  ['deps', 'setup.deps', 'box'],
+  ['deps', 'setup.deps', 'cpu'],
   ['about', 'settings.about', 'info']
 ]
 
@@ -64,7 +65,7 @@ export function SettingsPage({ theme, language, back }: {
       </nav>
       <main className="settings-card">
         <div className="settings-body">
-          {(section === 'ai' || section === 'deps') && (
+          {(section === 'ai' || section === 'deps' || section === 'assets') && (
             <div className="settings-savebar">
               <span className="muted small">{dirty ? t('settings.unsaved') : ''}</span>
               <button className="primary" onClick={() => persist(settings)} disabled={!dirty}>{dirty ? t('setup.save') : t('common.saved')}</button>
@@ -73,6 +74,7 @@ export function SettingsPage({ theme, language, back }: {
           {section === 'ai' && <AiSettings settings={settings} update={update} />}
           {section === 'general' && <General settings={settings} savePref={savePref} theme={theme} language={language} />}
           {section === 'deps' && <Setup settings={settings} update={update} />}
+          {section === 'assets' && <AssetSources settings={settings} update={update} />}
           {section === 'about' && <AboutSection />}
         </div>
       </main>
@@ -146,6 +148,30 @@ function AboutSection() {
           <button className="small" onClick={() => api.reveal(about.data!)}>{t('studio.finder')}</button>
         </div>
       )}
+    </section>
+  )
+}
+
+// The asset library's sources and the person's keys for them
+function AssetSources({ settings, update }: { settings: Settings; update: (s: Partial<Settings>) => void }) {
+  const rows: { key: 'polypizzaKey' | 'smithsonianKey'; name: string; note: Key; url: string; hint: string }[] = [
+    { key: 'polypizzaKey', name: 'Poly Pizza', note: 'assets.polypizzaNote', url: 'https://poly.pizza/settings/api', hint: '' },
+    { key: 'smithsonianKey', name: 'Smithsonian Open Access', note: 'assets.smithsonianNote', url: 'https://api.data.gov/signup/', hint: 'DEMO_KEY' }
+  ]
+  return (
+    <section className="settings-block">
+      <h3>{t('settings.assets')}</h3>
+      <p className="hint">{t('assets.intro')}</p>
+      {rows.map(r => (
+        <label key={r.key} className="field">
+          <span className="row between">
+            {r.name}
+            <button type="button" className="link" onClick={() => api.openUrl(r.url)}>{t('ai.getKey')} <Icon name="arrow" size={12} /></button>
+          </span>
+          <input type="password" value={settings[r.key]} placeholder={r.hint} onChange={e => update({ [r.key]: e.target.value })} />
+          <small className="muted">{t(r.note)}</small>
+        </label>
+      ))}
     </section>
   )
 }

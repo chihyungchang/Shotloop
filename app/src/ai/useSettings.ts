@@ -20,13 +20,13 @@ export function useSettings() {
 const CLI_NAMES: Record<string, string> = { claude: 'Claude Code', codex: 'Codex CLI', gemini: 'Gemini CLI' }
 
 // What drives the agent, in a few words, and whether it is set up
-export function aiSummary(s: Settings): { mode: 'api' | 'cli' | 'local'; name: string; model: string; ready: boolean } {
-  if (s.provider === 'cli') return { mode: 'cli', name: CLI_NAMES[s.cli] ?? 'CLI', model: s.model, ready: !!s.cli }
+export function aiSummary(s: Settings): { mode: 'api' | 'cli' | 'local'; name: string; model: string; ready: boolean; brand: string } {
+  if (s.provider === 'cli') return { mode: 'cli', name: CLI_NAMES[s.cli] ?? 'CLI', model: s.model, ready: !!s.cli, brand: `cli:${s.cli}` }
   if (s.provider === 'local') {
     const server = LOCAL_SERVERS.find(l => l.url === s.localUrl)
-    return { mode: 'local', name: server?.name ?? 'Local', model: s.localModel, ready: !!(s.localUrl && s.localModel) }
+    return { mode: 'local', name: server?.name ?? 'Local', model: s.localModel, ready: !!(s.localUrl && s.localModel), brand: `local:${server?.id ?? ''}` }
   }
   const preset = presetById(s.apiPreset || 'anthropic')
   const key = s.apiKeys[preset.id] ?? ''
-  return { mode: 'api', name: preset.name, model: s.model, ready: !!key || preset.id === 'custom' }
+  return { mode: 'api', name: preset.name, model: s.model, ready: !!key || preset.id === 'custom', brand: `api:${preset.id}` }
 }

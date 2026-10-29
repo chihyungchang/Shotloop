@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, onProjectChanged, onQueue, type Job, type Project } from './api'
 import { Home } from './components/Home'
+import { LibraryPage } from './components/LibraryPage'
 import { PlanPage } from './components/plan/PlanPage'
 import { Projects } from './components/Projects'
 import { SettingsPage } from './components/SettingsPage'
@@ -99,6 +100,7 @@ export default function App() {
         {error && <p className="error banner">{error}</p>}
         {page === 'home' && <Home open={open} openSettings={() => setPage('settings')} />}
         {page === 'projects' && <Projects open={open} />}
+        {page === 'library' && <LibraryPage openSettings={() => setPage('settings')} />}
       </main>
     </div>
   )

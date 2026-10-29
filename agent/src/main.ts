@@ -61,6 +61,31 @@ function context(root: string, writable: string[]): ToolContext {
 
 const read = (f: string) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '(missing)')
 
+// The models in the project's assets/ (from the asset library)
+function assetList(project: ProjectStatus) {
+  const dir = path.join(project.root, 'assets')
+  if (!fs.existsSync(dir)) return []
+  return fs.readdirSync(dir).flatMap(id => {
+    const meta = path.join(dir, id, 'asset.json')
+    if (!fs.existsSync(meta)) return []
+    const a = JSON.parse(fs.readFileSync(meta, 'utf8'))
+    return [{ id, name: String(a.name ?? id), license: String(a.license ?? ''), author: String(a.author ?? ''), page: a.page ? String(a.page) : '' }]
+  })
+}
+
+// CC-BY models need their authors credited in every post
+function credits(project: ProjectStatus) {
+  const byl = assetList(project).filter(a => /cc-by/i.test(a.license))
+  if (!byl.length) return ''
+  return `\n\nThe video uses these CC-BY models: credit each one in every platform's description or caption, as "<name>" by <author> (<license>)${'<link if any>'}:\n${byl.map(a => `- "${a.name}" by ${a.author || 'unknown'} (${a.license})${a.page ? ` ${a.page}` : ''}`).join('\n')}`
+}
+
+function assetsBrief(project: ProjectStatus) {
+  const assets = assetList(project)
+  if (!assets.length) return ''
+  return `\n\nModels in assets/ (import them as the format describes):\n${assets.map(a => `- assets/${a.id}/model.glb: ${a.name} (${a.license}${a.author ? `, ${a.author}` : ''})`).join('\n')}`
+}
+
 function shotBrief(project: ProjectStatus, shot: ShotStatus) {
   const rel = (f: string) => path.relative(project.root, f)
   const others = project.shots.map(s => `${s.id} (${s.start}–${s.start + s.duration} s)${s.id === shot.id ? ' ← this shot' : ''}`)
@@ -73,7 +98,7 @@ ${rel(shot.notes)}:
 ${read(shot.notes)}
 
 ${rel(shot.code)}:
-${read(shot.code)}`
+${read(shot.code)}${assetsBrief(project)}`
 }
 
 // Copies stills into the fix record, so before/after survive later renders
@@ -229,7 +254,7 @@ async function publishTask() {
   const summary = await runAgent('code', {
     effort: 'high',
     system: publishSystem(),
-    prompt: `Write publish.md for "${project.title}" (${project.duration} s, ${project.track.toUpperCase()}).\n\n${docs}`,
+    prompt: `Write publish.md for "${project.title}" (${project.duration} s, ${project.track.toUpperCase()}).\n\n${docs}${credits(project)}`,
     ctx
   })
   return { task: 'publish', summary, touched: [...ctx.touched], file: path.join(project.root, 'publish.md') }

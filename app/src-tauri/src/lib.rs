@@ -285,6 +285,47 @@ async fn apply_storyboard(handle: AppHandle, path: String) -> Result<Value, Stri
     blocking(move || engine(&handle.state::<App>(), &["storyboard", &path])).await
 }
 
+/// Asset library: search a source with the person's key
+#[tauri::command]
+async fn library_search(handle: AppHandle, source: String, query: String, cursor: Option<String>, all: bool) -> Result<Value, String> {
+    blocking(move || {
+        let app = handle.state::<App>();
+        let saved = settings::load(&app.config_dir);
+        let key = if source == "polypizza" { saved.polypizza_key } else { saved.smithsonian_key };
+        let mut args = vec!["library", "search", "--source", source.as_str(), "--query", query.as_str()];
+        if !key.is_empty() {
+            args.extend(["--key", key.as_str()]);
+        }
+        if let Some(c) = cursor.as_deref() {
+            args.extend(["--cursor", c]);
+        }
+        if all {
+            args.push("--all");
+        }
+        engine(&app, &args)
+    })
+    .await
+}
+
+/// Asset library: download a search result, list, remove, use in a project
+#[tauri::command]
+async fn library(handle: AppHandle, action: String, item: Option<Value>, id: Option<String>, project: Option<String>) -> Result<Value, String> {
+    blocking(move || {
+        let app = handle.state::<App>();
+        let item = item.map(|i| i.to_string());
+        let mut args = vec!["library", action.as_str()];
+        match action.as_str() {
+            "get" => args.extend(["--item", item.as_deref().unwrap_or("null")]),
+            "list" => args.extend(project.as_deref()),
+            "remove" => args.extend(id.as_deref()),
+            "use" | "unuse" => args.extend(project.as_deref().into_iter().chain(id.as_deref())),
+            _ => return Err(format!("unknown library action {action}")),
+        }
+        engine(&app, &args)
+    })
+    .await
+}
+
 /// Rename the project (shotloop.json title)
 #[tauri::command]
 async fn set_title(handle: AppHandle, path: String, title: String) -> Result<Value, String> {
@@ -365,6 +406,11 @@ pub fn run() {
             *queue.launch.lock().unwrap() = launch_for(root, &settings);
             queue.start(app.handle().clone());
             app.manage(App { queue, config_dir });
+            // The asset library: one folder for every project, readable by the UI
+            let library = app.path().app_data_dir()?.join("library");
+            std::fs::create_dir_all(&library)?;
+            std::env::set_var("SHOTLOOP_LIBRARY", &library);
+            let _ = app.asset_protocol_scope().allow_directory(&library, true);
             let tray = tray::create(app.handle())?;
             app.manage(tray);
             Ok(())
@@ -403,6 +449,8 @@ pub fn run() {
             film_preview,
             set_title,
             apply_storyboard,
+            library_search,
+            library,
             music,
             tray::set_tray_text
         ])

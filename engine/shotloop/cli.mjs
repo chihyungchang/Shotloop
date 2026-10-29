@@ -12,6 +12,9 @@
 //   shotloop preview  <project> [--final]                the whole film to watch (cached)
 //   shotloop storyboard <project>                        apply storyboard.json to the project
 //   shotloop title    <project> <title>                  rename the project
+//   shotloop library  search --source polypizza|smithsonian --query … [--key] [--cursor] [--all]
+//                     get --item '<search result>' | list [<project>] | remove <id>
+//                     use <project> <id> | unuse <project> <id>   the 3D asset library
 //   shotloop music    <project> [--preset calm|bright|groove|tech | --file <audio> | --none] [--gain 0–2]
 //   shotloop prune    <project>                          drop unused cache entries
 //   shotloop doctor                                      Chrome, ffmpeg, Blender
@@ -31,6 +34,7 @@ import { assemble, exportFilm, preview, renderCover } from './film.mjs'
 import { findShot, loadProject } from './project.mjs'
 import { musicInfo, setMusic, setTitle } from './settings.mjs'
 import { applyStoryboard } from './storyboard.mjs'
+import * as library from './library.mjs'
 import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
 
@@ -43,6 +47,12 @@ const { values, positionals } = parseArgs({
     stills: { type: 'boolean' },
     force: { type: 'boolean' },
     preset: { type: 'string' },
+    source: { type: 'string' },
+    query: { type: 'string' },
+    key: { type: 'string' },
+    cursor: { type: 'string' },
+    item: { type: 'string' },
+    all: { type: 'boolean' },
     file: { type: 'string' },
     none: { type: 'boolean' },
     gain: { type: 'string' },
@@ -146,6 +156,18 @@ try {
     case 'export': {
       const project = loadProject(args[0])
       result(await exportFilm(project, { mode: values.draft ? 'draft' : 'final', aspects: aspects() }))
+      break
+    }
+    case 'library': {
+      // library search|get|list|remove|use|unuse …
+      const [sub, a, b] = args
+      if (sub === 'search') result(await library.search(values.source ?? 'polypizza', values.query ?? '', { key: values.key, cursor: values.cursor, cc0Only: !values.all }))
+      else if (sub === 'get') result(await library.download(JSON.parse(values.item ?? 'null')))
+      else if (sub === 'list') result(a ? library.projectAssets(loadProject(a)) : library.list())
+      else if (sub === 'remove') result(library.remove(a))
+      else if (sub === 'use') result(library.use(loadProject(a), b))
+      else if (sub === 'unuse') result(library.unuse(loadProject(a), b))
+      else throw new Error('library search|get|list|remove|use|unuse')
       break
     }
     case 'storyboard':

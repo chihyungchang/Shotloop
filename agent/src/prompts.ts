@@ -7,6 +7,12 @@ const FORMAT = `A Shotloop project is one short video split into shots. Layout:
 - shots/<id>/: one folder per shot. 3D: shot.py runs after world.py in its namespace and creates exactly one camera with kit.Shot(name, at(0), at(DUR), lens=…, target=…, move=…, frm=…, to=…). at(t) turns shot-local seconds into film seconds; T0 is the shot's start on the film, DUR its length. 2D: shot.js is an ES module whose default export render(t, ctx) draws the page at shot-local time t; ctx.world(filmTime) is the page's own render, ctx.start the shot's film start.
 - shots/<id>/notes.md: what the shot must show and its review history.
 - captions.html: a transparent caption layer drawn over every frame, on the film's timeline.
+- assets/<id>/model.glb (3D, optional): models the person added from the asset library, each with asset.json (name, license, author). Import one in world.py, then scale it to a known size, e.g.:
+  before = set(bpy.data.objects)
+  bpy.ops.import_scene.gltf(filepath=os.path.join(os.environ['SHOTLOOP_PROJECT'], 'assets', '<id>', 'model.glb'))
+  parts = [o for o in bpy.data.objects if o not in before]
+  (then read the bounding boxes of the mesh parts, scale the root objects so the model has the size you want, and place it).
+  Use only the models listed for the project; never download anything.
 
 Rules of the format: a shot sees the world and its own code only. Anything two shots share lives in the world, and a world change affects every shot.`
 

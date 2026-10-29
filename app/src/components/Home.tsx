@@ -2,6 +2,7 @@ import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useEffect, useState } from 'react'
 import { api, EMPTY_SETTINGS, fileUrl, type ProjectSummary } from '../api'
 import { formatSeconds } from '../model'
+import { BrandIcon, hasBrand } from '../ai/BrandIcon'
 import { aiSummary, useSettings } from '../ai/useSettings'
 import { baseName, projectsFolder, setProjectsFolder } from '../recent'
 import { Icon } from './Icon'
@@ -149,7 +150,8 @@ export function Home({ open, openSettings }: { open: (path: string, plan?: boole
           </div>
           {ai && (
             <button className="model-chip" onClick={openSettings} title={t('ai.change')}>
-              <span className={`dot ${ai.ready ? 'ok' : 'warn'}`} />
+              {hasBrand(ai.brand) ? <BrandIcon id={ai.brand} size={15} /> : null}
+              {!ai.ready || !hasBrand(ai.brand) ? <span className={`dot ${ai.ready ? 'ok' : 'warn'}`} /> : null}
               <span className="ellipsis">{ai.name}{ai.model ? ` · ${ai.model}` : ''}</span>
             </button>
           )}

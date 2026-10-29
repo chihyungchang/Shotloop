@@ -4,6 +4,7 @@ import { baseName, readRecent } from '../recent'
 import type { useTheme } from '../theme/theme'
 import { aiSummary, SAVED, useSettings } from '../ai/useSettings'
 import { api } from '../api'
+import { BrandIcon, hasBrand } from '../ai/BrandIcon'
 import { BrandMark } from './BrandMark'
 import { Icon } from './Icon'
 import { ThemeToggle } from './ThemeToggle'
@@ -12,11 +13,12 @@ import { t } from '../i18n'
 
 const REPO = 'https://github.com/chihyungchang/Shotloop'
 
-export type Page = 'home' | 'projects' | 'settings'
+export type Page = 'home' | 'projects' | 'library' | 'settings'
 
 const NAV: [Page, Key, Parameters<typeof Icon>[0]['name']][] = [
   ['home', 'nav.home', 'home'],
   ['projects', 'nav.projects', 'grid'],
+  ['library', 'nav.library', 'cube'],
   ['settings', 'nav.settings', 'settings']
 ]
 
@@ -77,8 +79,13 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
         {ai && settings && (
           <div className="foot-row">
             <button className="mode-pill" onClick={() => setPage('settings')} title={t('ai.change')}>
-              <span className="mode-tile"><Icon name={ai.mode === 'cli' ? 'terminal' : ai.mode === 'local' ? 'cpu' : 'cloud'} size={14} /></span>
-              <span className="ellipsis">{ai.mode === 'api' ? ai.name : t(`ai.mode.${ai.mode}`)}</span>
+              {hasBrand(ai.brand)
+                ? <span className="mode-tile brand"><BrandIcon id={ai.brand} size={16} /></span>
+                : <span className={`mode-tile ${ai.mode}`}><Icon name={ai.mode === 'local' ? 'cpu' : 'spark'} size={13} /></span>}
+              <span className="mode-text">
+                <strong className="ellipsis">{ai.name}</strong>
+                <span className="ellipsis">{t(`ai.mode.${ai.mode}`)}</span>
+              </span>
               {!ai.ready && <span className="dot warn" />}
             </button>
             <button className="icon-button bell" aria-pressed={alerts} title={t(alerts ? 'sidebar.alertsOn' : 'sidebar.alertsOff')} aria-label={t('settings.alerts')}

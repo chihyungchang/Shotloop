@@ -338,7 +338,34 @@ export const en = {
   'plan.openStudio': 'Open the editor',
   'plan.link': 'Copy & storyboard',
   'job.plan': 'Plan the copy and storyboard',
-  'job.build': 'Build the shots'
+  'job.build': 'Build the shots',
+
+  'nav.library': 'Asset library',
+  'library.title': 'Asset library',
+  'library.search': 'Find',
+  'library.mine': 'On this Mac',
+  'library.intro': 'Free 3D models, downloaded once and reused in any 3D project. Add one to a project in the studio’s Assets drawer.',
+  'library.placeholder': 'Search models: robot, desk, tree… (English works best)',
+  'library.cc0Only': 'CC0 only (no credit needed)',
+  'library.needsKey': 'This source needs your API key (free): add it in Settings → Asset sources.',
+  'library.none': 'No models found.',
+  'library.have': 'Downloaded',
+  'library.get': 'Download',
+  'library.more': 'Load more',
+  'library.emptyMine': 'Nothing downloaded yet. Find models under Find.',
+  'assets.polypizzaShort': 'Poly Pizza: low-poly models, many by Kenney and Quaternius; CC0 or CC-BY.',
+  'assets.smithsonianShort': 'Smithsonian: 3D scans of museum objects, all CC0.',
+  'settings.assets': 'Asset sources',
+  'assets.intro': 'Keys for the asset library’s sources. They stay on this Mac.',
+  'assets.polypizzaNote': 'Free with a Poly Pizza account. Models are CC0 or CC-BY (credit the author; Shotloop adds it to the publish copy).',
+  'assets.smithsonianNote': 'Free from api.data.gov. Without one, a shared demo key allows a few searches an hour.',
+  'studio.assets': 'Assets',
+  'assets.inProject': 'In this project',
+  'assets.noneInProject': 'None yet. Add models from your library below.',
+  'assets.tellAi': 'Then tell the AI assistant where it goes, e.g. “put {name} on the table”.',
+  'assets.fromLibrary': 'Your library',
+  'assets.emptyLibrary': 'Your library is empty: download models in Asset library.',
+  'assets.add': 'Add'
 }
 
 export type Key = keyof typeof en

@@ -173,10 +173,41 @@ export interface Settings {
   // A sound and a desktop notification when the queue runs dry
   notifySound: boolean
   notifyDesktop: boolean
+  // Asset library sources: the person's own keys
+  polypizzaKey: string
+  smithsonianKey: string
+}
+
+// A search result from an asset source, and an asset on this Mac
+export interface LibraryItem {
+  id: string
+  source: 'polypizza' | 'smithsonian'
+  name: string
+  thumb: string | null
+  license: string
+  author: string
+  authorUrl: string | null
+  page: string | null
+  download: string
+  triangles: number | null
+  animated: boolean
+  size: number | null
+}
+export interface Asset {
+  id: string
+  name: string
+  source: string
+  license: string
+  author: string
+  page?: string | null
+  triangles?: number | null
+  dir: string
+  model: string
+  thumb: string | null
 }
 
 export const EMPTY_SETTINGS: Settings = {
-  provider: '', apiPreset: '', apiProtocol: '', apiUrl: '', apiKeys: {}, cli: '', model: '', localUrl: '', localModel: '', localKey: '', blender: '', chrome: '', notifySound: false, notifyDesktop: false
+  provider: '', apiPreset: '', apiProtocol: '', apiUrl: '', apiKeys: {}, cli: '', model: '', localUrl: '', localModel: '', localKey: '', blender: '', chrome: '', notifySound: false, notifyDesktop: false, polypizzaKey: '', smithsonianKey: ''
 }
 
 export interface MusicInfo {
@@ -258,6 +289,13 @@ export const api = {
   aiTest: (settings: Settings) => invoke<{ ok: boolean; latencyMs: number; reply: string; backend: string }>('ai_test', { settings }),
   about: () => invoke<About>('about'),
   // The whole film, joined from the shots' clips with music (cached)
+  librarySearch: (source: string, query: string, cursor: string | null, all: boolean) =>
+    invoke<{ results: LibraryItem[]; cursor: string | null }>('library_search', { source, query, cursor, all }),
+  libraryGet: (item: LibraryItem) => invoke<Asset>('library', { action: 'get', item }),
+  libraryList: (project?: string) => invoke<Asset[]>('library', { action: 'list', project }),
+  libraryRemove: (id: string) => invoke<void>('library', { action: 'remove', id }),
+  libraryUse: (project: string, id: string) => invoke<Asset>('library', { action: 'use', project, id }),
+  libraryUnuse: (project: string, id: string) => invoke<void>('library', { action: 'unuse', project, id }),
   applyStoryboard: (path: string) => invoke<{ shots: string[]; duration: number }>('apply_storyboard', { path }),
   setTitle: (path: string, title: string) => invoke<{ title: string }>('set_title', { path, title }),
   // The music bed: read with no change, or set a preset, a file, none, a volume

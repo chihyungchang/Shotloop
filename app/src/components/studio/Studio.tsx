@@ -6,6 +6,7 @@ import { Icon } from '../Icon'
 import { ThemeToggle } from '../ThemeToggle'
 import { AgentPanel } from './AgentPanel'
 import { ExportPanel } from './ExportPanel'
+import { AssetsPanel } from './AssetsPanel'
 import { FilmPreview } from './FilmPreview'
 import { Filmstrip } from './Filmstrip'
 import { QueuePanel } from './QueuePanel'
@@ -13,7 +14,7 @@ import { ShotNotes } from './ShotNotes'
 import { Stage } from './Stage'
 import { t } from '../../i18n'
 
-type Drawer = 'queue' | 'export' | null
+type Drawer = 'queue' | 'export' | 'assets' | null
 
 // One project, full-window (open-design's Studio, for a film), with one
 // main line: pick a shot in the filmstrip, watch it, tell the agent what
@@ -113,6 +114,11 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         <button onClick={openFilm} disabled={wantFilm}>
           {wantFilm ? <span className="spinner small" /> : <Icon name="play" size={14} />} {t(wantFilm ? 'film.rendering' : 'film.watch')}
         </button>
+        {project.track === '3d' && (
+          <button className={drawer === 'assets' ? 'on' : ''} onClick={() => toggle('assets')}>
+            <Icon name="cube" size={14} /> {t('studio.assets')}
+          </button>
+        )}
         <button className={drawer === 'queue' ? 'on' : ''} onClick={() => toggle('queue')}>
           <Icon name="queue" size={14} /> {t('studio.queue')}{active.length ? <span className="count">{active.length}</span> : null}
         </button>
@@ -157,10 +163,10 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
       {drawer && (
         <aside className="drawer">
           <div className="drawer-head">
-            <strong>{t(drawer === 'queue' ? 'drawer.queue' : 'drawer.export')}</strong>
+            <strong>{t(drawer === 'queue' ? 'drawer.queue' : drawer === 'assets' ? 'studio.assets' : 'drawer.export')}</strong>
             <button className="icon-button" onClick={() => setDrawer(null)} aria-label={t('common.close')}><Icon name="x" /></button>
           </div>
-          {drawer === 'queue' ? <QueuePanel project={project} jobs={jobs} /> : <ExportPanel project={project} jobs={jobs} refresh={refresh} openSettings={openSettings} />}
+          {drawer === 'queue' ? <QueuePanel project={project} jobs={jobs} /> : drawer === 'assets' ? <AssetsPanel project={project} refresh={refresh} /> : <ExportPanel project={project} jobs={jobs} refresh={refresh} openSettings={openSettings} />}
         </aside>
       )}
     </div>
