@@ -1,0 +1,86 @@
+<!doctype html>
+<!--
+  NN · Cover (1080×1920) for Shorts, Reels and TikTok, rendered by
+  `node engine/video/thumb.mjs <episode>` to out/thumbnail.png.
+  - The hook, big: it must read at thumbnail size (~200 px wide).
+  - All text inside y 240–1680 (the 3:4 profile-grid crop).
+  - The episode's palette and the fixed structure: progress bar,
+    "NN — TOPIC" and "OLIVERZ.DEV" on top, Archivo + JetBrains Mono.
+  - Optional background: a raw frame without captions
+    (out/frames/NNNNN.png), with a shade under the text.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;900&family=JetBrains+Mono:wght@500&display=block"
+    />
+    <style>
+      :root {
+        --bg: #050607;
+        --fg: #e8f0ec;
+        --muted: #8a958f;
+        --accent: #38f2a9;
+      }
+      * {
+        margin: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: Archivo, sans-serif;
+      }
+      #bar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 40%;
+        height: 12px;
+        background: var(--accent);
+      }
+      #chrome {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        top: 150px;
+        display: flex;
+        justify-content: space-between;
+        font: 500 30px 'JetBrains Mono', monospace;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+      #main {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        top: 600px;
+      }
+      h1 {
+        font-weight: 900;
+        font-size: 120px;
+        line-height: 0.95;
+        letter-spacing: -0.045em;
+      }
+      h1 em {
+        font-style: normal;
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bar"></div>
+    <div id="chrome"><span>NN — TOPIC</span><span>OLIVERZ.DEV</span></div>
+    <div id="main">
+      <h1>The hook,<br /><em>big.</em></h1>
+    </div>
+    <script>
+      window.ready = document.fonts.ready
+    </script>
+  </body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<!--
+  Explainer template. Step 4 (code) of the explainer workflow; copy.md,
+  script.md and storyboard.md come first. Copy this folder to start.
+  9:16 at 720×1280 CSS px. Nothing animates on its own: window.render(t)
+  draws the frame at t seconds for engine/video/record.mjs. Open with
+  ?play to preview in real time, or ?t=12.3 for one frame.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=block"
+    />
+    <style>
+      /* The palette: pick per topic in storyboard.md, then set it here.
+         --mint is the accent and --red the warning colour, whatever hues
+         they end up being. */
+      :root {
+        --bg: #050607;
+        --raised: #0b0f10;
+        --fg: #e8f0ec;
+        --muted: #8a958f;
+        --line: #2a3330;
+        --mint: #38f2a9;
+        --red: #ff4d55;
+        --sans: Archivo, system-ui, sans-serif;
+        --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      html,
+      body {
+        width: 720px;
+        height: 1280px;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--sans);
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        display: none;
+      }
+      .mono {
+        font-family: var(--mono);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .display {
+        font-weight: 900;
+        letter-spacing: -0.035em;
+        line-height: 0.95;
+      }
+      .mint {
+        color: var(--mint);
+      }
+      .red {
+        color: var(--red);
+      }
+      /* Safe area: x 40–620, y 110–1030 (platform UI covers the rest) */
+      .safe {
+        position: absolute;
+        left: 44px;
+        right: 100px;
+      }
+
+      #chrome {
+        position: absolute;
+        left: 44px;
+        right: 100px;
+        top: 96px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 18px;
+        color: var(--muted);
+        z-index: 5;
+      }
+      #progress {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 8px;
+        background: var(--mint);
+        z-index: 5;
+      }
+      #flash {
+        position: absolute;
+        inset: 0;
+        background: var(--red);
+        opacity: 0;
+        z-index: 4;
+        pointer-events: none;
+      }
+
+      #title {
+        top: 300px;
+        font-size: 84px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="progress"></div>
+    <div id="chrome" class="mono"><span>NN — Topic</span><span>oliverz.dev</span></div>
+
+    <section class="scene" id="s1">
+      <h1 class="safe display" id="title">Hook line goes here</h1>
+    </section>
+
+    <script>
+      const $ = id => document.getElementById(id)
+      const clamp = x => Math.min(1, Math.max(0, x))
+      const rise = (t, a, d = 0.35) => 1 - Math.pow(1 - clamp((t - a) / d), 3)
+      const lift = (el, p, dy = 40) => {
+        el.style.opacity = p
+        el.style.transform = `translateY(${(1 - p) * dy}px)`
+      }
+
+      const BAR = 2.4 // 100 bpm, 4/4; keep in step with music.json
+      const DURATION = 16 * BAR
+      const SCENES = [['s1', 0, 16]].map(([id, a, b]) => ({ el: $(id), from: a * BAR, to: b * BAR }))
+
+      function render(t) {
+        for (const s of SCENES) s.el.style.display = t >= s.from && t < s.to ? 'block' : 'none'
+        $('progress').style.width = `${(t / DURATION) * 100}%`
+        lift($('title'), rise(t, 0.1))
+      }
+
+      window.DURATION = DURATION
+      window.render = render
+      window.ready = document.fonts.ready
+
+      const params = new URLSearchParams(location.search)
+      if (params.has('play')) {
+        const start = performance.now()
+        const tick = () => {
+          render(((performance.now() - start) / 1000) % DURATION)
+          requestAnimationFrame(tick)
+        }
+        tick()
+      } else render(Number(params.get('t') ?? 0))
+    </script>
+  </body>
+</html>

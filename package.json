@@ -1,0 +1,17 @@
+{
+  "name": "shotloop",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "record": "node engine/video/record.mjs",
+    "blender": "node engine/video/blender.mjs",
+    "music": "node engine/video/music.mjs"
+  },
+  "devDependencies": {
+    "three": "^0.186.1"
+  }
+}

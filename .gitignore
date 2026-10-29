@@ -1,0 +1,14 @@
+node_modules/
+.DS_Store
+*.log
+__pycache__/
+
+# Render output (frames, captions, mp4) per episode
+engine/video/**/out/
+
+# Downloaded CC0 assets (manifest: engine/video/assets/README.md)
+engine/video/assets/*
+!engine/video/assets/README.md
+
+# Docs
+docs/PRD.md

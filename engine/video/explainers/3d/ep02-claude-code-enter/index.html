@@ -1,0 +1,550 @@
+<!doctype html>
+<!--
+  Explainer 02 · What happens when you press Enter in Claude Code?
+  Step 4 (code) of the 3D track, second cut: a literal voxel diorama of
+  the route (copy.md, script.md, storyboard.md, scene.md come first).
+  9:16 at 720×1280 CSS px. window.render(t) draws the frame at t seconds.
+  ?play previews, ?t=12.3 one frame.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=block"
+    />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "../../../../../node_modules/three/build/three.module.js",
+          "three/addons/": "../../../../../node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+    <style>
+      :root {
+        --fg: #ffffff;
+        --muted: #b8c2d6;
+        --accent: #ffb340;
+        --panel: rgba(11, 15, 25, 0.86);
+        --sans: Archivo, system-ui, sans-serif;
+        --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      html,
+      body {
+        width: 720px;
+        height: 1280px;
+        overflow: hidden;
+        background: #000;
+        color: var(--fg);
+        font-family: var(--sans);
+      }
+      canvas {
+        position: absolute;
+        inset: 0;
+      }
+      #chrome {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        padding: 92px 100px 10px 44px;
+        display: flex;
+        justify-content: space-between;
+        font: 500 18px var(--mono);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        z-index: 5;
+        background: linear-gradient(rgba(11, 15, 25, 0.75), rgba(11, 15, 25, 0));
+      }
+      #progress {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 8px;
+        background: var(--accent);
+        z-index: 6;
+      }
+      /* Captions on a dark panel: readable over sky, sea and machines */
+      .cap {
+        position: absolute;
+        left: 44px;
+        right: 100px;
+        top: 150px;
+        z-index: 4;
+        padding: 22px 24px 24px;
+        background: var(--panel);
+        border-left: 6px solid var(--accent);
+        font-size: 50px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .cap small {
+        display: block;
+        margin-top: 14px;
+        font: 500 22px/1.45 var(--mono);
+        letter-spacing: 0.02em;
+        color: var(--muted);
+      }
+      .cap em {
+        font-style: normal;
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="progress"></div>
+    <div id="chrome"><span id="kicker">02 — Claude Code</span><span>oliverz.dev</span></div>
+
+    <div class="cap" id="c1">You press <em>Enter</em> in Claude Code.</div>
+    <div class="cap" id="c2">Your prompt and its context leave as one request.<small>the chat so far · instructions · tools · files it read · over HTTPS</small></div>
+    <div class="cap" id="c3">Out through your internet provider…</div>
+    <div class="cap" id="c4">…and across an ocean, in a cable on the seabed.<small>Almost all data between continents travels this way. (TeleGeography)</small></div>
+    <div class="cap" id="c5">To a data center, possibly an ocean away.</div>
+    <div class="cap" id="c6">Chips like <em>GPUs</em> and <em>TPUs</em> run the model.</div>
+    <div class="cap" id="c7">Layer by layer, it works out the next token.<small>illustration</small></div>
+    <div class="cap" id="c8">Each token comes back the same way, <em>streamed</em>.</div>
+    <div class="cap" id="c9">Sometimes the reply is a request.<small>Read a file, run a command. You approve; it runs on your machine; the result goes back.</small></div>
+    <div class="cap" id="c10">Again and again, until it's done.<br /><em>That loop is the agent.</em></div>
+    <div class="cap" id="c11">oliverz<em>.</em>dev<small>Sources: Anthropic docs (code.claude.com, platform.claude.com), anthropic.com/news, TeleGeography. Route and screen are illustrative.</small></div>
+
+    <script type="module">
+      import * as THREE from 'three'
+      import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
+      import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
+      import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
+      import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
+      import * as V from '../lib/voxel.js'
+
+      await document.fonts.ready
+
+      const $ = id => document.getElementById(id)
+      const clamp = x => Math.min(1, Math.max(0, x))
+      const rise = (t, a, d = 0.35) => 1 - Math.pow(1 - clamp((t - a) / d), 3)
+      const ease = x => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2)
+      const lerp = (a, b, k) => a + (b - a) * k
+      const vec = (x, y, z) => new THREE.Vector3(x, y, z)
+      const lerpV = (a, b, k) => a.clone().lerp(b, k)
+      const rng = V.seeded(5)
+      const AMBER = '#ffb340'
+
+      const BAR = 2.4
+      const DURATION = 20 * BAR
+
+      // ---------- renderer ----------
+      const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
+      renderer.setPixelRatio(window.devicePixelRatio)
+      renderer.setSize(720, 1280)
+      renderer.shadowMap.enabled = true
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap
+      document.body.prepend(renderer.domElement)
+      const scene = new THREE.Scene()
+      scene.background = new THREE.Color('#9fd0ff')
+      scene.fog = new THREE.Fog('#9fd0ff', 60, 320)
+      const camera = new THREE.PerspectiveCamera(50, 720 / 1280, 0.05, 900)
+
+      const hemi = new THREE.HemisphereLight('#cfe8ff', '#4a6a3a', 1.1)
+      scene.add(hemi)
+      const sun = new THREE.DirectionalLight('#fff1dc', 2.4)
+      sun.castShadow = true
+      sun.shadow.mapSize.set(2048, 2048)
+      Object.assign(sun.shadow.camera, { left: -25, right: 25, top: 25, bottom: -25, near: 1, far: 220 })
+      sun.shadow.bias = -0.0006
+      scene.add(sun, sun.target)
+
+      // ---------- ROOM (origin) ----------
+      scene.add(V.room())
+      const desk = V.desk()
+      desk.position.set(0, 0, -0.95)
+      scene.add(desk)
+      const chair = V.chair()
+      chair.position.set(0, 0, 0.45)
+      chair.rotation.y = Math.PI
+      scene.add(chair)
+      const me = V.person({ sitting: true, shirt: '#3b6fd8' })
+      me.group.position.set(0, me.group.position.y, 0.42)
+      me.group.rotation.y = Math.PI
+      scene.add(me.group)
+      const ws = V.workstation()
+      ws.group.position.set(0, 0.76, -1.05)
+      scene.add(ws.group)
+      const rtr = V.router()
+      rtr.group.position.set(-1.45, 0, -1.25)
+      scene.add(rtr.group)
+      const lamp = new THREE.PointLight('#ffd9a0', 6, 6)
+      lamp.position.set(0.4, 2.3, 0)
+      scene.add(lamp)
+      const deskCurve = new THREE.CatmullRomCurve3([
+        vec(0.2, 0.9, -1.15), vec(-0.6, 0.78, -1.3), vec(-0.82, 0.5, -1.38),
+        vec(-0.85, 0.06, -1.38), vec(-1.3, 0.06, -1.32), vec(-1.45, 0.1, -1.25),
+        vec(-1.8, 0.12, -1.32), vec(-2.0, 0.3, -1.35)
+      ])
+      scene.add(V.cable(deskCurve, { size: 0.03, step: 0.02 }))
+
+      // Terminal on the monitor (illustrative)
+      function drawScreen(t) {
+        const c = ws.ctx
+        c.fillStyle = '#0b0f19'
+        c.fillRect(0, 0, 1024, 576)
+        c.font = '600 40px JetBrains Mono'
+        const L = []
+        const prompt = '> explain how auth works here'
+        L.push([prompt.slice(0, Math.max(2, Math.floor(t * 18))), '#e8eef8'])
+        if (t > 2.1 && t < 33.6) L.push([`⏺ Working${'.'.repeat(Math.floor(t * 2) % 4)}`, '#8a93a6'])
+        if (t >= 33.7) {
+          const answer = 'Requests carry a session token, checked in middleware before any route runs.'
+          const shown = answer.slice(0, Math.floor((t - 33.7) * 45))
+          let line = ''
+          for (const w of shown.split(' ')) {
+            if ((line + ' ' + w).trim().length > 36) { L.push([line, '#e8eef8']); line = w } else line = (line + ' ' + w).trim()
+          }
+          if (line) L.push([line, '#e8eef8'])
+        }
+        if (t >= 35.2) L.push(['⏺ Read(src/app.ts)', AMBER])
+        if (t >= 35.8) L.push([`  Allow? (y/n) ${t >= 36.6 ? 'y' : ''}`, '#ffffff'])
+        if (t >= 37.4) L.push(['  ⎿ read 120 lines', '#8a93a6'])
+        L.slice(-9).forEach(([s, col], i) => {
+          c.fillStyle = col
+          c.fillText(s, 44, 80 + i * 56)
+        })
+        ws.texture.needsUpdate = true
+      }
+
+      // ---------- STREET + PROVIDER (z −40 … −112) ----------
+      const land = V.terrain({
+        cols: 40, rows: 40, size: 2,
+        height: (i, j) => 1 + (rng() > 0.93 ? 0.4 : 0),
+        color: (i, j) => (j > 33 ? (j > 36 ? '#e8d8a8' : '#d9c793') : (i + j) % 2 ? '#5fa84a' : '#58a043')
+      })
+      land.position.set(0, -1, -72)
+      scene.add(land)
+      const home = V.house()
+      home.scale.setScalar(3)
+      home.position.set(-9, 0, -55)
+      scene.add(home)
+      for (const z of [-62, -74, -86]) {
+        const p = V.pole()
+        p.position.set(4, 0, z)
+        scene.add(p)
+      }
+      const provider = V.building({ w: 40, d: 30, h: 60, color: '#b9c2cf', seed: 4 })
+      provider.group.scale.setScalar(2.5)
+      provider.group.position.set(6, 0, -98)
+      scene.add(provider.group)
+      const isp = V.sign('INTERNET PROVIDER', { width: 9, height: 1.6, bg: '#1c2a44', font: '900 54px Archivo' })
+      isp.position.set(6, 12.5, -94.2)
+      scene.add(isp)
+      const streetCurve = new THREE.CatmullRomCurve3([
+        vec(-4.6, 4.2, -53), vec(4, 5.6, -62), vec(4, 5.5, -68), vec(4, 5.6, -74),
+        vec(4, 5.5, -80), vec(4, 5.6, -86), vec(5, 5, -92)
+      ])
+      scene.add(V.cable(streetCurve, { size: 0.08, step: 0.06 }))
+
+      // ---------- SEA (z −112 … −215) ----------
+      const seabed = V.terrain({
+        cols: 34, rows: 56, size: 2,
+        height: (i, j) => 1 + Math.sin(i * 0.5) * 0.4 + Math.cos(j * 0.37) * 0.5 + (rng() > 0.95 ? 1.2 : 0),
+        color: (i, j, h) => (h > 2.2 ? '#7d7f7a' : (i * 7 + j) % 3 ? '#c8b98a' : '#bcae80')
+      })
+      seabed.position.set(0, -11, -163)
+      scene.add(seabed)
+      const sea = V.water(68, 112, { opacity: 0.55 })
+      sea.position.set(0, -0.2, -163)
+      scene.add(sea)
+      const shed = V.boxes([[-15, 0, -10, 30, 22, 20, '#d6dde6'], [-16, 22, -11, 32, 2, 22, '#7d8796']])
+      shed.position.set(-5, 0, -107)
+      scene.add(shed)
+      const seaCurve = new THREE.CatmullRomCurve3([
+        vec(0, 0.4, -106), vec(0, -4, -114), vec(0, -9.3, -124), vec(2, -9.4, -145),
+        vec(-2, -9.3, -165), vec(1.5, -9.4, -185), vec(0, -9.3, -203), vec(0, -4, -212), vec(0, 0.4, -219)
+      ])
+      scene.add(V.cable(seaCurve, { size: 0.16, step: 0.12 }))
+      const fishes = Array.from({ length: 10 }, (_, i) => {
+        const f = V.fish(['#ff8a3d', '#ffd23d', '#3dd6ff', '#ff5fa2'][i % 4])
+        f.scale.setScalar(2.2)
+        f.userData = { x: (rng() - 0.5) * 30, y: -8 + rng() * 6, z: -120 - rng() * 85, s: 0.6 + rng(), ph: rng() * 6 }
+        scene.add(f)
+        return f
+      })
+
+      // ---------- FAR SHORE + DATA CENTER (z −215 … −275) ----------
+      const shore = V.terrain({
+        cols: 40, rows: 30, size: 2,
+        height: () => 1,
+        color: (i, j) => (j < 3 ? '#e8d8a8' : (i + j) % 2 ? '#62a84d' : '#5aa046')
+      })
+      shore.position.set(0, -1, -247)
+      scene.add(shore)
+      const dc = V.building({ w: 60, d: 40, h: 24, color: '#d4dbe4', window: '#9fd3ff', roofFans: true, seed: 9 })
+      dc.group.scale.setScalar(4)
+      dc.group.position.set(0, 0, -252)
+      scene.add(dc.group)
+      const dcSign = V.sign('DATA CENTER', { width: 12, height: 2, bg: '#1c2a44', font: '900 64px Archivo' })
+      dcSign.position.set(0, 7.5, -243.9)
+      scene.add(dcSign)
+      const farCurve = new THREE.CatmullRomCurve3([vec(0, 0.4, -219), vec(0, 0.3, -232), vec(0, 1.2, -243.5)])
+      scene.add(V.cable(farCurve, { size: 0.16, step: 0.12 }))
+
+      // ---------- MACHINE HALL (x 300) ----------
+      const HALL = vec(300, 0, 0)
+      const hallFloor = V.boxes([[-80, -2, -200, 160, 2, 220, '#2a303c']])
+      hallFloor.position.copy(HALL)
+      scene.add(hallFloor)
+      const racks = []
+      for (let row = 0; row < 3; row++)
+        for (let i = 0; i < 8; i++) {
+          const r = V.rack()
+          r.group.position.set(HALL.x - 3 + row * 3, 0, -1 - i * 1.0)
+          r.group.rotation.y = row === 1 ? -Math.PI / 2 : Math.PI / 2
+          scene.add(r.group)
+          racks.push(r)
+        }
+      for (const z of [1, -3, -7]) {
+        const l = new THREE.PointLight('#cfe0ff', 30, 14)
+        l.position.set(HALL.x + 1.5, 3, z)
+        scene.add(l)
+      }
+
+      // ---------- CHIP (x 300, z −40) ----------
+      const CHIP = vec(300, 1, -40)
+      const bench = V.boxes([[-6, 0, -4, 12, 10, 8, '#3a4150']])
+      bench.position.set(CHIP.x, 0, CHIP.z)
+      scene.add(bench)
+      const board = V.gpu()
+      board.group.position.set(CHIP.x, 1.0, CHIP.z)
+      scene.add(board.group)
+      const chipGlow = new THREE.PointLight(AMBER, 0, 3)
+      chipGlow.position.set(CHIP.x, 1.4, CHIP.z)
+      scene.add(chipGlow)
+
+      // ---------- MODEL (x 400) ----------
+      const MODEL = vec(400, 0, 0)
+      const tower = V.layerStack({ n: 8, cols: 12, rows: 12, gap: 1.3, cell: 0.24, color: '#6b7a99' })
+      tower.group.position.copy(MODEL).add(vec(0, 0.6, 0))
+      scene.add(tower.group)
+      const towerBase = V.boxes([[-20, -2, -20, 40, 2, 40, '#2a303c']])
+      towerBase.position.copy(MODEL)
+      scene.add(towerBase)
+      const towerLight = new THREE.PointLight('#cfe0ff', 60, 40)
+      towerLight.position.copy(MODEL).add(vec(4, 8, 6))
+      scene.add(towerLight)
+      const TOK = 36
+      const tokens = new THREE.InstancedMesh(new THREE.BoxGeometry(0.18, 0.18, 0.18), V.mat(AMBER, { glow: 1.8 }), TOK)
+      const tokData = Array.from({ length: TOK }, () => ({ x: (rng() - 0.5) * 2.4, z: (rng() - 0.5) * 2.4, d: rng() * 0.6 }))
+      scene.add(tokens)
+      const outTok = V.packet(AMBER, 0.32)
+      scene.add(outTok)
+
+      // ---------- travellers ----------
+      const deskPacket = V.packet(AMBER, 0.12)
+      const streetPacket = V.packet(AMBER, 0.6)
+      const seaPacket = V.packet(AMBER, 0.9)
+      scene.add(deskPacket, streetPacket, seaPacket)
+      const TRAIL = 24
+      const trail = new THREE.InstancedMesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), V.mat(AMBER, { glow: 1.4 }), TRAIL)
+      scene.add(trail)
+      const BACK = 40
+      const backStream = new THREE.InstancedMesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), V.mat(AMBER, { glow: 1.6 }), BACK)
+      scene.add(backStream)
+      // Instances move far from where they started: the bounding sphere
+      // three.js caches on the first frame would cull them
+      for (const m of [trail, backStream, tokens]) m.frustumCulled = false
+
+      // The whole route, for the overview
+      const route = new THREE.CatmullRomCurve3([
+        vec(-4.6, 4.2, -53), vec(4, 5.6, -62), vec(4, 5.6, -86), vec(5, 5, -92), vec(0, 0.4, -106),
+        vec(0, -9.3, -124), vec(0, -9.3, -165), vec(0, -9.3, -203), vec(0, 0.4, -219), vec(0, 1.2, -243.5)
+      ])
+      const routeGlow = new THREE.Mesh(
+        new THREE.TubeGeometry(route, 300, 1.1, 6),
+        new THREE.MeshBasicMaterial({ color: AMBER, transparent: true, opacity: 0, toneMapped: false })
+      )
+      scene.add(routeGlow)
+      const loopers = Array.from({ length: 6 }, (_, j) => {
+        const m = V.packet(j % 2 ? '#ffffff' : AMBER, 5)
+        scene.add(m)
+        return m
+      })
+
+      const composer = new EffectComposer(renderer)
+      composer.addPass(new RenderPass(scene, camera))
+      composer.addPass(new UnrealBloomPass(new THREE.Vector2(720, 1280), 0.35, 0.4, 0.82))
+      composer.addPass(new OutputPass())
+
+      // ---------- shots ----------
+      const ENV = {
+        room: { bg: '#bcd7f0', fog: [30, 80], sky: '#fff3e0', ground: '#6a5a4a', hemi: 0.9, sun: 1.2 },
+        out: { bg: '#9fd0ff', fog: [80, 340], sky: '#cfe8ff', ground: '#4a6a3a', hemi: 1.1, sun: 2.4 },
+        under: { bg: '#0b2f4f', fog: [4, 55], sky: '#3a7ab0', ground: '#0b2f4f', hemi: 0.9, sun: 0.7 },
+        hall: { bg: '#0b0f19', fog: [10, 45], sky: '#8a9aba', ground: '#2a303c', hemi: 1.0, sun: 0 },
+        top: { bg: '#9fd0ff', fog: [300, 700], sky: '#cfe8ff', ground: '#4a6a3a', hemi: 1.2, sun: 2.4 }
+      }
+      function setEnv(e) {
+        scene.background.set(e.bg)
+        scene.fog.color.set(e.bg)
+        scene.fog.near = e.fog[0]
+        scene.fog.far = e.fog[1]
+        hemi.color.set(e.sky)
+        hemi.groundColor.set(e.ground)
+        hemi.intensity = e.hemi
+        sun.intensity = e.sun
+      }
+      const deskU = t => ease(clamp((t - 2.7) / 4.0))
+      const streetU = t => ease(clamp((t - 7.5) / 4.2))
+      const seaU = t => ease(clamp((t - 12.8) / 6.2))
+      // Head of the returning token stream (it flows from u 1 towards 0)
+      const backHead = t => lerp(0.92, 0.18, ease(clamp((t - 31.2) / 2.4)))
+
+      const SHOTS = [
+        { to: 1 * BAR, env: 'room', cam: t => { const k = ease(t / BAR); return [lerpV(vec(3.7, 1.4, 0.6), vec(3.3, 1.3, 0.35), k), vec(0, 0.92, -0.3), 48] } },
+        { to: 3 * BAR, env: 'room', cam: t => { const p = deskCurve.getPointAt(deskU(t)); return [p.clone().add(vec(1.1, 0.35, 1.1)), p, 46] } },
+        { to: 5 * BAR, env: 'out', cam: t => { const p = streetCurve.getPointAt(streetU(t)); const look = lerpV(p, vec(6, 7, -94), rise(t, 10.4, 1.4)); return [p.clone().add(vec(22, 9, 16)), look, 50] } },
+        { to: 8 * BAR, env: t => (camera.position.y < 0 ? 'under' : 'out'), cam: t => {
+            if (t < 13.0) { const k = ease(clamp((t - 12) / 1)); return [lerpV(vec(14, 10, -98), vec(6, -1.5, -112), k), lerpV(vec(0, 0, -112), vec(0, -7, -122), k), 55] }
+            const p = seaCurve.getPointAt(seaU(t)); return [p.clone().add(vec(3.2, 1.8, 6.5)), p.clone().add(vec(0, 0, -5)), 55] } },
+        { to: 10 * BAR, env: t => (t < 21.6 ? 'out' : 'hall'), cam: t => {
+            if (t < 21.6) { const k = ease(clamp((t - 19.2) / 2.4)); return [lerpV(vec(34, 14, -206), vec(16, 6, -226), k), vec(0, 5, -248), 52] }
+            const k = ease(clamp((t - 21.6) / 2.4)); return [lerpV(vec(HALL.x + 1.5, 1.7, 2.8), vec(HALL.x + 1.5, 1.5, -2.5), k), vec(HALL.x + 1.2, 1.0, -9), 52] } },
+        { to: 11 * BAR, env: 'hall', cam: t => { const a = 0.9 + (t - 24) * 0.35; return [vec(CHIP.x + Math.cos(a) * 1.9, 2.2, CHIP.z + Math.sin(a) * 1.9), vec(CHIP.x, 1.05, CHIP.z), 42] } },
+        { to: 13 * BAR, env: 'hall', cam: t => { const k = ease(clamp((t - 26.4) / 4.8)); return [vec(MODEL.x + 11, lerp(4, 11, k), MODEL.z + 12), vec(MODEL.x, lerp(3.5, 8.5, k), MODEL.z), 50] } },
+        { to: 14 * BAR, env: 'under', cam: t => { const h = backHead(t); const p = seaCurve.getPointAt(clamp(h + 0.1)); return [p.clone().add(vec(3, 1.6, -2)), seaCurve.getPointAt(clamp(h - 0.04)), 55] } },
+        { to: 16 * BAR, env: 'room', cam: t => { const k = ease(clamp((t - 33.6) / 4.8)); return [lerpV(vec(1.15, 1.5, 1.75), vec(1.05, 1.45, 1.45), k), vec(0.0, 1.22, -1.05), 40] } },
+        { to: 20 * BAR, env: 'top', cam: t => { const k = clamp((t - 38.4) / 9.6); return [vec(lerp(46, 34, k), lerp(235, 215, k), lerp(-150, -158, k)), vec(0, 0, -152), 50] } }
+      ]
+      // The overview looks straight down with −Z up the screen
+      const TOP_SHOT = 9
+
+      const CAPS = [['c1', 0, 1], ['c2', 1, 3], ['c3', 3, 5], ['c4', 5, 8], ['c5', 8, 10], ['c6', 10, 11], ['c7', 11, 13], ['c8', 13, 14], ['c9', 14, 16], ['c10', 16, 19], ['c11', 19, 20]]
+      const KICK = ['Enter', 'Home', 'Home', 'Provider', 'Provider', 'Ocean', 'Ocean', 'Ocean', 'Data center', 'Data center', 'Chips', 'Model', 'Model', 'The way back', 'The tool loop', 'The tool loop', 'The loop', 'The loop', 'The loop', 'Sources']
+      const m4 = new THREE.Matrix4()
+      const q0 = new THREE.Quaternion()
+      const s3 = vec(1, 1, 1)
+      const place = (inst, i, pos, scale) => {
+        m4.compose(pos, q0, s3.set(scale, scale, scale))
+        inst.setMatrixAt(i, m4)
+      }
+      const GREEN = new THREE.Color('#55ff9a')
+      const DARK = new THREE.Color('#0d3a24')
+
+      function render(t) {
+        let si = SHOTS.findIndex(s => t < s.to)
+        if (si === -1) si = SHOTS.length - 1
+        const shot = SHOTS[si]
+        const [pos, look, fov] = shot.cam(t)
+        camera.up.set(...(si === TOP_SHOT ? [0, 0, -1] : [0, 1, 0]))
+        camera.position.copy(pos)
+        camera.fov = fov
+        camera.updateProjectionMatrix()
+        camera.lookAt(look)
+        setEnv(ENV[typeof shot.env === 'function' ? shot.env(t) : shot.env])
+        sun.position.copy(look).add(vec(18, 40, 14))
+        sun.target.position.copy(look)
+
+        // Captions
+        const bar = Math.min(19, Math.floor(t / BAR))
+        for (const [id, a, b] of CAPS) {
+          const p = rise(t, a * BAR + 0.1, 0.3) * (b === 20 ? 1 : 1 - rise(t, b * BAR - 0.22, 0.2))
+          $(id).style.opacity = p
+          $(id).style.transform = `translateY(${(1 - p) * 24}px)`
+        }
+        $('kicker').textContent = `02 — ${KICK[bar]}`
+        $('progress').style.width = `${(t / DURATION) * 100}%`
+
+        // Room: typing, Enter at 1.95, y at 36.5
+        const typingOn = t < 1.95 || (t > 33.6 && t < 36.5)
+        V.typing(me, t, typingOn ? 1 : 0.85)
+        const press = a => rise(t, a, 0.06) * (1 - rise(t, a + 0.18, 0.12))
+        me.armR.rotation.x -= (press(1.95) + press(36.5)) * 0.25
+        ws.enter.position.y = 0.04 - (press(1.95) + press(36.5)) * 0.012
+        drawScreen(t)
+        rtr.leds.forEach((l, i) => (l.visible = t > 4.5 && t < 7.2 ? Math.floor(t * 12 + i * 3) % 2 === 0 : Math.floor(t * 2 + i) % 3 !== 0))
+
+        // Packets along each leg
+        deskPacket.visible = t > 2.7 && t < 6.7
+        deskPacket.position.copy(deskCurve.getPointAt(deskU(t)))
+        streetPacket.visible = t > 7.4 && t < 11.8
+        streetPacket.position.copy(streetCurve.getPointAt(streetU(t)))
+        streetPacket.rotation.set(t * 3, t * 2, 0)
+        seaPacket.visible = t > 12.6 && t < 19.0
+        const su = seaU(t)
+        seaPacket.position.copy(seaCurve.getPointAt(su))
+        seaPacket.rotation.set(t * 3, t * 2, 0)
+        for (let i = 0; i < TRAIL; i++) {
+          const u = su - (i + 1) * 0.004
+          place(trail, i, seaCurve.getPointAt(clamp(u)), seaPacket.visible && u > 0 ? 1 - i / TRAIL : 0.0001)
+        }
+        trail.instanceMatrix.needsUpdate = true
+
+        // Fish swim
+        fishes.forEach(f => {
+          const d = f.userData
+          f.position.set(d.x + Math.sin(t * 0.4 * d.s + d.ph) * 8, d.y + Math.sin(t * 1.3 + d.ph) * 0.3, d.z)
+          f.rotation.y = Math.cos(t * 0.4 * d.s + d.ph) > 0 ? 0 : Math.PI
+        })
+
+        // Hall: LEDs blink
+        racks.forEach((r, ri) => {
+          for (let k = 0; k < 27; k++) r.leds.setColorAt(k, (k * 7 + ri * 13 + Math.floor(t * 8)) % 5 ? GREEN : DARK)
+          r.leds.instanceColor.needsUpdate = true
+        })
+
+        // Chip lights up
+        const chipOn = rise(t, 24.4, 1.0)
+        board.die.children[0].material.emissiveIntensity = 0.2 + chipOn * 0.9
+        chipGlow.intensity = chipOn * 1.5
+
+        // Model: tokens in at the bottom, layers light in turn, one token out the top
+        tokData.forEach((d, i) => {
+          const k = clamp((t - 26.6 - d.d) / 0.7)
+          place(tokens, i, vec(MODEL.x + d.x, lerp(-1.5, 0.5, ease(k)), MODEL.z + d.z), k > 0 && k < 1 ? 1 : 0.0001)
+        })
+        tokens.instanceMatrix.needsUpdate = true
+        tower.layers.forEach((L, l) => {
+          const a = 27.3 + l * 0.42
+          L.material.emissiveIntensity = rise(t, a, 0.15) * (1 - rise(t, a + 0.35, 0.6)) * 1.6 + (t > a ? 0.18 : 0)
+        })
+        outTok.visible = t > 30.6 && t < 31.2
+        outTok.position.copy(MODEL).add(vec(0, lerp(10.2, 12.5, ease(clamp((t - 30.6) / 0.6))), 0))
+
+        // The way back: a stream of tokens along the seabed, towards home
+        for (let i = 0; i < BACK; i++) {
+          const u = backHead(t) + i * 0.009
+          place(backStream, i, seaCurve.getPointAt(clamp(u)).add(vec(0, 0.9, 0)), t > 31.2 && t < 33.6 && u < 1 ? 1 : 0.0001)
+        }
+        backStream.instanceMatrix.needsUpdate = true
+
+        // Overview: the route lights up and packets shuttle, faster and faster
+        routeGlow.material.opacity = rise(t, 38.6, 1.5) * 0.95
+        const e = Math.max(0, t - 38.8)
+        const phase = 0.07 * e + 0.012 * e * e
+        loopers.forEach((m, j) => {
+          const q = (phase + j / loopers.length) % 1
+          m.visible = t > 38.8 && j < 1 + Math.floor(e / 1.2)
+          m.position.copy(route.getPointAt(q < 0.5 ? q * 2 : 2 - q * 2)).add(vec(q < 0.5 ? 1.8 : -1.8, 2, 0))
+        })
+
+        composer.render()
+      }
+
+      window.DURATION = DURATION
+      window.render = render
+      window.ready = Promise.resolve()
+
+      const params = new URLSearchParams(location.search)
+      if (params.has('play')) {
+        const start = performance.now()
+        const tick = () => {
+          render(((performance.now() - start) / 1000) % DURATION)
+          requestAnimationFrame(tick)
+        }
+        tick()
+      } else render(Number(params.get('t') ?? 0))
+    </script>
+  </body>
+</html>
