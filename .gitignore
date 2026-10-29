@@ -16,3 +16,6 @@ docs/PRD.md
 app/src-tauri/binaries/
 # The engine, agent and examples gathered for the app bundle (app/scripts/resources.mjs)
 app/src-tauri/bundle-resources/
+
+# Local Claude Code rules and settings
+.claude/
