@@ -143,6 +143,11 @@ export const ptBR: Record<Key, string> = {
   'film.failedChecks': 'Verificações com falha: {rules}',
 
   'notes.mustShow': 'Plano {i} / {n} · deve mostrar',
+  'notes.bar': 'Plano {i} de {n} · notas e checagens',
+  'notes.must': 'Precisa mostrar',
+  'notes.failing': '{n} falhando',
+  'notes.allPass': 'Todas as {n} ok',
+  'notes.unchecked': 'não checado',
   'notes.empty': 'Nada escrito ainda (notes.md).',
   'notes.checks': 'Verificações',
   'notes.notChecked': 'Ainda não verificado. Verifique no assistente de IA.',

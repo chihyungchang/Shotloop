@@ -144,6 +144,11 @@ export const en = {
   'film.failedChecks': 'Failed checks: {rules}',
 
   'notes.mustShow': 'Shot {i} / {n} · must show',
+  'notes.bar': 'Shot {i} of {n} · notes and checks',
+  'notes.must': 'Must show',
+  'notes.failing': '{n} failing',
+  'notes.allPass': 'All {n} pass',
+  'notes.unchecked': 'not checked',
   'notes.empty': 'Nothing written yet (notes.md).',
   'notes.checks': 'Checks',
   'notes.notChecked': 'Not checked yet. Run checks in the AI assistant.',

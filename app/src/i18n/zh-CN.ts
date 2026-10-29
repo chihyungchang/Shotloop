@@ -143,6 +143,11 @@ export const zhCN: Record<Key, string> = {
   'film.failedChecks': '未通过的检查：{rules}',
 
   'notes.mustShow': '镜头 {i} / {n} · 必须呈现',
+  'notes.bar': '镜头 {i}/{n} · 说明与检查',
+  'notes.must': '必须呈现',
+  'notes.failing': '{n} 项未通过',
+  'notes.allPass': '{n} 项全部通过',
+  'notes.unchecked': '未检查',
   'notes.empty': '还没有写（notes.md）。',
   'notes.checks': '检查',
   'notes.notChecked': '还没检查。在左边的 AI 助手里点“运行检查”。',

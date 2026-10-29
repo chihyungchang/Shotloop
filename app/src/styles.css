@@ -383,10 +383,23 @@ details .field + .field { margin-top: 10px; }
 .state-rendering .dot { animation: pulse 1.4s ease-in-out infinite; }
 .state-failed .frame-thumb { border-bottom-color: var(--danger); } .state-failed .dot { background: var(--danger); }
 
-.shot-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 10px 14px 12px; border-top: 1px solid var(--border); max-height: 150px; overflow: auto; }
-.shot-notes p { white-space: pre-wrap; }
-.check-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
-.check-list li { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.shot-notes { border-top: 1px solid var(--border); min-width: 0; }
+.notes-bar { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 34px; padding: 0 14px; border: 0; border-radius: 0; background: transparent; font-size: 12px; font-weight: 600; color: var(--text-2); text-align: left; }
+.notes-bar:hover:not(:disabled) { background: var(--surface-2); }
+.notes-bar > svg { flex: none; transform: rotate(-90deg); transition: transform var(--dur) var(--ease); }
+.shot-notes.open .notes-bar > svg { transform: none; }
+.notes-bar .check-pill { align-self: center; font-weight: 600; }
+.notes-when { margin-left: auto; font-weight: 400; }
+.notes-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 20px; padding: 2px 14px 12px; max-height: 180px; overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; }
+.notes-body::-webkit-scrollbar { width: 6px; }
+.notes-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.notes-col { min-width: 0; }
+.shot-notes p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+.check-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.check-list li { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; line-height: 1.45; min-width: 0; }
+.check-list .dot { flex: none; width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; }
+.check-text { min-width: 0; overflow-wrap: anywhere; }
+.check-text code { font-size: 11.5px; margin-right: 4px; }
 .check-list li.pass .dot { background: var(--success); }
 .check-list li.fail .dot { background: var(--danger); }
 
