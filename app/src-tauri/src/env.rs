@@ -57,6 +57,12 @@ fn tool_dirs() -> Vec<PathBuf> {
     dirs
 }
 
+/// A tool on this Mac: the tool folders, then PATH
+pub fn find_tool(name: &str) -> Option<PathBuf> {
+    let path = std::env::var("PATH").unwrap_or_default();
+    tool_dirs().into_iter().chain(path.split(':').map(PathBuf::from)).map(|d| d.join(name)).find(|p| p.is_file())
+}
+
 /// One of the app's own binaries (Tauri sidecars sit next to the main
 /// executable): Node and ffmpeg in a bundled build, none in dev
 pub fn bundled(name: &str) -> Option<PathBuf> {

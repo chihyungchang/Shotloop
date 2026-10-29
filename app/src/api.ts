@@ -163,6 +163,13 @@ export const EMPTY_SETTINGS: Settings = {
   provider: '', apiPreset: '', apiProtocol: '', apiUrl: '', apiKeys: {}, cli: '', model: '', localUrl: '', localModel: '', localKey: '', blender: '', chrome: '', notifySound: false, notifyDesktop: false
 }
 
+export interface MusicInfo {
+  kind: 'preset' | 'file' | 'none'
+  preset?: string
+  name?: string
+  gain: number
+}
+
 export interface About {
   version: string
   os: string
@@ -235,6 +242,9 @@ export const api = {
   aiTest: (settings: Settings) => invoke<{ ok: boolean; latencyMs: number; reply: string; backend: string }>('ai_test', { settings }),
   about: () => invoke<About>('about'),
   // The whole film, joined from the shots' clips with music (cached)
+  setTitle: (path: string, title: string) => invoke<{ title: string }>('set_title', { path, title }),
+  // The music bed: read with no change, or set a preset, a file, none, a volume
+  music: (path: string, change: { preset?: string; file?: string; none?: boolean; gain?: number } = {}) => invoke<MusicInfo>('music', { path, ...change }),
   filmPreview: (path: string, mode: Mode) => invoke<{ file: string }>('film_preview', { path, finalMode: mode === 'final' })
 }
 

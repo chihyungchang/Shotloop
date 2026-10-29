@@ -39,10 +39,10 @@ pub struct Settings {
 }
 
 pub fn load(dir: &Path) -> Settings {
-    let mut s: Settings = std::fs::read_to_string(dir.join("settings.json"))
-        .ok()
-        .and_then(|s| serde_json::from_str(&s).ok())
-        .unwrap_or_default();
+    let Some(text) = std::fs::read_to_string(dir.join("settings.json")).ok() else {
+        return first_run();
+    };
+    let mut s: Settings = serde_json::from_str(&text).unwrap_or_default();
     // Older settings: "anthropic" with one key is the Anthropic preset
     if s.provider.is_empty() || s.provider == "anthropic" {
         s.provider = "api".into();
@@ -69,6 +69,15 @@ pub fn save(dir: &Path, settings: &Settings) -> Result<(), String> {
         let _ = std::fs::set_permissions(&file, std::fs::Permissions::from_mode(0o600));
     }
     Ok(())
+}
+
+/// No settings yet: Claude Code if this Mac has it (it works without a
+/// key), else the Anthropic preset waiting for one
+fn first_run() -> Settings {
+    if crate::env::find_tool("claude").is_some() {
+        return Settings { provider: "cli".into(), cli: "claude".into(), ..Default::default() };
+    }
+    Settings { provider: "api".into(), api_preset: "anthropic".into(), api_protocol: "anthropic".into(), ..Default::default() }
 }
 
 impl Settings {

@@ -10,6 +10,8 @@
 //   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d] [--aspect 9:16|16:9] [--duration 30]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop preview  <project> [--final]                the whole film to watch (cached)
+//   shotloop title    <project> <title>                  rename the project
+//   shotloop music    <project> [--preset calm|bright|groove|tech | --file <audio> | --none] [--gain 0–2]
 //   shotloop prune    <project>                          drop unused cache entries
 //   shotloop doctor                                      Chrome, ffmpeg, Blender
 //
@@ -26,6 +28,7 @@ import { emit, setJson } from './compose.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
 import { assemble, exportFilm, preview, renderCover } from './film.mjs'
 import { findShot, loadProject } from './project.mjs'
+import { musicInfo, setMusic, setTitle } from './settings.mjs'
 import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
 
@@ -37,6 +40,10 @@ const { values, positionals } = parseArgs({
     draft: { type: 'boolean' },
     stills: { type: 'boolean' },
     force: { type: 'boolean' },
+    preset: { type: 'string' },
+    file: { type: 'string' },
+    none: { type: 'boolean' },
+    gain: { type: 'string' },
     aspect: { type: 'string' },
     title: { type: 'string' },
     idea: { type: 'string' },
@@ -137,6 +144,15 @@ try {
     case 'export': {
       const project = loadProject(args[0])
       result(await exportFilm(project, { mode: values.draft ? 'draft' : 'final', aspects: aspects() }))
+      break
+    }
+    case 'title':
+      result(setTitle(loadProject(args[0]), args[1]))
+      break
+    case 'music': {
+      const project = loadProject(args[0])
+      const change = values.preset || values.file || values.none || values.gain != null
+      result(change ? setMusic(project, { preset: values.preset, file: values.file, none: values.none, gain: values.gain }) : musicInfo(project))
       break
     }
     case 'preview':

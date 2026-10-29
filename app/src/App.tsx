@@ -79,11 +79,11 @@ export default function App() {
     api.setTrayText(active ? t('sidebar.queue', { n: active }) : t('tray.idle'), t('tray.show'), t('tray.quit'), t('notify.done'), t('notify.failed')).catch(() => {})
   }, [active, language.lang])
 
-  if (project) return <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} />
-
   // Settings takes the whole window, with its own section list (as in
-  // open-design)
+  // open-design); from a project, Back returns to it
   if (page === 'settings') return <SettingsPage key={language.lang} theme={theme} language={language} back={() => setPage('home')} />
+
+  if (project) return <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} openSettings={() => setPage('settings')} />
 
   return (
     <div className="workspace-shell" key={language.lang}>

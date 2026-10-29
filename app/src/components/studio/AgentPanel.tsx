@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { api, fileUrl, type FixRecord, type Job, type Project, type Shot } from '../../api'
+import { agentError } from '../../ai/errors'
 import { Icon } from '../Icon'
 import type { Key } from '../../i18n/en'
 import { formatDate, t } from '../../i18n'
@@ -9,7 +10,7 @@ import { formatDate, t } from '../../i18n'
 // before/after stills and the checks, then the composer.
 const SUGGESTIONS: Key[] = ['agent.s1', 'agent.s2', 'agent.s3', 'agent.s4']
 
-export function AgentPanel({ project, shot, jobs }: { project: Project; shot: Shot; jobs: Job[] }) {
+export function AgentPanel({ project, shot, jobs, openSettings }: { project: Project; shot: Shot; jobs: Job[]; openSettings: () => void }) {
   const [request, setRequest] = useState('')
   const thread = useRef<HTMLDivElement>(null)
   const mine = jobs.filter(j => j.project === project.root && j.shot === shot.id && j.lane === 'agent')
@@ -32,10 +33,10 @@ export function AgentPanel({ project, shot, jobs }: { project: Project; shot: Sh
   return (
     <aside className="agent">
       <div className="agent-head">
-        <span className="agent-avatar" aria-hidden><Icon name="spark" size={14} /></span>
-        <div>
+        <span className="agent-avatar" aria-hidden><Icon name="spark" size={15} /></span>
+        <div className="agent-name">
           <strong>{t('agent.title')}</strong>
-          <span className="muted small"> · {shot.id}</span>
+          <span className="muted small ellipsis">{t('agent.subtitle', { shot: shot.id })}</span>
         </div>
         <div className="spacer" />
         <button className="small" onClick={check} disabled={!!active} title={t('agent.runChecksHint')}>
@@ -62,7 +63,8 @@ export function AgentPanel({ project, shot, jobs }: { project: Project; shot: Sh
         {failed && !active && (
           <div className="bubble agent failed">
             <span className="status">{t('agent.failed')}</span>
-            <div className="small">{failed.error}</div>
+            <div className="small">{agentError(failed.error).text}</div>
+            {agentError(failed.error).setup && <button className="small" onClick={openSettings}><Icon name="settings" size={13} /> {t('agent.openSettings')}</button>}
           </div>
         )}
       </div>

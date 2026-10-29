@@ -4,6 +4,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { addTake, entry, readJson, recordError, writeJson } from './cache.mjs'
+import { musicBed } from './bed.mjs'
 import { composeStill, emit, encodeClip, frameName, previewClip, renderCaptions } from './compose.mjs'
 import { frameCount } from './project.mjs'
 import { renderFrames2d } from './render2d.mjs'
@@ -85,6 +86,7 @@ async function outputs(project, shot, e) {
   return {
     stills: e.stills,
     clip: e.clip,
-    preview: e.clip ? await previewClip(project, shot, e.clip) : null
+    // The bed first, so the preview gets this project's music and volume
+    preview: e.clip ? (musicBed(project), await previewClip(project, shot, e.clip)) : null
   }
 }

@@ -21,12 +21,13 @@ type Drawer = 'queue' | 'export' | null
 // the left, the shot on a dark stage in the middle with the filmstrip and
 // the shot's notes under it, queue and export in a drawer on the right;
 // quality, Finder and theme sit in the "more" menu.
-export function Studio({ project, jobs, refresh, close, theme }: {
+export function Studio({ project, jobs, refresh, close, theme, openSettings }: {
   project: Project
   jobs: Job[]
   refresh: () => void
   close: () => void
   theme: ReturnType<typeof useTheme>
+  openSettings: () => void
 }) {
   const [mode, setMode] = useState<Mode>('draft')
   const [selected, setSelected] = useState(project.shots[0]?.id ?? '')
@@ -51,6 +52,7 @@ export function Studio({ project, jobs, refresh, close, theme }: {
   const pending = project.shots.filter(s => ['stale', 'missing', 'failed'].includes(views.get(s.id)!.state))
   const pendingTime = pending.reduce((t, s) => t + estimate(project, s, mode), 0)
   const active = jobs.filter(j => j.state === 'running' || j.state === 'queued')
+  const exporting = active.some(j => j.project === project.root && j.kind === 'export')
 
   // Render every shot whose frames are out of date, one at a time
   const renderPending = () => {
@@ -92,7 +94,7 @@ export function Studio({ project, jobs, refresh, close, theme }: {
           <Icon name="back" />
         </button>
         <div className="studio-title">
-          <strong className="ellipsis">{project.title}</strong>
+          <Title project={project} refresh={refresh} />
           <span className="muted small">
             {project.track.toUpperCase()} · {project.size.width > project.size.height ? '16:9' : '9:16'} · {formatSeconds(project.duration)} · {t('common.shots', { n: project.shots.length })}
           </span>
@@ -112,8 +114,8 @@ export function Studio({ project, jobs, refresh, close, theme }: {
         <button className={drawer === 'queue' ? 'on' : ''} onClick={() => toggle('queue')}>
           <Icon name="queue" size={14} /> {t('studio.queue')}{active.length ? <span className="count">{active.length}</span> : null}
         </button>
-        <button className="dark" onClick={() => toggle('export')}>
-          <Icon name="export" size={14} /> {t('studio.export')}
+        <button className="dark" onClick={() => setDrawer('export')}>
+          {exporting ? <span className="spinner small" /> : <Icon name="export" size={14} />} {t(exporting ? 'export.exporting' : 'studio.export')}
         </button>
         <MoreMenu open={menu} setOpen={setMenu}>
           <div className="menu-row">
@@ -137,7 +139,7 @@ export function Studio({ project, jobs, refresh, close, theme }: {
       </header>
 
       {shot && view ? (
-        <AgentPanel key={`agent-${shot.id}`} project={project} shot={shot} jobs={jobs} />
+        <AgentPanel key={`agent-${shot.id}`} project={project} shot={shot} jobs={jobs} openSettings={openSettings} />
       ) : <aside className="agent" />}
 
       <section className="center">
@@ -156,7 +158,7 @@ export function Studio({ project, jobs, refresh, close, theme }: {
             <strong>{t(drawer === 'queue' ? 'drawer.queue' : 'drawer.export')}</strong>
             <button className="icon-button" onClick={() => setDrawer(null)} aria-label={t('common.close')}><Icon name="x" /></button>
           </div>
-          {drawer === 'queue' ? <QueuePanel project={project} jobs={jobs} /> : <ExportPanel project={project} jobs={jobs} />}
+          {drawer === 'queue' ? <QueuePanel project={project} jobs={jobs} /> : <ExportPanel project={project} jobs={jobs} refresh={refresh} openSettings={openSettings} />}
         </aside>
       )}
     </div>
@@ -184,5 +186,36 @@ function MoreMenu({ open, setOpen, children }: { open: boolean; setOpen: (o: boo
       </button>
       {open && <div className="menu" role="menu">{children}</div>}
     </div>
+  )
+}
+
+// The project's name: click to rename, Enter or leaving the field saves,
+// Esc cancels
+function Title({ project, refresh }: { project: Project; refresh: () => void }) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(project.title)
+  const save = async () => {
+    setEditing(false)
+    const title = value.trim()
+    if (!title || title === project.title) return setValue(project.title)
+    await api.setTitle(project.root, title).catch(() => setValue(project.title))
+    refresh()
+  }
+  if (!editing) {
+    return (
+      <button className="title-button" onClick={() => { setValue(project.title); setEditing(true) }} title={t('studio.rename')}>
+        <strong className="ellipsis">{project.title}</strong> <Icon name="edit" size={12} />
+      </button>
+    )
+  }
+  return (
+    <input className="title-input" autoFocus value={value} onChange={e => setValue(e.target.value)} onBlur={save}
+      onKeyDown={e => {
+        if (e.key === 'Enter') e.currentTarget.blur()
+        if (e.key === 'Escape') {
+          setValue(project.title)
+          setEditing(false)
+        }
+      }} />
   )
 }

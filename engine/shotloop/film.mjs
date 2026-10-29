@@ -12,7 +12,8 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { openPage } from '../lib/chrome.mjs'
 import { entry, writeJson } from './cache.mjs'
-import { emit, ffmpeg, musicWav, pixelSize } from './compose.mjs'
+import { musicBed as musicWav } from './bed.mjs'
+import { emit, ffmpeg, pixelSize } from './compose.mjs'
 import { renderShot } from './render.mjs'
 
 export const ASPECTS = { '9:16': [9, 16], '16:9': [16, 9] }

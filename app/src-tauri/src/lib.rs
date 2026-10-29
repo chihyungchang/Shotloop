@@ -278,6 +278,36 @@ async fn film_preview(handle: AppHandle, path: String, final_mode: bool) -> Resu
     .await
 }
 
+/// Rename the project (shotloop.json title)
+#[tauri::command]
+async fn set_title(handle: AppHandle, path: String, title: String) -> Result<Value, String> {
+    blocking(move || engine(&handle.state::<App>(), &["title", &path, &title])).await
+}
+
+/// The project's music bed: read it, or set a preset, an audio file, none,
+/// and the volume
+#[tauri::command]
+async fn music(handle: AppHandle, path: String, preset: Option<String>, file: Option<String>, none: Option<bool>, gain: Option<f64>) -> Result<Value, String> {
+    blocking(move || {
+        let gain = gain.map(|g| g.to_string());
+        let mut args = vec!["music", path.as_str()];
+        if let Some(p) = preset.as_deref() {
+            args.extend(["--preset", p]);
+        }
+        if let Some(f) = file.as_deref() {
+            args.extend(["--file", f]);
+        }
+        if none == Some(true) {
+            args.push("--none");
+        }
+        if let Some(g) = gain.as_deref() {
+            args.extend(["--gain", g]);
+        }
+        engine(&handle.state::<App>(), &args)
+    })
+    .await
+}
+
 /// Settings → About: what this build is and where it runs
 #[tauri::command]
 fn about(handle: AppHandle) -> Value {
@@ -364,6 +394,8 @@ pub fn run() {
             open_url,
             about,
             film_preview,
+            set_title,
+            music,
             tray::set_tray_text
         ])
         .build(tauri::generate_context!())

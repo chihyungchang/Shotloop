@@ -95,9 +95,12 @@ export function shotKey(project, shot, mode) {
   return h.digest('hex').slice(0, 16)
 }
 
+// The music bed's identity: its file (a music.json or an audio file) and
+// the project's music volume
 export function musicKey(project) {
   if (!project.music) return null
-  return crypto.createHash('sha256').update(fs.readFileSync(project.music)).digest('hex').slice(0, 12)
+  return crypto.createHash('sha256').update(fs.readFileSync(project.music))
+    .update(String(project.config.musicGain ?? 1)).digest('hex').slice(0, 12)
 }
 
 export const shotState = (project, shot) => path.join(project.state, 'shots', shot.id)
