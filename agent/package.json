@@ -1,0 +1,25 @@
+{
+  "name": "@shotloop/agent",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Shotloop's agent sidecar: plain-language shot fixes, automatic checks, publish copy",
+  "bin": {
+    "shotloop-agent": "src/main.ts"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/"
+  },
+  "engines": {
+    "node": ">=22.18"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
+}
