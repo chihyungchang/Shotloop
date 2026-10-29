@@ -12,6 +12,7 @@
       "bundle-resources/engine/": "engine/",
       "bundle-resources/agent/": "agent/",
       "bundle-resources/examples/": "examples/"
-    }
+    },
+    "createUpdaterArtifacts": true
   }
 }

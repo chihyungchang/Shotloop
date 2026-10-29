@@ -801,3 +801,8 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
 .tag.warn { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); }
 .banner.floating { position: fixed; top: 52px; left: 50%; transform: translateX(-50%); z-index: 70; cursor: pointer; }
 .dialog-actions button.danger-text { color: var(--danger); }
+.update-note { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; margin-bottom: 8px; border: 0; border-radius: var(--r-lg); background: var(--accent-soft); color: var(--accent-text); text-align: left; }
+.update-note > span { display: flex; flex-direction: column; min-width: 0; }
+.update-note strong { font-size: 12.5px; }
+.update-note.busy { color: var(--text-2); background: var(--surface-2); }
+.update-notes { white-space: pre-wrap; max-height: 120px; overflow: auto; }

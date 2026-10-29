@@ -54,5 +54,13 @@
     "copyright": "Copyright 2026 Oliver Zhang. Licensed under the Apache License 2.0.",
     "license": "Apache-2.0",
     "licenseFile": "../../LICENSE"
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY5OTc5RjlGMjNENjA5Q0MKUldUTUNkWWpuNStYK2NJS2VGdVcvQ2VUaVh6aXlpdFB2d3V2ZmtwTVFxdDMzSEpUNlJveU43ajkK",
+      "endpoints": [
+        "https://github.com/chihyungchang/Shotloop/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Job } from '../api'
 import { baseName, cleanRecent, readRecent } from '../recent'
+import { installUpdate, useUpdate } from '../update'
 import type { useTheme } from '../theme/theme'
 import { aiSummary, useSettings } from '../ai/useSettings'
 import { api } from '../api'
@@ -61,6 +62,7 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
         </div>
       )}
       <div className="sidebar-foot">
+        <UpdateNote />
         <div className="foot-links">
           <button className="icon-button" onClick={() => api.openUrl(REPO)} title="GitHub" aria-label="GitHub">
             <svg width="17" height="17" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
@@ -87,4 +89,27 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
       </div>
     </aside>
   )
+}
+
+// A new version on GitHub: say so above the foot, and install it in place
+function UpdateNote() {
+  const u = useUpdate()
+  if (u.kind === 'available') {
+    return (
+      <button className="update-note" onClick={installUpdate} title={u.notes || undefined}>
+        <Icon name="download" size={14} />
+        <span><strong>{t('update.available', { v: u.version })}</strong><span className="small">{t('update.install')}</span></span>
+      </button>
+    )
+  }
+  if (u.kind === 'downloading' || u.kind === 'restarting') {
+    const pct = u.kind === 'downloading' && u.total ? Math.round((u.done / u.total) * 100) : null
+    return (
+      <div className="update-note busy">
+        <span className="spinner small" />
+        <span className="small">{u.kind === 'restarting' ? t('update.restarting') : pct != null ? t('update.downloadingPct', { pct }) : t('update.downloading')}</span>
+      </div>
+    )
+  }
+  return null
 }

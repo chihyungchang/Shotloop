@@ -16,7 +16,8 @@
     "app": "pnpm --filter @shotloop/app tauri dev",
     "app:build": "pnpm --filter @shotloop/app tauri build --config src-tauri/tauri.bundle.json --bundles app && node app/scripts/dmg.mjs",
     "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "app:release": "node app/scripts/release.mjs"
   },
   "devDependencies": {
     "three": "^0.186.1"

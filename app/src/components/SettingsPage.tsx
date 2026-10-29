@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { SAVED } from '../ai/useSettings'
 import { api, EMPTY_SETTINGS, type About, type Settings } from '../api'
+import { checkForUpdate, installUpdate, useUpdate } from '../update'
 import { LANGS, t, type LangPref, type useLanguage } from '../i18n'
 import type { Key } from '../i18n/en'
 import type { useTheme } from '../theme/theme'
@@ -146,6 +147,7 @@ function AboutSection() {
       {rows.map(([k, v]) => (
         <div key={k} className="about-row"><span className="muted">{t(k)}</span><span className="ellipsis" title={v}>{v}</span></div>
       ))}
+      <UpdateRow version={about.version} />
       {about.data && (
         <div className="pref-row boxed">
           <div><strong>{t('about.data')}</strong><p className="hint">{about.data}</p></div>
@@ -177,5 +179,33 @@ function AssetSources({ settings, update }: { settings: Settings; update: (s: Pa
         </label>
       ))}
     </section>
+  )
+}
+
+// Settings → About: the version, and a check for a newer one on GitHub
+function UpdateRow({ version }: { version: string }) {
+  const u = useUpdate()
+  const status =
+    u.kind === 'checking' ? t('update.checking')
+    : u.kind === 'none' ? t('update.latest', { v: version })
+    : u.kind === 'available' ? t('update.available', { v: u.version })
+    : u.kind === 'downloading' ? t('update.downloading')
+    : u.kind === 'restarting' ? t('update.restarting')
+    : u.kind === 'failed' ? t('update.failed')
+    : t('update.current', { v: version })
+  return (
+    <div className="pref-row boxed">
+      <div>
+        <strong>{t('update.title')}</strong>
+        <p className="hint">{status}</p>
+        {u.kind === 'available' && u.notes && <p className="hint update-notes">{u.notes}</p>}
+        {u.kind === 'failed' && <p className="hint error">{u.error}</p>}
+      </div>
+      {u.kind === 'available'
+        ? <button className="primary small" onClick={installUpdate}>{t('update.installNow')}</button>
+        : <button className="small" onClick={() => checkForUpdate()} disabled={u.kind === 'checking' || u.kind === 'downloading' || u.kind === 'restarting'}>
+            {u.kind === 'checking' ? <span className="spinner small" /> : null} {t('update.check')}
+          </button>}
+    </div>
   )
 }
