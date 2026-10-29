@@ -41,3 +41,21 @@ don't work in captions):
 
 ```
 ```
+
+## LinkedIn
+
+First person: the hook in the first two lines (everything after ~200
+characters folds under "see more"), then one or two lines of your own
+angle, what the video shows as a short list, what it means for a team,
+and the AI note. 3 hashtags. Upload the MP4 natively; links go in the
+first comment, not the post.
+
+Post:
+
+```
+```
+
+First comment (sources, then `More explainers: https://oliverz.dev`):
+
+```
+```

@@ -122,7 +122,7 @@ workflows map onto it:
 10. **Publish kit.** With every export: a cover (`thumb.html` → 1080×1920
     PNG, text inside the 3:4 crop) and `publish.md`, the post for each
     platform (YouTube Shorts title, description, tags; TikTok caption and
-    pinned comment; Reels caption), written from the copy's facts and
+    pinned comment; Reels caption; a first-person LinkedIn post), written from the copy's facts and
     sources only, with each platform's AI-label setting.
 
 ### P1
