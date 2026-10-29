@@ -202,5 +202,13 @@ export const ptBR: Record<Key, string> = {
   'ai.connected.one': 'Conectado · 1 modelo',
   'ai.visionNote': 'As verificações olham os quadros: escolha um modelo com visão e chamada de ferramentas (ex.: qwen2.5vl, gemma3, llama3.2-vision).',
   'ai.key': 'Chave da API',
-  'ai.keyOptional': 'Opcional'
+  'ai.keyOptional': 'Opcional',
+
+  'settings.accent': 'Cor de destaque',
+  'accent.teal': 'Verde-azulado',
+  'accent.azure': 'Azul-celeste',
+  'accent.amber': 'Âmbar',
+  'accent.coral': 'Coral',
+  'accent.violet': 'Violeta',
+  'accent.lime': 'Lima'
 }
