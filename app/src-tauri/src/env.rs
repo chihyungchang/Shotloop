@@ -26,21 +26,34 @@ fn home() -> PathBuf {
     std::env::var("HOME").map(PathBuf::from).unwrap_or_default()
 }
 
-/// Extra folders searched for tools, before the inherited PATH
+/// `<dir>/<version><suffix>` for each installed version, newest first
+fn versions(dir: PathBuf, suffix: &str) -> Vec<PathBuf> {
+    let key = |p: &PathBuf| -> Vec<u32> {
+        let name = p.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+        name.trim_start_matches('v').split('.').map(|n| n.parse().unwrap_or(0)).collect()
+    };
+    let mut found: Vec<PathBuf> = std::fs::read_dir(dir).map(|e| e.flatten().map(|e| e.path()).collect()).unwrap_or_default();
+    found.sort_by_key(|p| std::cmp::Reverse(key(p)));
+    found.into_iter().map(|p| p.join(suffix)).collect()
+}
+
+/// Extra folders searched for tools, before the inherited PATH: Homebrew,
+/// then Node version managers (fnm, nvm, Volta, mise, asdf)
 fn tool_dirs() -> Vec<PathBuf> {
-    let mut dirs = vec![
-        home().join(".local/bin"),
-        PathBuf::from("/opt/homebrew/bin"),
-        PathBuf::from("/usr/local/bin"),
-        home().join(".volta/bin"),
-    ];
-    // nvm installs, newest version first
-    if let Ok(entries) = std::fs::read_dir(home().join(".nvm/versions/node")) {
-        let mut versions: Vec<PathBuf> = entries.flatten().map(|e| e.path().join("bin")).collect();
-        versions.sort();
-        versions.reverse();
-        dirs.extend(versions);
+    let mut dirs = vec![home().join(".local/bin"), PathBuf::from("/opt/homebrew/bin"), PathBuf::from("/usr/local/bin")];
+    let fnm = std::env::var("FNM_DIR").map(PathBuf::from).ok().into_iter().chain([
+        home().join(".local/share/fnm"),
+        home().join("Library/Application Support/fnm"),
+        home().join(".fnm"),
+    ]);
+    for dir in fnm {
+        dirs.push(dir.join("aliases/default/bin"));
+        dirs.extend(versions(dir.join("node-versions"), "installation/bin"));
     }
+    dirs.extend(versions(home().join(".nvm/versions/node"), "bin"));
+    dirs.push(home().join(".volta/bin"));
+    dirs.extend(versions(home().join(".local/share/mise/installs/node"), "bin"));
+    dirs.extend(versions(home().join(".asdf/installs/nodejs"), "bin"));
     dirs
 }
 
@@ -69,9 +82,24 @@ pub fn node() -> Result<PathBuf, String> {
     if let Ok(path) = std::env::var("PATH") {
         candidates.extend(path.split(':').map(|d| Path::new(d).join("node")));
     }
+    // Last, whatever the user's own shell finds (any other version manager)
+    candidates.extend(shell_node());
     candidates
         .into_iter()
         .filter(|c| c.exists())
         .find(|c| node_version(c).is_some_and(|v| v >= 23))
         .ok_or_else(|| "Node.js 23 or newer not found (brew install node, or set SHOTLOOP_NODE)".into())
+}
+
+/// `node` as the user's interactive login shell resolves it
+fn shell_node() -> Option<PathBuf> {
+    let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/zsh".into());
+    let out = Command::new(shell)
+        .args(["-ilc", "command -v node"])
+        .stdin(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .output()
+        .ok()?;
+    let text = String::from_utf8_lossy(&out.stdout);
+    text.lines().map(str::trim).rev().find(|l| l.starts_with('/')).map(PathBuf::from)
 }
