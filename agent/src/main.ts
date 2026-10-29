@@ -262,6 +262,14 @@ ${shots}`,
     maxTurns: 40 + 20 * project.shots.length
   })
   saveChecks(project, ctx)
+  // A late change to the world leaves the earlier shots' stills out of
+  // date: render them again, so every shot ends with current stills
+  const after = await status(dir)
+  for (const s of after.shots) {
+    if ((after.track === '3d' ? s.draft : s.final).stills) continue
+    emit({ type: 'tool', name: 'render_stills', summary: s.id })
+    await renderStills(after.root, s.id).catch(() => null)
+  }
   return { task: 'build', summary, touched: [...ctx.touched].sort() }
 }
 
