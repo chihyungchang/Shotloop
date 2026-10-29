@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import type { Job } from '../api'
-import { baseName, readRecent } from '../recent'
+import { baseName, cleanRecent, readRecent } from '../recent'
 import type { useTheme } from '../theme/theme'
 import { aiSummary, useSettings } from '../ai/useSettings'
 import { api } from '../api'
@@ -31,7 +32,10 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
 }) {
   const settings = useSettings()
   const ai = settings && aiSummary(settings)
-  const recent = readRecent()
+  const [recent, setRecent] = useState(readRecent)
+  useEffect(() => {
+    cleanRecent().then(setRecent)
+  }, [])
 
   return (
     <aside className="sidebar">

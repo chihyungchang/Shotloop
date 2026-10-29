@@ -32,3 +32,16 @@ export const projectsFolder = (): string | null => read(FOLDER, null)
 export const setProjectsFolder = (dir: string) => write(FOLDER, dir)
 
 export const baseName = (p: string) => p.split('/').filter(Boolean).at(-1) ?? p
+
+// The recent list as it should be: the person's own projects that still
+// exist; examples and drafts (opened before they were kept apart) and
+// folders that are gone are dropped from it
+export async function cleanRecent(): Promise<string[]> {
+  const { api } = await import('./api')
+  const recent = readRecent()
+  const list = await api.listProjects(recent).catch(() => null)
+  if (!list) return recent
+  const keep = recent.filter(p => list.some(x => x.root === p && !x.example && !x.draft))
+  if (keep.length !== recent.length) write(RECENT, keep)
+  return keep
+}

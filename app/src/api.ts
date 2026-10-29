@@ -252,6 +252,7 @@ export interface ExportResult {
 export interface ProjectSummary {
   root: string
   example?: boolean
+  draft?: boolean
   // The language of its text (examples come in Chinese and English)
   lang?: string | null
   title: string

@@ -262,7 +262,7 @@ try {
       result(summaries([
         ...args,
         ...(values.examples ? projectsIn(EXAMPLES) : [])
-      ]).map(s => ({ ...s, example: isExample(s.root) })))
+      ]).map(s => ({ ...s, example: isExample(s.root), draft: isDraft(s.root) })))
       break
     case 'fork': {
       // A copy of a project (an example, as a draft to change freely);
