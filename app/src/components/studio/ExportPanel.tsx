@@ -6,6 +6,7 @@ import { estimate, formatSeconds } from '../../model'
 import type { Key } from '../../i18n/en'
 import { t } from '../../i18n'
 import { Icon } from '../Icon'
+import { ChangesDialog } from './ChangesDialog'
 
 const ASPECTS: { id: string; label: Key; note: Key }[] = [
   { id: '9:16', label: 'export.portrait', note: 'export.portraitFor' },
@@ -65,7 +66,10 @@ export function ExportPanel({ project, jobs, refresh, openSettings }: {
   const pending = project.shots.filter(s => s[mode].state !== 'cached')
   const time = pending.reduce((t, s) => t + estimate(project, s, mode), 0)
 
+  // Shots to render first: say which and why, then start
+  const [ask, setAsk] = useState(false)
   const run = () => {
+    setAsk(false)
     // One job per shot, so the queue shows them one at a time; the export
     // job then only joins the cached clips
     setBatch(pending.length)
@@ -126,11 +130,19 @@ export function ExportPanel({ project, jobs, refresh, openSettings }: {
             <span className="small muted" title={pending.map(s => s.id).join(', ')}>
               {pending.length ? t('export.need', { n: pending.length, time: formatSeconds(time) }) : t('export.ready')}
             </span>
-            <button className="primary wide" onClick={run} disabled={!aspects.length}>
+            <button className="primary wide" onClick={() => (pending.length ? setAsk(true) : run())} disabled={!aspects.length}>
               <Icon name="export" size={14} /> {t('export.button')}
             </button>
           </div>
         )}
+      {ask && (
+        <ChangesDialog project={project} shots={pending} mode={mode} close={() => setAsk(false)}
+          title={t('changes.titleExport', { n: pending.length })} note={t(project.track === '3d' ? 'changes.noteExport3d' : 'changes.noteExport')}
+          actions={[
+            { label: t('plan.cancel'), onClick: () => setAsk(false) },
+            { label: t('changes.export'), onClick: run, primary: true }
+          ]} />
+      )}
       {exportJob?.state === 'failed' && <pre className="error-box small">{exportJob.error}</pre>}
 
       {latest && !exporting && (

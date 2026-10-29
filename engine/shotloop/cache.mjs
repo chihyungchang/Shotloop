@@ -106,6 +106,36 @@ export function shotKey(project, shot, mode) {
   return h.digest('hex').slice(0, 16)
 }
 
+// What went into a shot's key, part by part, so a stale shot can say
+// what changed since its last render: its code, the shared scene (world,
+// and for 3D the project's models), the captions, its timing, or the
+// engine itself
+export function keyParts(project, shot, mode) {
+  const part = fill => {
+    const h = crypto.createHash('sha256')
+    fill(h)
+    return h.digest('hex').slice(0, 10)
+  }
+  return {
+    code: part(h => fs.existsSync(shot.code) && hashFiles(h, project.root, [shot.code])),
+    scene: part(h => {
+      hashFiles(h, project.root, listFiles(project.world))
+      const own = path.join(project.root, 'assets')
+      if (project.track === '3d' && fs.existsSync(own)) hashFiles(h, project.root, listFiles(own))
+    }),
+    captions: part(h => project.captions && hashFiles(h, project.root, [project.captions])),
+    timing: part(h => h.update(JSON.stringify([project.fps, project.size, shot.start, shot.duration]))),
+    engine: part(h => {
+      h.update(JSON.stringify([RENDERER_VERSION, mode, project.track === '3d' && mode === 'final' ? finalSamples(project) : null]))
+      hashFiles(h, ENGINE, RENDERER_FILES[project.track].map(f => path.join(ENGINE, f)))
+      if (project.track === '3d') {
+        hashFiles(h, ENGINE, listFiles(KIT_3D))
+        h.update(hashAssets())
+      }
+    })
+  }
+}
+
 // The music bed's identity: its file (a music.json or an audio file) and
 // the project's music volume
 export function musicKey(project) {
@@ -179,9 +209,19 @@ export function status(project, shot) {
     const older = fs.existsSync(base)
       && fs.readdirSync(base).some(d => d.startsWith(`${mode}-`) && d !== path.basename(e.dir)
         && fs.existsSync(path.join(base, d, 'meta.json')))
+    const state = e.clip ? 'cached' : older ? 'stale' : 'missing'
+    // Stale: what changed since the last render in this mode that
+    // recorded its parts (older renders didn't: 'unknown')
+    let changed = null
+    if (state === 'stale') {
+      const last = takes(project, shot).findLast(t => t.mode === mode)
+      const now = keyParts(project, shot, mode)
+      changed = last?.parts ? Object.keys(now).filter(k => now[k] !== last.parts[k]) : ['unknown']
+    }
     out[mode] = {
       key: e.key,
-      state: e.clip ? 'cached' : older ? 'stale' : 'missing',
+      state,
+      changed,
       clip: e.clip,
       stills: e.stills,
       seconds: e.meta?.seconds ?? null

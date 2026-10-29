@@ -11,6 +11,9 @@ export type CacheState = 'cached' | 'stale' | 'missing'
 export interface CacheEntry {
   key: string
   state: CacheState
+  // Stale: what changed since its last render (code, scene, captions,
+  // timing, engine, or unknown)
+  changed?: string[] | null
   clip: string | null
   stills: string[] | null
   seconds: number | null

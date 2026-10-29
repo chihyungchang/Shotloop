@@ -3,7 +3,7 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { addTake, entry, readJson, recordError, writeJson } from './cache.mjs'
+import { addTake, entry, keyParts, readJson, recordError, writeJson } from './cache.mjs'
 import { musicBed } from './bed.mjs'
 import { composeStill, emit, encodeClip, frameName, previewClip, renderCaptions } from './compose.mjs'
 import { frameCount } from './project.mjs'
@@ -71,7 +71,7 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
     })
     const done = entry(project, shot, mode, e.key)
     const out = await outputs(project, shot, done)
-    const take = addTake(project, shot, { mode, kind: what, key: e.key, seconds, ...out })
+    const take = addTake(project, shot, { mode, kind: what, key: e.key, parts: keyParts(project, shot, mode), seconds, ...out })
     emit({ type: 'done', shot: shot.id, mode, what, key: e.key, seconds, take: take.take })
     return { shot: shot.id, mode, key: e.key, cached: false, take: take.take, seconds, ...out }
   } catch (err) {

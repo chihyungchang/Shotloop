@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { api, type Job, type Project } from '../../api'
-import { editMode, estimate, formatSeconds, shotView } from '../../model'
+import { editMode, formatSeconds, shotView } from '../../model'
 import type { useTheme } from '../../theme/theme'
 import { Icon } from '../Icon'
 import { ThemeToggle } from '../ThemeToggle'
 import { AgentPanel } from './AgentPanel'
 import { ExportPanel } from './ExportPanel'
 import { AssetsPanel } from './AssetsPanel'
+import { ChangesDialog } from './ChangesDialog'
 import { FilmPreview } from './FilmPreview'
 import { Filmstrip } from './Filmstrip'
 import { QueuePanel } from './QueuePanel'
@@ -52,41 +53,40 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   const shot = project.shots.find(s => s.id === selected)
   const view = shot ? views.get(shot.id)! : null
   const pending = project.shots.filter(s => ['stale', 'missing', 'failed'].includes(views.get(s.id)!.state))
-  const pendingTime = pending.reduce((t, s) => t + estimate(project, s, mode), 0)
   const active = jobs.filter(j => j.state === 'running' || j.state === 'queued')
   const exporting = active.some(j => j.project === project.root && j.kind === 'export')
 
   // Render every shot whose frames are out of date, one at a time
   // The renders of this project under way: the queue shows them
   const renders = active.filter(j => j.project === project.root && j.kind === 'render')
-  const renderPending = () => {
-    setFilmError(null)
-    for (const s of pending) api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false })
-    setDrawer('queue')
-  }
   const toggle = (d: Drawer) => setDrawer(cur => (cur === d ? null : d))
 
-  // The whole film, right away: out-of-date shots play their latest
-  // frames (and say so); only shots never rendered are rendered first
-  const openFilm = async () => {
+  // The whole film. With shots out of date, first ask: update them and
+  // then watch, or watch now (their last frames play)
+  const [ask, setAsk] = useState(false)
+  const waiting = pending.filter(s => !renders.some(j => j.shot === s.id))
+  const playNow = async () => {
+    setAsk(false)
     setFilmError(null)
     try {
       setFilm(await api.filmPreview(project.root, mode))
     } catch (e) {
-      if (/not rendered/.test(String(e)) && pending.length && !wantFilm) {
-        setWantFilm(true)
-        for (const s of pending) api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false })
-      } else {
-        setFilmError(/not rendered/.test(String(e)) ? t('film.failed') : String(e))
-      }
+      setFilmError(/not rendered/.test(String(e)) ? t('film.failed') : String(e))
     }
   }
+  const updateThenPlay = () => {
+    setAsk(false)
+    setFilmError(null)
+    setWantFilm(true)
+    for (const s of waiting) api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false })
+  }
+  const openFilm = () => (waiting.length ? setAsk(true) : playNow())
   const failed = pending.some(s => views.get(s.id)!.state === 'failed')
   useEffect(() => {
     if (!wantFilm) return
     if (!pending.length) {
       setWantFilm(false)
-      openFilm()
+      playNow()
     } else if (failed && !active.length) {
       setWantFilm(false)
       setFilmError(t('film.failed'))
@@ -108,15 +108,6 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         <PlanLink project={project} openPlan={openPlan} />
         <div className="spacer" />
         {filmError && <span className="small error ellipsis" title={filmError}>{filmError}</span>}
-        {renders.length > 0
-          ? null
-          : pending.length > 0
-          ? (
-            <button onClick={renderPending} title={t('studio.renderChangedNote', { ids: pending.map(s => s.id).join(', ') })}>
-              <Icon name="refresh" size={14} /> {t('studio.renderChanged', { n: pending.length, time: formatSeconds(pendingTime) })}
-            </button>
-          )
-          : <span className="small muted up-to-date"><Icon name="check" size={13} /> {t('studio.allCached')}</span>}
         <button onClick={openFilm} disabled={wantFilm}>
           {wantFilm ? <span className="spinner small" /> : <Icon name="play" size={14} />} {t(wantFilm ? 'film.rendering' : 'film.watch')}
         </button>
@@ -154,6 +145,15 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} />}
       </section>
 
+      {ask && (
+        <ChangesDialog project={project} shots={waiting} mode={mode} close={() => setAsk(false)}
+          failed={waiting.filter(s => views.get(s.id)!.state === 'failed').map(s => s.id)}
+          title={t('changes.titleWatch', { n: waiting.length })} note={t('changes.noteWatch')}
+          actions={[
+            { label: t('changes.watchNow'), onClick: playNow, disabled: waiting.some(s => s[mode].state === 'missing'), hint: t('changes.needFirst') },
+            { label: t('changes.updateWatch'), onClick: updateThenPlay, primary: true }
+          ]} />
+      )}
       {film && <FilmPreview project={project} file={film.file} close={() => setFilm(null)} />}
 
       {drawer && (
