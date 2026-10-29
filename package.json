@@ -9,7 +9,11 @@
   "scripts": {
     "record": "node engine/video/record.mjs",
     "blender": "node engine/video/blender.mjs",
-    "music": "node engine/video/music.mjs"
+    "music": "node engine/video/music.mjs",
+    "shotloop": "node engine/shotloop/cli.mjs",
+    "app": "npm --prefix app run tauri dev",
+    "app:build": "npm --prefix app run tauri build",
+    "test": "npm --prefix agent test"
   },
   "devDependencies": {
     "three": "^0.186.1"
