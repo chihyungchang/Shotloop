@@ -194,9 +194,13 @@ h4 { margin: 0; font-size: 13px; font-weight: 600; color: var(--text-strong); }
 
 /* Local CLIs: a card each, the chosen one opens its model picker */
 .cli-list { display: flex; flex-direction: column; gap: 8px; }
-.cli-card { position: relative; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface); transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease); }
-.cli-card:hover { border-color: var(--border-strong); }
-.cli-card.on { border-color: var(--accent-line); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent); }
+/* As in open-design: quiet grey cards; the chosen one turns white with a
+   hairline and opens */
+.cli-card { position: relative; border: 1px solid transparent; border-radius: var(--r-lg); background: var(--surface-2); transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease); }
+.cli-card:hover { background: var(--surface-hover); }
+.cli-card.on, .cli-card.on:hover { background: var(--surface); border-color: var(--border); box-shadow: var(--shadow-xs); }
+.cli-test .pill-button { background: var(--surface); border-color: var(--border); min-height: 34px; padding: 0 16px; }
+.cli-test .pill-button:hover:not(:disabled) { border-color: var(--border-strong); background: var(--surface); }
 .cli-card-head { width: 100%; border: 0; background: transparent; justify-content: flex-start; gap: 12px; padding: 12px 120px 12px 14px; min-height: 64px; text-align: left; white-space: normal; border-radius: var(--r-lg); }
 .cli-card-head:hover:not(:disabled) { background: transparent; }
 .cli-test { position: absolute; top: 17px; right: 14px; }
