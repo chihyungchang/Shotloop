@@ -70,6 +70,7 @@ pub fn set_tray_text(app: AppHandle, status: String, show: String, quit: String,
 /// When the queue runs dry: a system sound and a notification, as chosen
 /// in Settings → General
 pub fn batch_finished(app: &AppHandle, launch: &crate::queue::Launch, n: usize, failed: usize) {
+    eprintln!("shotloop: the queue finished: {n} jobs, {failed} failed (sound {}, notification {})", launch.notify_sound, launch.notify_desktop);
     if n == 0 {
         return;
     }
@@ -84,4 +85,12 @@ pub fn batch_finished(app: &AppHandle, launch: &crate::queue::Launch, n: usize, 
         let body = text.replace("{n}", &n.to_string()).replace("{f}", &failed.to_string());
         let _ = app.notification().builder().title("Shotloop").body(body).show();
     }
+}
+
+/// Settings → General's "Try it": the alert as the queue would give it now
+#[tauri::command]
+pub fn test_alert(app: AppHandle) {
+    let launch = app.state::<crate::App>().queue.launch.lock().unwrap().clone();
+    let on = crate::queue::Launch { notify_sound: true, notify_desktop: true, ..launch };
+    batch_finished(&app, &on, 1, 0);
 }

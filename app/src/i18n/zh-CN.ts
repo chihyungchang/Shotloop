@@ -387,5 +387,6 @@ export const zhCN: Record<Key, string> = {
   'activity.title': '任务与提醒',
   'activity.idle': '没有任务在运行',
   'activity.more': '还有 {n} 个',
-  'activity.alertsNote': '队列全部完成时提示音和桌面通知'
+  'activity.alertsNote': '队列全部完成时提示音和桌面通知',
+  'activity.try': '试一下'
 }

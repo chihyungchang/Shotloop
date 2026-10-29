@@ -65,6 +65,7 @@ export function ActivityBell({ jobs, settings }: { jobs: Job[]; settings: Settin
             </span>
             <input type="checkbox" className="switch" checked={alerts} onChange={e => setAlerts(e.target.checked)} />
           </label>
+          <button className="link try" onClick={() => api.testAlert()}><Icon name="play" size={11} /> {t('activity.try')}</button>
         </div>
       )}
     </div>

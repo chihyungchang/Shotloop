@@ -387,5 +387,6 @@ export const ptBR: Record<Key, string> = {
   'activity.title': 'Atividade',
   'activity.idle': 'Nada em execução',
   'activity.more': 'e mais {n}',
-  'activity.alertsNote': 'Som e notificação quando a fila termina'
+  'activity.alertsNote': 'Som e notificação quando a fila termina',
+  'activity.try': 'Testar'
 }

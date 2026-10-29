@@ -288,6 +288,8 @@ export const api = {
   // One tiny request through the backend as Settings shows it, saved or not
   aiTest: (settings: Settings) => invoke<{ ok: boolean; latencyMs: number; reply: string; backend: string }>('ai_test', { settings }),
   about: () => invoke<About>('about'),
+  // The completion alert, now: a sound and a desktop notification
+  testAlert: () => invoke<void>('test_alert'),
   // The whole film, joined from the shots' clips with music (cached)
   librarySearch: (source: string, query: string, cursor: string | null, all: boolean, category: string | null = null) =>
     invoke<{ results: LibraryItem[]; cursor: string | null; total?: number }>('library_search', { source, query, cursor, all, category }),

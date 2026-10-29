@@ -388,7 +388,8 @@ export const en = {
   'activity.title': 'Activity',
   'activity.idle': 'Nothing running',
   'activity.more': 'and {n} more',
-  'activity.alertsNote': 'A sound and a notification when the queue finishes'
+  'activity.alertsNote': 'A sound and a notification when the queue finishes',
+  'activity.try': 'Try it'
 }
 
 export type Key = keyof typeof en

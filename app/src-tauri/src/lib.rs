@@ -14,8 +14,8 @@ use std::process::Command;
 use std::sync::Arc;
 use tauri::{AppHandle, Manager, State};
 
-struct App {
-    queue: Arc<Queue>,
+pub(crate) struct App {
+    pub(crate) queue: Arc<Queue>,
     config_dir: PathBuf,
 }
 
@@ -463,7 +463,8 @@ pub fn run() {
             library_search,
             library,
             music,
-            tray::set_tray_text
+            tray::set_tray_text,
+            tray::test_alert
         ])
         .build(tauri::generate_context!())
         .expect("error while building Shotloop")

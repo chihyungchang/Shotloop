@@ -121,6 +121,7 @@ function General({ settings, savePref, theme, language }: {
         <p className="hint">{t('settings.alertsNote')}</p>
         {toggle('notifySound', 'settings.sound')}
         {toggle('notifyDesktop', 'settings.desktop')}
+        <button className="link try" onClick={() => api.testAlert()}><Icon name="play" size={11} /> {t('activity.try')}</button>
       </section>
     </>
   )
