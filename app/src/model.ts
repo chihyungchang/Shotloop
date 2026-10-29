@@ -173,7 +173,7 @@ export function agentNow(job: Job): string | null {
   return quiet > QUIET ? t('act.thinkFor', { time: formatSeconds(quiet) }) : activityLine(last)
 }
 
-// Where a build stands, shot by shot: the shots the AI works on now (two
+// Where a build stands, shot by shot: the shots the AI works on now (three
 // at a time, each with what it is doing), the shots whose code it has
 // written, the phase (world first when there is no look, then the shots).
 // Builds before parallel shots had no markers: then the last shot touched
@@ -238,7 +238,7 @@ export function planSteps(job: Job): Step[] {
 }
 
 // A build's steps: read the plan, the shared look (a built-in look, or
-// designed by the AI), then the shots, two at a time
+// designed by the AI), then the shots, three at a time
 export function buildStepList(job: Job, shots: { id: string }[], look: string | null): Step[] {
   const { active, written, finished, world, phase } = buildSteps(job)
   const done = job.state === 'done'

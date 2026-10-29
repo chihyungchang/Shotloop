@@ -86,8 +86,8 @@ export function preflight() {
 }
 
 // Claude Code's model per task when the person hasn't chosen one: its
-// default (the strongest) for code, Sonnet for the copy
-const CLAUDE_CLI: Record<Task, string | undefined> = { code: undefined, routine: undefined, copy: 'sonnet' }
+// default (the strongest) for everything
+const CLAUDE_CLI: Record<Task, string | undefined> = { code: undefined, routine: undefined, copy: undefined }
 
 export type Task = 'code' | 'routine' | 'copy'
 

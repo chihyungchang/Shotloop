@@ -11,8 +11,8 @@ export const MODELS = {
   code: 'claude-opus-5-5',
   // Routine edits and checks
   routine: 'claude-sonnet-5-5',
-  // The copy and storyboard: writing, not code
-  copy: 'claude-sonnet-5-5'
+  // The copy and storyboard
+  copy: 'claude-opus-5-5'
 } as const
 
 export interface AgentOptions {
