@@ -3,6 +3,7 @@
   "title": "每天进步 1%，一年后是多少？",
   "description": "1.01 和 0.99 的 365 次方：用图表讲清复利。",
   "slug": "one-percent",
+  "lang": "zh-CN",
   "track": "2d",
   "fps": 30,
   "size": {

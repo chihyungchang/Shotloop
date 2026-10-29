@@ -3,6 +3,7 @@
   "title": "拆开一部手机：里面有什么？",
   "description": "爆炸图拆解一部手机：屏幕、主板、电池和摄像头。",
   "slug": "phone-teardown",
+  "lang": "zh-CN",
   "track": "3d",
   "fps": 30,
   "size": {

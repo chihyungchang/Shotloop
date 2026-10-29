@@ -7,7 +7,7 @@ import { aiSummary, useSettings } from '../ai/useSettings'
 import { baseName, forget, projectsFolder, readRecent, setProjectsFolder } from '../recent'
 import { Icon } from './Icon'
 import type { Key } from '../i18n/en'
-import { t, tSplit } from '../i18n'
+import { lang, t, tSplit } from '../i18n'
 
 type Track = '2d' | '3d'
 type Aspect = '9:16' | '16:9'
@@ -41,7 +41,9 @@ export function Home({ open, openSettings }: { open: (path: string, plan?: boole
 
   const [mine, setMine] = useState<ProjectSummary[]>([])
   useEffect(() => {
-    api.listProjects([], true).then(setExamples, () => setExamples([]))
+    // Examples in the UI's language: Chinese for Chinese, English otherwise
+    const want = lang() === 'zh-CN' ? 'zh-CN' : 'en'
+    api.listProjects([], true).then(list => setExamples(list.filter(p => (p.lang ?? 'zh-CN') === want)), () => setExamples([]))
     // The person's own recent projects (drafts included), newest first
     const recent = readRecent()
     api.listProjects(recent).then(list => {

@@ -276,7 +276,7 @@ export function summaries(dirs) {
       }
       const changed = fs.statSync(path.join(p.root, 'shotloop.json')).mtimeMs
       return [{
-        root: p.root, title: p.title, description: p.config.description ?? '', slug: p.slug, track: p.track, size: p.size,
+        root: p.root, title: p.title, description: p.config.description ?? '', lang: p.config.lang ?? null, slug: p.slug, track: p.track, size: p.size,
         duration: p.duration, shots: p.shots.length, poster, changed: new Date(changed).toISOString()
       }]
     } catch {
