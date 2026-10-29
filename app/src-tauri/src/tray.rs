@@ -70,7 +70,6 @@ pub fn set_tray_text(app: AppHandle, status: String, show: String, quit: String,
 /// When the queue runs dry: a system sound and a notification, as chosen
 /// in Settings → General
 pub fn batch_finished(app: &AppHandle, launch: &crate::queue::Launch, n: usize, failed: usize) {
-    eprintln!("shotloop: the queue finished: {n} jobs, {failed} failed (sound {}, notification {})", launch.notify_sound, launch.notify_desktop);
     if n == 0 {
         return;
     }

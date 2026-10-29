@@ -25,11 +25,14 @@ export default function App() {
   const language = useLanguage()
 
   const refresh = useCallback(async () => {
-    if (!root.current) return
+    const r = root.current
+    if (!r) return
     try {
-      setProject(await api.status(root.current))
+      const p = await api.status(r)
+      // Closed or switched while it was read: drop it
+      if (root.current === r) setProject(p)
     } catch (e) {
-      setError(String(e))
+      if (root.current === r) setError(String(e))
     }
   }, [])
 
@@ -145,7 +148,11 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
+  // Once, even when development mounts effects twice
+  const initial = useRef(false)
   useEffect(() => {
+    if (initial.current) return
+    initial.current = true
     api.initialProject().then(p => {
       if (p) open(p)
     })
@@ -188,7 +195,7 @@ export default function App() {
     return (
       <>
         {dialogs}
-        {error && project.draft && <p className="error banner floating" onClick={() => setError(null)}>{error}</p>}
+        {error && <p className="error banner floating" onClick={() => setError(null)}>{error}</p>}
         <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} openSettings={() => openSettings()} openPlan={openPlan}
           save={project.draft ? () => saveDraft(false) : undefined} saving={saving} />
       </>

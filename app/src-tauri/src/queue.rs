@@ -13,6 +13,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Read};
 use std::path::PathBuf;
+use std::os::unix::process::CommandExt;
 use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -202,6 +203,7 @@ struct Inner {
     jobs: Vec<Job>,
     next_id: u64,
     children: HashMap<u64, Arc<Mutex<Child>>>,
+    pids: HashMap<u64, u32>,
     // When the queue last went from idle to busy: the batch the
     // finished alert sums up
     batch_start: Option<u64>,
@@ -299,8 +301,11 @@ impl Queue {
     pub fn cancel(&self, app: &AppHandle, id: u64) {
         {
             let mut inner = self.inner.lock().unwrap();
-            if let Some(child) = inner.children.get(&id) {
-                let _ = child.lock().unwrap().kill();
+            // The job's whole process group: node and what it started
+            // (Blender, ffmpeg, Chrome, a CLI agent); not the child's lock,
+            // which the runner holds while it waits
+            if let Some(pid) = inner.pids.get(&id) {
+                kill_group(*pid);
             }
             if let Some(j) = inner.jobs.iter_mut().find(|j| j.id == id) {
                 if j.state == "queued" || j.state == "running" {
@@ -310,6 +315,13 @@ impl Queue {
             }
         }
         self.notify(app);
+    }
+
+    /// Every running job's processes, when the app quits
+    pub fn kill_all(&self) {
+        for pid in self.inner.lock().unwrap().pids.values() {
+            kill_group(*pid);
+        }
     }
 
     pub fn clear_finished(&self, app: &AppHandle) {
@@ -388,9 +400,12 @@ impl Queue {
         let node = launch.node.clone().ok_or("Node.js not found (see Setup)")?;
         let (script, args) = spec.command();
         let mut cmd = Command::new(node);
+        // --json first: an argument after "--" would swallow it. Each job
+        // leads its own process group, so stopping it stops its children
         cmd.arg(launch.root.join(script))
-            .args(args)
             .arg("--json")
+            .args(args)
+            .process_group(0)
             .current_dir(&launch.root)
             .env("PATH", &launch.path)
             .envs(launch.env.iter().cloned())
@@ -408,8 +423,13 @@ impl Queue {
         let mut child = cmd.spawn().map_err(|e| format!("could not start {}: {}", script, e))?;
         let stdout = child.stdout.take().unwrap();
         let mut stderr = child.stderr.take().unwrap();
+        let pid = child.id();
         let child = Arc::new(Mutex::new(child));
-        self.inner.lock().unwrap().children.insert(id, child.clone());
+        {
+            let mut inner = self.inner.lock().unwrap();
+            inner.children.insert(id, child.clone());
+            inner.pids.insert(id, pid);
+        }
 
         let err_thread = std::thread::spawn(move || {
             let mut s = String::new();
@@ -457,7 +477,11 @@ impl Queue {
         }
 
         let status = child.lock().unwrap().wait().map_err(|e| e.to_string())?;
-        self.inner.lock().unwrap().children.remove(&id);
+        {
+            let mut inner = self.inner.lock().unwrap();
+            inner.children.remove(&id);
+            inner.pids.remove(&id);
+        }
         let stderr = err_thread.join().unwrap_or_default();
         let _ = app.emit("project-changed", spec.project());
         if status.success() {
@@ -467,4 +491,9 @@ impl Queue {
             Err(error.unwrap_or(if tail.is_empty() { format!("exited with {}", status) } else { tail }))
         }
     }
+}
+
+/// SIGKILL to a process group (a job's node and everything it started)
+fn kill_group(pid: u32) {
+    let _ = Command::new("/bin/kill").args(["-KILL", &format!("-{pid}")]).status();
 }

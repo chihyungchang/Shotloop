@@ -192,6 +192,7 @@ function UpdateRow({ version }: { version: string }) {
     : u.kind === 'downloading' ? t('update.downloading')
     : u.kind === 'restarting' ? t('update.restarting')
     : u.kind === 'failed' ? t('update.failed')
+    : u.kind === 'busy' ? t('update.busy')
     : t('update.current', { v: version })
   return (
     <div className="pref-row boxed">

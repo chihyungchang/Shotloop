@@ -66,13 +66,21 @@ const isStarter = file => fs.readFileSync(file, 'utf8').split('\n', 1)[0].includ
 export function applyStoryboard(project) {
   const sb = readStoryboard(project)
   if (!sb) throw new Error(`no ${FILE} yet: plan the video first`)
+  // Shots read back from the project keep their folders: their ids are
+  // reserved first. A new shot gets an id from its place and title that
+  // no kept shot and no folder on disk has, so it never inherits code
+  const valid = id => typeof id === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(id)
+  const kept = new Set()
+  for (const s of sb.shots) if (valid(s.id) && !kept.has(s.id)) kept.add(s.id)
   const used = new Set()
+  const taken = id => used.has(id) || kept.has(id) || fs.existsSync(path.join(project.root, 'shots', id))
   const shots = sb.shots.map((s, i) => {
-    // A shot read back from the project keeps its folder; a new one gets
-    // its own from its place and title
-    const keep = typeof s.id === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(s.id) && !used.has(s.id)
-    let id = keep ? s.id : `${String(i + 1).padStart(2, '0')}-${slug(s.title) || 'shot'}`
-    while (used.has(id)) id += '-b'
+    let id
+    if (valid(s.id) && !used.has(s.id)) id = s.id
+    else {
+      id = `${String(i + 1).padStart(2, '0')}-${slug(s.title) || 'shot'}`
+      while (taken(id)) id += '-b'
+    }
     used.add(id)
     return { id, title: String(s.title).trim().slice(0, 80), duration: round1(s.duration), show: s.show, text: s.text, motion: s.motion }
   })

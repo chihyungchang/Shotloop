@@ -84,7 +84,7 @@ export const TOOLS: Tool[] = [
   },
   {
     name: 'render_stills',
-    description: 'Render the draft stills of a shot (its first, middle and last frame, captions composited) with the current code, and return them as images. Takes from seconds (2D) to a minute or two (3D). A render error is returned as text.',
+    description: 'Render the stills of a shot (in the editor’s quality) (its first, middle and last frame, captions composited) with the current code, and return them as images. Takes from seconds (2D) to a minute or two (3D). A render error is returned as text.',
     strict: true,
     input_schema: object({ shot: { type: 'string', description: 'Shot id, e.g. "01-room".' } }, ['shot'])
   },
@@ -189,7 +189,14 @@ export async function runTool(ctx: ToolContext, name: string, input: Record<stri
       return fs.readFileSync(ctx.checklist, 'utf8')
     case 'report_checks': {
       const shot = str('shot')
-      const results = input.results as CheckResult[]
+      // Only the project's own shots, and results of the expected shape
+      // (models without strict schemas may send anything)
+      if (!/^[\w][\w.-]*$/.test(shot) || !fs.existsSync(path.join(ctx.root, 'shots', shot))) throw new Error(`no shot ${shot} in this project`)
+      const raw = input.results
+      if (!Array.isArray(raw) || !raw.every(r => r && typeof r.rule === 'string' && typeof r.pass === 'boolean')) {
+        throw new Error('results must be a list of { rule, pass, note }')
+      }
+      const results = raw.map(r => ({ rule: r.rule, pass: r.pass, note: String(r.note ?? '') })) as CheckResult[]
       const summary = str('summary')
       ctx.checks.push({ shot, results, summary })
       const failed = results.filter(r => !r.pass).map(r => r.rule)

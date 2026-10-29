@@ -16,13 +16,16 @@ export function musicBed(project) {
   if (fs.existsSync(file)) return file
   fs.mkdirSync(path.dirname(file), { recursive: true })
   const gain = project.config.musicGain ?? 1
+  // Written under a temporary name, so a cut-short bed is never reused
+  const part = `${file}.${process.pid}.wav`
   if (project.music.endsWith('.json')) {
     const cfg = JSON.parse(fs.readFileSync(project.music, 'utf8'))
-    fs.writeFileSync(file, wav(renderMusic({ ...cfg, duration: project.duration, gain: (cfg.gain ?? 1) * gain })))
+    fs.writeFileSync(part, wav(renderMusic({ ...cfg, duration: project.duration, gain: (cfg.gain ?? 1) * gain })))
   } else {
     const d = project.duration
     execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', project.music, '-t', String(d),
-      '-af', `volume=${gain},afade=t=in:d=0.3,afade=t=out:st=${Math.max(0, d - 1.5)}:d=1.5`, '-ar', '44100', '-ac', '2', file])
+      '-af', `volume=${gain},afade=t=in:d=0.3,afade=t=out:st=${Math.max(0, d - 1.5)}:d=1.5`, '-ar', '44100', '-ac', '2', part])
   }
+  fs.renameSync(part, file)
   return file
 }

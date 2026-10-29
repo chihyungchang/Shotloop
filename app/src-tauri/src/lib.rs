@@ -47,11 +47,16 @@ fn run_script(app: &State<'_, App>, script: &str, args: &[&str]) -> Result<Value
 /// run_script with the given settings' environment instead of the saved one
 fn run_script_with(app: &State<'_, App>, script: &str, args: &[&str], env: Vec<(String, String)>) -> Result<Value, String> {
     let launch = app.queue.launch.lock().unwrap().clone();
-    let node = launch.node.clone().ok_or_else(|| env::node().unwrap_err())?;
+    // Node found at launch, or now (installed since)
+    let node = match launch.node.clone() {
+        Some(n) => n,
+        None => env::node()?,
+    };
+    // --json first: an argument after "--" would swallow it
     let out = Command::new(node)
         .arg(launch.root.join(script))
-        .args(args)
         .arg("--json")
+        .args(args)
         .env("PATH", &launch.path)
         .envs(env)
         .output()
@@ -412,7 +417,7 @@ async fn library(handle: AppHandle, action: String, item: Option<Value>, id: Opt
 /// Rename the project (shotloop.json title)
 #[tauri::command]
 async fn set_title(handle: AppHandle, path: String, title: String) -> Result<Value, String> {
-    blocking(move || engine(&handle.state::<App>(), &["title", &path, &title])).await
+    blocking(move || engine(&handle.state::<App>(), &["title", &path, "--", &title])).await
 }
 
 /// The project's music bed: read it, or set a preset, an audio file, none,
@@ -468,12 +473,20 @@ fn open_url(url: String) -> Result<(), String> {
 
 #[tauri::command]
 fn open_path(path: String) -> Result<(), String> {
+    // Media and documents only: never an app or a script
+    let ext = std::path::Path::new(&path).extension().and_then(|e| e.to_str()).unwrap_or("").to_ascii_lowercase();
+    if ["app", "command", "sh", "tool", "pkg", "dmg", "workflow", "terminal", "scpt", "applescript"].contains(&ext.as_str()) {
+        return Err("only media and documents can be opened".into());
+    }
     tauri_plugin_opener::open_path(path, None::<&str>).map_err(|e| e.to_string())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        // One Shotloop at a time (a second would clear the first's drafts):
+        // opening it again shows the running one
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| tray::show_main(app)))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
@@ -496,15 +509,16 @@ pub fn run() {
             let _ = std::fs::remove_dir_all(&drafts);
             let _ = std::fs::create_dir_all(&drafts);
             std::env::set_var("SHOTLOOP_DRAFTS", &drafts);
-            let queue = Queue::new();
-            *queue.launch.lock().unwrap() = launch_for(root, &settings);
-            queue.start(app.handle().clone());
-            app.manage(App { queue, config_dir });
             // The asset library: one folder for every project, readable by the UI
+            // (set before the queue's threads start)
             let library = app.path().app_data_dir()?.join("library");
             std::fs::create_dir_all(&library)?;
             std::env::set_var("SHOTLOOP_LIBRARY", &library);
             let _ = app.asset_protocol_scope().allow_directory(&library, true);
+            let queue = Queue::new();
+            *queue.launch.lock().unwrap() = launch_for(root, &settings);
+            queue.start(app.handle().clone());
+            app.manage(App { queue, config_dir });
             let tray = tray::create(app.handle())?;
             app.manage(tray);
             Ok(())
@@ -564,7 +578,9 @@ pub fn run() {
             if let tauri::RunEvent::Reopen { .. } = event {
                 tray::show_main(app);
             }
-            #[cfg(not(target_os = "macos"))]
-            let _ = (app, event);
+            // Quitting stops the jobs' processes too
+            if let tauri::RunEvent::Exit = event {
+                app.state::<App>().queue.kill_all();
+            }
         });
 }

@@ -46,9 +46,7 @@ import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
 import { musicBed } from './bed.mjs'
 
-const { values, positionals } = parseArgs({
-  allowPositionals: true,
-  options: {
+const OPTIONS = {
     shot: { type: 'string' },
     final: { type: 'boolean' },
     draft: { type: 'boolean' },
@@ -77,8 +75,26 @@ const { values, positionals } = parseArgs({
     duration: { type: 'string' },
     examples: { type: 'boolean' },
     json: { type: 'boolean' }
+}
+
+// A value that starts with "-" ("-5 tips", "- a list") would read as an
+// option: values of string options are joined to their flag first, and a
+// parse error still comes back as a JSON error event
+function parse(argv, options) {
+  const joined = []
+  for (let i = 0; i < argv.length; i++) {
+    const name = argv[i].startsWith('--') && !argv[i].includes('=') ? argv[i].slice(2) : null
+    if (name && options[name]?.type === 'string' && i + 1 < argv.length) joined.push(`--${name}=${argv[++i]}`)
+    else joined.push(argv[i])
   }
-})
+  try {
+    return parseArgs({ args: joined, allowPositionals: true, options })
+  } catch (err) {
+    console.log(JSON.stringify({ type: 'error', message: err.message }))
+    process.exit(1)
+  }
+}
+const { values, positionals } = parse(process.argv.slice(2), OPTIONS)
 setJson(!!values.json)
 const [cmd, ...args] = positionals
 
@@ -104,6 +120,8 @@ function freeDir(parent, slug) {
 // A copied project's records name files by absolute path: point them at
 // the copy
 function relocate(dest, from) {
+  const latest = path.join(dest, 'out', 'latest.json')
+  if (fs.existsSync(latest)) fs.writeFileSync(latest, fs.readFileSync(latest, 'utf8').split(from).join(dest))
   const state = path.join(dest, '.shotloop')
   if (!fs.existsSync(state)) return
   const walk = d => {
@@ -250,6 +268,8 @@ try {
       break
     case 'new':
       if (!args[0]) throw new Error('new needs <project dir>')
+      // A taken folder (two ideas with the same name) gets -2, -3, …
+      if (fs.existsSync(args[0]) && fs.readdirSync(args[0]).length) args[0] = freeDir(path.dirname(args[0]), path.basename(args[0]))
       result(newProject(args[0], {
         title: values.title,
         idea: values.idea,
@@ -278,6 +298,7 @@ try {
     case 'move': {
       // A draft saved: the whole project moved into a folder
       const project = loadProject(args[0])
+      if (!isDraft(project.root)) throw new Error('only drafts can be moved')
       if (!values.to) throw new Error('move needs --to <folder>')
       const dest = freeDir(values.to, project.slug)
       fs.mkdirSync(values.to, { recursive: true })
@@ -302,7 +323,7 @@ try {
       result(doctor())
       break
     default:
-      console.error(fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1, 17).map(l => l.replace(/^\/\/ ?/, '')).join('\n'))
+      console.error(fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1).filter((l, i, all) => all.slice(0, i + 1).every(x => x.startsWith('//'))).map(l => l.replace(/^\/\/ ?/, '')).join('\n'))
       process.exit(cmd ? 1 : 0)
   }
   // Chrome sessions and sockets can keep the event loop alive

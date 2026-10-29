@@ -110,6 +110,7 @@ function CodeTabs({ project, shot, mode, refresh }: { project: Project; shot: Sh
         key={file}
         project={project}
         file={file}
+        version={`${shot.fixes.length}-${shot.draft.key}-${shot.final.key}`}
         onSaved={() => {
           // New code, new stills: the person sees the change right away
           if (file === files[0]) api.enqueue({ kind: 'render', project: project.root, shot: shot.id, mode, stills: true })
@@ -122,23 +123,34 @@ function CodeTabs({ project, shot, mode, refresh }: { project: Project; shot: Sh
 
 // A plain text editor for the shot's files; saving changes the shot's
 // cache key, so the shot shows as stale until it is rendered again
-function Editor({ project, file, onSaved }: { project: Project; file: string; onSaved: () => void }) {
+function Editor({ project, file, version, onSaved }: { project: Project; file: string; version: string; onSaved: () => void }) {
   const [text, setText] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // Changed on disk (the agent's fix) while the person was editing
+  const [clash, setClash] = useState<string | null>(null)
+  const dirty = text != null && text !== saved
+  // Read again when the shot changes on disk, unless there are edits
   useEffect(() => {
+    if (dirty) return
     api.readText(project.root, file).then(t => {
       setText(t)
       setSaved(t)
     }, e => setError(String(e)))
-  }, [project.root, file])
+  }, [project.root, file, version])
 
-  const dirty = text != null && text !== saved
-  const save = async () => {
+  const save = async (force = false) => {
     if (text == null) return
-    await api.writeText(project.root, file, text)
-    setSaved(text)
-    onSaved()
+    try {
+      const disk = await api.readText(project.root, file)
+      if (!force && disk !== saved) return setClash(disk)
+      await api.writeText(project.root, file, text)
+      setSaved(text)
+      setClash(null)
+      onSaved()
+    } catch (e) {
+      setError(String(e))
+    }
   }
   if (error) return <p className="error">{error}</p>
   if (text == null) return <p className="muted">{t('common.loading')}</p>
@@ -155,9 +167,16 @@ function Editor({ project, file, onSaved }: { project: Project; file: string; on
           }
         }}
       />
+      {clash != null && (
+        <div className="editor-clash small">
+          <span>{t('editor.clash')}</span>
+          <button className="small ghost" onClick={() => { setText(clash); setSaved(clash); setClash(null) }}>{t('editor.reload')}</button>
+          <button className="small" onClick={() => save(true)}>{t('editor.keepMine')}</button>
+        </div>
+      )}
       <div className="editor-bar">
         <span className="muted small">{file}</span>
-        <button className="small" onClick={save} disabled={!dirty}>{dirty ? t('editor.save') : t('common.saved')}</button>
+        <button className="small" onClick={() => save()} disabled={!dirty}>{dirty ? t('editor.save') : t('common.saved')}</button>
       </div>
     </div>
   )

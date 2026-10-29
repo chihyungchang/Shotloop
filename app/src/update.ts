@@ -15,6 +15,8 @@ export type UpdateState =
   | { kind: 'downloading'; version: string; done: number; total: number | null }
   | { kind: 'restarting' }
   | { kind: 'failed'; error: string }
+  // Jobs are running: installing would restart the app under them
+  | { kind: 'busy'; version: string }
 
 const EVERY = 6 * 3600 * 1000
 
@@ -43,6 +45,14 @@ export async function checkForUpdate(quiet = false) {
 export async function installUpdate() {
   if (!pending) return
   const version = pending.version
+  const { api } = await import('./api')
+  const jobs = await api.jobs().catch(() => [])
+  if (jobs.some(j => j.state === 'running' || j.state === 'queued')) {
+    set({ kind: 'busy', version })
+    // Offered again once the queue may have finished
+    setTimeout(() => state.kind === 'busy' && set({ kind: 'available', version, notes: pending?.body ?? '' }), 8000)
+    return
+  }
   let done = 0
   let total: number | null = null
   set({ kind: 'downloading', version, done, total })

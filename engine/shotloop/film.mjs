@@ -118,23 +118,28 @@ export async function preview(project, { mode = 'draft' } = {}) {
   if (fs.existsSync(file)) return { mode, file, cached: true, stale }
 
   fs.mkdirSync(dir, { recursive: true })
-  // One preview per mode: older ones go
-  for (const f of fs.readdirSync(dir)) if (f.startsWith(`${mode}-`)) fs.rmSync(path.join(dir, f), { force: true })
-  const list = path.join(dir, `${mode}-list.txt`)
+  // Temporary files per process (two previews may run at once); the film
+  // gets its name only when complete, so a cut-short one is never "cached"
+  const list = path.join(dir, `.${mode}-list.${process.pid}.txt`)
+  const part = path.join(dir, `.${mode}-${key}.${process.pid}.mp4`)
   fs.writeFileSync(list, clips.map(c => `file '${c.replaceAll("'", "'\\''")}'`).join('\n') + '\n')
-  const joined = path.join(dir, `${mode}-joined.mp4`)
+  const joined = path.join(dir, `.${mode}-joined.${process.pid}.mp4`)
   try {
     emit({ type: 'log', message: `joining ${clips.length} shots` })
     await ffmpeg(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', joined])
     if (music) {
       await ffmpeg(['-i', joined, '-i', music, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k',
-        '-t', String(project.duration), '-movflags', '+faststart', file])
+        '-t', String(project.duration), '-movflags', '+faststart', part])
     } else {
-      fs.renameSync(joined, file)
+      fs.renameSync(joined, part)
     }
+    fs.renameSync(part, file)
+    // One preview per mode: older ones go
+    for (const f of fs.readdirSync(dir)) if (f.startsWith(`${mode}-`) && f !== path.basename(file)) fs.rmSync(path.join(dir, f), { force: true })
   } finally {
     fs.rmSync(list, { force: true })
     fs.rmSync(joined, { force: true })
+    fs.rmSync(part, { force: true })
   }
   return { mode, file, cached: false, stale }
 }

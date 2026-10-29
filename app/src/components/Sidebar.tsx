@@ -102,6 +102,9 @@ function UpdateNote() {
       </button>
     )
   }
+  if (u.kind === 'busy') {
+    return <div className="update-note busy"><Icon name="clock" size={14} /><span className="small">{t('update.busy')}</span></div>
+  }
   if (u.kind === 'downloading' || u.kind === 'restarting') {
     const pct = u.kind === 'downloading' && u.total ? Math.round((u.done / u.total) * 100) : null
     return (

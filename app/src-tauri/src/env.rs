@@ -87,7 +87,7 @@ fn node_version(node: &Path) -> Option<u32> {
     v.trim().trim_start_matches('v').split('.').next()?.parse().ok()
 }
 
-/// A Node.js new enough for the engine (22+) and the agent's TypeScript
+/// A Node.js new enough for the engine (23+) and the agent's TypeScript
 /// (type stripping, 22.18+ / 23.6+): $SHOTLOOP_NODE, the bundled one, or
 /// the first match
 pub fn node() -> Result<PathBuf, String> {

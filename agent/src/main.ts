@@ -25,9 +25,7 @@ import { describe, detect, listModels, preflight, runAgent, smokeTest } from './
 import { buildSystem, checkSystem, fixSystem, planSystem, postLanguage, publishSystem, replyLanguage } from './prompts.ts'
 import type { ToolContext } from './tools.ts'
 
-const { values, positionals } = parseArgs({
-  allowPositionals: true,
-  options: {
+const OPTIONS = {
     shot: { type: 'string' },
     request: { type: 'string' },
     model: { type: 'string' },
@@ -37,8 +35,25 @@ const { values, positionals } = parseArgs({
     key: { type: 'string' },
     protocol: { type: 'string' },
     json: { type: 'boolean' }
+} as const
+
+// A request that starts with "-" ("-make it slower") must not read as an
+// option: string values are joined to their flag before parsing
+function parse(argv: string[]) {
+  const joined: string[] = []
+  for (let i = 0; i < argv.length; i++) {
+    const name = argv[i].startsWith('--') && !argv[i].includes('=') ? argv[i].slice(2) : null
+    if (name && (OPTIONS as Record<string, { type: string }>)[name]?.type === 'string' && i + 1 < argv.length) joined.push(`--${name}=${argv[++i]}`)
+    else joined.push(argv[i])
   }
-})
+  try {
+    return parseArgs({ args: joined, allowPositionals: true, options: OPTIONS })
+  } catch (err) {
+    console.log(JSON.stringify({ type: 'error', message: (err as Error).message }))
+    process.exit(1)
+  }
+}
+const { values, positionals } = parse(process.argv.slice(2))
 setJson(!!values.json)
 // --model picks the model of the chosen backend (see providers.ts)
 if (values.model) process.env.SHOTLOOP_MODEL = values.model
@@ -136,8 +151,9 @@ async function shotTask(kind: 'fix' | 'check') {
 
   const reviewOnly = kind === 'check' && !!values['review-only']
   const record = path.join(project.root, '.shotloop', 'shots', shot.id, 'fixes', stamp())
-  // The before stills: the current draft stills, rendered if needed
-  const current = shot.draft.stills ?? (await renderStills(project.root, shot.id)).stills
+  // The before stills, in the editor's quality (3D previews, 2D final),
+  // the same the agent's renders make; rendered if needed
+  const current = (project.track === '3d' ? shot.draft : shot.final).stills ?? (await renderStills(project.root, shot.id)).stills
   const before = keepStills(current, record, 'before')
 
   const ctx = context(project.root, reviewOnly ? [] : [`shots/${shot.id}/`, 'world/', 'captions.html'])
@@ -222,8 +238,12 @@ Track: ${project.track.toUpperCase()} · frame ${size} · target length ${projec
 async function buildTask() {
   const project = await status(dir)
   const ctx = context(project.root, ['world/', 'shots/', 'captions.html'])
-  const worldFiles = fs.existsSync(path.join(project.root, 'world'))
-    ? fs.readdirSync(path.join(project.root, 'world')).map(f => `world/${f}:\n${read(path.join(project.root, 'world', f))}`).join('\n\n')
+  // The world's text files (not folders such as __pycache__, not media)
+  const worldDir = path.join(project.root, 'world')
+  const worldFiles = fs.existsSync(worldDir)
+    ? fs.readdirSync(worldDir, { withFileTypes: true })
+      .filter(e => e.isFile() && /\.(py|js|mjs|html|css|json|md|txt|svg)$/i.test(e.name))
+      .map(e => `world/${e.name}:\n${read(path.join(worldDir, e.name))}`).join('\n\n')
     : ''
   const shots = project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')
   emit({ type: 'log', message: `agent: ${describe()}` })

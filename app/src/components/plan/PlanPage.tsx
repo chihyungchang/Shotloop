@@ -61,8 +61,10 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
   useEffect(() => {
     load().then(() => undefined)
   }, [project.root])
+  const asked = useRef(false)
   useEffect(() => {
-    if (!loaded || sb || planJob || deriving) return
+    if (!loaded || sb || planJob || deriving || asked.current) return
+    asked.current = true
     setDeriving(true)
     api.deriveStoryboard(project.root)
       .then(async v => {

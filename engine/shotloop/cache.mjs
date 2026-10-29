@@ -136,12 +136,12 @@ export function keyParts(project, shot, mode) {
   }
 }
 
-// The music bed's identity: its file (a music.json or an audio file) and
-// the project's music volume
+// The music bed's identity: its file (a music.json or an audio file), the
+// project's music volume, and the film's length (the bed is cut to it)
 export function musicKey(project) {
   if (!project.music) return null
   return crypto.createHash('sha256').update(fs.readFileSync(project.music))
-    .update(String(project.config.musicGain ?? 1)).digest('hex').slice(0, 12)
+    .update(String(project.config.musicGain ?? 1)).update(`:${project.duration}`).digest('hex').slice(0, 12)
 }
 
 export const shotState = (project, shot) => path.join(project.state, 'shots', shot.id)

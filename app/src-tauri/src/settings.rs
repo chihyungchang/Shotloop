@@ -64,13 +64,17 @@ pub fn save(dir: &Path, settings: &Settings) -> Result<(), String> {
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     let file = dir.join("settings.json");
     let json = serde_json::to_string_pretty(settings).map_err(|e| e.to_string())?;
-    std::fs::write(&file, json).map_err(|e| e.to_string())?;
-    // The file holds an API key: readable by the user only
+    // The file holds API keys: readable by the user only, from the start
     #[cfg(unix)]
     {
-        use std::os::unix::fs::PermissionsExt;
+        use std::io::Write;
+        use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
+        let mut f = std::fs::OpenOptions::new().write(true).create(true).truncate(true).mode(0o600).open(&file).map_err(|e| e.to_string())?;
         let _ = std::fs::set_permissions(&file, std::fs::Permissions::from_mode(0o600));
+        f.write_all(json.as_bytes()).map_err(|e| e.to_string())?;
     }
+    #[cfg(not(unix))]
+    std::fs::write(&file, json).map_err(|e| e.to_string())?;
     Ok(())
 }
 
@@ -99,7 +103,8 @@ impl Settings {
     /// Hosted APIs need a key; a server on this machine does not
     pub fn needs_key(&self) -> bool {
         let loopback = ["://localhost", "://127.0.0.1", "://[::1]"].iter().any(|h| self.api_url.contains(h));
-        self.is_api() && !loopback
+        // A custom endpoint may need no key (a gateway on the network)
+        self.is_api() && !loopback && self.api_preset != "custom"
     }
 
     /// Environment variables for child processes

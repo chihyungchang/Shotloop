@@ -4,7 +4,7 @@ import { api, EMPTY_SETTINGS, fileUrl, type ProjectSummary } from '../api'
 import { formatSeconds } from '../model'
 import { BrandIcon, hasBrand } from '../ai/BrandIcon'
 import { aiSummary, useSettings } from '../ai/useSettings'
-import { baseName, forget, projectsFolder, readRecent, setProjectsFolder } from '../recent'
+import { baseName, cleanRecent, projectsFolder, setProjectsFolder } from '../recent'
 import { Icon } from './Icon'
 import type { Key } from '../i18n/en'
 import { lang, t, tSplit } from '../i18n'
@@ -44,12 +44,10 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
     // Examples in the UI's language: Chinese for Chinese, English otherwise
     const want = lang() === 'zh-CN' ? 'zh-CN' : 'en'
     api.listProjects([], true).then(list => setExamples(list.filter(p => (p.lang ?? 'zh-CN') === want)), () => setExamples([]))
-    // The person's own recent projects (drafts included), newest first
-    const recent = readRecent()
-    api.listProjects(recent).then(list => {
-      for (const p of recent) if (!list.some(x => x.root === p)) forget(p)
-      setMine(recent.map(p => list.find(x => x.root === p)).filter((x): x is ProjectSummary => !!x && !x.example).slice(0, 4))
-    }, () => setMine([]))
+    // The person's own recent projects, newest first
+    cleanRecent()
+      .then(recent => api.listProjects(recent.slice(0, 4)).then(list => recent.slice(0, 4).map(p => list.find(x => x.root === p)).filter((x): x is ProjectSummary => !!x)))
+      .then(setMine, () => setMine([]))
   }, [])
 
   const chooseFolder = async () => {

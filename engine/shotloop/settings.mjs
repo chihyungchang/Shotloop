@@ -36,9 +36,9 @@ export function setSamples(project, samples) {
 }
 
 export function setTitle(project, title) {
-  title = String(title ?? '').trim()
+  title = String(title ?? '').trim().slice(0, 120)
   if (!title) throw new Error('the title is empty')
-  saveConfig(project.root, { ...project.config, title: title.slice(0, 120) })
+  saveConfig(project.root, { ...project.config, title })
   return { title }
 }
 

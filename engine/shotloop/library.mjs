@@ -19,7 +19,13 @@ export const LIBRARY = process.env.SHOTLOOP_LIBRARY ?? path.join(os.homedir(), '
 export const SOURCES = ['polypizza', 'smithsonian']
 
 const UA = { 'user-agent': 'Shotloop (https://github.com/chihyungchang/Shotloop)' }
-const safe = s => String(s).replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
+// An asset id as a folder name: word characters, dots and dashes, never
+// empty, "." or ".." (ids come from asset.json files, which may be edited)
+const safe = s => {
+  const id = String(s).replace(/[^\w.-]+/g, '-').replace(/^[-.]+|-+$/g, '').slice(0, 80)
+  if (!id || /^\.+$/.test(id)) throw new Error(`not an asset id: ${s}`)
+  return id
+}
 
 async function getJson(url, headers = {}) {
   const res = await fetch(url, { headers: { ...UA, ...headers }, signal: AbortSignal.timeout(20000) }).catch(e => {

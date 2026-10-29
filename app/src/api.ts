@@ -317,7 +317,6 @@ export const api = {
   openExample: (path: string) => invoke<{ root: string }>('open_example', { path }),
   saveDraft: (path: string, to: string) => invoke<{ root: string }>('save_draft', { path, to }),
   discardDraft: (path: string) => invoke<unknown>('discard_draft', { path }),
-  forkProject: (path: string, to: string) => invoke<{ root: string }>('fork_project', { path, to }),
   deriveStoryboard: (path: string) => invoke<unknown | null>('derive_storyboard', { path }),
   applyStoryboard: (path: string) => invoke<{ shots: string[]; duration: number }>('apply_storyboard', { path }),
   setTitle: (path: string, title: string) => invoke<{ title: string }>('set_title', { path, title }),
