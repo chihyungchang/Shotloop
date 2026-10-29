@@ -289,8 +289,8 @@ export const api = {
   aiTest: (settings: Settings) => invoke<{ ok: boolean; latencyMs: number; reply: string; backend: string }>('ai_test', { settings }),
   about: () => invoke<About>('about'),
   // The whole film, joined from the shots' clips with music (cached)
-  librarySearch: (source: string, query: string, cursor: string | null, all: boolean) =>
-    invoke<{ results: LibraryItem[]; cursor: string | null }>('library_search', { source, query, cursor, all }),
+  librarySearch: (source: string, query: string, cursor: string | null, all: boolean, category: string | null = null) =>
+    invoke<{ results: LibraryItem[]; cursor: string | null; total?: number }>('library_search', { source, query, cursor, all, category }),
   libraryGet: (item: LibraryItem) => invoke<Asset>('library', { action: 'get', item }),
   libraryList: (project?: string) => invoke<Asset[]>('library', { action: 'list', project }),
   libraryRemove: (id: string) => invoke<void>('library', { action: 'remove', id }),

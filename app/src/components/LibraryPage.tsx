@@ -12,7 +12,8 @@ const SOURCES: { id: Source; name: string; note: string }[] = [
   { id: 'smithsonian', name: 'Smithsonian', note: 'assets.smithsonianShort' }
 ]
 
-const SUGGEST = ['robot', 'tree', 'car', 'house', 'cat', 'computer', 'rocket', 'chair', 'planet', 'phone']
+// Poly Pizza's categories, to browse without a keyword
+const CATEGORIES = ['food', 'clutter', 'weapons', 'transport', 'furniture', 'objects', 'nature', 'animals', 'buildings', 'people', 'scenes', 'other'] as const
 
 // A preview, or a quiet placeholder when there is none or it won't load
 function Thumb({ src }: { src: string | null }) {
@@ -68,20 +69,21 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [getting, setGetting] = useState<Record<string, 'busy' | 'failed'>>({})
-  const [blocked, setBlocked] = useState(false)
+  const [category, setCategory] = useState<string | null>(null)
 
-  const run = async (more = false, q = query) => {
+  const run = async (more = false, q = query, cat = category) => {
     if (!more) {
       setResults(null)
       setCursor(null)
     }
-    // Poly Pizza searches by keyword only: suggestions until there is one
-    if (source === 'polypizza' && !q.trim()) return
+    // Poly Pizza needs a keyword or a category
+    if (source === 'polypizza' && !q.trim() && !cat) return
     setBusy(true)
     setError(null)
     try {
-      const key = JSON.stringify([source, q.trim().toLowerCase(), more ? cursor : null, all])
-      const r = seen.get(key) ?? (await api.librarySearch(source, q, more ? cursor : null, all))
+      const c = source === 'polypizza' && !q.trim() ? cat : null
+      const key = JSON.stringify([source, q.trim().toLowerCase(), more ? cursor : null, all, c])
+      const r = seen.get(key) ?? (await api.librarySearch(source, q, more ? cursor : null, all, c))
       seen.set(key, r)
       setResults(cur => (more && cur ? [...cur, ...r.results] : r.results))
       setCursor(r.cursor)
@@ -106,13 +108,8 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
         return rest
       })
       onAdded()
-    } catch (e) {
+    } catch {
       setGetting(g => ({ ...g, [it.id]: 'failed' }))
-      // The host won't serve the file to an app: download it in the browser
-      if (/blocked:/.test(String(e))) {
-        setBlocked(true)
-        if (it.page) api.openUrl(it.page)
-      }
     }
   }
   const needsKey = error && /api key|needs an api key/i.test(error)
@@ -127,7 +124,12 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
         </div>
         <label className="library-search">
           <Icon name="search" size={15} />
-          <input value={query} placeholder={t('library.placeholder')} onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && run()} />
+          <input value={query} placeholder={t('library.placeholder')} onChange={e => setQuery(e.target.value)} onKeyDown={e => {
+            if (e.key === 'Enter') {
+              setCategory(null)
+              run(false, query, null)
+            }
+          }} />
         </label>
         {source === 'polypizza' && (
           <label className="check-inline">
@@ -151,12 +153,11 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
           </div>
         )
         : error && <div className="error-box small">{error}</div>}
-      {blocked && <div className="note-box small">{t('library.blocked')}</div>}
-      {source === 'polypizza' && !query.trim() && !error && (
+      {source === 'polypizza' && !query.trim() && !needsKey && (
         <div className="suggest">
-          <span className="small muted">{t('library.try')}</span>
-          {SUGGEST.map(w => (
-            <button key={w} className="provider-chip" onClick={() => { setQuery(w); run(false, w) }}>{w}</button>
+          <span className="small muted">{t('library.browse')}</span>
+          {CATEGORIES.map(c => (
+            <button key={c} className={`provider-chip${category === c ? ' on' : ''}`} onClick={() => { setCategory(c); run(false, '', c) }}>{t(`library.cat.${c}`)}</button>
           ))}
         </div>
       )}
@@ -168,7 +169,7 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
           const state = getting[it.id]
           return (
             <div key={it.id} className="asset-card">
-              <Thumb src={it.thumb} />
+              <Thumb src={it.thumb ? (it.thumb.startsWith('/') ? fileUrl(it.thumb) : it.thumb) : null} />
               <div className="asset-meta">
                 <strong className="ellipsis" title={it.name}>{it.name}</strong>
                 <span className="small muted ellipsis">{it.author}{it.triangles ? ` · ${it.triangles.toLocaleString()} △` : ''}{sizeOf(it.size) ? ` · ${sizeOf(it.size)}` : ''}</span>

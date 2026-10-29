@@ -368,9 +368,20 @@ export const ptBR: Record<Key, string> = {
   'library.connectNote': 'Milhares de modelos low-poly gratuitos. Crie uma conta grátis no Poly Pizza, copie sua chave de API e adicione aqui uma vez.',
   'library.addKey': 'Adicionar a chave',
   'settings.backLibrary': 'Voltar à biblioteca',
-  'library.try': 'Experimente:',
-  'library.blocked': 'O Poly Pizza só entrega arquivos ao navegador; a página do modelo foi aberta: baixe o GLB e adicione em Neste Mac → Importar arquivo.',
   'library.openPage': 'Abrir a página do modelo',
   'library.import': 'Importar arquivo',
-  'library.importNote': 'Baixou um .glb de outro site? Importe aqui; confira a licença antes.'
+  'library.importNote': 'Baixou um .glb de outro site? Importe aqui; confira a licença antes.',
+  'library.browse': 'Navegar:',
+  'library.cat.food': 'Comida e bebida',
+  'library.cat.clutter': 'Miudezas',
+  'library.cat.weapons': 'Armas',
+  'library.cat.transport': 'Transporte',
+  'library.cat.furniture': 'Móveis e decoração',
+  'library.cat.objects': 'Objetos',
+  'library.cat.nature': 'Natureza',
+  'library.cat.animals': 'Animais',
+  'library.cat.buildings': 'Construções',
+  'library.cat.people': 'Pessoas e personagens',
+  'library.cat.scenes': 'Cenários',
+  'library.cat.other': 'Outros'
 }

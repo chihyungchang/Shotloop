@@ -40,17 +40,54 @@ function item(source, o) {
   }
 }
 
-async function searchPolyPizza(query, { key, cursor }) {
+// Poly Pizza API v1.1 (poly.pizza/docs/api/v1.1): x-auth-token on every
+// request, static.poly.pizza included; 32 results a page; License=1 is
+// CC0 only; Category browses without a keyword
+const POLY = 'https://api.poly.pizza/v1.1'
+const POLY_PAGE = 32
+export const POLY_CATEGORIES = ['food', 'clutter', 'weapons', 'transport', 'furniture', 'objects', 'nature', 'animals', 'buildings', 'people', 'scenes', 'other']
+
+async function searchPolyPizza(query, { key, cursor, cc0Only, category }) {
   if (!key) throw new Error('Poly Pizza needs an API key (free, from poly.pizza/settings/api): add it in Settings → Assets')
-  const params = new URLSearchParams({ limit: '30', format: 'glb' })
-  if (cursor) params.set('cursor', cursor)
-  if (!query.trim()) return { results: [], cursor: null }
-  const body = await getJson(`https://api.poly.pizza/v1/search/${encodeURIComponent(query.trim())}?${params}`, { 'x-auth-token': key })
-  const results = (body.results ?? []).map(m => item('polypizza', {
-    id: m.ID, name: m.Title, thumb: m.Thumbnail, license: m.Licence ?? m.License ?? '', author: m.Creator?.Username,
-    authorUrl: m.Creator?.PURL, page: `https://poly.pizza/m/${m.ID}`, download: m.Download, triangles: m.TriangleCount, animated: m.Animated
+  const page = Number(cursor ?? 0)
+  const params = new URLSearchParams({ Limit: String(POLY_PAGE), Page: String(page) })
+  if (cc0Only) params.set('License', '1')
+  const cat = POLY_CATEGORIES.indexOf(category)
+  if (cat >= 0) params.set('Category', String(cat))
+  if (!query.trim() && cat < 0) return { results: [], cursor: null, total: 0 }
+  const url = query.trim() ? `${POLY}/search/${encodeURIComponent(query.trim())}?${params}` : `${POLY}/search?${params}`
+  const body = await getJson(url, { 'x-auth-token': key })
+  const results = (body.results ?? []).map(m => ({
+    ...item('polypizza', {
+      id: m.ID, name: m.Title, thumb: m.Thumbnail, license: m.Licence ?? m.License ?? '', author: m.Creator?.Username,
+      page: `https://poly.pizza/m/${m.ID}`, download: m.Download, triangles: m['Tri Count'] ?? m.TriangleCount, animated: m.Animated
+    }),
+    attribution: m.Attribution ?? null
   })).filter(m => m.download)
-  return { results, cursor: body.cursor ?? null }
+  const total = body.total ?? 0
+  return { results, cursor: (page + 1) * POLY_PAGE < total ? String(page + 1) : null, total }
+}
+
+// Poly Pizza's files need the key too, so a page can't load its
+// thumbnails: they are fetched here, once each, into the library's cache
+async function cacheThumbs(results, key) {
+  const dir = path.join(LIBRARY, '.cache', 'thumbs')
+  fs.mkdirSync(dir, { recursive: true })
+  const local = async it => {
+    if (!it.thumb || !/^https:\/\/static\.poly\.pizza\//.test(it.thumb)) return it
+    const file = path.join(dir, `${createHash('sha1').update(it.thumb).digest('hex')}${path.extname(new URL(it.thumb).pathname) || '.jpg'}`)
+    if (!fs.existsSync(file)) {
+      try {
+        await fetchTo(it.thumb, file, { 'x-auth-token': key })
+      } catch {
+        return { ...it, thumb: null }
+      }
+    }
+    return { ...it, thumbUrl: it.thumb, thumb: file }
+  }
+  const out = []
+  for (let i = 0; i < results.length; i += 8) out.push(...(await Promise.all(results.slice(i, i + 8).map(local))))
+  return out
 }
 
 // Merge a resource's attribute objects ([{FILE_TYPE…}, {FILE_SIZE…}])
@@ -90,48 +127,54 @@ const SEARCH_TTL = 7 * 24 * 3600 * 1000
 export async function search(source, query, opts = {}) {
   if (!SOURCES.includes(source)) throw new Error(`unknown source ${source} (${SOURCES.join(', ')})`)
   const q = query.trim().toLowerCase()
-  // The licence filter applies after the cache, so switching it is free
+  // Poly Pizza filters by licence on its side; the filter is part of the key
   const only = v => (opts.cc0Only ? { ...v, results: v.results.filter(m => /^cc0/i.test(m.license)) } : v)
-  const key = createHash('sha1').update(JSON.stringify([source, q, opts.cursor ?? null])).digest('hex')
+  const poly = source === 'polypizza'
+  const key = createHash('sha1').update(JSON.stringify([source, q, opts.cursor ?? null, poly ? [!!opts.cc0Only, opts.category ?? null] : null])).digest('hex')
   const file = path.join(LIBRARY, '.cache', 'search', `${key}.json`)
   if (fs.existsSync(file) && Date.now() - fs.statSync(file).mtimeMs < SEARCH_TTL) {
-    return { ...only(JSON.parse(fs.readFileSync(file, 'utf8'))), cached: true }
+    const v = only(JSON.parse(fs.readFileSync(file, 'utf8')))
+    return { ...v, results: poly ? await cacheThumbs(v.results, opts.key) : v.results, cached: true }
   }
-  const value = source === 'polypizza' ? await searchPolyPizza(q, opts) : await searchSmithsonian(q, opts)
+  const value = poly ? await searchPolyPizza(q, opts) : await searchSmithsonian(q, opts)
   if (value.results.length || q) {
     fs.mkdirSync(path.dirname(file), { recursive: true })
     fs.writeFileSync(file, JSON.stringify(value))
   }
-  return only(value)
+  const v = only(value)
+  return { ...v, results: poly ? await cacheThumbs(v.results, opts.key) : v.results }
 }
 
-async function fetchTo(url, file) {
-  const res = await fetch(url, { headers: UA, signal: AbortSignal.timeout(180000) }).catch(e => {
+async function fetchTo(url, file, headers = {}) {
+  const res = await fetch(url, { headers: { ...UA, ...headers }, signal: AbortSignal.timeout(180000) }).catch(e => {
     throw new Error(`could not reach ${new URL(url).host} (${e.cause?.code ?? e.name}): check the network`)
   })
-  // Poly Pizza's file host turns away requests that aren't from a browser
-  if (res.status === 403) throw new Error(`blocked: ${new URL(url).host} only serves files to a web browser; open the model's page and download it there, then import the file`)
+  if (res.status === 401 || res.status === 403) throw new Error(`${new URL(url).host} refused the download (${res.status}); check the API key in Settings`)
   if (!res.ok) throw new Error(`download failed: ${res.status} ${url}`)
   fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()))
 }
 
-// Downloads a search result into the library (once)
-export async function download(it) {
+// Downloads a search result into the library (once); Poly Pizza's files
+// need the key
+export async function download(it, key) {
   if (!it?.id || !it.download) throw new Error('nothing to download')
   const dir = path.join(LIBRARY, safe(it.id))
   const meta = path.join(dir, 'asset.json')
   if (fs.existsSync(meta)) return JSON.parse(fs.readFileSync(meta, 'utf8'))
   fs.mkdirSync(dir, { recursive: true })
   try {
-    await fetchTo(it.download, path.join(dir, 'model.glb'))
-    if (it.thumb) await fetchTo(it.thumb, path.join(dir, 'thumb.jpg')).catch(() => {})
+    const auth = it.source === 'polypizza' && key ? { 'x-auth-token': key } : {}
+    await fetchTo(it.download, path.join(dir, 'model.glb'), auth)
+    // The thumbnail: the cached copy when the search fetched one
+    if (it.thumb && fs.existsSync(it.thumb)) fs.copyFileSync(it.thumb, path.join(dir, 'thumb.jpg'))
+    else if (it.thumbUrl ?? it.thumb) await fetchTo(it.thumbUrl ?? it.thumb, path.join(dir, 'thumb.jpg'), auth).catch(() => {})
   } catch (e) {
     fs.rmSync(dir, { recursive: true, force: true })
     throw e
   }
   const asset = {
     id: safe(it.id), name: it.name, source: it.source, license: it.license, author: it.author, authorUrl: it.authorUrl,
-    page: it.page, triangles: it.triangles, animated: it.animated, added: new Date().toISOString()
+    page: it.page, attribution: it.attribution ?? null, triangles: it.triangles, animated: it.animated, added: new Date().toISOString()
   }
   fs.writeFileSync(meta, JSON.stringify(asset, null, 2) + '\n')
   return withFiles(asset, dir)

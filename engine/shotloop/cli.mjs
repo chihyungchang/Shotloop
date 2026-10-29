@@ -52,6 +52,7 @@ const { values, positionals } = parseArgs({
     key: { type: 'string' },
     cursor: { type: 'string' },
     item: { type: 'string' },
+    category: { type: 'string' },
     all: { type: 'boolean' },
     file: { type: 'string' },
     none: { type: 'boolean' },
@@ -161,8 +162,8 @@ try {
     case 'library': {
       // library search|get|list|remove|use|unuse …
       const [sub, a, b] = args
-      if (sub === 'search') result(await library.search(values.source ?? 'polypizza', values.query ?? '', { key: values.key, cursor: values.cursor, cc0Only: !values.all }))
-      else if (sub === 'get') result(await library.download(JSON.parse(values.item ?? 'null')))
+      if (sub === 'search') result(await library.search(values.source ?? 'polypizza', values.query ?? '', { key: values.key, cursor: values.cursor, cc0Only: !values.all, category: values.category }))
+      else if (sub === 'get') result(await library.download(JSON.parse(values.item ?? 'null'), values.key))
       else if (sub === 'list') result(a ? library.projectAssets(loadProject(a)) : library.list())
       else if (sub === 'remove') result(library.remove(a))
       else if (sub === 'import') result(library.importFile(a, { name: values.title }))

@@ -369,11 +369,22 @@ export const en = {
   'library.connectNote': 'Thousands of free low-poly models. Make a free account on Poly Pizza, copy your API key, and add it here once.',
   'library.addKey': 'Add the key',
   'settings.backLibrary': 'Back to the asset library',
-  'library.try': 'Try:',
-  'library.blocked': 'Poly Pizza only serves its files to a web browser, so the model’s page opened there: download the GLB, then add it under On this Mac → Import a file.',
   'library.openPage': 'Open the model’s page',
   'library.import': 'Import a file',
-  'library.importNote': 'Downloaded a .glb from any site? Import it here; check its licence first.'
+  'library.importNote': 'Downloaded a .glb from any site? Import it here; check its licence first.',
+  'library.browse': 'Browse:',
+  'library.cat.food': 'Food & drink',
+  'library.cat.clutter': 'Clutter',
+  'library.cat.weapons': 'Weapons',
+  'library.cat.transport': 'Transport',
+  'library.cat.furniture': 'Furniture & decor',
+  'library.cat.objects': 'Objects',
+  'library.cat.nature': 'Nature',
+  'library.cat.animals': 'Animals',
+  'library.cat.buildings': 'Buildings',
+  'library.cat.people': 'People & characters',
+  'library.cat.scenes': 'Scenes & levels',
+  'library.cat.other': 'Other'
 }
 
 export type Key = keyof typeof en

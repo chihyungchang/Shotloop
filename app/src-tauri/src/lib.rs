@@ -287,7 +287,7 @@ async fn apply_storyboard(handle: AppHandle, path: String) -> Result<Value, Stri
 
 /// Asset library: search a source with the person's key
 #[tauri::command]
-async fn library_search(handle: AppHandle, source: String, query: String, cursor: Option<String>, all: bool) -> Result<Value, String> {
+async fn library_search(handle: AppHandle, source: String, query: String, cursor: Option<String>, all: bool, category: Option<String>) -> Result<Value, String> {
     blocking(move || {
         let app = handle.state::<App>();
         let saved = settings::load(&app.config_dir);
@@ -302,6 +302,9 @@ async fn library_search(handle: AppHandle, source: String, query: String, cursor
         if all {
             args.push("--all");
         }
+        if let Some(c) = category.as_deref() {
+            args.extend(["--category", c]);
+        }
         engine(&app, &args)
     })
     .await
@@ -312,10 +315,18 @@ async fn library_search(handle: AppHandle, source: String, query: String, cursor
 async fn library(handle: AppHandle, action: String, item: Option<Value>, id: Option<String>, project: Option<String>) -> Result<Value, String> {
     blocking(move || {
         let app = handle.state::<App>();
+        // Poly Pizza's files need the person's key too
+        let poly = item.as_ref().is_some_and(|i| i["source"] == "polypizza");
+        let key = if poly { settings::load(&app.config_dir).polypizza_key } else { String::new() };
         let item = item.map(|i| i.to_string());
         let mut args = vec!["library", action.as_str()];
         match action.as_str() {
-            "get" => args.extend(["--item", item.as_deref().unwrap_or("null")]),
+            "get" => {
+                args.extend(["--item", item.as_deref().unwrap_or("null")]);
+                if !key.is_empty() {
+                    args.extend(["--key", key.as_str()]);
+                }
+            }
             "list" => args.extend(project.as_deref()),
             "remove" | "import" => args.extend(id.as_deref()),
             "use" | "unuse" => args.extend(project.as_deref().into_iter().chain(id.as_deref())),

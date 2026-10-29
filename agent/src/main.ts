@@ -69,7 +69,7 @@ function assetList(project: ProjectStatus) {
     const meta = path.join(dir, id, 'asset.json')
     if (!fs.existsSync(meta)) return []
     const a = JSON.parse(fs.readFileSync(meta, 'utf8'))
-    return [{ id, name: String(a.name ?? id), license: String(a.license ?? ''), author: String(a.author ?? ''), page: a.page ? String(a.page) : '' }]
+    return [{ id, name: String(a.name ?? id), license: String(a.license ?? ''), author: String(a.author ?? ''), page: a.page ? String(a.page) : '', attribution: a.attribution ? String(a.attribution) : '' }]
   })
 }
 
@@ -77,7 +77,7 @@ function assetList(project: ProjectStatus) {
 function credits(project: ProjectStatus) {
   const byl = assetList(project).filter(a => /cc-by/i.test(a.license))
   if (!byl.length) return ''
-  return `\n\nThe video uses these CC-BY models: credit each one in every platform's description or caption, as "<name>" by <author> (<license>)${'<link if any>'}:\n${byl.map(a => `- "${a.name}" by ${a.author || 'unknown'} (${a.license})${a.page ? ` ${a.page}` : ''}`).join('\n')}`
+  return `\n\nThe video uses these CC-BY models: credit each one in every platform's description or caption, as "<name>" by <author> (<license>)${'<link if any>'}:\n${byl.map(a => `- ${a.attribution || `"${a.name}" by ${a.author || 'unknown'} (${a.license})${a.page ? ` ${a.page}` : ''}`}`).join('\n')}`
 }
 
 function assetsBrief(project: ProjectStatus) {
