@@ -17,7 +17,7 @@ the narration, so every line has to read in the time it is up (about
 | 10–11 | 21.6–26.4 | But that's for a **random** password nobody has ever seen. Reused? Leaked? A real word? |
 | 12–13 | 26.4–31.2 | **Cracked almost instantly.** Attackers try leaked passwords first. |
 | 14–15 | 31.2–36.0 | What works: long + random (password manager) · never reuse · turn on 2FA |
-| 16 | 36.0–38.4 | Source: Hive Systems 2026 Password Table · oliverz.dev |
+| 16 | 36.0–38.4 | Source: Hive Systems 2026 Password Table |
 
 Example passwords shown as "leaked" in bars 12–13 are illustrative
 (password123, summer2024!, qwerty), not taken from a real breach list,

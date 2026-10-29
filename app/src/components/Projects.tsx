@@ -43,6 +43,7 @@ export function Projects({ open }: { open: (path: string) => void }) {
             </div>
             <div className="card-text">
             <strong className="ellipsis">{p.title}</strong>
+            {p.description && <span className="muted small ellipsis">{p.description}</span>}
             <div className="card-meta">
               <span className="muted small">{t('common.shots', { n: p.shots })} · {formatDate(p.changed, { dateStyle: 'medium' })}</span>
               <span className="tag">{p.track.toUpperCase()} · {p.size.width > p.size.height ? '16:9' : '9:16'}</span>

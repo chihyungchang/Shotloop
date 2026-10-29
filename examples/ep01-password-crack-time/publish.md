@@ -34,7 +34,7 @@ https://www.hivesystems.com/blog/are-your-passwords-in-the-green
 https://www.hivesystems.com/newsroom-posts/07-14-2026
 
 Animated with code; script AI-assisted.
-More: https://oliverz.dev
+Made with Shotloop.
 
 #cybersecurity #passwords #infosec
 ```

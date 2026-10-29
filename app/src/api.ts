@@ -189,6 +189,7 @@ export interface ExportResult {
 export interface ProjectSummary {
   root: string
   title: string
+  description: string
   slug: string
   track: '2d' | '3d'
   size: { width: number; height: number }

@@ -1,6 +1,7 @@
 {
   "version": 1,
   "title": "How long to crack your password?",
+  "description": "A 38-second 2D explainer: GPUs, password length and why reuse is the real risk.",
   "slug": "ep01-password-crack-time",
   "track": "2d",
   "fps": 30,

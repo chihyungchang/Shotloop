@@ -26,4 +26,4 @@ carry the platforms' buttons and captions.
 | 6 | 21.6–26.4 | Hit. Ground flashes red once. "But that's for a RANDOM password nobody has ever seen." Then three red questions. | Riser into the cut; questions drop on beats. |
 | 7 | 26.4–31.2 | A list of illustrative passwords; each gets a red CRACKED stamp in turn. Headline "Cracked almost instantly." | Stamps on eighth notes. |
 | 8 | 31.2–36 | Three ruled rows with mint checks: long + random, never reuse, turn on 2FA. | Rows land one per beat. |
-| 9 | 36–38.4 | End card: source line, oliverz.dev, "Follow for more". | Hold; music fades. |
+| 9 | 36–38.4 | End card: source line, Shotloop, "Follow for more". | Hold; music fades. |

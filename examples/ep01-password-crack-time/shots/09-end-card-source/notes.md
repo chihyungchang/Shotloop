@@ -2,7 +2,7 @@
 
 ## Must show
 
-End card: source line, oliverz.dev, "Follow for more".
+End card: source line, "Shotloop", "Follow for more".
 
 ## Motion
 

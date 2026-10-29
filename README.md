@@ -16,7 +16,8 @@ Status: MVP (docs/PRD.md §7, P0). The product plan is
 | [`engine/shotloop/`](engine/shotloop/) | The shot engine: project format, per-shot render cache, 2D (Chrome) and 3D (Blender) shot renders, film assembly, MP4 export, publish kit. CLI used by the app. |
 | [`agent/`](agent/) | The agent sidecar: plain-language fixes, automatic checks against the checklist, publish copy. |
 | [`engine/video/`](engine/video/README.md) | The original explainer pipeline (recorder, Blender driver, music synth, episodes). |
-| [`examples/`](examples/) | ep01 (2D) and ep02 (3D) converted to the shot format, and `hello-3d`, a 3D project that needs no downloaded assets. |
+| [`examples/`](examples/) | The examples the app opens from Home: short 2D explainers in 9:16 and 16:9, each with a one-line `description`. |
+| [`fixtures/`](fixtures/) | `hello-3d`, a two-shot 3D project that needs no downloaded assets, for trying the engine and the agent from a terminal. |
 
 ## Run the app
 
@@ -53,10 +54,10 @@ runs everything from the checkout.
 ## The engine from a terminal
 
 ```bash
-pnpm shotloop status   examples/hello-3d
-pnpm shotloop render   examples/hello-3d --shot 02-close --stills   # start/middle/end
-pnpm shotloop render   examples/hello-3d --shot 02-close            # draft clip
-pnpm shotloop export   examples/hello-3d --draft                    # only changed shots render
+pnpm shotloop status   fixtures/hello-3d
+pnpm shotloop render   fixtures/hello-3d --shot 02-close --stills   # start/middle/end
+pnpm shotloop render   fixtures/hello-3d --shot 02-close            # draft clip
+pnpm shotloop export   fixtures/hello-3d --draft                    # only changed shots render
 pnpm shotloop new      my-short --idea "Why does your phone battery age?" --track 2d --duration 30
 pnpm shotloop doctor
 ```
@@ -106,14 +107,14 @@ The checklist is [`engine/shotloop/checklist.md`](engine/shotloop/checklist.md);
 a project may bring its own.
 
 ```bash
-ANTHROPIC_API_KEY=… node agent/src/main.ts fix examples/hello-3d --shot 01-wide \
+ANTHROPIC_API_KEY=… node agent/src/main.ts fix fixtures/hello-3d --shot 01-wide \
   --request "the packet is too small to see"
-SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check examples/hello-3d --shot 01-wide
+SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check fixtures/hello-3d --shot 01-wide
 node agent/src/main.ts detect   # CLI agents and local model servers on this Mac
 pnpm test                       # every backend against scripted stand-ins
 ```
 
-`examples/hello-3d` ships with a seeded mistake: in `01-wide` the packet
+`fixtures/hello-3d` ships with a seeded mistake: in `01-wide` the packet
 is a few pixels at the edge of the frame (checklist rule `readable`).
 
 ## Requirements

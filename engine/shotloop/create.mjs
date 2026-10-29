@@ -260,7 +260,8 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
   return { root, title, track, shots: shots.length }
 }
 
-// A summary card per project: title, track, size, duration, a poster
+// A summary card per project: title, a one-line description (optional
+// "description" in shotloop.json), track, size, duration, a poster
 // (a still of the first shot that has one), last change
 export function summaries(dirs) {
   return dirs.flatMap(dir => {
@@ -275,7 +276,7 @@ export function summaries(dirs) {
       }
       const changed = fs.statSync(path.join(p.root, 'shotloop.json')).mtimeMs
       return [{
-        root: p.root, title: p.title, slug: p.slug, track: p.track, size: p.size,
+        root: p.root, title: p.title, description: p.config.description ?? '', slug: p.slug, track: p.track, size: p.size,
         duration: p.duration, shots: p.shots.length, poster, changed: new Date(changed).toISOString()
       }]
     } catch {

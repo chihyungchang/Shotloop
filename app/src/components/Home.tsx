@@ -188,7 +188,8 @@ export function Home({ open, openSettings }: { open: (path: string) => void; ope
               </div>
               <div className="example-text">
                 <strong>{p.title}</strong>
-                <span className="muted small">
+                {p.description && <span className="example-desc ellipsis">{p.description}</span>}
+                <span className="example-meta">
                   {p.track.toUpperCase()} · {t('common.shots', { n: p.shots })} · {formatSeconds(p.duration)} · {p.size.width > p.size.height ? '16:9' : '9:16'}
                 </span>
               </div>

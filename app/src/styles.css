@@ -136,6 +136,8 @@ textarea { resize: vertical; }
 .example-list:hover .example:not(:hover) { opacity: 0.55; }
 .example-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
 .example-text strong { font-weight: 600; color: var(--text-strong); font-size: 13px; }
+.example-desc { font-size: 12.5px; color: var(--text-2); }
+.example-meta { font-size: 11.5px; color: var(--text-3); }
 .example-go { color: var(--text-2); opacity: 0; transform: translate(-3px, 3px); transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
 .example:hover .example-go { opacity: 1; transform: none; }
 .example-poster { position: relative; width: 100px; aspect-ratio: 16 / 9; border-radius: var(--r-md); background: var(--stage); overflow: hidden; display: grid; place-items: center; color: var(--stage-text); flex: none; }
