@@ -1,0 +1,66 @@
+<!doctype html>
+<!-- Caption layer: transparent, drawn over every frame. render(t) is film time.
+     720×1280 CSS px; text stays in the top third, clear of the bottom 18%. -->
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; width: 720px; height: 1280px; overflow: hidden; background: transparent; }
+      body { font-family: 'PingFang SC', -apple-system, sans-serif; color: #f5f5f7; -webkit-font-smoothing: antialiased; }
+      .card { position: absolute; left: 48px; right: 48px; top: 150px; text-align: center; }
+      .kicker { font-size: 21px; font-weight: 500; letter-spacing: 0.18em; color: #ff9f5a; margin-bottom: 18px; }
+      .title { font-size: 60px; font-weight: 600; line-height: 1.16; letter-spacing: 0.01em; }
+      .title.big { font-size: 72px; }
+      .sub { margin-top: 20px; font-size: 29px; font-weight: 400; line-height: 1.45; color: #a1a1a6; }
+      .rule { width: 0; height: 3px; margin: 22px auto 0; border-radius: 2px; background: #ff9f5a; }
+      #end { top: 190px; }
+      #end .title { font-size: 76px; letter-spacing: 0.02em; }
+    </style>
+  </head>
+  <body>
+    <div id="layer"></div>
+    <script>
+      // [film time in, film time out, kicker, title, sub, extra class]
+      const CARDS = [
+        [0.25, 3.35, '', '拆开一部手机<br>里面有什么？', '', 'big'],
+        [4.1, 7.85, '爆炸图', '一层一层叠起来', '整台手机，厚度通常不到一厘米', ''],
+        [8.2, 11.4, '01 · 屏幕', '屏幕（OLED）', '每个像素自己发光，不需要背光', ''],
+        [11.75, 15.4, '02 · 主板', '主板与芯片', '处理器、内存和存储芯片<br>都焊在这块板上', ''],
+        [15.75, 18.0, '03 · 电池', '电池', '占机身体积的很大一部分', ''],
+        [18.4, 19.9, '04 · 摄像头', '摄像头模组', '几颗镜头，各管不同的焦段', ''],
+        [20.25, 21.85, '', '合上，就是一部手机', '', ''],
+        [22.1, 24.5, '', 'Shotloop 示例', '一个镜头一个镜头做出来的短片', 'end']
+      ]
+      const clamp = x => Math.min(1, Math.max(0, x))
+      const easeOut = x => 1 - Math.pow(1 - clamp(x), 3)
+      const layer = document.getElementById('layer')
+      const els = CARDS.map(([, , kicker, title, sub, cls]) => {
+        const el = document.createElement('div')
+        el.className = 'card'
+        if (cls === 'end') el.id = 'end'
+        el.innerHTML = (kicker ? `<div class="kicker">${kicker}</div>` : '') +
+          `<div class="title ${cls === 'big' ? 'big' : ''}">${title}</div>` +
+          (sub ? `<div class="sub">${sub}</div>` : '') + (cls === 'end' ? '<div class="rule"></div>' : '')
+        layer.appendChild(el)
+        return el
+      })
+      window.render = t => {
+        CARDS.forEach(([a, b], i) => {
+          const el = els[i]
+          const fadeIn = easeOut((t - a) / 0.55)
+          const fadeOut = clamp((b - t) / 0.3)
+          const o = Math.min(fadeIn, fadeOut)
+          el.style.opacity = o
+          el.style.transform = `translateY(${(1 - fadeIn) * 18}px)`
+          el.style.display = o > 0 ? 'block' : 'none'
+          const sub = el.querySelector('.sub')
+          if (sub) sub.style.opacity = easeOut((t - a - 0.25) / 0.55)
+          const rule = el.querySelector('.rule')
+          if (rule) rule.style.width = `${easeOut((t - a - 0.3) / 0.7) * 120}px`
+        })
+      }
+      window.ready = document.fonts.ready
+      render(0)
+    </script>
+  </body>
+</html>

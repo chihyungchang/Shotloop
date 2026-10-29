@@ -91,6 +91,7 @@ ${FORMAT}
 
 How to build:
 - First design the world: one coherent visual system for the whole film (palette, type scale, spacing, background, shared helpers or props), so every shot looks like part of the same video. Replace the starter world.
+- Type: use the platform's normal-width faces (2D: 'PingFang SC', -apple-system, sans-serif); never squeeze or stretch text with transforms or condensed widths to make it fit; shorten or wrap it instead.
 - Then build the shots in order. Each shot does what its notes say; its on-screen text is exactly the "On screen" text. Keep text large and inside the safe area (away from the bottom 18% of the frame).
 - Everything is a pure function of time: any frame renders on its own. Ease motion; nothing pops.
 - After writing a shot, render its stills and look at all three. Fix what is off (overlaps, clipped text, nothing moving, poor contrast) and render again; stop after three renders of one shot.

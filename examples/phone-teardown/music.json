@@ -1,6 +1,6 @@
 {
-  "bpm": 100,
-  "duration": 28,
+  "bpm": 96,
+  "duration": 24,
   "chords": [
     [
       57,
@@ -26,15 +26,36 @@
   "sections": [
     {
       "from": 0,
-      "to": 28,
+      "to": 3.5,
+      "layers": [
+        "pad"
+      ]
+    },
+    {
+      "from": 3.5,
+      "to": 20,
       "layers": [
         "pad",
         "bass",
         "hat"
       ]
+    },
+    {
+      "from": 20,
+      "to": 24,
+      "layers": [
+        "pad",
+        "bass"
+      ]
     }
   ],
-  "hits": [],
+  "hits": [
+    3.5,
+    8.0,
+    11.5,
+    15.5,
+    20.0
+  ],
   "risers": [],
   "fadeIn": 0.2,
   "fadeOut": 1.5
