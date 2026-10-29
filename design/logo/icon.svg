@@ -1,8 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
   <!-- macOS app icon: the mark on a graphite tile, on Apple's 824 px grid -->
   <defs>
-    <linearGradient id="cool" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4bf"/><stop offset=".5" stop-color="#38bdf8"/><stop offset="1" stop-color="#a78bfa"/></linearGradient>
-    <linearGradient id="warm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbbf24"/><stop offset=".5" stop-color="#fb7185"/><stop offset="1" stop-color="#a78bfa"/></linearGradient>
     <clipPath id="left"><rect width="100" height="200"/></clipPath>
     <clipPath id="right"><rect x="100" width="100" height="200"/></clipPath>
     <!-- Over on the right, the back play cuts the forward one; over on the left, the other way round -->
@@ -14,7 +12,7 @@
   <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#tile)" filter="url(#drop)"/>
   <rect x="102" y="102" width="820" height="820" rx="183" fill="none" stroke="#fff" stroke-opacity=".12" stroke-width="4"/>
   <g transform="translate(512 512) scale(3.85) translate(-100 -100)">
-  <path mask="url(#cutA)" fill="url(#cool)" d="M48 48Q48 36 58.65 41.53L141.35 84.47Q152 90 141.35 95.53L58.65 138.47Q48 144 48 132Z"/>
-  <path mask="url(#cutB)" fill="url(#warm)" d="M152 68Q152 56 141.35 61.53L58.65 104.47Q48 110 58.65 115.53L141.35 158.47Q152 164 152 152Z"/>
+  <path mask="url(#cutA)" fill="#2dd4bf" d="M48 48Q48 36 58.65 41.53L141.35 84.47Q152 90 141.35 95.53L58.65 138.47Q48 144 48 132Z"/>
+  <path mask="url(#cutB)" fill="#7f8893" d="M152 68Q152 56 141.35 61.53L58.65 104.47Q48 110 58.65 115.53L141.35 158.47Q152 164 152 152Z"/>
   </g>
 </svg>

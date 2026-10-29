@@ -17,6 +17,7 @@
                --nav-on-* (the current page), --focus
    Action      --primary / --primary-fg: the one main button per view
    Selected    --seg-on-*: the chosen segment of a segmented control
+   Logo        --logo-play, --logo-loop: the mark's two plays
    Stage       --stage*: the canvas frames are judged on, a dark graphite
                in both themes so colours read true and black frames show
                their edge
@@ -163,6 +164,9 @@
   --mark-bg: var(--accent-soft);
   --mark-fg: var(--accent-text);
   --focus: var(--accent);
+  /* The logo: the forward play in the accent, the back play in graphite */
+  --logo-play: var(--accent);
+  --logo-loop: var(--border-strong);
   --success-soft: color-mix(in srgb, var(--success) 13%, transparent);
   --warning-soft: color-mix(in srgb, var(--warning) 14%, transparent);
   --danger-soft: color-mix(in srgb, var(--danger) 12%, transparent);
