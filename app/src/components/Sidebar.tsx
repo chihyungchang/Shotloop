@@ -2,6 +2,7 @@ import { open as pick } from '@tauri-apps/plugin-dialog'
 import type { Job } from '../api'
 import { baseName, readRecent } from '../recent'
 import type { useTheme } from '../theme/theme'
+import { BrandMark } from './BrandMark'
 import { Icon } from './Icon'
 import { ThemeToggle } from './ThemeToggle'
 import type { Key } from '../i18n/en'
@@ -33,7 +34,7 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
   return (
     <aside className="sidebar">
       <div className="brand">
-        <span className="brand-mark" aria-hidden><i /></span>
+        <span className="brand-mark"><BrandMark /></span>
         <strong>Shotloop</strong>
       </div>
       <nav>

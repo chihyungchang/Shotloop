@@ -67,7 +67,6 @@ textarea { resize: vertical; }
 .sidebar { display: flex; flex-direction: column; gap: 14px; padding: 16px 12px; overflow: auto; }
 .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 8px; font-size: 15px; }
 .brand-mark { width: 26px; height: 26px; border-radius: var(--r-md); background: var(--stage); display: grid; place-items: center; }
-.brand-mark i { width: 8px; height: 13px; border-radius: var(--r-xs); background: var(--accent); box-shadow: -6px 0 0 -2px var(--stage-border), 6px 0 0 -2px var(--stage-border); }
 .sidebar nav, .recent { display: flex; flex-direction: column; gap: 2px; }
 .recent .section-label { padding: 0 10px; margin-top: 8px; }
 .nav-item { border: 0; background: transparent; justify-content: flex-start; padding: 8px 10px; border-radius: var(--r-md); color: var(--text); width: 100%; }
