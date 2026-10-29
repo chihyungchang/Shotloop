@@ -6,8 +6,7 @@ import { BrandIcon, hasBrand } from '../ai/BrandIcon'
 import { aiSummary, useSettings } from '../ai/useSettings'
 import { baseName, cleanRecent, projectsFolder, setProjectsFolder } from '../recent'
 import { Icon } from './Icon'
-import { LOOKS, lookById, lookName } from '../looks'
-import { LookSwatch } from './LookSwatch'
+import { LookPicker } from './LookPicker'
 import type { Key } from '../i18n/en'
 import { lang, t, tSplit } from '../i18n'
 
@@ -159,15 +158,7 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
                 {LENGTHS.map(l => <option key={l} value={l}>{t('unit.s', { n: l })}</option>)}
               </select>
             </label>
-            {track === '2d' && (
-              <label className="chip-select" title={t('home.aria.look')}>
-                {lookById(look) ? <LookSwatch id={look} /> : <Icon name="spark" size={13} />}
-                <select value={look} onChange={e => setLook(e.target.value)} aria-label={t('home.aria.look')}>
-                  <option value="">{t('look.auto')}</option>
-                  {LOOKS.map(l => <option key={l.id} value={l.id}>{lookName(l.id)}</option>)}
-                </select>
-              </label>
-            )}
+            {track === '2d' && <LookPicker value={look} onChange={setLook} />}
           </div>
           {ai && (
             <button className="model-chip" onClick={openSettings} title={t('ai.change')}>

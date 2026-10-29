@@ -37,6 +37,8 @@ export const zhCN: Record<Key, string> = {
   'home.aria.look': '风格',
   'look.auto': '风格：AI 自动选',
   'look.label': '风格',
+  'look.autoName': 'AI 自动选',
+  'look.autoAbout': '按内容选最合适的风格',
   'home.create': '创建项目（⌘↵）',
   'home.chooseFolder': '选择项目存放位置',
   'home.dialog.folder': '新项目存放位置',

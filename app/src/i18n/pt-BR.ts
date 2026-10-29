@@ -37,6 +37,8 @@ export const ptBR: Record<Key, string> = {
   'home.aria.look': 'Visual',
   'look.auto': 'Visual: a IA escolhe',
   'look.label': 'Visual',
+  'look.autoName': 'A IA escolhe',
+  'look.autoAbout': 'O visual que combina com a ideia',
   'home.create': 'Criar projeto (⌘↵)',
   'home.chooseFolder': 'Escolha onde salvar os projetos',
   'home.dialog.folder': 'Onde salvar os novos projetos',

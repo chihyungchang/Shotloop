@@ -38,6 +38,8 @@ export const en = {
   'home.aria.look': 'Look',
   'look.auto': 'Look: AI picks',
   'look.label': 'Look',
+  'look.autoName': 'AI picks',
+  'look.autoAbout': 'The look that fits the idea',
   'home.create': 'Create project (⌘↵)',
   'home.chooseFolder': 'Choose where projects go',
   'home.dialog.folder': 'Where new projects go',

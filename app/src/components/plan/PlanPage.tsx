@@ -4,8 +4,8 @@ import { api, fileUrl, type Job, type Project, type Storyboard, type StoryShot }
 import { t } from '../../i18n'
 import { agentNow, buildStepList, buildSteps, formatSeconds, planSteps, type Step } from '../../model'
 import { Icon } from '../Icon'
-import { LookSwatch } from '../LookSwatch'
-import { LOOKS, lookName } from '../../looks'
+import { LookPreview } from '../LookPicker'
+import { LOOKS, lookAbout, lookName } from '../../looks'
 import { Title } from '../studio/Studio'
 
 const FILE = 'storyboard.json'
@@ -264,8 +264,8 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
                   <div className="look-row" role="radiogroup" aria-label={t('look.label')}>
                     <span className="small muted">{t('look.label')}</span>
                     {LOOKS.map(l => (
-                      <button key={l.id} role="radio" aria-checked={sb.look === l.id} className={`chip${sb.look === l.id ? ' on' : ''}`} onClick={() => edit({ ...sb, look: l.id })}>
-                        <LookSwatch id={l.id} /> {lookName(l.id)}
+                      <button key={l.id} role="radio" aria-checked={sb.look === l.id} className={`look-card${sb.look === l.id ? ' on' : ''}`} onClick={() => edit({ ...sb, look: l.id })} title={lookAbout(l.id)}>
+                        <LookPreview id={l.id} /> <span>{lookName(l.id)}</span>
                       </button>
                     ))}
                   </div>
