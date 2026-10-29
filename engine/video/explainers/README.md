@@ -30,7 +30,7 @@ track's `_template/`.
 | 3½ | Scene (场景设计), 3D only | `scene.md` | The objects, the camera path as keyframes, lights and materials. |
 | 4 | Code (代码) | `index.html`, `music.json` | The page draws every frame from `render(t)`; the music hits the cuts. |
 | 5 | Render (渲染/录制) | `out/music.wav`, `out/*.mp4` | Recorded with `engine/video/record.mjs --size portrait`. |
-| 6 | Publish (发布) | `publish.md`, `thumb.html` | Watched end to end with sound off. Cover `thumb.html` → `out/thumbnail.png` (`engine/video/thumb.mjs`), text inside the 3:4 crop. Title, description and tags for YouTube Shorts; caption and pinned comment for TikTok; caption for Reels; a first-person post and a sources comment for LinkedIn; cover frame. Every claim and source from `copy.md`, nothing new. |
+| 6 | Publish (发布) | `publish.md`, `thumb.html` | Watched end to end with sound off. Cover `thumb.html` → `out/thumbnail.png` (`engine/video/thumb.mjs`), text inside the 3:4 crop. Title, description and tags for YouTube Shorts; caption and pinned comment for TikTok; caption for Reels; cover frame. Every claim and source from `copy.md`, nothing new. |
 
 Don't start the code before the script reads well on its own.
 
