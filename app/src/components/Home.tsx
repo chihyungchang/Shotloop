@@ -202,7 +202,7 @@ export function Home({ open, openSettings }: { open: (path: string, plan?: boole
 
       {examples.length > 0 && (
         <section className="examples">
-          <span className="section-label">{t('home.examples')}</span>
+          <span className="section-label">{t('home.examples')} <span className="muted small examples-note">{t('example.note')}</span></span>
           <div className="example-list">
           {examples.map(p => <ProjectCard key={p.root} p={p} onClick={() => open(p.root)} />)}
           </div>

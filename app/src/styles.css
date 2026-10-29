@@ -790,3 +790,5 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
    height (an overflow-hidden flex item may otherwise shrink to fit) */
 .bubble, .bubble > *, .compare, .compare-view, .compare-bar { flex-shrink: 0; }
 .compare { min-width: 0; }
+.banner.copying { display: flex; align-items: center; gap: 8px; color: var(--text-2); }
+.examples-note { font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 6px; }

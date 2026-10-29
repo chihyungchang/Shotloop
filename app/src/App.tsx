@@ -41,12 +41,35 @@ export default function App() {
     setPage('settings')
   }
 
-  // A project opens in the studio, or on its planning page when it is new
+  // A project opens in the studio, or on its planning page when it is new.
+  // An example is never changed: opening one makes the person's own copy
+  // in their projects folder (frames included) and opens that
   const [view, setView] = useState<'studio' | 'plan'>('studio')
+  const [copying, setCopying] = useState(false)
+  // The folder new projects go to, asked for the first time it is needed
+  const ensureFolder = async () => {
+    const saved = projectsFolder()
+    if (saved) return saved
+    const { open: pick } = await import('@tauri-apps/plugin-dialog')
+    const dir = await pick({ directory: true, title: t('home.dialog.folder') })
+    if (typeof dir !== 'string') return null
+    setProjectsFolder(dir)
+    return dir
+  }
   const open = useCallback(async (path: string, plan = false) => {
     setError(null)
     try {
-      const p = await api.openProject(path)
+      let p = await api.openProject(path)
+      if (p.example) {
+        const parent = await ensureFolder()
+        if (!parent) return
+        setCopying(true)
+        try {
+          p = await api.openProject((await api.forkProject(p.root, parent)).root)
+        } finally {
+          setCopying(false)
+        }
+      }
       root.current = p.root
       remember(p.root)
       setView(plan ? 'plan' : 'studio')
@@ -56,25 +79,7 @@ export default function App() {
     }
   }, [])
 
-  // The plan of an example is changed on a copy: the example stays as it is
-  const openPlan = async () => {
-    if (!project?.example) return setView('plan')
-    setError(null)
-    let parent = projectsFolder()
-    if (!parent) {
-      const { open: pick } = await import('@tauri-apps/plugin-dialog')
-      const dir = await pick({ directory: true, title: t('home.dialog.folder') })
-      if (typeof dir !== 'string') return
-      setProjectsFolder(dir)
-      parent = dir
-    }
-    try {
-      const r = await api.forkProject(project.root, parent)
-      await open(r.root, true)
-    } catch (e) {
-      setError(String(e))
-    }
-  }
+  const openPlan = () => setView('plan')
 
   const close = () => {
     root.current = null
@@ -140,6 +145,7 @@ export default function App() {
       <Sidebar page={page} setPage={setPage} open={open} jobs={jobs} theme={theme} />
       <main className="workspace-main">
         {error && <p className="error banner">{error}</p>}
+        {copying && <p className="banner copying"><span className="spinner small" /> {t('example.copying')}</p>}
         {page === 'home' && <Home open={open} openSettings={() => openSettings()} />}
         {page === 'projects' && <Projects open={open} />}
         {page === 'library' && <LibraryPage openSettings={() => openSettings('assets', 'library')} />}
