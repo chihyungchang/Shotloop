@@ -21,10 +21,10 @@ Status: MVP (docs/PRD.md §7, P0). The product plan is
 ## Run the app
 
 ```bash
-nvm use                      # Node 23+ (the agent runs TypeScript directly)
-npm install --prefix app
-npm install --prefix agent
-npm run app                  # tauri dev; Rust toolchain needed
+nvm use                      # Node 22.18+ (the agent runs TypeScript directly)
+corepack enable              # once: provides the pinned pnpm
+pnpm install                 # the app and agent workspace packages
+pnpm app                     # tauri dev; Rust toolchain needed
 ```
 
 Home starts a short from an idea: pick 2D or 3D, 9:16 or 16:9 and a
@@ -36,20 +36,20 @@ and the render queue and export in a drawer on the right. The layout
 follows [open-design](https://github.com/nexu-io/open-design)'s workspace
 and studio, adapted to video. The Setup panel checks
 Chrome, ffmpeg and Blender and takes your Anthropic API key for the agent.
-`npm run app:build` makes `Shotloop.app`; it runs the engine and agent
+`pnpm app:build` makes `Shotloop.app`; it runs the engine and agent
 from `$SHOTLOOP_ROOT`, or from the checkout it was built from (bundling
 them as app resources is still to do).
 
 ## The engine from a terminal
 
 ```bash
-npm run shotloop -- status   examples/hello-3d
-npm run shotloop -- render   examples/hello-3d --shot 02-close --stills   # start/middle/end
-npm run shotloop -- render   examples/hello-3d --shot 02-close            # draft clip
-npm run shotloop -- export   examples/hello-3d --draft                    # only changed shots render
-npm run shotloop -- convert  engine/video/explainers/3d/ep02-claude-code-enter my-ep02
-npm run shotloop -- new      my-short --idea "Why does your phone battery age?" --track 2d --duration 30
-npm run shotloop -- doctor
+pnpm shotloop status   examples/hello-3d
+pnpm shotloop render   examples/hello-3d --shot 02-close --stills   # start/middle/end
+pnpm shotloop render   examples/hello-3d --shot 02-close            # draft clip
+pnpm shotloop export   examples/hello-3d --draft                    # only changed shots render
+pnpm shotloop convert  engine/video/explainers/3d/ep02-claude-code-enter my-ep02
+pnpm shotloop new      my-short --idea "Why does your phone battery age?" --track 2d --duration 30
+pnpm shotloop doctor
 ```
 
 Add `--json` for line-delimited events (what the app reads).
@@ -91,7 +91,7 @@ may bring its own.
 ```bash
 ANTHROPIC_API_KEY=… node agent/src/main.ts fix examples/hello-3d --shot 01-wide \
   --request "the packet is too small to see"
-npm test                     # agent loop against a scripted API stand-in
+pnpm test                    # agent loop against a scripted API stand-in
 ```
 
 `examples/hello-3d` ships with a seeded mistake: in `01-wide` the packet

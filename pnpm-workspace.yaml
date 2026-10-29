@@ -1,0 +1,5 @@
+# The desktop app and the agent sidecar; the engine (engine/) has no
+# dependencies and runs from the root
+packages:
+  - app
+  - agent

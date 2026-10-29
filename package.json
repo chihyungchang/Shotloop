@@ -5,18 +5,21 @@
   "version": "0.0.0",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.18",
+    "pnpm": ">=10"
   },
   "scripts": {
     "record": "node engine/video/record.mjs",
     "blender": "node engine/video/blender.mjs",
     "music": "node engine/video/music.mjs",
     "shotloop": "node engine/shotloop/cli.mjs",
-    "app": "npm --prefix app run tauri dev",
-    "app:build": "npm --prefix app run tauri build",
-    "test": "npm --prefix agent test"
+    "app": "pnpm --filter @shotloop/app tauri dev",
+    "app:build": "pnpm --filter @shotloop/app tauri build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
   },
   "devDependencies": {
     "three": "^0.186.1"
-  }
+  },
+  "packageManager": "pnpm@10.28.2"
 }
