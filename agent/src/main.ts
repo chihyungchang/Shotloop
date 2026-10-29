@@ -22,7 +22,7 @@ import { parseArgs } from 'node:util'
 import { renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
 import { emit, setJson } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
-import { buildSystem, checkSystem, fixSystem, planSystem, publishSystem, replyLanguage } from './prompts.ts'
+import { buildSystem, checkSystem, fixSystem, planSystem, postLanguage, publishSystem, replyLanguage } from './prompts.ts'
 import type { ToolContext } from './tools.ts'
 
 const { values, positionals } = parseArgs({
@@ -267,7 +267,7 @@ async function publishTask() {
     .join('\n\n')
   const summary = await runAgent('code', {
     effort: 'high',
-    system: publishSystem(),
+    system: publishSystem() + postLanguage(values.lang),
     prompt: `Write publish.json for "${project.title}" (${project.duration} s, ${project.track.toUpperCase()}).\n\n${docs}${credits(project)}`,
     ctx
   })

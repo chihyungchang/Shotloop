@@ -83,9 +83,9 @@ export function Stage({ project, shot, view, mode, refresh }: {
             </div>
           : <div className="stage-empty">
               <p>{t('stage.noStills')}</p>
-              <button onClick={() => render('draft', true)}>{t('stage.renderStills')}</button>
+              <button onClick={() => render(mode, true)}>{t('stage.renderStills')}</button>
             </div>)}
-        {tab === 'code' && <CodeTabs project={project} shot={shot} refresh={refresh} />}
+        {tab === 'code' && <CodeTabs project={project} shot={shot} mode={mode} refresh={refresh} />}
         {view.job && view.state === 'rendering' && view.job.progress && (
           <div className="stage-progress">
             <span>{t('stage.rendering', { stage: stageName(view.job.progress.stage), done: view.job.progress.done, total: view.job.progress.total })}</span>
@@ -97,7 +97,7 @@ export function Stage({ project, shot, view, mode, refresh }: {
   )
 }
 
-function CodeTabs({ project, shot, refresh }: { project: Project; shot: Shot; refresh: () => void }) {
+function CodeTabs({ project, shot, mode, refresh }: { project: Project; shot: Shot; mode: Mode; refresh: () => void }) {
   const files = [relPath(project, shot.code), relPath(project, shot.notes)]
   const [file, setFile] = useState(files[0])
   return (
@@ -113,7 +113,7 @@ function CodeTabs({ project, shot, refresh }: { project: Project; shot: Shot; re
         file={file}
         onSaved={() => {
           // New code, new stills: the person sees the change right away
-          if (file === files[0]) api.enqueue({ kind: 'render', project: project.root, shot: shot.id, mode: 'draft', stills: true })
+          if (file === files[0]) api.enqueue({ kind: 'render', project: project.root, shot: shot.id, mode, stills: true })
           refresh()
         }}
       />

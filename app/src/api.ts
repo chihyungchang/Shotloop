@@ -121,7 +121,7 @@ export type Spec =
   | { kind: 'export'; project: string; mode: Mode; aspects: string[] }
   | { kind: 'fix'; project: string; shot: string; request: string; lang?: string }
   | { kind: 'check'; project: string; shot: string; lang?: string }
-  | { kind: 'publish'; project: string }
+  | { kind: 'publish'; project: string; lang?: string }
   | { kind: 'plan'; project: string; request?: string; lang?: string }
   | { kind: 'build'; project: string; lang?: string }
 
@@ -276,7 +276,7 @@ export const api = {
   readText: (project: string, path: string) => invoke<string>('read_text', { project, path }),
   writeText: (project: string, path: string, content: string) => invoke<void>('write_text', { project, path, content }),
   // Agent jobs reply in the UI language
-  enqueue: (spec: Spec) => invoke<number>('enqueue', { spec: ['fix', 'check', 'plan', 'build'].includes(spec.kind) ? { ...spec, lang: lang() } : spec }),
+  enqueue: (spec: Spec) => invoke<number>('enqueue', { spec: ['fix', 'check', 'plan', 'build', 'publish'].includes(spec.kind) ? { ...spec, lang: lang() } : spec }),
   jobs: () => invoke<Job[]>('jobs'),
   cancel: (id: number) => invoke<void>('cancel_job', { id }),
   clearJobs: () => invoke<void>('clear_jobs'),

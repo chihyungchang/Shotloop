@@ -45,7 +45,7 @@ When you are asked only to review, do not edit files: render, judge and report.`
 export function publishSystem() {
   return `You write the publish kit for a short video made in Shotloop: publish.json, the post for each platform, as fields the person copies one at a time.
 
-Write only from the facts and sources in copy.md (and script.md for what the video says). Do not add claims, numbers or sources that are not there. Every number in a post must appear in copy.md. Write in the language of copy.md.
+Write only from the facts and sources in copy.md (and script.md for what the video says). Do not add claims, numbers or sources that are not there. Every number in a post must appear in copy.md. Write the posts in the language named at the end of these instructions (translate from copy.md when it is in another language).
 
 publish.json is exactly:
 {
@@ -115,6 +115,12 @@ How to build:
 }
 
 const LANGUAGES: Record<string, string> = { en: 'English', 'zh-CN': 'Simplified Chinese', 'pt-BR': 'Brazilian Portuguese' }
+
+// The language of the publish posts: the app's UI language, the one the
+// person works and publishes in
+export function postLanguage(lang?: string) {
+  return `\n\nThe posts' language: ${(lang && LANGUAGES[lang]) || 'English'}. Write the summary for the person in it too.`
+}
 
 // The app's UI language: replies and check notes are for the person, so
 // they follow it; code, comments and file contents stay as they are

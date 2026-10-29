@@ -7,7 +7,7 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { entry, takes } from './cache.mjs'
+import { editMode, entry, takes } from './cache.mjs'
 import { isProject, loadProject, saveConfig, SIZES } from './project.mjs'
 
 const round1 = x => Math.round(x * 10) / 10
@@ -270,7 +270,7 @@ export function summaries(dirs) {
       const p = loadProject(dir)
       let poster = null
       for (const s of p.shots) {
-        const e = entry(p, s, 'draft')
+        const e = entry(p, s, editMode(p))
         poster = e.stills?.[1] ?? takes(p, s).findLast(t => t.stills)?.stills?.[1] ?? null
         if (poster) break
       }

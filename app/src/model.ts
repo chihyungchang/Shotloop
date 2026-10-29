@@ -21,6 +21,10 @@ const activeFor = (jobs: Job[], project: Project, shot: string, mode: Mode) =>
   jobs.find(j => j.project === project.root && j.shot === shot && j.kind === 'render' && j.mode === mode
     && (j.state === 'running' || j.state === 'queued')) ?? null
 
+// The quality the editor works in (the engine's editMode): 3D shows fast
+// previews and renders final frames only to export; 2D is final throughout
+export const editMode = (project: Project): Mode => (project.track === '3d' ? 'draft' : 'final')
+
 export function shotView(project: Project, shot: Shot, mode: Mode, jobs: Job[]): ShotView {
   const entry = shot[mode]
   const job = activeFor(jobs, project, shot.id, mode)

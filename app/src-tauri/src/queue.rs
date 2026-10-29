@@ -29,7 +29,7 @@ pub enum Spec {
     Export { project: String, mode: String, aspects: Vec<String> },
     Fix { project: String, shot: String, request: String, lang: Option<String> },
     Check { project: String, shot: String, lang: Option<String> },
-    Publish { project: String },
+    Publish { project: String, lang: Option<String> },
     /// Copy and storyboard (storyboard.json), or a revision of them
     Plan { project: String, request: Option<String>, lang: Option<String> },
     /// The world and every shot, from the applied storyboard
@@ -50,7 +50,7 @@ impl Spec {
             | Spec::Export { project, .. }
             | Spec::Fix { project, .. }
             | Spec::Check { project, .. }
-            | Spec::Publish { project }
+            | Spec::Publish { project, .. }
             | Spec::Plan { project, .. }
             | Spec::Build { project, .. } => project,
         }
@@ -113,7 +113,13 @@ impl Spec {
                 }
                 ("agent/src/main.ts", a)
             }
-            Spec::Publish { project } => ("agent/src/main.ts", vec![s("publish"), project.clone()]),
+            Spec::Publish { project, lang } => {
+                let mut a = vec![s("publish"), project.clone()];
+                if let Some(l) = lang {
+                    a.extend([s("--lang"), l.clone()]);
+                }
+                ("agent/src/main.ts", a)
+            }
             Spec::Plan { project, request, lang } => {
                 let mut a = vec![s("plan"), project.clone()];
                 if let Some(r) = request {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { api, type Job, type Mode, type Project } from '../../api'
-import { estimate, formatSeconds, shotView } from '../../model'
+import { api, type Job, type Project } from '../../api'
+import { editMode, estimate, formatSeconds, shotView } from '../../model'
 import type { useTheme } from '../../theme/theme'
 import { Icon } from '../Icon'
 import { ThemeToggle } from '../ThemeToggle'
@@ -31,7 +31,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   openSettings: () => void
   openPlan: () => Promise<void> | void
 }) {
-  const [mode, setMode] = useState<Mode>('draft')
+  const mode = editMode(project)
   const [selected, setSelected] = useState(project.shots[0]?.id ?? '')
   const [drawer, setDrawer] = useState<Drawer>(null)
   const [film, setFilm] = useState<string | null>(null)
@@ -126,17 +126,6 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
           {exporting ? <span className="spinner small" /> : <Icon name="export" size={14} />} {t(exporting ? 'export.exporting' : 'studio.export')}
         </button>
         <MoreMenu open={menu} setOpen={setMenu}>
-          <div className="menu-row">
-            <span>{t('studio.quality')}</span>
-            <div className="segmented" role="radiogroup" aria-label={t('studio.modeAria')}>
-              {(['draft', 'final'] as Mode[]).map(m => (
-                <button key={m} role="radio" aria-checked={mode === m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}
-                  title={t(m === 'draft' ? 'export.draftNote' : 'export.finalNote')}>
-                  {t(m === 'draft' ? 'mode.Draft' : 'mode.Final')}
-                </button>
-              ))}
-            </div>
-          </div>
           <div className="menu-row">
             <span>{t('theme.label')}</span>
             <ThemeToggle pref={theme.pref} setPref={theme.setPref} />

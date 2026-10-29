@@ -13,7 +13,7 @@ const ASPECTS: { id: string; label: Key; note: Key }[] = [
 ]
 const PRESETS = ['calm', 'bright', 'groove', 'tech'] as const
 
-type Prefs = { mode?: Mode; aspects?: string[] }
+type Prefs = { aspects?: string[] }
 const LAST = 'shotloop.export.last'
 const readPrefs = (key: string): Prefs | null => {
   try {
@@ -35,17 +35,18 @@ export function ExportPanel({ project, jobs, refresh, openSettings }: {
   // The last choices: this project's, else the last export's anywhere
   const prefsKey = `shotloop.export.${project.root}`
   const saved = readPrefs(prefsKey) ?? readPrefs(LAST)
-  const [mode, setMode] = useState<Mode>(saved?.mode ?? 'final')
+  // Exports are final; the editor's previews are never exported
+  const mode: Mode = 'final'
   const [aspects, setAspects] = useState<string[]>(saved?.aspects?.length ? saved.aspects : ['9:16'])
   useEffect(() => {
     try {
-      const v = JSON.stringify({ mode, aspects })
+      const v = JSON.stringify({ aspects })
       localStorage.setItem(prefsKey, v)
       localStorage.setItem(LAST, v)
     } catch {
       // storage unavailable: the choice lasts while the panel is open
     }
-  }, [prefsKey, mode, aspects])
+  }, [prefsKey, aspects])
   const [latest, setLatest] = useState<ExportResult | null>(null)
   // How many renders the current export started with, for its progress
   const [batch, setBatch] = useState(0)
@@ -84,16 +85,13 @@ export function ExportPanel({ project, jobs, refresh, openSettings }: {
   return (
     <div className="export">
       <fieldset disabled={exporting} className="export-options">
-        <section>
-          <h3>{t('studio.quality')}</h3>
-          <div className="segmented">
-            {(['draft', 'final'] as Mode[]).map(m => (
-              <button key={m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>{t(m === 'draft' ? 'mode.Draft' : 'mode.Final')}</button>
-            ))}
-          </div>
-          <p className="hint">{t(mode === 'draft' ? 'export.draftNote' : 'export.finalNote')}</p>
-          {project.track === '3d' && mode === 'final' && <Samples project={project} refresh={refresh} />}
-        </section>
+        {project.track === '3d' && (
+          <section>
+            <h3>{t('studio.quality')}</h3>
+            <p className="hint">{t('export.final3d')}</p>
+            <Samples project={project} refresh={refresh} />
+          </section>
+        )}
 
         <section>
           <h3>{t('export.aspects')}</h3>
@@ -129,7 +127,7 @@ export function ExportPanel({ project, jobs, refresh, openSettings }: {
               {pending.length ? t('export.need', { n: pending.length, time: formatSeconds(time) }) : t('export.ready')}
             </span>
             <button className="primary wide" onClick={run} disabled={!aspects.length}>
-              <Icon name="export" size={14} /> {t('export.button', { mode: t(`mode.${mode}`) })}
+              <Icon name="export" size={14} /> {t('export.button')}
             </button>
           </div>
         )}

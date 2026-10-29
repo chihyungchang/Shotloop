@@ -24,6 +24,11 @@ const RENDERER_VERSION = 1
 
 export const MODES = ['draft', 'final']
 
+// The quality the editor works in: 3D renders fast previews (half size,
+// few samples) and only an export renders final frames; 2D frames are
+// cheap, so 2D works in final quality and its export just joins them
+export const editMode = project => (project.track === '3d' ? 'draft' : 'final')
+
 // Files of the engine that draw pixels, per track
 const RENDERER_FILES = {
   '2d': ['shotloop/render2d.mjs', 'shotloop/compose.mjs'],

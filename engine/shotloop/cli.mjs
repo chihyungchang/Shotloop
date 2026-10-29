@@ -3,7 +3,8 @@
 // their own from a terminal.
 //
 //   shotloop status   <project>                          shots, cache state, takes
-//   shotloop render   <project> --shot <id> [--final] [--stills] [--force]
+//   shotloop render   <project> --shot <id> [--draft|--final] [--stills] [--force]
+//                     (neither: the editor's quality, draft for 3D and final for 2D)
 //   shotloop assemble <project> [--final] [--aspect 9:16,16:9]
 //   shotloop export   <project> [--draft] [--aspect 9:16,16:9]
 //   shotloop cover    <project>
@@ -11,7 +12,7 @@
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
 //   shotloop quality  <project> [--samples N | --reset]     3D final render samples
-//   shotloop preview  <project> [--final]                the whole film to watch (cached)
+//   shotloop preview  <project> [--draft|--final]             the whole film to watch (cached)
 //   shotloop storyboard <project> [--derive]             apply storyboard.json to the project
 //                     (--derive: write it from the project's shots and notes instead)
 //   shotloop title    <project> <title>                  rename the project
@@ -30,7 +31,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
-import { prune, status, worldKey } from './cache.mjs'
+import { editMode, prune, status, worldKey } from './cache.mjs'
 import { emit, setJson } from './compose.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
 import { assemble, exportFilm, preview, renderCover } from './film.mjs'
@@ -156,7 +157,7 @@ try {
       if (!values.shot) throw new Error('render needs --shot <id>')
       const shot = findShot(project, values.shot)
       result(await renderShot(project, shot, {
-        mode: values.final ? 'final' : 'draft',
+        mode: values.final ? 'final' : values.draft ? 'draft' : editMode(project),
         stills: !!values.stills,
         force: !!values.force
       }))
@@ -208,7 +209,10 @@ try {
       break
     }
     case 'preview':
-      result(await preview(loadProject(args[0]), { mode: values.final ? 'final' : 'draft' }))
+      {
+        const project = loadProject(args[0])
+        result(await preview(project, { mode: values.final ? 'final' : values.draft ? 'draft' : editMode(project) }))
+      }
       break
     case 'cover':
       result(await renderCover(loadProject(args[0])))
