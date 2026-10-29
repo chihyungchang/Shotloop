@@ -30,7 +30,7 @@ p { margin: 0; }
    Buttons are 32 px, hover is a fill, press nudges down; one ink pill
    (.primary) per view. */
 button {
-  font: inherit; font-weight: 500; color: var(--text); background: var(--surface); border: 1px solid var(--border);
+  margin: 0; font: inherit; font-weight: 500; color: var(--text); background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--r-md); padding: 0 12px; min-height: 32px; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
   transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
@@ -644,3 +644,10 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
 .chip-select:focus-within { box-shadow: 0 0 0 2px var(--focus); }
 .chips { flex-wrap: nowrap; min-width: 0; }
 .model-chip { max-width: 180px; }
+
+/* WebKit gives buttons and inline SVGs their own offsets: centre the
+   sidebar foot's pill, bell and marks explicitly */
+.foot-row { align-items: stretch; }
+.foot-row .bell { height: auto; min-height: 0; align-self: stretch; display: grid; place-items: center; padding: 0; }
+.mode-tile .brand-icon, .cli-logo .brand-icon, .option-logo .brand-icon { display: grid; place-items: center; width: 1em; height: 1em; }
+.brand-icon svg { width: 1em; height: 1em; vertical-align: top; }
