@@ -5,7 +5,7 @@ export const ptBR: Record<Key, string> = {
   'nav.home': 'Início',
   'nav.projects': 'Todos os projetos',
   'nav.settings': 'Configurações',
-  'nav.openFolder': 'Abrir pasta…',
+  'projects.open': 'Abrir projeto…',
   'nav.recent': 'Projetos recentes',
   'sidebar.queue': '{n} tarefas na fila',
   'sidebar.queue.one': '1 tarefa na fila',

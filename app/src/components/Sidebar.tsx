@@ -1,4 +1,3 @@
-import { open as pick } from '@tauri-apps/plugin-dialog'
 import type { Job } from '../api'
 import { baseName, readRecent } from '../recent'
 import type { useTheme } from '../theme/theme'
@@ -35,11 +34,6 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
   const recent = readRecent()
   const running = jobs.filter(j => j.state === 'running' || j.state === 'queued').length
 
-  const openFolder = async () => {
-    const dir = await pick({ directory: true, title: t('dialog.openProject') })
-    if (typeof dir === 'string') open(dir)
-  }
-
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -52,9 +46,6 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
             <Icon name={icon} size={18} /> {t(label)}
           </button>
         ))}
-        <button className="nav-item" onClick={openFolder}>
-          <Icon name="folder" size={18} /> {t('nav.openFolder')}
-        </button>
       </nav>
       {recent.length > 0 && (
         <div className="recent">

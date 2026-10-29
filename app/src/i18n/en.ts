@@ -6,7 +6,7 @@ export const en = {
   'nav.home': 'Home',
   'nav.projects': 'All projects',
   'nav.settings': 'Settings',
-  'nav.openFolder': 'Open folder…',
+  'projects.open': 'Open a project…',
   'nav.recent': 'Recent projects',
   'sidebar.queue': '{n} jobs in the queue',
   'sidebar.queue.one': '1 job in the queue',

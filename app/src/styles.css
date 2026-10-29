@@ -665,3 +665,6 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
    tiles the way Chrome does: centre the marks with flex instead */
 .mode-tile, .cli-logo, .option-logo, .connect-logo { display: flex; align-items: center; justify-content: center; }
 .brand-icon, .mode-tile .brand-icon, .cli-logo .brand-icon, .option-logo .brand-icon { display: block; width: 1em; height: 1em; }
+.kbd { font: 600 10.5px var(--font-sans); color: var(--text-3); background: var(--surface-2); border-radius: 4px; padding: 1px 5px; margin-left: 2px; }
+.projects-page .row.between { margin-bottom: 16px; }
+.projects-page .row.between h1 { margin-bottom: 0; }

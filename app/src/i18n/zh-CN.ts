@@ -5,7 +5,7 @@ export const zhCN: Record<Key, string> = {
   'nav.home': '首页',
   'nav.projects': '全部项目',
   'nav.settings': '设置',
-  'nav.openFolder': '打开文件夹…',
+  'projects.open': '打开项目…',
   'nav.recent': '最近的项目',
   'sidebar.queue': '队列中有 {n} 个任务',
   'sidebar.queue.one': '队列中有 1 个任务',

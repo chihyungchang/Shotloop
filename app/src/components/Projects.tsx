@@ -1,3 +1,4 @@
+import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useEffect, useState } from 'react'
 import { api, fileUrl, type ProjectSummary } from '../api'
 import { formatSeconds } from '../model'
@@ -23,7 +24,16 @@ export function Projects({ open }: { open: (path: string) => void }) {
 
   return (
     <div className="projects-page">
-      <h1>{t('projects.title')}</h1>
+      <div className="row between">
+        <h1>{t('projects.title')}</h1>
+        {/* A project made elsewhere: a colleague's, a git clone (also ⌘O) */}
+        <button onClick={async () => {
+          const dir = await pick({ directory: true, title: t('dialog.openProject') })
+          if (typeof dir === 'string') open(dir)
+        }}>
+          <Icon name="folder" size={14} /> {t('projects.open')} <span className="kbd">⌘O</span>
+        </button>
+      </div>
       <div className="subtabs" role="tablist">
         <button role="tab" aria-selected={tab === 'recent'} className={tab === 'recent' ? 'on' : ''} onClick={() => setTab('recent')}>{t('projects.recent')}</button>
         <button role="tab" aria-selected={tab === 'examples'} className={tab === 'examples' ? 'on' : ''} onClick={() => setTab('examples')}>{t('projects.examples')}</button>

@@ -61,6 +61,19 @@ export default function App() {
     setProject(null)
   }
 
+  // ⌘O opens a project folder from anywhere
+  useEffect(() => {
+    const onKey = async (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'o') return
+      e.preventDefault()
+      const { open: pick } = await import('@tauri-apps/plugin-dialog')
+      const dir = await pick({ directory: true, title: t('dialog.openProject') })
+      if (typeof dir === 'string') open(dir)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
   useEffect(() => {
     api.initialProject().then(p => {
       if (p) open(p)
