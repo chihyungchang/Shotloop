@@ -4,6 +4,8 @@ import { api, fileUrl, type Job, type Project, type Storyboard, type StoryShot }
 import { t } from '../../i18n'
 import { agentNow, buildStepList, buildSteps, formatSeconds, planSteps, type Step } from '../../model'
 import { Icon } from '../Icon'
+import { LookSwatch } from '../LookSwatch'
+import { LOOKS, lookName } from '../../looks'
 import { Title } from '../studio/Studio'
 
 const FILE = 'storyboard.json'
@@ -258,6 +260,16 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
                   <h3>{t('plan.board')}</h3>
                   <span className={`small ${Math.abs(total - target) > 0.5 ? 'warn-note' : 'muted'}`}>{t('plan.total', { n: sb.shots.length, s: total, target })}</span>
                 </div>
+                {project.track === '2d' && (
+                  <div className="look-row" role="radiogroup" aria-label={t('look.label')}>
+                    <span className="small muted">{t('look.label')}</span>
+                    {LOOKS.map(l => (
+                      <button key={l.id} role="radio" aria-checked={sb.look === l.id} className={`chip${sb.look === l.id ? ' on' : ''}`} onClick={() => edit({ ...sb, look: l.id })}>
+                        <LookSwatch id={l.id} /> {lookName(l.id)}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="timeline" aria-hidden>
                   {sb.shots.map((s, i) => (
                     <i key={i} style={{ flex: Math.max(0.5, Number(s.duration) || 0), background: HUES[i % HUES.length] }} title={`${i + 1}. ${s.title}`}>{i + 1}</i>
@@ -325,18 +337,21 @@ function BuildView({ project, job, toStudio, back }: { project: Project; job: Jo
         <button className={running ? '' : 'primary'} onClick={toStudio}>{t(running ? 'plan.openNow' : 'plan.openStudio')} <Icon name="arrow" size={13} /></button>
       </div>
       {running && job!.state === 'queued' && <p className="muted small">{t('queue.waiting')}</p>}
-      {running && job!.state === 'running' && <StepList steps={buildStepList(job!, project.shots)} />}
+      {running && job!.state === 'running' && <StepList steps={buildStepList(job!, project.shots, project.look ?? null)} />}
       {job?.state === 'failed' && job.error && <pre className="error-box small">{job.error}</pre>}
       <div className="build-grid">
         {project.shots.map((s, i) => {
-          const still = stills(s)
-          const active = running && steps.current === s.id
-          const state = still ? null
-            : active ? t(steps.action === 'stills' ? 'build.rendering' : steps.action === 'check' ? 'build.checking' : 'build.writing')
-            : steps.written.has(s.id) ? t('build.written')
+          // Current stills, else the last ones (dimmed while they are redone)
+          const still = stills(s) ?? latestStills(s)
+          const stale = !stills(s) && !!still
+          const action = running ? steps.active.get(s.id) : undefined
+          const active = !!action
+          const state = active ? t(action === 'stills' ? 'build.rendering' : action === 'check' ? 'build.checking' : 'build.writing')
+            : stills(s) ? null
+            : steps.written.has(s.id) || steps.finished.has(s.id) ? t(stale ? 'build.updating' : 'build.written')
             : running ? t('build.waiting') : null
           return (
-            <figure key={s.id} className={`build-shot${still ? ' ready' : ''}${active ? ' active' : ''}`}>
+            <figure key={s.id} className={`build-shot${still ? ' ready' : ''}${stale ? ' stale' : ''}${active ? ' active' : ''}`}>
               <div className={`build-frame${project.size.width > project.size.height ? ' wide' : ''}`}>
                 {still ? <img src={fileUrl(still[1])} alt="" /> : <span className={active ? 'shimmer' : 'build-empty'} />}
                 {state && <span className="build-state small">{active && <span className="pulse" />}{state}</span>}
@@ -367,6 +382,9 @@ function StepList({ steps }: { steps: Step[] }) {
     </ol>
   )
 }
+
+// A shot's newest stills from its takes (any key)
+const latestStills = (s: Project['shots'][number]) => [...s.takes].reverse().find(t => t.stills)?.stills ?? null
 
 // Re-renders every second while on, for elapsed times
 function useTicking(on: boolean) {

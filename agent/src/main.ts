@@ -22,7 +22,7 @@ import { parseArgs } from 'node:util'
 import { renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
 import { emit, setJson } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
-import { buildSystem, checkSystem, fixSystem, planSystem, postLanguage, publishSystem, replyLanguage } from './prompts.ts'
+import { buildShotSystem, buildWorldSystem, checkSystem, fixSystem, planSystem, postLanguage, publishSystem, replyLanguage } from './prompts.ts'
 import type { ToolContext } from './tools.ts'
 
 const OPTIONS = {
@@ -218,14 +218,14 @@ async function planTask() {
       ? `Plan this video again, from the idea, with fresh ideas. The current storyboard.json, for reference:\n${existing}`
       : 'Plan this video.'
   emit({ type: 'log', message: `agent: ${describe()}` })
-  const summary = await runAgent('code', {
-    effort: 'high',
+  const summary = await runAgent('copy', {
+    effort: 'medium',
     system: planSystem() + replyLanguage(values.lang),
     prompt: `${ask}
 
 Idea: ${ideaOf(project)}
 Title: ${project.title}
-Track: ${project.track.toUpperCase()} · frame ${size} · target length ${project.duration} s`,
+Track: ${project.track.toUpperCase()} · frame ${size} · target length ${project.duration} s${await looksBrief(project)}`,
     ctx
   })
   // The page reads it: it has to be valid
@@ -234,43 +234,92 @@ Track: ${project.track.toUpperCase()} · frame ${size} · target length ${projec
   return { task: 'plan', summary, shots: sb.shots.length }
 }
 
-// The world and every shot, from the applied storyboard
+// The looks a 2D plan picks from, or the one the person chose
+async function looksBrief(project: ProjectStatus) {
+  if (project.track !== '2d') return ''
+  const { LOOKS } = await import(new URL('../../engine/shotloop/looks.mjs', import.meta.url).href) as { LOOKS: { id: string; about: string }[] }
+  const chosen = (JSON.parse(read(path.join(project.root, 'shotloop.json'))) as { look?: string }).look
+  if (chosen) return `\nLook: "${chosen}" (chosen by the person; keep it).`
+  return `\nLooks (pick one for "look"):\n${LOOKS.map(l => `- ${l.id}: ${l.about}`).join('\n')}`
+}
+
+// At most n at a time, in order
+async function pool<T>(items: T[], n: number, f: (item: T) => Promise<void>) {
+  let next = 0
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => {
+    while (next < items.length) await f(items[next++])
+  }))
+}
+
+// Shots built at the same time
+const PARALLEL = 2
+
+// The world and every shot, from the applied storyboard: the world first
+// (unless a 2D look already is one), then the shots two at a time, each by
+// its own agent that may write only its shot
 async function buildTask() {
-  const project = await status(dir)
-  const ctx = context(project.root, ['world/', 'shots/', 'captions.html'])
-  // The world's text files (not folders such as __pycache__, not media)
+  let project = await status(dir)
   const worldDir = path.join(project.root, 'world')
-  const worldFiles = fs.existsSync(worldDir)
+  // The world's text files (not folders such as __pycache__, not media)
+  const worldFiles = () => fs.existsSync(worldDir)
     ? fs.readdirSync(worldDir, { withFileTypes: true })
       .filter(e => e.isFile() && /\.(py|js|mjs|html|css|json|md|txt|svg)$/i.test(e.name))
       .map(e => `world/${e.name}:\n${read(path.join(worldDir, e.name))}`).join('\n\n')
     : ''
-  const shots = project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')
+  const copy = read(path.join(project.root, 'copy.md'))
+  const head = (p: ProjectStatus) => `"${p.title}" (${p.track.toUpperCase()}, ${p.size.width}×${p.size.height}, ${p.duration} s, ${p.shots.length} shots)`
+  const touched = new Set<string>()
   emit({ type: 'log', message: `agent: ${describe()}` })
-  const summary = await runAgent('code', {
-    effort: 'high',
-    system: buildSystem() + replyLanguage(values.lang),
-    prompt: `Build "${project.title}" (${project.track.toUpperCase()}, ${project.size.width}×${project.size.height}, ${project.duration} s, ${project.shots.length} shots) from its plan.
 
-copy.md:
-${read(path.join(project.root, 'copy.md'))}
+  const look = project.track === '2d' && /shotloop-look: /.test(read(path.join(worldDir, 'page.html')))
+  if (!look) {
+    emit({ type: 'log', message: 'phase world' })
+    const ctx = context(project.root, ['world/', 'captions.html'])
+    await runAgent('code', {
+      effort: 'high',
+      system: buildWorldSystem() + replyLanguage(values.lang),
+      prompt: `Design the world of ${head(project)} from its plan.\n\ncopy.md:\n${copy}\n\n${worldFiles()}\n\n${project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')}`,
+      ctx
+    })
+    ctx.touched.forEach(f => touched.add(f))
+    project = await status(dir)
+  }
 
-${worldFiles}
-
-${shots}`,
-    ctx,
-    maxTurns: 40 + 20 * project.shots.length
+  emit({ type: 'log', message: 'phase shots' })
+  const world = worldFiles()
+  const done: string[] = []
+  const failed: string[] = []
+  await pool(project.shots, PARALLEL, async shot => {
+    emit({ type: 'log', message: `shot_start ${shot.id}` })
+    const ctx = context(project.root, [`shots/${shot.id}/`])
+    try {
+      const summary = await runAgent('code', {
+        effort: 'medium',
+        system: buildShotSystem() + replyLanguage(values.lang),
+        prompt: `Build shot ${shot.id} of ${head(project)} from its plan.\n\ncopy.md:\n${copy}\n\n${world}\n\n${shotBrief(project, shot)}`,
+        ctx,
+        maxTurns: 30
+      })
+      done.push(`${shot.id}: ${summary}`)
+    } catch (err) {
+      failed.push(`${shot.id}: ${err instanceof Error ? err.message : String(err)}`)
+    }
+    ctx.touched.forEach(f => touched.add(f))
+    saveChecks(project, ctx)
+    emit({ type: 'log', message: `shot_done ${shot.id}` })
   })
-  saveChecks(project, ctx)
-  // A late change to the world leaves the earlier shots' stills out of
-  // date: render them again, so every shot ends with current stills
+  if (!done.length) throw new Error(failed[0] ?? 'no shot was built')
+
+  // Stills out of date (a shot that never rendered, a world changed after
+  // its stills): render them, so every shot ends with current stills
   const after = await status(dir)
   for (const s of after.shots) {
     if ((after.track === '3d' ? s.draft : s.final).stills) continue
     emit({ type: 'tool', name: 'render_stills', summary: s.id })
     await renderStills(after.root, s.id).catch(() => null)
   }
-  return { task: 'build', summary, touched: [...ctx.touched].sort() }
+  const summary = [...done, ...failed.map(f => `✗ ${f}`)].join('\n')
+  return { task: 'build', summary, touched: [...touched].sort(), failed: failed.map(f => f.split(':')[0]) }
 }
 
 interface PublishPost { id: string; name: string; title?: string; description?: string; tags?: string[]; pinned?: string; label?: string }

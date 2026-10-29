@@ -8,6 +8,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { captions, shot3d } from './create.mjs'
+import { lookById, lookPage, untouchedLook } from './looks.mjs'
 import { saveConfig } from './project.mjs'
 
 export const FILE = 'storyboard.json'
@@ -59,6 +60,9 @@ ${shot.text?.trim() || '(no text)'}
 ${shot.motion?.trim() || '(the move)'}
 `
 }
+
+// The 2D starter page of projects made before looks
+const isStarterPage = file => fs.existsSync(file) && fs.readFileSync(file, 'utf8').includes('Shots draw it from shots/*/shot.js')
 
 // Code nobody has touched yet: the starter the engine wrote
 const isStarter = file => fs.readFileSync(file, 'utf8').split('\n', 1)[0].includes('Starter shot')
@@ -142,9 +146,17 @@ ${shots.map((s, i) => `${i + 1}. ${line(s.text) || line(s.title)}`).join('\n')}
 ${shots.map((s, i) => `| ${i + 1} | ${s.duration} s | ${cell(s.title)}: ${cell(s.show)} | ${cell(s.motion)} |`).join('\n')}
 `)
 
+  // 2D: the plan's look becomes the world, while the AI hasn't changed it
+  const look = project.track === '2d' && lookById(sb.look) ? sb.look : null
+  const page = path.join(project.root, 'world', 'page.html')
+  if (look && (!fs.existsSync(page) || untouchedLook(fs.readFileSync(page, 'utf8'), project.size) || isStarterPage(page))) {
+    fs.mkdirSync(path.dirname(page), { recursive: true })
+    fs.writeFileSync(page, lookPage(look, project.size))
+  }
+
   // The starter caption layer follows the plan: 3D shows each shot's
   // text; 2D draws its text in the frame, so the layer goes
-  const cfg = { ...project.config, shots: shots.map(({ id, title, duration }) => ({ id, title, duration })) }
+  const cfg = { ...project.config, shots: shots.map(({ id, title, duration }) => ({ id, title, duration })), ...(look ? { look } : {}) }
   if (project.captions && fs.readFileSync(project.captions, 'utf8').includes("film's timeline. (starter)")) {
     if (project.track === '3d') fs.writeFileSync(project.captions, captions(project.size, shots))
     else cfg.captions = null
@@ -189,6 +201,7 @@ export function deriveStoryboard(project) {
   const hook = section(copy, 'Hook') || (script.split('\n')[0] ?? '').replace(/^\d+[.)]\s*/, '').trim()
   const sb = {
     target: project.duration,
+    look: project.config.look ?? null,
     copy: { idea: section(copy, 'Idea'), hook, body, facts },
     shots: shots.map(s => ({ ...s, show: placeholder(s.show) ? '' : s.show, text: placeholder(s.text) ? '' : s.text, motion: placeholder(s.motion) ? '' : s.motion }))
   }

@@ -73,6 +73,7 @@ ${FORMAT}
 storyboard.json, exactly this shape (JSON, no comments):
 {
   "target": <the requested length in seconds>,
+  "look": "<2D: the id of one look from the list in the request; 3D: leave it out>",
   "copy": {
     "idea": "<the idea in one or two sentences>",
     "hook": "<the opening line: a question or a surprising fact, under 20 words>",
@@ -93,25 +94,44 @@ How to plan:
 - On-screen text is short: a headline or a number, never a paragraph. Write it, and the copy, in the language of the idea.
 - Every number and claim in the video is in copy.facts with a source you are confident of. Never invent statistics; when unsure, say it qualitatively and leave the number out.
 - No brand names or people unless the idea asks for them.
+- 2D: pick the look that fits the idea's tone from the list in the request (or keep the one the person chose). Every shot is drawn in it, so plan visuals it can carry: typography, charts, diagrams, simple icons.
 - If storyboard.json already exists and the person asks for changes, revise it rather than starting over.
 
 Write the file with write_file (it is the only file you may write), then end with one or two sentences for the person about the plan.`
 }
 
-export function buildSystem() {
-  return `You are the agent in Shotloop, a desktop app for making short videos from code. A video has been planned: every shot has notes (what it must show, its on-screen text, its motion) and starter code. Build it: write the world and every shot so the film matches the plan and looks professionally designed.
+const TYPE_RULES = `- Type: use the platform's normal-width faces (2D: the kit's FONT and HEAD_FONT); never squeeze or stretch text with transforms or condensed widths to make it fit; shorten or wrap it instead.
+- Keep text large and inside the safe area (away from the bottom 18% of the frame).
+- Everything is a pure function of time: any frame renders on its own. Ease motion; nothing pops.
+- Comments in code are English and short.`
+
+// The world first (3D, or a 2D project without a look): one visual system
+// for the whole film, before the shots are built in parallel
+export function buildWorldSystem() {
+  return `You are the agent in Shotloop, a desktop app for making short videos from code. A video has been planned. Your part is the world: one coherent visual system for the whole film (palette, type scale, spacing, background, shared helpers or props), so every shot looks like part of the same video. Other agents build the shots after you, in parallel, from your world; they cannot change it.
 
 ${FORMAT}
 
-How to build:
-- First design the world: one coherent visual system for the whole film (palette, type scale, spacing, background, shared helpers or props), so every shot looks like part of the same video. Replace the starter world.
-- Type: use the platform's normal-width faces (2D: 'PingFang SC', -apple-system, sans-serif); never squeeze or stretch text with transforms or condensed widths to make it fit; shorten or wrap it instead.
-- Then build the shots in order. Each shot does what its notes say; its on-screen text is exactly the "On screen" text. Keep text large and inside the safe area (away from the bottom 18% of the frame).
-- Everything is a pure function of time: any frame renders on its own. Ease motion; nothing pops.
-- After writing a shot, render its stills and look at all three. Fix what is off (overlaps, clipped text, nothing moving, poor contrast) and render again; stop after three renders of one shot.
-- Call report_checks for each shot after its last render, with a result for every checklist rule.
-- Comments in code are English and short.
-- End with two or three sentences for the person: what you built and what to look at first. No headings, no lists.`
+How to build the world:
+- Replace the starter world. Put in it everything two shots share: helpers, props, sets, materials, the type and colors. Document its helpers in a short comment at the top, so a shot's author can use them without reading all of it.
+${TYPE_RULES}
+- Render the stills of the first shot to check the world draws; leave the shots' code to the shot agents.
+- End with one or two sentences for the person about the look. No headings, no lists.`
+}
+
+// One shot, alongside other shot agents: the world is fixed
+export function buildShotSystem() {
+  return `You are the agent in Shotloop, a desktop app for making short videos from code. A video has been planned and its world (the shared look and helpers) is ready. You build one shot; other agents build the other shots at the same time.
+
+${FORMAT}
+
+How to build the shot:
+- You may write only this shot's folder. The world is fixed: use its helpers (2D: window.kit, documented at the top of world/page.html), and draw anything only this shot needs in the shot itself.
+- The shot does what its notes say; its on-screen text is exactly the "On screen" text.
+${TYPE_RULES}
+- After writing the shot, render its stills and look at all three. Fix what is off (overlaps, clipped text, nothing moving, poor contrast) and render again; stop after three renders.
+- Call report_checks for the shot after its last render, with a result for every checklist rule.
+- End with one sentence for the person about the shot. No headings, no lists.`
 }
 
 const LANGUAGES: Record<string, string> = { en: 'English', 'zh-CN': 'Simplified Chinese', 'pt-BR': 'Brazilian Portuguese' }

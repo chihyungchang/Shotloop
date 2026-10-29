@@ -83,6 +83,8 @@ export interface Project {
   draft?: boolean
   // 3D: render samples per final frame
   samples?: number | null
+  // 2D: the built-in look the world started from
+  look?: string | null
   title: string
   slug: string
   track: '2d' | '3d'
@@ -141,6 +143,7 @@ export interface StoryShot {
 }
 export interface Storyboard {
   target?: number
+  look?: string | null
   copy: { idea?: string; hook: string; body: string; facts: { text: string; source: string }[] }
   shots: StoryShot[]
 }
@@ -274,6 +277,8 @@ export interface NewProject {
   track: '2d' | '3d'
   aspect: '9:16' | '16:9'
   duration: number
+  // 2D look id; '' lets the planner pick
+  look: string
 }
 
 export const api = {

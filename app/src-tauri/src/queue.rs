@@ -20,7 +20,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter};
 
 pub const LANES: [&str; 2] = ["render", "agent"];
-const LOG_LINES: usize = 80;
+const LOG_LINES: usize = 240;
 
 /// What the UI asks for
 #[derive(Deserialize, Clone, Debug)]

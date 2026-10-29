@@ -6,6 +6,8 @@ import { BrandIcon, hasBrand } from '../ai/BrandIcon'
 import { aiSummary, useSettings } from '../ai/useSettings'
 import { baseName, cleanRecent, projectsFolder, setProjectsFolder } from '../recent'
 import { Icon } from './Icon'
+import { LOOKS, lookById, lookName } from '../looks'
+import { LookSwatch } from './LookSwatch'
 import type { Key } from '../i18n/en'
 import { lang, t, tSplit } from '../i18n'
 
@@ -32,6 +34,8 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
   const [track, setTrack] = useState<Track>('2d')
   const [aspect, setAspect] = useState<Aspect>('9:16')
   const [length, setLength] = useState(30)
+  // 2D: a look, or '' for the AI to pick one that fits the idea
+  const [look, setLook] = useState('')
   const [folder, setFolder] = useState(projectsFolder())
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -84,7 +88,8 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
         title,
         track,
         aspect,
-        duration: length
+        duration: length,
+        look: track === '2d' ? look : ''
       })
       // A new project starts on its planning page: copy and storyboard first
       open(r.root, true)
@@ -154,6 +159,15 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
                 {LENGTHS.map(l => <option key={l} value={l}>{t('unit.s', { n: l })}</option>)}
               </select>
             </label>
+            {track === '2d' && (
+              <label className="chip-select" title={t('home.aria.look')}>
+                {lookById(look) ? <LookSwatch id={look} /> : <Icon name="spark" size={13} />}
+                <select value={look} onChange={e => setLook(e.target.value)} aria-label={t('home.aria.look')}>
+                  <option value="">{t('look.auto')}</option>
+                  {LOOKS.map(l => <option key={l.id} value={l.id}>{lookName(l.id)}</option>)}
+                </select>
+              </label>
+            )}
           </div>
           {ai && (
             <button className="model-chip" onClick={openSettings} title={t('ai.change')}>

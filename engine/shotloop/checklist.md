@@ -14,9 +14,11 @@ Each rule has an id the checks report against.
 - **readable**: The subject is at least ~3% of the frame height and
   inside the frame, at the start, middle and end. Something tiny or at
   the edge of the frame does not read.
-- **caption-zone**: Captions own the top ~40% of the frame (y 110–520 of
-  720×1280). The whole subject sits in the lower 60%, including whatever
-  appears last.
+- **caption-zone**: With a caption layer (captions.html in shotloop.json),
+  captions own the top ~40% of the frame (y 110–520 of 720×1280) and the
+  whole subject sits in the lower 60%, including whatever appears last.
+  Without one (2D pages that draw their own headline), nothing may
+  overlap the headline: the subject stays clear of it.
 - **motion**: Something moves that you can follow between the three
   stills: things travelling, lines drawing in, a wave along a row. Only a
   change in glow reads as nothing happening.

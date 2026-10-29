@@ -3,6 +3,7 @@
 
 import type { Job, Mode, Project, Shot, Take } from './api'
 import { t } from './i18n'
+import { lookName } from './looks'
 
 export type ShotState = 'cached' | 'stale' | 'missing' | 'queued' | 'rendering' | 'failed'
 
@@ -172,23 +173,42 @@ export function agentNow(job: Job): string | null {
   return quiet > QUIET ? t('act.thinkFor', { time: formatSeconds(quiet) }) : activityLine(last)
 }
 
-// Where a build stands, shot by shot: the shot the AI works on now (and
-// how), the shots whose code it has written, and whether it is still on
-// the shared look (world/) before the first shot
+// Where a build stands, shot by shot: the shots the AI works on now (two
+// at a time, each with what it is doing), the shots whose code it has
+// written, the phase (world first when there is no look, then the shots).
+// Builds before parallel shots had no markers: then the last shot touched
+// is the one in work
+export type ShotAction = 'write' | 'stills' | 'check'
 export function buildSteps(job: Job | null) {
   const written = new Set<string>()
-  let current: string | null = null
-  let action: 'write' | 'stills' | 'check' | null = null
+  const finished = new Set<string>()
+  const active = new Map<string, ShotAction>()
+  let phase: 'read' | 'world' | 'shots' = 'read'
   let world = false
+  let marked = false
   for (const l of job?.log ?? []) {
-    const m = l.match(/^(\w+)\s+(?:.*?shots\/)?(\d+[a-z0-9-]*)/i)
-    if (m && /^(write_file|edit_file|render_stills|report_checks|read_checklist)$/i.test(m[1])) {
-      current = m[2]
-      action = /render_stills/i.test(m[1]) ? 'stills' : /checks?/i.test(m[1]) ? 'check' : 'write'
-      if (action === 'write' && /shot\.\w+$/.test(l)) written.add(current)
+    let m: RegExpMatchArray | null
+    if (l === 'phase world') phase = 'world'
+    else if (l === 'phase shots') phase = 'shots'
+    else if ((m = l.match(/^shot_start (\S+)/))) {
+      marked = true
+      active.set(m[1], 'write')
+    } else if ((m = l.match(/^shot_done (\S+)/))) {
+      active.delete(m[1])
+      finished.add(m[1])
+    } else if ((m = l.match(/^(\w+)\s+(?:.*?shots\/)?(\d+[a-z0-9-]*)/i)) && /^(write_file|edit_file|render_stills|report_checks|read_checklist)$/i.test(m[1])) {
+      const id = m[2]
+      const action: ShotAction = /render_stills/i.test(m[1]) ? 'stills' : /checks?/i.test(m[1]) ? 'check' : 'write'
+      if (action === 'write' && /shot\.\w+$/.test(l)) written.add(id)
+      if (!marked) {
+        active.clear()
+        phase = 'shots'
+      }
+      if (!marked || active.has(id)) active.set(id, action)
     } else if (/^(write_file|edit_file)\s+world\//i.test(l)) world = true
   }
-  return { current, action, written, world }
+  if (job && job.state !== 'running' && job.state !== 'queued') active.clear()
+  return { active, written, finished, world, phase }
 }
 
 // Seconds since a running job's last event
@@ -217,22 +237,26 @@ export function planSteps(job: Job): Step[] {
   ]
 }
 
-// A build's steps: read the plan, design the shared look (world/), then
-// the shots one by one
-export function buildStepList(job: Job, shots: { id: string }[]): Step[] {
-  const { current, action, written, world } = buildSteps(job)
-  const finished = job.state === 'done'
+// A build's steps: read the plan, the shared look (a built-in look, or
+// designed by the AI), then the shots, two at a time
+export function buildStepList(job: Job, shots: { id: string }[], look: string | null): Step[] {
+  const { active, written, finished, world, phase } = buildSteps(job)
+  const done = job.state === 'done'
   const thinking = quietFor(job) > QUIET
-  const at = current ? 2 : world || thinking ? 1 : 0
-  const s = stepStates(3, at, finished)
-  const n = current ? shots.findIndex(x => x.id === current) + 1 : 0
-  const doing = action === 'stills' ? 'build.rendering' : action === 'check' ? 'build.checking' : 'build.writing'
+  const at = phase === 'shots' || active.size ? 2 : phase === 'world' || world || (!look && thinking) ? 1 : 0
+  const s = stepStates(3, at, done)
+  const n = (id: string) => shots.findIndex(x => x.id === id) + 1
+  const words: Record<ShotAction, 'build.writing' | 'build.rendering' | 'build.checking'> = { write: 'build.writing', stills: 'build.rendering', check: 'build.checking' }
+  const now = [...active].map(([id, a]) => t('build.shotDoing', { n: n(id), what: t(words[a]) })).join(' · ')
+  const count = new Set([...written, ...finished]).size
   return [
     { label: t('buildStep.read'), state: s[0] },
-    { label: t('buildStep.look'), state: s[1], detail: s[1] === 'active' ? t('buildStep.lookDetail') : undefined },
+    look
+      ? { label: t('buildStep.lookUsed', { name: lookName(look) }), state: s[0] === 'done' ? 'done' : 'todo' }
+      : { label: t('buildStep.look'), state: s[1], detail: s[1] === 'active' ? t('buildStep.lookDetail') : undefined },
     {
-      label: t('buildStep.shots', { done: Math.min(written.size, shots.length), total: shots.length }), state: s[2],
-      detail: s[2] === 'active' && n ? `${t('build.onShot', { n, total: shots.length })} · ${thinking ? t('build.thinking') : t(doing)}` : undefined
+      label: t('buildStep.shots', { done: Math.min(count, shots.length), total: shots.length }), state: s[2],
+      detail: s[2] === 'active' ? (now || (thinking ? t('build.thinking') : undefined)) : undefined
     }
   ]
 }

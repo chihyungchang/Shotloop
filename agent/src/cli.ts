@@ -78,7 +78,7 @@ const brief = (input: unknown) => {
 }
 const shortTool = (name: string) => name.replace(/^mcp__shotloop__/, '')
 
-export async function runCli(cli: CliId, model: string | undefined, system: string, prompt: string, ctx: ToolContext): Promise<string> {
+export async function runCli(cli: CliId, model: string | undefined, system: string, prompt: string, ctx: ToolContext, effort?: string): Promise<string> {
   const def = CLIS.find(c => c.id === cli)!
   const bin = findBin(def.bin)
   if (!bin) throw new Error(`${def.name} is not installed (${def.bin} not found)`)
@@ -106,7 +106,7 @@ export async function runCli(cli: CliId, model: string | undefined, system: stri
       const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose',
         '--mcp-config', config, '--strict-mcp-config', '--tools', '',
         '--allowedTools', 'mcp__shotloop', '--permission-mode', 'dontAsk',
-        '--append-system-prompt', system, ...(model ? ['--model', model] : [])]
+        '--append-system-prompt', system, ...(model ? ['--model', model] : []), ...(effort ? ['--effort', effort] : [])]
       // Assigned in the line callback, so TypeScript can't narrow them
       let result = null as string | null
       let failed = null as string | null
@@ -139,6 +139,7 @@ export async function runCli(cli: CliId, model: string | undefined, system: stri
         '-c', `mcp_servers.shotloop.args=${toml(server.args)}`,
         '-c', `mcp_servers.shotloop.env=${envToml}`,
         '--output-last-message', lastFile, ...(model ? ['-m', model] : []),
+        ...(effort ? ['-c', `model_reasoning_effort=${toml(effort === 'max' || effort === 'xhigh' ? 'high' : effort)}`] : []),
         `${system}\n\n${prompt}`]
       const r = await run(bin, args, work, line => {
         try {

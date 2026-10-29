@@ -85,11 +85,21 @@ export function preflight() {
   }
 }
 
-// task: "code" for fixes and copy (the stronger model), "routine" for checks
-export function runAgent(task: 'code' | 'routine', opts: Omit<AgentOptions, 'model'>): Promise<string> {
+// Claude Code's model per task when the person hasn't chosen one: its
+// default (the strongest) for code, Sonnet for the copy
+const CLAUDE_CLI: Record<Task, string | undefined> = { code: undefined, routine: undefined, copy: 'sonnet' }
+
+export type Task = 'code' | 'routine' | 'copy'
+
+// task: "code" for scenes and fixes (the stronger model), "routine" for
+// checks, "copy" for the plan's writing
+export function runAgent(task: Task, opts: Omit<AgentOptions, 'model'>): Promise<string> {
   switch (provider()) {
-    case 'cli':
-      return runCli(process.env.SHOTLOOP_CLI as CliId, process.env.SHOTLOOP_MODEL || undefined, opts.system, opts.prompt, opts.ctx)
+    case 'cli': {
+      const cli = process.env.SHOTLOOP_CLI as CliId
+      const model = process.env.SHOTLOOP_MODEL || (cli === 'claude' ? CLAUDE_CLI[task] : undefined)
+      return runCli(cli, model, opts.system, opts.prompt, opts.ctx, opts.effort)
+    }
     case 'local':
       return runLocal({
         url: process.env.SHOTLOOP_LOCAL_URL!,

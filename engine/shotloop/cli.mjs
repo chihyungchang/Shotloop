@@ -8,7 +8,7 @@
 //   shotloop assemble <project> [--final] [--aspect 9:16,16:9]
 //   shotloop export   <project> [--draft] [--aspect 9:16,16:9]
 //   shotloop cover    <project>
-//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d] [--aspect 9:16|16:9] [--duration 30]
+//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d] [--aspect 9:16|16:9] [--duration 30] [--look <id>]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
 //   shotloop move     <project> --to <folder>               move a project (a draft being saved)
@@ -73,6 +73,7 @@ const OPTIONS = {
     idea: { type: 'string' },
     track: { type: 'string' },
     duration: { type: 'string' },
+    look: { type: 'string' },
     examples: { type: 'boolean' },
     json: { type: 'boolean' }
 }
@@ -198,7 +199,7 @@ try {
     case 'status':
       {
         const project = loadProject(args[0])
-        result({ ...projectStatus(project), example: isExample(args[0]), draft: isDraft(args[0]), samples: project.track === '3d' ? finalSamples(project) : null })
+        result({ ...projectStatus(project), example: isExample(args[0]), draft: isDraft(args[0]), samples: project.track === '3d' ? finalSamples(project) : null, look: project.config.look ?? null })
       }
       break
     case 'render': {
@@ -275,7 +276,8 @@ try {
         idea: values.idea,
         track: values.track ?? '2d',
         aspect: values.aspect ?? '9:16',
-        duration: Number(values.duration ?? 30)
+        duration: Number(values.duration ?? 30),
+        look: values.look ?? ''
       }))
       break
     case 'list':

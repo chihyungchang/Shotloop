@@ -8,6 +8,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { editMode, entry, takes } from './cache.mjs'
+import { DEFAULT_LOOK, lookById, lookPage, LOOKS } from './looks.mjs'
 import { isProject, loadProject, saveConfig, SIZES } from './project.mjs'
 
 const round1 = x => Math.round(x * 10) / 10
@@ -210,11 +211,13 @@ function thumb(title) {
 `
 }
 
-export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16', duration = 30 }) {
+export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16', duration = 30, look = '' }) {
   const root = path.resolve(dir)
   if (fs.existsSync(root) && fs.readdirSync(root).length) throw new Error(`${root} exists and is not empty`)
   if (!['2d', '3d'].includes(track)) throw new Error('track must be 2d or 3d')
   if (!(duration >= 6 && duration <= 180)) throw new Error('duration must be 6–180 s')
+  // A look the person chose; none: the planner picks one
+  if (look && !lookById(look)) throw new Error(`no look "${look}" (${LOOKS.map(l => l.id).join(', ')})`)
   const size = aspect === '16:9' ? SIZES.landscape : SIZES.portrait
   title = title?.trim() || idea.split(/[.?!\n]/)[0].trim().slice(0, 60) || path.basename(root)
   idea = idea.trim()
@@ -225,7 +228,7 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
     fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true })
     fs.writeFileSync(path.join(root, rel), text)
   }
-  if (track === '2d') write('world/page.html', page2d(size))
+  if (track === '2d') write('world/page.html', lookPage(look || DEFAULT_LOOK, size))
   else write('world/world.py', WORLD_3D.replace('{{DURATION}}', String(duration)).replace('{{W}}', size.width).replace('{{H}}', size.height))
   shots.forEach((s, i) => {
     write(`shots/${s.id}/${track === '3d' ? 'shot.py' : 'shot.js'}`,
@@ -235,7 +238,8 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
   write('copy.md', `# ${title}\n\n## Idea\n\n${idea || '(the idea, in a few sentences)'}\n\n## Facts\n\n(each fact with its source)\n\n## Sources\n\n- \n`)
   write('script.md', `# ${title} · Script\n\n(one line per shot, what the viewer reads or hears)\n`)
   write('storyboard.md', `# ${title} · Storyboard\n\n| # | Time | Shot | Motion |\n| --- | --- | --- | --- |\n${shots.map((s, i) => `| ${i + 1} | ${s.duration} s | ${s.title} | |`).join('\n')}\n`)
-  write('captions.html', captions(size, shots))
+  // 2D draws its text in the frame: no caption layer over it
+  if (track === '3d') write('captions.html', captions(size, shots))
   write('music.json', JSON.stringify({
     bpm: 100, duration, chords: [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]],
     sections: [{ from: 0, to: duration, layers: ['pad', 'bass', 'hat'] }],
@@ -252,10 +256,11 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
     fps: 30,
     size,
     shots,
-    captions: 'captions.html',
+    captions: track === '3d' ? 'captions.html' : null,
     music: 'music.json',
     cover: 'thumb.html',
-    publish: 'publish.md'
+    publish: 'publish.md',
+    ...(track === '2d' && look ? { look } : {})
   })
   return { root, title, track, shots: shots.length }
 }

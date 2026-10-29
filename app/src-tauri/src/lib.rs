@@ -135,13 +135,16 @@ async fn create_project(
     track: String,
     aspect: String,
     duration: u32,
+    look: Option<String>,
 ) -> Result<Value, String> {
     let duration = duration.to_string();
     blocking(move || {
-        engine(
-            &handle.state::<App>(),
-            &["new", &dir, "--idea", &idea, "--title", &title, "--track", &track, "--aspect", &aspect, "--duration", &duration],
-        )
+        let mut args = vec!["new", &dir, "--idea", &idea, "--title", &title, "--track", &track, "--aspect", &aspect, "--duration", &duration];
+        let look = look.unwrap_or_default();
+        if !look.is_empty() {
+            args.extend(["--look", look.as_str()]);
+        }
+        engine(&handle.state::<App>(), &args)
     })
     .await
 }
