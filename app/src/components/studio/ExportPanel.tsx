@@ -1,5 +1,5 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { agentError } from '../../ai/errors'
 import { api, fileUrl, type ExportResult, type Job, type Mode, type MusicInfo, type Project } from '../../api'
 import { estimate, formatSeconds } from '../../model'
@@ -13,54 +13,52 @@ const ASPECTS: { id: string; label: Key; note: Key }[] = [
 ]
 const PRESETS = ['calm', 'bright', 'groove', 'tech'] as const
 
+type Prefs = { mode?: Mode; aspects?: string[] }
+const LAST = 'shotloop.export.last'
+const readPrefs = (key: string): Prefs | null => {
+  try {
+    return JSON.parse(localStorage.getItem(key) ?? 'null')
+  } catch {
+    return null
+  }
+}
+
 // Export (docs/PRD.md §7.9, §7.10): quality, aspects and music, then the
-// film from cached shots (only the changed ones re-render), with its
-// progress in plain sight; then the publish copy, per platform, ready to
-// copy.
+// film from cached shots (only the changed ones re-render); then the
+// publish copy, per platform, a field at a time.
 export function ExportPanel({ project, jobs, refresh, openSettings }: {
   project: Project
   jobs: Job[]
   refresh: () => void
   openSettings: () => void
 }) {
-  // The last choices for this project, kept on this Mac
+  // The last choices: this project's, else the last export's anywhere
   const prefsKey = `shotloop.export.${project.root}`
-  const saved = (() => {
-    try {
-      return JSON.parse(localStorage.getItem(prefsKey) ?? 'null') as { mode?: Mode; aspects?: string[] } | null
-    } catch {
-      return null
-    }
-  })()
+  const saved = readPrefs(prefsKey) ?? readPrefs(LAST)
   const [mode, setMode] = useState<Mode>(saved?.mode ?? 'final')
-  const [aspects, setAspects] = useState<string[]>(saved?.aspects?.length ? saved.aspects : ['9:16', '16:9'])
+  const [aspects, setAspects] = useState<string[]>(saved?.aspects?.length ? saved.aspects : ['9:16'])
   useEffect(() => {
     try {
-      localStorage.setItem(prefsKey, JSON.stringify({ mode, aspects }))
+      const v = JSON.stringify({ mode, aspects })
+      localStorage.setItem(prefsKey, v)
+      localStorage.setItem(LAST, v)
     } catch {
       // storage unavailable: the choice lasts while the panel is open
     }
   }, [prefsKey, mode, aspects])
   const [latest, setLatest] = useState<ExportResult | null>(null)
-  const [publish, setPublish] = useState<string | null>(null)
-  const [music, setMusic] = useState<MusicInfo | null>(null)
   // How many renders the current export started with, for its progress
   const [batch, setBatch] = useState(0)
 
   const mine = jobs.filter(j => j.project === project.root)
   const exportJob = mine.filter(j => j.kind === 'export').at(-1)
-  const publishJob = mine.filter(j => j.kind === 'publish').at(-1)
   const exporting = !!exportJob && (exportJob.state === 'running' || exportJob.state === 'queued')
   const renders = mine.filter(j => j.kind === 'render' && (j.state === 'running' || j.state === 'queued'))
   const rendering = renders.find(j => j.state === 'running')
 
   useEffect(() => {
     api.readText(project.root, 'out/latest.json').then(t => setLatest(JSON.parse(t)), () => setLatest(null))
-    if (project.files.publish) api.readText(project.root, 'publish.md').then(setPublish, () => setPublish(null))
-  }, [project, exportJob?.state, publishJob?.state])
-  useEffect(() => {
-    api.music(project.root).then(setMusic, () => setMusic(null))
-  }, [project.root])
+  }, [project, exportJob?.state])
 
   // Shots whose frames for this mode are out of date
   const pending = project.shots.filter(s => s[mode].state !== 'cached')
@@ -72,14 +70,6 @@ export function ExportPanel({ project, jobs, refresh, openSettings }: {
     setBatch(pending.length)
     for (const s of pending) api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false })
     api.enqueue({ kind: 'export', project: project.root, mode, aspects })
-  }
-  const changeMusic = async (change: Parameters<typeof api.music>[1]) => {
-    setMusic(await api.music(project.root, change))
-    refresh()
-  }
-  const chooseFile = async () => {
-    const file = await pick({ title: t('music.dialog'), filters: [{ name: 'Audio', extensions: ['mp3', 'wav', 'm4a', 'aac', 'aiff', 'flac'] }] })
-    if (typeof file === 'string') changeMusic({ file })
   }
 
   // Progress: the shots still to render, then the joining
@@ -101,54 +91,27 @@ export function ExportPanel({ project, jobs, refresh, openSettings }: {
               <button key={m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>{t(m === 'draft' ? 'mode.Draft' : 'mode.Final')}</button>
             ))}
           </div>
+          <p className="hint">{t(mode === 'draft' ? 'export.draftNote' : 'export.finalNote')}</p>
           {project.track === '3d' && mode === 'final' && <Samples project={project} refresh={refresh} />}
         </section>
 
         <section>
           <h3>{t('export.aspects')}</h3>
-          <div className="aspect-cards">
+          <div className="music-chips">
             {ASPECTS.map(a => {
               const on = aspects.includes(a.id)
               return (
-                <button key={a.id} className={`aspect-card${on ? ' on' : ''}`} aria-pressed={on}
+                <button key={a.id} className={`provider-chip aspect-chip${on ? ' on' : ''}`} aria-pressed={on} title={t(a.note)}
                   onClick={() => setAspects(on ? aspects.filter(x => x !== a.id) : ['9:16', '16:9'].filter(x => x === a.id || aspects.includes(x)))}>
-                  <span className={`aspect-shape a${a.id.replace(':', '')}`} />
-                  <strong>{t(a.label)} <span className="muted">{a.id}</span></strong>
-                  <span className="small muted">{t(a.note)}</span>
-                  {on && <span className="aspect-check"><Icon name="check" size={11} /></span>}
+                  <span className={`aspect-glyph a${a.id.replace(':', '')}`} /> {t(a.label)} <span className="muted">{a.id}</span>
+                  {on && <Icon name="check" size={12} />}
                 </button>
               )
             })}
           </div>
         </section>
 
-        <section>
-          <h3>{t('music.title')}</h3>
-          <div className="music-chips">
-            <button className={`provider-chip${music?.kind === 'none' ? ' on' : ''}`} onClick={() => changeMusic({ none: true })}>{t('music.none')}</button>
-            {PRESETS.map(p => (
-              <button key={p} className={`provider-chip${music?.kind === 'preset' && music.preset === p ? ' on' : ''}`} onClick={() => changeMusic({ preset: p })}>
-                {t(`music.${p}`)}
-              </button>
-            ))}
-            {music?.kind === 'preset' && !PRESETS.includes(music.preset as (typeof PRESETS)[number]) && (
-              <button className="provider-chip on">{t('music.custom')}</button>
-            )}
-            <button className={`provider-chip${music?.kind === 'file' ? ' on' : ''}`} onClick={chooseFile} title={music?.name}>
-              <Icon name="folder" size={12} /> {music?.kind === 'file' ? music.name : t('music.file')}
-            </button>
-          </div>
-          {music && music.kind !== 'none' && (
-            <label className="volume">
-              <Icon name="volume" size={14} />
-              <input type="range" min={0} max={1.5} step={0.05} defaultValue={music.gain} key={`${music.kind}-${music.preset ?? music.name}`}
-                onChange={e => e.currentTarget.parentElement?.setAttribute('data-value', e.currentTarget.value)}
-                onPointerUp={e => changeMusic({ gain: Number(e.currentTarget.value) })}
-                onKeyUp={e => changeMusic({ gain: Number(e.currentTarget.value) })} aria-label={t('music.volume')} />
-            </label>
-          )}
-          <p className="hint">{t('music.hint')}</p>
-        </section>
+        <Music project={project} refresh={refresh} />
       </fieldset>
 
       {exporting
@@ -161,16 +124,14 @@ export function ExportPanel({ project, jobs, refresh, openSettings }: {
           </div>
         )
         : (
-          <>
-            <p className="small muted">
-              {pending.length
-                ? t('export.renders', { n: pending.length, total: project.shots.length, time: formatSeconds(time), ids: pending.map(s => s.id).join(', ') })
-                : t('export.allCached', { total: project.shots.length, mode: t(`mode.${mode}`) })}
-            </p>
+          <div className="export-go">
+            <span className="small muted" title={pending.map(s => s.id).join(', ')}>
+              {pending.length ? t('export.need', { n: pending.length, time: formatSeconds(time) }) : t('export.ready')}
+            </span>
             <button className="primary wide" onClick={run} disabled={!aspects.length}>
               <Icon name="export" size={14} /> {t('export.button', { mode: t(`mode.${mode}`) })}
             </button>
-          </>
+          </div>
         )}
       {exportJob?.state === 'failed' && <pre className="error-box small">{exportJob.error}</pre>}
 
@@ -194,77 +155,171 @@ export function ExportPanel({ project, jobs, refresh, openSettings }: {
         </div>
       )}
 
-      <section className="publish-section">
-        <h3>{t('export.publish')}</h3>
-        <p className="hint">{t('export.publishNote')}</p>
-        <button
-          onClick={() => api.enqueue({ kind: 'publish', project: project.root })}
-          disabled={publishJob?.state === 'running' || publishJob?.state === 'queued'}
-        >
-          {publishJob?.state === 'running' || publishJob?.state === 'queued' ? <span className="spinner small" /> : <Icon name="spark" size={13} />}
-          {' '}{publishJob?.state === 'running' ? t('export.writing') : t(publish ? 'export.rewrite' : 'export.write')}
-        </button>
-        {publishJob?.state === 'failed' && (
-          <div className="error-box small">
-            {agentError(publishJob.error).text}
-            {agentError(publishJob.error).setup && <button className="small" onClick={openSettings}>{t('agent.openSettings')}</button>}
-          </div>
-        )}
-        {publish && <PublishCards text={publish} />}
-      </section>
+      <Publish project={project} jobs={mine} openSettings={openSettings} />
     </div>
   )
 }
 
-// publish.md as cards: one per platform ("## Platform"), each copyable
-// block (a fenced code block) with its label and a Copy button
-function PublishCards({ text }: { text: string }) {
-  const sections = text.split(/^## /m).slice(1).map(chunk => {
-    const [name, ...rest] = chunk.split('\n')
-    const blocks: { label: string; body: string }[] = []
-    const lines = rest
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].startsWith('```')) {
-        const start = i + 1
-        let end = start
-        while (end < lines.length && !lines[end].startsWith('```')) end++
-        let j = i - 1
-        while (j >= 0 && !lines[j].trim()) j--
-        const label = j >= 0 ? lines[j].replace(/[:：]\s*$/, '').replace(/\(.*?\)/g, '').trim() : ''
-        blocks.push({ label, body: lines.slice(start, end).join('\n').trim() })
-        i = end
-      }
+// The music bed: none, a preset or the person's file, its volume, and a
+// listen button (the bed is made for the film's length, then played)
+function Music({ project, refresh }: { project: Project; refresh: () => void }) {
+  const [music, setMusic] = useState<MusicInfo | null>(null)
+  const [playing, setPlaying] = useState<'loading' | 'on' | null>(null)
+  const audio = useRef<HTMLAudioElement | null>(null)
+  useEffect(() => {
+    api.music(project.root).then(setMusic, () => setMusic(null))
+    return () => audio.current?.pause()
+  }, [project.root])
+
+  const stop = () => {
+    audio.current?.pause()
+    setPlaying(null)
+  }
+  const listen = async () => {
+    setPlaying('loading')
+    try {
+      const r = await api.music(project.root, { bed: true })
+      if (!r.bed) return setPlaying(null)
+      audio.current?.pause()
+      const a = new Audio(fileUrl(r.bed))
+      a.onended = () => setPlaying(null)
+      audio.current = a
+      await a.play()
+      setPlaying('on')
+    } catch {
+      setPlaying(null)
     }
-    return { name: name.trim(), blocks }
-  }).filter(s => s.blocks.length)
-  if (!sections.length) return <pre className="publish">{text}</pre>
+  }
+  const change = async (c: Parameters<typeof api.music>[1]) => {
+    const wasPlaying = playing === 'on'
+    stop()
+    setMusic(await api.music(project.root, c))
+    refresh()
+    // Picking another track while listening plays the new one
+    if (wasPlaying && !c?.none) listen()
+  }
+  const chooseFile = async () => {
+    const file = await pick({ title: t('music.dialog'), filters: [{ name: 'Audio', extensions: ['mp3', 'wav', 'm4a', 'aac', 'aiff', 'flac'] }] })
+    if (typeof file === 'string') change({ file })
+  }
+
   return (
-    <div className="publish-cards">
-      {sections.map(s => (
-        <div key={s.name} className="publish-card">
-          <strong>{s.name}</strong>
-          {s.blocks.map((b, i) => <CopyBlock key={i} label={b.label} body={b.body} />)}
-        </div>
-      ))}
-    </div>
+    <section>
+      <div className="row between">
+        <h3>{t('music.title')}</h3>
+        {music && music.kind !== 'none' && (
+          <button className="link listen" onClick={playing ? stop : listen}>
+            {playing === 'loading' ? <span className="spinner small" /> : <Icon name={playing ? 'pause' : 'play'} size={11} />} {t(playing ? 'music.stop' : 'music.listen')}
+          </button>
+        )}
+      </div>
+      <div className="music-chips">
+        <button className={`provider-chip${music?.kind === 'none' ? ' on' : ''}`} onClick={() => change({ none: true })}>{t('music.none')}</button>
+        {PRESETS.map(p => (
+          <button key={p} className={`provider-chip${music?.kind === 'preset' && music.preset === p ? ' on' : ''}`} onClick={() => change({ preset: p })}>
+            {t(`music.${p}`)}
+          </button>
+        ))}
+        {music?.kind === 'preset' && !PRESETS.includes(music.preset as (typeof PRESETS)[number]) && (
+          <button className="provider-chip on">{t('music.custom')}</button>
+        )}
+        <button className={`provider-chip${music?.kind === 'file' ? ' on' : ''}`} onClick={chooseFile} title={music?.name}>
+          <Icon name="folder" size={12} /> <span className="ellipsis">{music?.kind === 'file' ? music.name : t('music.file')}</span>
+        </button>
+      </div>
+      {music && music.kind !== 'none' && (
+        <label className="volume">
+          <Icon name="volume" size={14} />
+          <input type="range" min={0} max={1.5} step={0.05} defaultValue={music.gain} key={`${music.kind}-${music.preset ?? music.name}`}
+            onPointerUp={e => change({ gain: Number(e.currentTarget.value) })}
+            onKeyUp={e => change({ gain: Number(e.currentTarget.value) })} aria-label={t('music.volume')} />
+        </label>
+      )}
+    </section>
   )
 }
 
-function CopyBlock({ label, body }: { label: string; body: string }) {
+interface Post { id: string; name: string; title?: string; description?: string; tags?: string[]; pinned?: string; label?: string }
+
+// The publish copy: per platform, its title, description, tags and
+// pinned comment as fields, each with its own Copy; edits are saved
+function Publish({ project, jobs, openSettings }: { project: Project; jobs: Job[]; openSettings: () => void }) {
+  const job = jobs.filter(j => j.kind === 'publish').at(-1)
+  const busy = job?.state === 'running' || job?.state === 'queued'
+  const [posts, setPosts] = useState<Post[] | null>(null)
+  const [tab, setTab] = useState(0)
+  const timer = useRef<number | null>(null)
+  useEffect(() => {
+    api.readText(project.root, 'publish.json').then(
+      text => setPosts(JSON.parse(text).platforms ?? null),
+      () => setPosts(null)
+    )
+  }, [project.root, job?.state])
+  const edit = (i: number, patch: Partial<Post>) => {
+    if (!posts) return
+    const next = posts.map((p, k) => (k === i ? { ...p, ...patch } : p))
+    setPosts(next)
+    if (timer.current) window.clearTimeout(timer.current)
+    timer.current = window.setTimeout(() => api.writeText(project.root, 'publish.json', JSON.stringify({ platforms: next }, null, 2) + '\n'), 500)
+  }
+  const post = posts?.[Math.min(tab, (posts?.length ?? 1) - 1)]
+  const i = posts && post ? posts.indexOf(post) : 0
+  // YouTube takes tags as words; the others as hashtags in the caption
+  const tagText = (p: Post) => (p.id === 'youtube' ? (p.tags ?? []).join(', ') : (p.tags ?? []).map(x => `#${x.replace(/^#/, '').replace(/\s+/g, '')}`).join(' '))
+  const why = job?.state === 'failed' ? agentError(job.error) : null
+
+  return (
+    <section className="publish-section">
+      <div className="row between">
+        <h3>{t('export.publish')}</h3>
+        <button className="small" onClick={() => api.enqueue({ kind: 'publish', project: project.root })} disabled={busy}>
+          {busy ? <span className="spinner small" /> : <Icon name="spark" size={12} />} {t(busy ? 'export.writing' : posts ? 'export.rewrite' : 'export.write')}
+        </button>
+      </div>
+      {!posts && !busy && <p className="hint">{t('export.publishNote')}</p>}
+      {why && (
+        <div className="error-box small">
+          {why.text}
+          {why.setup && <button className="small" onClick={openSettings}>{t('agent.openSettings')}</button>}
+        </div>
+      )}
+      {posts && post && (
+        <div className="publish-form">
+          <div className="subtabs" role="tablist">
+            {posts.map((p, k) => (
+              <button key={p.id} role="tab" aria-selected={k === i} className={k === i ? 'on' : ''} onClick={() => setTab(k)} title={p.name}>{p.name.replace(/^Instagram /, '').replace(/ Shorts$/, '')}</button>
+            ))}
+          </div>
+          {post.title != null && post.title !== '' && <Field label={t('pub.title')} value={post.title} onChange={v => edit(i, { title: v })} />}
+          <Field label={t('pub.description')} value={post.description ?? ''} rows={5} onChange={v => edit(i, { description: v })} />
+          <Field label={t('pub.tags')} value={tagText(post)} copyOnly />
+          {post.pinned ? <Field label={t('pub.pinned')} value={post.pinned} rows={2} onChange={v => edit(i, { pinned: v })} /> : null}
+          {post.label && <p className="hint"><Icon name="info" size={12} /> {post.label}</p>}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function Field({ label, value, rows = 1, onChange, copyOnly }: { label: string; value: string; rows?: number; onChange?: (v: string) => void; copyOnly?: boolean }) {
   const [copied, setCopied] = useState(false)
   return (
-    <div className="copy-block">
+    <div className="pub-field">
       <div className="row between">
         <span className="small muted">{label}</span>
         <button className="small ghost" onClick={() => {
-          navigator.clipboard?.writeText(body)
+          navigator.clipboard?.writeText(value)
           setCopied(true)
           setTimeout(() => setCopied(false), 1500)
         }}>
           <Icon name={copied ? 'check' : 'copy'} size={12} /> {t(copied ? 'export.copied' : 'export.copy')}
         </button>
       </div>
-      <p>{body}</p>
+      {copyOnly
+        ? <p className="pub-tags">{value}</p>
+        : rows > 1
+          ? <textarea rows={rows} value={value} onChange={e => onChange?.(e.target.value)} />
+          : <input value={value} onChange={e => onChange?.(e.target.value)} />}
     </div>
   )
 }
@@ -314,7 +369,6 @@ function Samples({ project, refresh }: { project: Project; refresh: () => void }
           )
           : <button className="provider-chip" onClick={() => setCustom(true)}>{t('samples.custom')}</button>}
       </div>
-      <p className="hint">{t('samples.hint')}</p>
     </div>
   )
 }

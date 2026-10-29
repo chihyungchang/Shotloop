@@ -18,7 +18,7 @@
 //   shotloop library  search --source polypizza|smithsonian --query … [--key] [--cursor] [--all]
 //                     get --item '<search result>' | list [<project>] | remove <id>
 //                     use <project> <id> | unuse <project> <id> | import <file.glb> [--title]   the 3D asset library
-//   shotloop music    <project> [--preset calm|bright|groove|tech | --file <audio> | --none] [--gain 0–2]
+//   shotloop music    <project> [--preset calm|bright|groove|tech | --file <audio> | --none] [--gain 0–2] [--bed]
 //   shotloop prune    <project>                          drop unused cache entries
 //   shotloop doctor                                      Chrome, ffmpeg, Blender
 //
@@ -40,6 +40,7 @@ import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
 import * as library from './library.mjs'
 import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
+import { musicBed } from './bed.mjs'
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -59,6 +60,7 @@ const { values, positionals } = parseArgs({
     derive: { type: 'boolean' },
     to: { type: 'string' },
     reset: { type: 'boolean' },
+    bed: { type: 'boolean' },
     samples: { type: 'string' },
     all: { type: 'boolean' },
     file: { type: 'string' },
@@ -192,7 +194,9 @@ try {
     case 'music': {
       const project = loadProject(args[0])
       const change = values.preset || values.file || values.none || values.gain != null
-      result(change ? setMusic(project, { preset: values.preset, file: values.file, none: values.none, gain: values.gain }) : musicInfo(project))
+      const info = change ? setMusic(project, { preset: values.preset, file: values.file, none: values.none, gain: values.gain }) : musicInfo(project)
+      // --bed: the bed itself, to listen to (made now if needed)
+      result(values.bed ? { ...info, bed: musicBed(loadProject(args[0])) } : info)
       break
     }
     case 'quality': {

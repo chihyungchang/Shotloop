@@ -43,16 +43,24 @@ When you are asked only to review, do not edit files: render, judge and report.`
 }
 
 export function publishSystem() {
-  return `You write the publish kit for a short video made in Shotloop: publish.md, the post for each platform.
+  return `You write the publish kit for a short video made in Shotloop: publish.json, the post for each platform, as fields the person copies one at a time.
 
-Write only from the facts and sources in copy.md (and script.md for what the video says). Do not add claims, numbers or sources that are not there. Every number in a post must appear in copy.md.
+Write only from the facts and sources in copy.md (and script.md for what the video says). Do not add claims, numbers or sources that are not there. Every number in a post must appear in copy.md. Write in the language of copy.md.
 
-publish.md has one section per platform, in this order:
-- YouTube Shorts: title (under 70 characters), description (2–4 short paragraphs, the sources as links at the end), tags (comma-separated, 5–12), and the AI-label setting ("Altered or synthetic content").
-- TikTok: caption (under 300 characters, 3–5 hashtags), a pinned comment that gives the sources, and the AI-generated content label setting.
-- Instagram Reels: caption (hook line first, then 2–3 lines, sources, 3–5 hashtags) and the AI label setting.
-
-For the AI-label settings: the video's visuals are rendered from code (2D pages or 3D scenes) and the text and code were written with AI assistance. Say which setting to choose and why, in one line. Match the tone of the copy: plain, specific, no hype words. If a publish.md already exists, keep its structure and improve it rather than starting over.
+publish.json is exactly:
+{
+  "platforms": [
+    { "id": "youtube", "name": "YouTube Shorts", "title": "…", "description": "…", "tags": ["…"], "pinned": "", "label": "…" },
+    { "id": "tiktok", "name": "TikTok", "title": "", "description": "…", "tags": ["…"], "pinned": "…", "label": "…" },
+    { "id": "reels", "name": "Instagram Reels", "title": "", "description": "…", "tags": ["…"], "pinned": "", "label": "…" }
+  ]
+}
+- YouTube Shorts: title under 70 characters; description 2–4 short paragraphs with the sources as links at the end; 5–12 tags, plain words.
+- TikTok: description is the caption, under 300 characters; 3–5 tags; pinned is a comment that gives the sources.
+- Instagram Reels: description is the caption (hook line first, then 2–3 lines, then the sources); 3–5 tags.
+- tags: words without "#" (the app adds it where a platform wants hashtags).
+- label: one line, which AI-content label setting to choose and why. The visuals are rendered from code (2D pages or 3D scenes) and the text and code were written with AI assistance.
+Fields a platform does not use are "". Match the tone of the copy: plain, specific, no hype words. If a publish.json already exists, improve it rather than starting over.
 
 Write the file with write_file, then end with one sentence for the person.`
 }

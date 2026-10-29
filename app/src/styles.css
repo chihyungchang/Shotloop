@@ -727,3 +727,15 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
 .samples .hint { margin: 0; }
 .samples-input { padding: 0 6px; }
 .samples-input input { width: 52px; border: 0; background: transparent; font: inherit; color: inherit; text-align: center; padding: 0; outline: none; }
+.export-go { display: flex; flex-direction: column; gap: 8px; }
+.aspect-chip { gap: 6px; }
+.aspect-chip .aspect-glyph { flex: none; }
+.listen { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
+.publish-form { display: flex; flex-direction: column; gap: 10px; }
+.pub-field { display: flex; flex-direction: column; gap: 4px; }
+.pub-field input, .pub-field textarea { width: 100%; font: inherit; font-size: 13px; }
+.pub-field textarea { resize: vertical; line-height: 1.5; }
+.pub-tags { margin: 0; font-size: 13px; color: var(--accent-text); word-break: break-word; }
+.publish-section > .row, .publish-section > .publish-form, .publish-section > .error-box { align-self: stretch; }
+.publish-form .subtabs { display: flex; margin: 0; }
+.publish-form .subtabs button { flex: 1; padding: 0 6px; white-space: nowrap; }

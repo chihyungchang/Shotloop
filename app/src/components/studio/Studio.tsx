@@ -130,7 +130,8 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
             <span>{t('studio.quality')}</span>
             <div className="segmented" role="radiogroup" aria-label={t('studio.modeAria')}>
               {(['draft', 'final'] as Mode[]).map(m => (
-                <button key={m} role="radio" aria-checked={mode === m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>
+                <button key={m} role="radio" aria-checked={mode === m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}
+                  title={t(m === 'draft' ? 'export.draftNote' : 'export.finalNote')}>
                   {t(m === 'draft' ? 'mode.Draft' : 'mode.Final')}
                 </button>
               ))}

@@ -384,7 +384,7 @@ async fn set_title(handle: AppHandle, path: String, title: String) -> Result<Val
 /// The project's music bed: read it, or set a preset, an audio file, none,
 /// and the volume
 #[tauri::command]
-async fn music(handle: AppHandle, path: String, preset: Option<String>, file: Option<String>, none: Option<bool>, gain: Option<f64>) -> Result<Value, String> {
+async fn music(handle: AppHandle, path: String, preset: Option<String>, file: Option<String>, none: Option<bool>, gain: Option<f64>, bed: Option<bool>) -> Result<Value, String> {
     blocking(move || {
         let gain = gain.map(|g| g.to_string());
         let mut args = vec!["music", path.as_str()];
@@ -399,6 +399,9 @@ async fn music(handle: AppHandle, path: String, preset: Option<String>, file: Op
         }
         if let Some(g) = gain.as_deref() {
             args.extend(["--gain", g]);
+        }
+        if bed == Some(true) {
+            args.push("--bed");
         }
         engine(&handle.state::<App>(), &args)
     })

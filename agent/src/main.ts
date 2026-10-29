@@ -245,19 +245,38 @@ ${shots}`,
   return { task: 'build', summary, touched: [...ctx.touched].sort() }
 }
 
+interface PublishPost { id: string; name: string; title?: string; description?: string; tags?: string[]; pinned?: string; label?: string }
+
+function publishMarkdown(title: string, posts: PublishPost[]) {
+  const block = (label: string, text?: string) => (text?.trim() ? `${label}:\n\n\`\`\`\n${text.trim()}\n\`\`\`\n` : '')
+  return `# ${title} · Publish\n\n` + posts.map(p => [
+    `## ${p.name}\n`,
+    block('Title', p.title),
+    block('Description', p.description),
+    block('Tags', (p.tags ?? []).join(', ')),
+    block('Pinned comment', p.pinned),
+    p.label?.trim() ? `AI label: ${p.label.trim()}\n` : ''
+  ].filter(Boolean).join('\n')).join('\n')
+}
+
 async function publishTask() {
   const project = await status(dir)
-  const ctx = context(project.root, ['publish.md'])
-  const docs = ['copy.md', 'script.md', 'publish.md']
+  const ctx = context(project.root, ['publish.json'])
+  const docs = ['copy.md', 'script.md', 'publish.json']
     .map(f => `${f}:\n${read(path.join(project.root, f))}`)
     .join('\n\n')
   const summary = await runAgent('code', {
     effort: 'high',
     system: publishSystem(),
-    prompt: `Write publish.md for "${project.title}" (${project.duration} s, ${project.track.toUpperCase()}).\n\n${docs}${credits(project)}`,
+    prompt: `Write publish.json for "${project.title}" (${project.duration} s, ${project.track.toUpperCase()}).\n\n${docs}${credits(project)}`,
     ctx
   })
-  return { task: 'publish', summary, touched: [...ctx.touched], file: path.join(project.root, 'publish.md') }
+  // The fields, checked; publish.md is the same kit to read, kept for the export folder
+  const file = path.join(project.root, 'publish.json')
+  const kit = JSON.parse(fs.readFileSync(file, 'utf8')) as { platforms?: PublishPost[] }
+  if (!Array.isArray(kit.platforms) || !kit.platforms.length) throw new Error('publish.json has no platforms; try again')
+  fs.writeFileSync(path.join(project.root, 'publish.md'), publishMarkdown(project.title, kit.platforms))
+  return { task: 'publish', summary, touched: [...ctx.touched], file }
 }
 
 try {
