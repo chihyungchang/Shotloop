@@ -17,8 +17,9 @@
                --accent-soft a tinted fill, --accent-text accent as text,
                --accent-line accent as a border, --focus the focus ring
    Action      --primary / --primary-fg: the inverted main button
-   Stage       --stage*: the canvas frames are judged on, dark in both
-               themes so colours read true
+   Stage       --stage*: the canvas frames are judged on, a dark graphite
+               in both themes so colours read true and black frames
+               still show their edge
    Status      --success, --warning, --danger, --info (+ -soft fills)
    Shape       square cells (--r-* are 0); only dots, toggles and the
                send button are round (--r-pill)
@@ -69,9 +70,9 @@
   --primary: #0a0a0a;
   --primary-fg: #f1f1ee;
   --focus: #2f5cff;
-  --stage: #050607;
-  --stage-raised: #11161a;
-  --stage-border: #2a3330;
+  --stage: #15191b;
+  --stage-raised: #1f2427;
+  --stage-border: #353d3a;
   --stage-text: #8a958f;
   --success: #1d8a5c;
   --warning: #b26b00;
@@ -99,9 +100,9 @@
   --primary: #e8f0ec;
   --primary-fg: #050607;
   --focus: #7aa2ff;
-  --stage: #000000;
-  --stage-raised: #11161a;
-  --stage-border: #34403b;
+  --stage: #121618;
+  --stage-raised: #1c2124;
+  --stage-border: #3a4641;
   --stage-text: #a7b3ad;
   --success: #38f2a9;
   --warning: #ffb340;
@@ -118,5 +119,10 @@
   --info-soft: color-mix(in srgb, var(--info) 12%, transparent);
   /* Scrim for labels over frames, the same in both themes */
   --scrim: rgb(0 0 0 / 0.6);
-  --stage-grid: rgb(255 255 255 / 0.035);
+  /* The stage is a lifted graphite, not black, so dark frames show their
+     edge; a two-level grid (24 px, a stronger line every 96 px) and a
+     hairline around every frame */
+  --stage-grid: rgb(255 255 255 / 0.06);
+  --stage-grid-major: rgb(255 255 255 / 0.12);
+  --stage-frame: rgb(255 255 255 / 0.22);
 }
