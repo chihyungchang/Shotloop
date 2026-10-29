@@ -259,7 +259,14 @@ pub fn run() {
         .setup(|app| {
             let config_dir = app.path().app_config_dir()?;
             let settings = settings::load(&config_dir);
-            let root = env::repo_root(app.path().resource_dir().ok());
+            let resource_dir = app.path().resource_dir().ok();
+            let root = env::repo_root(resource_dir.clone());
+            // A bundled app runs its examples from a writable copy
+            if resource_dir.as_deref() == Some(root.as_path()) {
+                let examples = app.path().app_data_dir()?.join("examples");
+                env::seed_examples(&root.join("examples"), &examples);
+                std::env::set_var("SHOTLOOP_EXAMPLES", &examples);
+            }
             let queue = Queue::new();
             *queue.launch.lock().unwrap() = launch_for(root, &settings);
             queue.start(app.handle().clone());

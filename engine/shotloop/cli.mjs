@@ -55,6 +55,9 @@ const result = value => {
   else console.log(typeof value === 'string' ? value : JSON.stringify(value, null, 2))
 }
 
+// The example projects: $SHOTLOOP_EXAMPLES (the app's writable copy) or the repository's
+const EXAMPLES = process.env.SHOTLOOP_EXAMPLES ?? fileURLToPath(new URL('../../examples', import.meta.url))
+
 // The first `name` on PATH, as the shell would run it
 const onPath = name =>
   (process.env.PATH ?? '').split(path.delimiter).map(d => path.join(d, name)).find(f => fs.existsSync(f)) ?? null
@@ -157,7 +160,7 @@ try {
     case 'list':
       result(summaries([
         ...args,
-        ...(values.examples ? projectsIn(fileURLToPath(new URL('../../examples', import.meta.url))) : [])
+        ...(values.examples ? projectsIn(EXAMPLES) : [])
       ]))
       break
     case 'prune':

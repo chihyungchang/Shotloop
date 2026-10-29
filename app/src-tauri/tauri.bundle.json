@@ -1,9 +1,17 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "build": {
-    "beforeBuildCommand": "node scripts/sidecars.mjs && pnpm build"
+    "beforeBuildCommand": "node scripts/sidecars.mjs && node scripts/resources.mjs && pnpm build"
   },
   "bundle": {
-    "externalBin": ["binaries/node", "binaries/ffmpeg"]
+    "externalBin": [
+      "binaries/node",
+      "binaries/ffmpeg"
+    ],
+    "resources": {
+      "bundle-resources/engine/": "engine/",
+      "bundle-resources/agent/": "agent/",
+      "bundle-resources/examples/": "examples/"
+    }
   }
 }

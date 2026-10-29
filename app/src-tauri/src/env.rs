@@ -116,3 +116,34 @@ fn shell_node() -> Option<PathBuf> {
     let text = String::from_utf8_lossy(&out.stdout);
     text.lines().map(str::trim).rev().find(|l| l.starts_with('/')).map(PathBuf::from)
 }
+
+fn copy_dir(from: &Path, to: &Path) -> std::io::Result<()> {
+    std::fs::create_dir_all(to)?;
+    for entry in std::fs::read_dir(from)? {
+        let entry = entry?;
+        let dest = to.join(entry.file_name());
+        if entry.file_type()?.is_dir() {
+            copy_dir(&entry.path(), &dest)?;
+        } else {
+            std::fs::copy(entry.path(), dest)?;
+        }
+    }
+    Ok(())
+}
+
+/// The bundled examples, copied to a writable folder: opening a project
+/// writes its render cache into it, and the app bundle is read-only.
+/// Examples not yet there are added; ones already there are kept as the
+/// user left them.
+pub fn seed_examples(bundled: &Path, dest: &Path) {
+    let Ok(entries) = std::fs::read_dir(bundled) else { return };
+    for entry in entries.flatten() {
+        let to = dest.join(entry.file_name());
+        if entry.path().is_dir() && !to.exists() {
+            if let Err(e) = copy_dir(&entry.path(), &to) {
+                eprintln!("shotloop: could not copy example {}: {e}", entry.path().display());
+                let _ = std::fs::remove_dir_all(&to);
+            }
+        }
+    }
+}
