@@ -161,7 +161,9 @@ export function importFile(file, { name, license = '', author = '', page = null 
   if (!fs.existsSync(file)) throw new Error(`no such file: ${file}`)
   if (!/\.glb$/i.test(file)) throw new Error('import a .glb file (glTF binary)')
   const base = path.basename(file, path.extname(file))
-  const id = `local-${safe(base)}`
+  // Named after the file and its content, so two "model.glb" files don't collide
+  const hash = createHash('sha1').update(fs.readFileSync(file)).digest('hex').slice(0, 8)
+  const id = `local-${safe(base)}-${hash}`
   const dir = path.join(LIBRARY, id)
   fs.mkdirSync(dir, { recursive: true })
   fs.copyFileSync(file, path.join(dir, 'model.glb'))
