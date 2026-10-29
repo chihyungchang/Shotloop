@@ -86,8 +86,12 @@ async fn doctor(handle: AppHandle) -> Result<Value, String> {
         let mut v = engine(&app, &["doctor"])?;
         let launch = app.queue.launch.lock().unwrap().clone();
         v["root"] = Value::String(launch.root.display().to_string());
-        v["nodePath"] = launch.node.map(|n| Value::String(n.display().to_string())).unwrap_or(Value::Null);
+        v["nodePath"] = launch.node.as_ref().map(|n| Value::String(n.display().to_string())).unwrap_or(Value::Null);
         v["apiKey"] = Value::Bool(!launch.api_key.is_empty());
+        v["bundled"] = serde_json::json!({
+            "node": launch.node.is_some() && launch.node == env::bundled("node"),
+            "ffmpeg": env::bundled("ffmpeg").is_some(),
+        });
         Ok(v)
     })
     .await
@@ -236,6 +240,12 @@ fn reveal(path: String) -> Result<(), String> {
     tauri_plugin_opener::reveal_item_in_dir(path).map_err(|e| e.to_string())
 }
 
+/// Blender's download page, for 3D projects (the only URL the app opens)
+#[tauri::command]
+fn open_blender_download() -> Result<(), String> {
+    tauri_plugin_opener::open_url("https://www.blender.org/download/", None::<&str>).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 fn open_path(path: String) -> Result<(), String> {
     tauri_plugin_opener::open_path(path, None::<&str>).map_err(|e| e.to_string())
@@ -286,6 +296,7 @@ pub fn run() {
             initial_project,
             reveal,
             open_path,
+            open_blender_download,
             tray::set_tray_text
         ])
         .build(tauri::generate_context!())

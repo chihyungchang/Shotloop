@@ -1,6 +1,6 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useEffect, useState } from 'react'
-import { api, fileUrl, type ProjectSummary } from '../api'
+import { api, EMPTY_SETTINGS, fileUrl, type ProjectSummary } from '../api'
 import { formatSeconds } from '../model'
 import { baseName, projectsFolder, setProjectsFolder } from '../recent'
 import { Icon } from './Icon'
@@ -30,6 +30,8 @@ export function Home({ open }: { open: (path: string) => void }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [examples, setExamples] = useState<ProjectSummary[]>([])
+  // 3D needs Blender: null until checked, 'missing' shows the install prompt
+  const [blender, setBlender] = useState<null | 'missing' | 'stillMissing'>(null)
 
   useEffect(() => {
     api.listProjects([], true).then(setExamples, () => setExamples([]))
@@ -45,9 +47,19 @@ export function Home({ open }: { open: (path: string) => void }) {
     return null
   }
 
-  const create = async () => {
+  const hasBlender = async () => !!(await api.doctor()).blender
+
+  // `anyway` creates a 3D project without Blender (install it before rendering)
+  const create = async (anyway = false) => {
     if (!idea.trim() || busy) return
     setError(null)
+    if (track === '3d' && !anyway) {
+      setBusy(true)
+      const ok = await hasBlender().catch(() => false)
+      setBusy(false)
+      if (!ok) return setBlender('missing')
+    }
+    setBlender(null)
     const parent = folder ?? (await chooseFolder())
     if (!parent) return
     setBusy(true)
@@ -67,6 +79,21 @@ export function Home({ open }: { open: (path: string) => void }) {
     } finally {
       setBusy(false)
     }
+  }
+
+  const checkBlender = async () => {
+    if (await hasBlender().catch(() => false)) create(true)
+    else setBlender('stillMissing')
+  }
+
+  // Blender.app, or the binary inside it; saved as the Blender tool path
+  const locateBlender = async () => {
+    const picked = await pick({ title: t('blender.dialog'), defaultPath: '/Applications', filters: [{ name: 'Blender', extensions: ['app'] }] })
+    if (typeof picked !== 'string') return
+    const path = picked.endsWith('.app') ? `${picked}/Contents/MacOS/Blender` : picked
+    const saved = await api.getSettings()
+    await api.saveSettings({ ...EMPTY_SETTINGS, ...saved, blender: path })
+    checkBlender()
   }
 
   const convert = async () => {
@@ -127,7 +154,7 @@ export function Home({ open }: { open: (path: string) => void }) {
               ))}
             </div>
           </div>
-          <button className="send" onClick={create} disabled={!idea.trim() || busy} aria-label={t('home.create')} title={t('home.create')}>
+          <button className="send" onClick={() => create()} disabled={!idea.trim() || busy} aria-label={t('home.create')} title={t('home.create')}>
             {busy ? <span className="spinner" /> : <Icon name="send" size={18} />}
           </button>
         </div>
@@ -138,6 +165,19 @@ export function Home({ open }: { open: (path: string) => void }) {
           <span className="muted small">{t(TRACKS[track].hint)}</span>
         </div>
       </div>
+      {blender && track === '3d' && (
+        <div className="panel blender-needed" role="alert">
+          <strong>{t('blender.title')}</strong>
+          <p className="muted">{t('blender.body')}</p>
+          {blender === 'stillMissing' && <p className="error small">{t('blender.notFound')}</p>}
+          <div className="row">
+            <button className="primary" onClick={() => api.openBlenderDownload()}>{t('blender.download')}</button>
+            <button onClick={locateBlender}>{t('blender.locate')}</button>
+            <button className="ghost" onClick={checkBlender}>{t('setup.checkAgain')}</button>
+            <button className="ghost" onClick={() => create(true)}>{t('blender.anyway')}</button>
+          </div>
+        </div>
+      )}
       {error && <p className="error">{error}</p>}
 
       {examples.length > 0 && (

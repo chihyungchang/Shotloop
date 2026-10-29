@@ -14,12 +14,14 @@ export function Setup({ settings, update }: { settings: Settings; update: (s: Pa
   }
   useEffect(check, [])
 
+  // Node and ffmpeg ship inside the app; Blender is optional (3D only)
+  const bundled = (version: string | null, inApp?: boolean) => (version && inApp ? `${version} · ${t('setup.bundled')}` : version)
   const rows: [string, string | null, string | null, boolean][] = doctor
     ? [
-        ['Node.js', doctor.nodePath ? `${doctor.node}` : null, t('setup.nodeHint'), true],
+        ['Node.js', bundled(doctor.nodePath ? doctor.node : null, doctor.bundled?.node), t('setup.nodeHint'), true],
         ['Chrome', doctor.chrome?.version ?? null, doctor.install.chrome, true],
-        ['ffmpeg', doctor.ffmpeg?.version?.replace(/ Copyright.*/, '') ?? null, doctor.install.ffmpeg, true],
-        ['Blender', doctor.blender?.version ?? null, doctor.install.blender, false]
+        ['ffmpeg', bundled(doctor.ffmpeg?.version?.replace(/ Copyright.*/, '') ?? null, doctor.bundled?.ffmpeg), doctor.install.ffmpeg, true],
+        ['Blender', doctor.blender?.version ?? null, null, false]
       ]
     : []
 
@@ -40,11 +42,16 @@ export function Setup({ settings, update }: { settings: Settings; update: (s: Pa
                   <span className={`dot ${version ? 'ok' : required ? 'bad' : 'warn'}`} /> {name}
                 </td>
                 <td className={version ? '' : 'muted'}>
-                  {version ?? (
+                  {version ?? (required ? (
                     <>
-                      {t(required ? 'setup.notFound' : 'setup.only3d')} <code>{hint}</code>
+                      {t('setup.notFound')} <code>{hint}</code>
                     </>
-                  )}
+                  ) : (
+                    <>
+                      {t('setup.only3d')}{' '}
+                      <button className="link" onClick={() => api.openBlenderDownload()}>{t('blender.download')}</button>
+                    </>
+                  ))}
                 </td>
               </tr>
             ))}

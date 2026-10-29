@@ -4,6 +4,16 @@ Copyright 2026 Oliver Zhang
 This product is licensed under the Apache License, Version 2.0 (see
 LICENSE).
 
+Shotloop.app bundles two third-party programs, run as separate
+processes and under their own licenses:
+
+- Node.js (https://nodejs.org), MIT License and the licenses of its
+  dependencies, as listed in its LICENSE file.
+- FFmpeg (https://ffmpeg.org), a static build with libx264 by Martin
+  Riedl (https://ffmpeg.martin-riedl.de), under the GNU General Public
+  License version 3. Its source code is available from
+  https://ffmpeg.org/download.html and from the build's page.
+
 Third-party material that projects may use is not part of this
 distribution: the CC0 asset packs listed in engine/video/assets/README.md
 (Kenney, Poly Haven, Quaternius) are downloaded, not committed, and keep

@@ -65,7 +65,7 @@ export const ptBR: Record<Key, string> = {
   'setup.deps': 'Dependências',
   'setup.checking': 'Verificando dependências…',
   'setup.notFound': 'Não encontrado.',
-  'setup.only3d': 'Não encontrado (só para projetos 3D).',
+  'setup.only3d': 'Opcional: só projetos 3D precisam dele. Não instalado.',
   'setup.nodeHint': 'brew install node (23 ou mais recente)',
   'setup.agent': 'Agente',
   'setup.apiKey': 'Chave da API da Anthropic',
@@ -206,5 +206,14 @@ export const ptBR: Record<Key, string> = {
 
   'tray.idle': 'Nada em execução',
   'tray.show': 'Mostrar o Shotloop',
-  'tray.quit': 'Sair do Shotloop'
+  'tray.quit': 'Sair do Shotloop',
+
+  'setup.bundled': 'incluído',
+  'blender.title': 'Projetos 3D precisam do Blender',
+  'blender.body': 'O Shotloop renderiza planos 3D com o Blender, que é gratuito. Instale-o ou mostre ao Shotloop onde está a sua cópia. Projetos 2D não precisam dele.',
+  'blender.download': 'Baixar o Blender',
+  'blender.locate': 'Localizar o Blender…',
+  'blender.anyway': 'Criar mesmo assim',
+  'blender.dialog': 'Escolha o Blender.app',
+  'blender.notFound': 'O Blender ainda não foi encontrado.'
 }

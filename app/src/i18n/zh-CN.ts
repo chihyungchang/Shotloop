@@ -65,7 +65,7 @@ export const zhCN: Record<Key, string> = {
   'setup.deps': '依赖',
   'setup.checking': '正在检查依赖…',
   'setup.notFound': '未找到。',
-  'setup.only3d': '未找到（仅 3D 项目需要）。',
+  'setup.only3d': '可选：只有 3D 项目需要，当前未安装。',
   'setup.nodeHint': 'brew install node（23 或更高版本）',
   'setup.agent': 'Agent',
   'setup.apiKey': 'Anthropic API 密钥',
@@ -206,5 +206,14 @@ export const zhCN: Record<Key, string> = {
 
   'tray.idle': '没有任务在运行',
   'tray.show': '显示 Shotloop',
-  'tray.quit': '退出 Shotloop'
+  'tray.quit': '退出 Shotloop',
+
+  'setup.bundled': '内置',
+  'blender.title': '3D 项目需要 Blender',
+  'blender.body': 'Shotloop 用 Blender 渲染 3D 镜头，Blender 是免费的。请先安装，或者告诉 Shotloop 你的 Blender 在哪里。2D 项目不需要它。',
+  'blender.download': '下载 Blender',
+  'blender.locate': '指定 Blender 位置…',
+  'blender.anyway': '仍然创建',
+  'blender.dialog': '选择 Blender.app',
+  'blender.notFound': '仍然没有找到 Blender。'
 }

@@ -57,9 +57,18 @@ fn tool_dirs() -> Vec<PathBuf> {
     dirs
 }
 
-/// PATH for child processes: the tool folders, then the inherited PATH
+/// One of the app's own binaries (Tauri sidecars sit next to the main
+/// executable): Node and ffmpeg in a bundled build, none in dev
+pub fn bundled(name: &str) -> Option<PathBuf> {
+    let path = std::env::current_exe().ok()?.parent()?.join(name);
+    path.is_file().then_some(path)
+}
+
+/// PATH for child processes: the bundled ffmpeg's folder, the tool
+/// folders, then the inherited PATH
 pub fn child_path() -> String {
-    let mut parts: Vec<String> = tool_dirs().iter().map(|d| d.display().to_string()).collect();
+    let mut parts: Vec<String> = bundled("ffmpeg").and_then(|f| f.parent().map(|d| d.display().to_string())).into_iter().collect();
+    parts.extend(tool_dirs().iter().map(|d| d.display().to_string()));
     if let Ok(path) = std::env::var("PATH") {
         parts.push(path);
     }
@@ -73,10 +82,14 @@ fn node_version(node: &Path) -> Option<u32> {
 }
 
 /// A Node.js new enough for the engine (22+) and the agent's TypeScript
-/// (type stripping, 22.18+ / 23.6+): $SHOTLOOP_NODE or the first match
+/// (type stripping, 22.18+ / 23.6+): $SHOTLOOP_NODE, the bundled one, or
+/// the first match
 pub fn node() -> Result<PathBuf, String> {
     if let Ok(node) = std::env::var("SHOTLOOP_NODE") {
         return Ok(PathBuf::from(node));
+    }
+    if let Some(node) = bundled("node") {
+        return Ok(node);
     }
     let mut candidates: Vec<PathBuf> = tool_dirs().iter().map(|d| d.join("node")).collect();
     if let Ok(path) = std::env::var("PATH") {

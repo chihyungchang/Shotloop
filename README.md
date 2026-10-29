@@ -39,7 +39,12 @@ first, dense, a lifted graphite stage where frames read true, with light,
 dark and follow-the-system modes and one teal accent,
 all as tokens in [`app/src/theme/tokens.css`](app/src/theme/tokens.css). The Setup panel checks
 Chrome, ffmpeg and Blender and takes your Anthropic API key for the agent.
-`pnpm app:build` makes `Shotloop.app`; it runs the engine and agent
+`pnpm app:build` makes `Shotloop.app` with Node.js and ffmpeg inside
+(fetched at pinned versions and checked by
+[`app/scripts/sidecars.mjs`](app/scripts/sidecars.mjs)), so users install
+only Chrome, and Blender if they make 3D projects: Home asks for it when
+a 3D project is created. `pnpm app` uses the Node and ffmpeg on this
+Mac. The app runs the engine and agent
 from `$SHOTLOOP_ROOT`, or from the checkout it was built from (bundling
 them as app resources is still to do).
 
@@ -110,7 +115,7 @@ is a few pixels at the edge of the frame (checklist rule `readable`).
 
 ## Requirements
 
-Node 23+, Chrome, ffmpeg; Blender for 3D projects
+From source: Node 23+, Chrome, ffmpeg; Blender for 3D projects
 (`brew install --cask blender`) and the CC0 assets in
 [engine/video/assets/README.md](engine/video/assets/README.md) for ep02.
 

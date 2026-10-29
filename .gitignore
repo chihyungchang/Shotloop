@@ -12,3 +12,5 @@ engine/video/assets/*
 
 # Docs
 docs/PRD.md
+# Bundled Node.js and ffmpeg, fetched by app/scripts/sidecars.mjs
+app/src-tauri/binaries/

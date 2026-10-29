@@ -133,6 +133,8 @@ export interface Doctor {
   ffmpeg: Tool | null
   blender: Tool | null
   install: Record<'chrome' | 'ffmpeg' | 'blender', string>
+  // Node and ffmpeg shipped inside the app
+  bundled: { node: boolean; ffmpeg: boolean }
 }
 
 export type Provider = 'anthropic' | 'cli' | 'local'
@@ -209,6 +211,7 @@ export const api = {
   initialProject: () => invoke<string | null>('initial_project'),
   reveal: (path: string) => invoke<void>('reveal', { path }),
   openPath: (path: string) => invoke<void>('open_path', { path }),
+  openBlenderDownload: () => invoke<void>('open_blender_download'),
   setTrayText: (status: string, show: string, quit: string) => invoke<void>('set_tray_text', { status, show, quit })
 }
 

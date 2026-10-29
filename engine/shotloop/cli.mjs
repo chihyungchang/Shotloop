@@ -18,6 +18,7 @@
 
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { prune, status, worldKey } from './cache.mjs'
@@ -54,6 +55,10 @@ const result = value => {
   else console.log(typeof value === 'string' ? value : JSON.stringify(value, null, 2))
 }
 
+// The first `name` on PATH, as the shell would run it
+const onPath = name =>
+  (process.env.PATH ?? '').split(path.delimiter).map(d => path.join(d, name)).find(f => fs.existsSync(f)) ?? null
+
 function doctor() {
   const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
   const version = (cmd, args) => {
@@ -66,7 +71,7 @@ function doctor() {
   return {
     node: process.version,
     chrome: fs.existsSync(CHROME) ? { path: CHROME, version: version(CHROME, ['--version']) } : null,
-    ffmpeg: version('ffmpeg', ['-version']) ? { path: 'ffmpeg', version: version('ffmpeg', ['-version']) } : null,
+    ffmpeg: version('ffmpeg', ['-version']) ? { path: onPath('ffmpeg') ?? 'ffmpeg', version: version('ffmpeg', ['-version']) } : null,
     blender: fs.existsSync(BLENDER) ? { path: BLENDER, version: version(BLENDER, ['-v']) } : null,
     install: {
       chrome: 'Install Google Chrome, or set CHROME to a Chrome or headless shell binary',

@@ -66,7 +66,7 @@ export const en = {
   'setup.deps': 'Dependencies',
   'setup.checking': 'Checking dependencies…',
   'setup.notFound': 'Not found.',
-  'setup.only3d': 'Not found (3D projects only).',
+  'setup.only3d': 'Optional: only 3D projects need it. Not installed.',
   'setup.nodeHint': 'brew install node (23 or newer)',
   'setup.agent': 'Agent',
   'setup.apiKey': 'Anthropic API key',
@@ -207,7 +207,16 @@ export const en = {
 
   'tray.idle': 'Nothing running',
   'tray.show': 'Show Shotloop',
-  'tray.quit': 'Quit Shotloop'
+  'tray.quit': 'Quit Shotloop',
+
+  'setup.bundled': 'bundled',
+  'blender.title': '3D projects need Blender',
+  'blender.body': 'Shotloop renders 3D shots with Blender, which is free. Install it, or show Shotloop where your copy is. 2D projects don’t need it.',
+  'blender.download': 'Download Blender',
+  'blender.locate': 'Locate Blender…',
+  'blender.anyway': 'Create anyway',
+  'blender.dialog': 'Choose Blender.app',
+  'blender.notFound': 'Blender still isn’t found.'
 }
 
 export type Key = keyof typeof en
