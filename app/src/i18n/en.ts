@@ -360,7 +360,7 @@ export const en = {
   'assets.smithsonianNote': 'Free from api.data.gov. Without one, a shared demo key allows a few searches an hour.',
   'studio.assets': 'Assets',
   'assets.inProject': 'In this project',
-  'assets.noneInProject': 'None yet. Add models from your library below.',
+  'assets.noneInProject': 'No library models yet. Objects built in code (world/world.py) don’t show here; add downloaded models below.',
   'assets.tellAi': 'Then tell the AI assistant where it goes, e.g. “put {name} on the table”.',
   'assets.fromLibrary': 'Your library',
   'assets.emptyLibrary': 'Your library is empty: download models in Asset library.',

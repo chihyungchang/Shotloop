@@ -359,7 +359,7 @@ export const zhCN: Record<Key, string> = {
   'assets.smithsonianNote': '在 api.data.gov 免费申请。不填时使用公共演示密钥，每小时只能搜索少量次数。',
   'studio.assets': '素材',
   'assets.inProject': '项目里的素材',
-  'assets.noneInProject': '还没有。从下面的素材库里添加。',
+  'assets.noneInProject': '还没有素材库的模型。用代码搭建的物体（world/world.py）不会显示在这里；可以从下面加入下载好的模型。',
   'assets.tellAi': '接着告诉 AI 助手怎么用，比如“把 {name} 放到桌子上”。',
   'assets.fromLibrary': '我的素材库',
   'assets.emptyLibrary': '素材库是空的：先到侧边栏的“素材库”里下载。',

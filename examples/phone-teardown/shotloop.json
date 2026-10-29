@@ -28,7 +28,7 @@
     {
       "id": "04-board",
       "title": "主板与芯片",
-      "duration": 4.0
+      "duration": 4
     },
     {
       "id": "05-battery-camera",
@@ -38,7 +38,7 @@
     {
       "id": "06-end",
       "title": "Back together; end card",
-      "duration": 4.0
+      "duration": 4
     }
   ],
   "captions": "captions.html",

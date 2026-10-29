@@ -359,7 +359,7 @@ export const ptBR: Record<Key, string> = {
   'assets.smithsonianNote': 'Grátis em api.data.gov. Sem ela, uma chave de demonstração permite poucas buscas por hora.',
   'studio.assets': 'Modelos',
   'assets.inProject': 'Neste projeto',
-  'assets.noneInProject': 'Nenhum ainda. Adicione da biblioteca abaixo.',
+  'assets.noneInProject': 'Nenhum modelo da biblioteca ainda. Objetos feitos em código (world/world.py) não aparecem aqui; adicione modelos baixados abaixo.',
   'assets.tellAi': 'Depois diga ao assistente onde colocar, como “ponha {name} na mesa”.',
   'assets.fromLibrary': 'Sua biblioteca',
   'assets.emptyLibrary': 'Sua biblioteca está vazia: baixe modelos na Biblioteca 3D.',
