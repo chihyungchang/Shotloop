@@ -10,6 +10,7 @@
 // api.data.gov key). A project keeps its own copy in assets/<id>/, so it
 // travels whole and the library can change without touching its renders.
 
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -21,7 +22,9 @@ const UA = { 'user-agent': 'Shotloop (https://github.com/chihyungchang/Shotloop)
 const safe = s => String(s).replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
 
 async function getJson(url, headers = {}) {
-  const res = await fetch(url, { headers: { ...UA, ...headers }, signal: AbortSignal.timeout(20000) })
+  const res = await fetch(url, { headers: { ...UA, ...headers }, signal: AbortSignal.timeout(20000) }).catch(e => {
+    throw new Error(`could not reach ${new URL(url).host} (${e.cause?.code ?? e.name}): check the network`)
+  })
   if (res.status === 401 || res.status === 403) throw new Error(`${new URL(url).host}: the API key was refused (${res.status}); check it in Settings`)
   if (res.status === 429) throw new Error(`${new URL(url).host}: too many requests; try again in a moment`)
   if (!res.ok) throw new Error(`${new URL(url).host}: ${res.status} ${(await res.text()).slice(0, 200)}`)
@@ -37,16 +40,16 @@ function item(source, o) {
   }
 }
 
-async function searchPolyPizza(query, { key, cursor, cc0Only }) {
+async function searchPolyPizza(query, { key, cursor }) {
   if (!key) throw new Error('Poly Pizza needs an API key (free, from poly.pizza/settings/api): add it in Settings → Assets')
   const params = new URLSearchParams({ limit: '30', format: 'glb' })
   if (cursor) params.set('cursor', cursor)
-  const path_ = query.trim() ? `search/${encodeURIComponent(query.trim())}` : 'popular'
-  const body = await getJson(`https://api.poly.pizza/v1/${path_}?${params}`, { 'x-auth-token': key })
+  if (!query.trim()) return { results: [], cursor: null }
+  const body = await getJson(`https://api.poly.pizza/v1/search/${encodeURIComponent(query.trim())}?${params}`, { 'x-auth-token': key })
   const results = (body.results ?? []).map(m => item('polypizza', {
     id: m.ID, name: m.Title, thumb: m.Thumbnail, license: m.Licence ?? m.License ?? '', author: m.Creator?.Username,
     authorUrl: m.Creator?.PURL, page: `https://poly.pizza/m/${m.ID}`, download: m.Download, triangles: m.TriangleCount, animated: m.Animated
-  })).filter(m => m.download && (!cc0Only || /^cc0/i.test(m.license)))
+  })).filter(m => m.download)
   return { results, cursor: body.cursor ?? null }
 }
 
@@ -79,14 +82,33 @@ async function searchSmithsonian(query, { key, cursor }) {
   return { results, cursor: start + rows.length < total ? String(start + rows.length) : null }
 }
 
+// Search results are kept on disk for a week: the same search never
+// spends the person's API quota twice (Poly Pizza's free plan counts
+// requests). Failures are not kept.
+const SEARCH_TTL = 7 * 24 * 3600 * 1000
+
 export async function search(source, query, opts = {}) {
-  if (source === 'polypizza') return searchPolyPizza(query, opts)
-  if (source === 'smithsonian') return searchSmithsonian(query, opts)
-  throw new Error(`unknown source ${source} (${SOURCES.join(', ')})`)
+  if (!SOURCES.includes(source)) throw new Error(`unknown source ${source} (${SOURCES.join(', ')})`)
+  const q = query.trim().toLowerCase()
+  // The licence filter applies after the cache, so switching it is free
+  const only = v => (opts.cc0Only ? { ...v, results: v.results.filter(m => /^cc0/i.test(m.license)) } : v)
+  const key = createHash('sha1').update(JSON.stringify([source, q, opts.cursor ?? null])).digest('hex')
+  const file = path.join(LIBRARY, '.cache', 'search', `${key}.json`)
+  if (fs.existsSync(file) && Date.now() - fs.statSync(file).mtimeMs < SEARCH_TTL) {
+    return { ...only(JSON.parse(fs.readFileSync(file, 'utf8'))), cached: true }
+  }
+  const value = source === 'polypizza' ? await searchPolyPizza(q, opts) : await searchSmithsonian(q, opts)
+  if (value.results.length || q) {
+    fs.mkdirSync(path.dirname(file), { recursive: true })
+    fs.writeFileSync(file, JSON.stringify(value))
+  }
+  return only(value)
 }
 
 async function fetchTo(url, file) {
-  const res = await fetch(url, { headers: UA, signal: AbortSignal.timeout(180000) })
+  const res = await fetch(url, { headers: UA, signal: AbortSignal.timeout(180000) }).catch(e => {
+    throw new Error(`could not reach ${new URL(url).host} (${e.cause?.code ?? e.name}): check the network`)
+  })
   if (!res.ok) throw new Error(`download failed: ${res.status} ${url}`)
   fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()))
 }

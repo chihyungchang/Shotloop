@@ -367,5 +367,6 @@ export const zhCN: Record<Key, string> = {
   'library.connectTitle': '连接 Poly Pizza',
   'library.connectNote': '上万个免费的低多边形模型。在 Poly Pizza 免费注册，复制 API 密钥，在这里填一次即可。',
   'library.addKey': '填写密钥',
-  'settings.backLibrary': '返回素材库'
+  'settings.backLibrary': '返回素材库',
+  'library.try': '试试：'
 }

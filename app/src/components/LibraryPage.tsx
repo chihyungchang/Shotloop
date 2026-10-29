@@ -11,6 +11,21 @@ const SOURCES: { id: Source; name: string; note: string }[] = [
   { id: 'smithsonian', name: 'Smithsonian', note: 'assets.smithsonianShort' }
 ]
 
+const SUGGEST = ['robot', 'tree', 'car', 'house', 'cat', 'computer', 'rocket', 'chair', 'planet', 'phone']
+
+// A preview, or a quiet placeholder when there is none or it won't load
+function Thumb({ src }: { src: string | null }) {
+  const [failed, setFailed] = useState(false)
+  return (
+    <div className="asset-thumb">
+      {src && !failed ? <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} /> : <Icon name="cube" size={28} />}
+    </div>
+  )
+}
+
+// Results already fetched this session, by source, query, page and filter
+const seen = new Map<string, { results: LibraryItem[]; cursor: string | null }>()
+
 const sizeOf = (n: number | null) => (n ? `${(n / 1e6).toFixed(1)} MB` : null)
 
 // The asset library: 3D models found on free sources and downloaded once
@@ -53,11 +68,19 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
   const [error, setError] = useState<string | null>(null)
   const [getting, setGetting] = useState<Record<string, 'busy' | 'failed'>>({})
 
-  const run = async (more = false) => {
+  const run = async (more = false, q = query) => {
+    if (!more) {
+      setResults(null)
+      setCursor(null)
+    }
+    // Poly Pizza searches by keyword only: suggestions until there is one
+    if (source === 'polypizza' && !q.trim()) return
     setBusy(true)
     setError(null)
     try {
-      const r = await api.librarySearch(source, query, more ? cursor : null, all)
+      const key = JSON.stringify([source, q.trim().toLowerCase(), more ? cursor : null, all])
+      const r = seen.get(key) ?? (await api.librarySearch(source, q, more ? cursor : null, all))
+      seen.set(key, r)
       setResults(cur => (more && cur ? [...cur, ...r.results] : r.results))
       setCursor(r.cursor)
     } catch (e) {
@@ -68,6 +91,7 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
     }
   }
   useEffect(() => {
+    setError(null)
     run()
   }, [source, all])
 
@@ -120,6 +144,14 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
           </div>
         )
         : error && <div className="error-box small">{error}</div>}
+      {source === 'polypizza' && !query.trim() && !error && (
+        <div className="suggest">
+          <span className="small muted">{t('library.try')}</span>
+          {SUGGEST.map(w => (
+            <button key={w} className="provider-chip" onClick={() => { setQuery(w); run(false, w) }}>{w}</button>
+          ))}
+        </div>
+      )}
       {busy && !results?.length && <div className="asset-grid">{Array.from({ length: 8 }, (_, i) => <div key={i} className="asset-card skeleton"><span className="shimmer" /></div>)}</div>}
       {results && results.length === 0 && !busy && !error && <p className="empty">{t('library.none')}</p>}
       <div className="asset-grid">
@@ -128,7 +160,7 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
           const state = getting[it.id]
           return (
             <div key={it.id} className="asset-card">
-              <div className="asset-thumb">{it.thumb ? <img src={it.thumb} alt="" loading="lazy" /> : <Icon name="cube" size={28} />}</div>
+              <Thumb src={it.thumb} />
               <div className="asset-meta">
                 <strong className="ellipsis" title={it.name}>{it.name}</strong>
                 <span className="small muted ellipsis">{it.author}{it.triangles ? ` · ${it.triangles.toLocaleString()} △` : ''}{sizeOf(it.size) ? ` · ${sizeOf(it.size)}` : ''}</span>
@@ -161,7 +193,7 @@ function Mine({ assets, reload }: { assets: Asset[] | null; reload: () => void }
     <div className="asset-grid">
       {assets.map(a => (
         <div key={a.id} className="asset-card">
-          <div className="asset-thumb">{a.thumb ? <img src={fileUrl(a.thumb)} alt="" /> : <Icon name="cube" size={28} />}</div>
+          <Thumb src={a.thumb ? fileUrl(a.thumb) : null} />
           <div className="asset-meta">
             <strong className="ellipsis" title={a.name}>{a.name}</strong>
             <span className="small muted ellipsis">{a.author}</span>

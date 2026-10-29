@@ -367,5 +367,6 @@ export const ptBR: Record<Key, string> = {
   'library.connectTitle': 'Conectar o Poly Pizza',
   'library.connectNote': 'Milhares de modelos low-poly gratuitos. Crie uma conta grátis no Poly Pizza, copie sua chave de API e adicione aqui uma vez.',
   'library.addKey': 'Adicionar a chave',
-  'settings.backLibrary': 'Voltar à biblioteca'
+  'settings.backLibrary': 'Voltar à biblioteca',
+  'library.try': 'Experimente:'
 }

@@ -368,7 +368,8 @@ export const en = {
   'library.connectTitle': 'Connect Poly Pizza',
   'library.connectNote': 'Thousands of free low-poly models. Make a free account on Poly Pizza, copy your API key, and add it here once.',
   'library.addKey': 'Add the key',
-  'settings.backLibrary': 'Back to the asset library'
+  'settings.backLibrary': 'Back to the asset library',
+  'library.try': 'Try:'
 }
 
 export type Key = keyof typeof en
