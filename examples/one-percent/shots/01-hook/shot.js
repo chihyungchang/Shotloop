@@ -46,7 +46,15 @@ export default function render(t, { window, start }) {
   }
   kit.lift($('#diff'), kit.rise(t, 1.7, 0.6), 12)
 
-  // A slow push over the whole shot keeps the hold alive
+  // After the poster frame the two sides part: 1.01 climbs, 0.99 sinks,
+  // a first hint of where each one goes over a year
+  const part = kit.ease.inOut((t - 2.3) / 2.2)
+  if (part > 0) {
+    $('#up').style.transform = `translateY(${-22 * part}px)`
+    $('#down').style.transform = `translateY(${22 * part}px)`
+  }
+
+  // A push over the whole shot keeps the hold alive
   s.style.transformOrigin = '50% 45%'
-  s.style.transform = `scale(${1 + 0.015 * kit.ease.inOut(t / 4.5)})`
+  s.style.transform = `scale(${1 + 0.035 * kit.ease.inOut(t / 4.5)})`
 }
