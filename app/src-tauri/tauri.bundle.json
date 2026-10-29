@@ -13,6 +13,10 @@
       "bundle-resources/agent/": "agent/",
       "bundle-resources/examples/": "examples/"
     },
-    "createUpdaterArtifacts": true
+    "createUpdaterArtifacts": true,
+    "macOS": {
+      "signingIdentity": "-",
+      "hardenedRuntime": false
+    }
   }
 }

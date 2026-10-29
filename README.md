@@ -115,6 +115,8 @@ The model needs tool calling, and checks need one that can see images. The agent
 2. Have **Google Chrome** installed (2D shots render in it). For 3D projects, Shotloop asks for **Blender** the first time you create one.
 3. Pick the AI in Settings → Models & providers. Claude Code is picked for you if it's already on your Mac.
 
+> **First launch:** Shotloop isn't notarized by Apple yet, so macOS says it can't verify the developer. Open it once from **System Settings → Privacy & Security → Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/Shotloop.app` in Terminal. After that it opens normally, and updates install without asking again.
+
 Node.js and ffmpeg are inside the app. Shotloop checks GitHub for updates and installs them in place. It runs on Macs with Apple silicon (M1 and later).
 
 ## Build from source

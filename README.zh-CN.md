@@ -115,6 +115,8 @@ flowchart LR
 2. 需要安装 **Google Chrome**，2D 镜头用它渲染。第一次新建 3D 项目时，Shotloop 会引导你安装 **Blender**。
 3. 在"设置 → 模型与服务商"里选择 AI。如果你的 Mac 上已经有 Claude Code，会自动选好。
 
+> **第一次打开**：Shotloop 还没有经过 Apple 公证，macOS 会提示"无法验证开发者"。请在 **系统设置 → 隐私与安全性 → 仍要打开** 里打开一次，或者在终端运行 `xattr -dr com.apple.quarantine /Applications/Shotloop.app`。之后就能正常打开，自动更新也不会再弹这个提示。
+
 Node.js 和 ffmpeg 已经内置在应用里。Shotloop 会自动从 GitHub 检查并安装更新。支持 Apple 芯片（M1 及以后）的 Mac。
 
 ## 从源码运行

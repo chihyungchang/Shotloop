@@ -1,6 +1,6 @@
 [package]
 name = "shotloop"
-version = "0.2.0"
+version = "0.2.1"
 description = "Make short videos from code, one shot at a time"
 authors = ["Oliver Zhang"]
 license = "Apache-2.0"
