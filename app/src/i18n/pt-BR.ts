@@ -383,5 +383,9 @@ export const ptBR: Record<Key, string> = {
   'library.cat.buildings': 'Construções',
   'library.cat.people': 'Pessoas e personagens',
   'library.cat.scenes': 'Cenários',
-  'library.cat.other': 'Outros'
+  'library.cat.other': 'Outros',
+  'activity.title': 'Atividade',
+  'activity.idle': 'Nada em execução',
+  'activity.more': 'e mais {n}',
+  'activity.alertsNote': 'Som e notificação quando a fila termina'
 }

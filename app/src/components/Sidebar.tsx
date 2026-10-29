@@ -1,10 +1,11 @@
 import type { Job } from '../api'
 import { baseName, readRecent } from '../recent'
 import type { useTheme } from '../theme/theme'
-import { aiSummary, SAVED, useSettings } from '../ai/useSettings'
+import { aiSummary, useSettings } from '../ai/useSettings'
 import { api } from '../api'
 import { BrandIcon, hasBrand } from '../ai/BrandIcon'
 import { BrandMark } from './BrandMark'
+import { ActivityBell } from './ActivityBell'
 import { Icon } from './Icon'
 import { ThemeToggle } from './ThemeToggle'
 import type { Key } from '../i18n/en'
@@ -30,9 +31,7 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
 }) {
   const settings = useSettings()
   const ai = settings && aiSummary(settings)
-  const alerts = !!(settings?.notifySound || settings?.notifyDesktop)
   const recent = readRecent()
-  const running = jobs.filter(j => j.state === 'running' || j.state === 'queued').length
 
   return (
     <aside className="sidebar">
@@ -58,7 +57,6 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
         </div>
       )}
       <div className="sidebar-foot">
-        {running > 0 && <span className="small queue-note"><span className="dot info pulse" /> {t('sidebar.queue', { n: running })}</span>}
         <div className="foot-links">
           <button className="icon-button" onClick={() => api.openUrl(REPO)} title="GitHub" aria-label="GitHub">
             <svg width="17" height="17" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
@@ -79,13 +77,7 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
               </span>
               {!ai.ready && <span className="dot warn" />}
             </button>
-            <button className="icon-button bell" aria-pressed={alerts} title={t(alerts ? 'sidebar.alertsOn' : 'sidebar.alertsOff')} aria-label={t('settings.alerts')}
-              onClick={async () => {
-                await api.saveSettings({ ...settings, notifySound: !alerts, notifyDesktop: !alerts })
-                window.dispatchEvent(new Event(SAVED))
-              }}>
-              <Icon name={alerts ? 'bellOn' : 'bell'} size={17} />
-            </button>
+            <ActivityBell jobs={jobs} settings={settings} />
           </div>
         )}
       </div>

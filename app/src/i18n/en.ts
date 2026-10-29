@@ -384,7 +384,11 @@ export const en = {
   'library.cat.buildings': 'Buildings',
   'library.cat.people': 'People & characters',
   'library.cat.scenes': 'Scenes & levels',
-  'library.cat.other': 'Other'
+  'library.cat.other': 'Other',
+  'activity.title': 'Activity',
+  'activity.idle': 'Nothing running',
+  'activity.more': 'and {n} more',
+  'activity.alertsNote': 'A sound and a notification when the queue finishes'
 }
 
 export type Key = keyof typeof en

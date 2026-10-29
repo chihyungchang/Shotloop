@@ -23,8 +23,24 @@ export function ExportPanel({ project, jobs, refresh, openSettings }: {
   refresh: () => void
   openSettings: () => void
 }) {
-  const [mode, setMode] = useState<Mode>('final')
-  const [aspects, setAspects] = useState<string[]>(['9:16', '16:9'])
+  // The last choices for this project, kept on this Mac
+  const prefsKey = `shotloop.export.${project.root}`
+  const saved = (() => {
+    try {
+      return JSON.parse(localStorage.getItem(prefsKey) ?? 'null') as { mode?: Mode; aspects?: string[] } | null
+    } catch {
+      return null
+    }
+  })()
+  const [mode, setMode] = useState<Mode>(saved?.mode ?? 'final')
+  const [aspects, setAspects] = useState<string[]>(saved?.aspects?.length ? saved.aspects : ['9:16', '16:9'])
+  useEffect(() => {
+    try {
+      localStorage.setItem(prefsKey, JSON.stringify({ mode, aspects }))
+    } catch {
+      // storage unavailable: the choice lasts while the panel is open
+    }
+  }, [prefsKey, mode, aspects])
   const [latest, setLatest] = useState<ExportResult | null>(null)
   const [publish, setPublish] = useState<string | null>(null)
   const [music, setMusic] = useState<MusicInfo | null>(null)
