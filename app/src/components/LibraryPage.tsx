@@ -105,12 +105,21 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
         )}
       </div>
       <p className="small muted">{t(SOURCES.find(s => s.id === source)!.note as never)}</p>
-      {error && (
-        <div className="error-box small">
-          {needsKey ? t('library.needsKey') : error}
-          {needsKey && <button className="small" onClick={openSettings}>{t('agent.openSettings')}</button>}
-        </div>
-      )}
+      {needsKey
+        ? (
+          <div className="connect-card">
+            <span className="connect-logo"><Icon name="cube" size={22} /></span>
+            <div className="connect-text">
+              <strong>{t('library.connectTitle')}</strong>
+              <p className="muted">{t('library.connectNote')}</p>
+            </div>
+            <div className="connect-actions">
+              <button className="ghost" onClick={() => api.openUrl('https://poly.pizza/settings/api')}>{t('ai.getKey')} <Icon name="arrow" size={12} /></button>
+              <button className="primary" onClick={openSettings}><Icon name="key" size={14} /> {t('library.addKey')}</button>
+            </div>
+          </div>
+        )
+        : error && <div className="error-box small">{error}</div>}
       {busy && !results?.length && <div className="asset-grid">{Array.from({ length: 8 }, (_, i) => <div key={i} className="asset-card skeleton"><span className="shimmer" /></div>)}</div>}
       {results && results.length === 0 && !busy && !error && <p className="empty">{t('library.none')}</p>}
       <div className="asset-grid">

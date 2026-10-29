@@ -9,7 +9,7 @@ import { Icon } from './Icon'
 import { Setup } from './Setup'
 import { ThemeToggle } from './ThemeToggle'
 
-type Section = 'ai' | 'assets' | 'general' | 'deps' | 'about'
+export type Section = 'ai' | 'assets' | 'general' | 'deps' | 'about'
 
 const SECTIONS: [Section, Key, Parameters<typeof Icon>[0]['name']][] = [
   ['ai', 'settings.ai', 'spark'],
@@ -22,12 +22,15 @@ const SECTIONS: [Section, Key, Parameters<typeof Icon>[0]['name']][] = [
 // Settings, after open-design's: the whole window, a back link and a
 // section list on the ground, one section at a time on the card.
 // General applies at once; the AI backend and tool paths save together.
-export function SettingsPage({ theme, language, back }: {
+export function SettingsPage({ theme, language, back, start = 'ai', backLabel = 'settings.back' }: {
   theme: ReturnType<typeof useTheme>
   language: ReturnType<typeof useLanguage>
   back: () => void
+  // The section to open on (an "add your key" button points at its own)
+  start?: Section
+  backLabel?: Key
 }) {
-  const [section, setSection] = useState<Section>('ai')
+  const [section, setSection] = useState<Section>(start)
   const [settings, setSettings] = useState<Settings>(EMPTY_SETTINGS)
   const [saved, setSaved] = useState<Settings | null>(null)
 
@@ -56,7 +59,7 @@ export function SettingsPage({ theme, language, back }: {
   return (
     <div className="settings-shell">
       <nav className="settings-nav" aria-label={t('settings.title')}>
-        <button className="settings-back" onClick={back}><Icon name="back" size={16} /> {t('settings.back')}</button>
+        <button className="settings-back" onClick={back}><Icon name="back" size={16} /> {t(backLabel)}</button>
         {SECTIONS.map(([id, label, icon]) => (
           <button key={id} className={`settings-nav-item${section === id ? ' on' : ''}`} aria-current={section === id} onClick={() => setSection(id)}>
             <Icon name={icon} size={16} /> {t(label)}

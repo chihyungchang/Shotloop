@@ -346,7 +346,6 @@ export const ptBR: Record<Key, string> = {
   'library.intro': 'Modelos 3D gratuitos, baixados uma vez e reusados em qualquer projeto 3D. Adicione-os no painel Modelos do estúdio.',
   'library.placeholder': 'Busque modelos: robot, desk, tree… (em inglês funciona melhor)',
   'library.cc0Only': 'Só CC0 (sem crédito)',
-  'library.needsKey': 'Esta fonte precisa da sua chave de API (grátis): adicione em Configurações → Fontes de modelos.',
   'library.none': 'Nenhum modelo encontrado.',
   'library.have': 'Baixado',
   'library.get': 'Baixar',
@@ -364,5 +363,9 @@ export const ptBR: Record<Key, string> = {
   'assets.tellAi': 'Depois diga ao assistente onde colocar, como “ponha {name} na mesa”.',
   'assets.fromLibrary': 'Sua biblioteca',
   'assets.emptyLibrary': 'Sua biblioteca está vazia: baixe modelos na Biblioteca 3D.',
-  'assets.add': 'Adicionar'
+  'assets.add': 'Adicionar',
+  'library.connectTitle': 'Conectar o Poly Pizza',
+  'library.connectNote': 'Milhares de modelos low-poly gratuitos. Crie uma conta grátis no Poly Pizza, copie sua chave de API e adicione aqui uma vez.',
+  'library.addKey': 'Adicionar a chave',
+  'settings.backLibrary': 'Voltar à biblioteca'
 }

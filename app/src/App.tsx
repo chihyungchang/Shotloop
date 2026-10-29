@@ -4,7 +4,7 @@ import { Home } from './components/Home'
 import { LibraryPage } from './components/LibraryPage'
 import { PlanPage } from './components/plan/PlanPage'
 import { Projects } from './components/Projects'
-import { SettingsPage } from './components/SettingsPage'
+import { SettingsPage, type Section } from './components/SettingsPage'
 import { Sidebar, type Page } from './components/Sidebar'
 import { Studio } from './components/studio/Studio'
 import { remember } from './recent'
@@ -31,6 +31,15 @@ export default function App() {
       setError(String(e))
     }
   }, [])
+
+  // Settings, opened at a section; Back returns where it was opened from
+  const [settingsAt, setSettingsAt] = useState<Section>('ai')
+  const [settingsFrom, setSettingsFrom] = useState<Page>('home')
+  const openSettings = (at: Section = 'ai', from: Page = 'home') => {
+    setSettingsAt(at)
+    setSettingsFrom(from)
+    setPage('settings')
+  }
 
   // A project opens in the studio, or on its planning page when it is new
   const [view, setView] = useState<'studio' | 'plan'>('studio')
@@ -86,21 +95,21 @@ export default function App() {
 
   // Settings takes the whole window, with its own section list (as in
   // open-design); from a project, Back returns to it
-  if (page === 'settings') return <SettingsPage key={language.lang} theme={theme} language={language} back={() => setPage('home')} />
+  if (page === 'settings') return <SettingsPage key={language.lang} theme={theme} language={language} start={settingsAt} back={() => setPage(settingsFrom)} backLabel={settingsFrom === 'library' ? 'settings.backLibrary' : 'settings.back'} />
 
   if (project && view === 'plan') {
-    return <PlanPage key={language.lang} project={project} jobs={jobs} refresh={refresh} back={close} toStudio={() => setView('studio')} openSettings={() => setPage('settings')} />
+    return <PlanPage key={language.lang} project={project} jobs={jobs} refresh={refresh} back={close} toStudio={() => setView('studio')} openSettings={() => openSettings()} />
   }
-  if (project) return <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} openSettings={() => setPage('settings')} openPlan={() => setView('plan')} />
+  if (project) return <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} openSettings={() => openSettings()} openPlan={() => setView('plan')} />
 
   return (
     <div className="workspace-shell" key={language.lang}>
       <Sidebar page={page} setPage={setPage} open={open} jobs={jobs} theme={theme} />
       <main className="workspace-main">
         {error && <p className="error banner">{error}</p>}
-        {page === 'home' && <Home open={open} openSettings={() => setPage('settings')} />}
+        {page === 'home' && <Home open={open} openSettings={() => openSettings()} />}
         {page === 'projects' && <Projects open={open} />}
-        {page === 'library' && <LibraryPage openSettings={() => setPage('settings')} />}
+        {page === 'library' && <LibraryPage openSettings={() => openSettings('assets', 'library')} />}
       </main>
     </div>
   )

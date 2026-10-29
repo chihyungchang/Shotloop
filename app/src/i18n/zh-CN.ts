@@ -346,7 +346,6 @@ export const zhCN: Record<Key, string> = {
   'library.intro': '免费的 3D 模型，下载一次，所有 3D 项目都能重复使用。在工作室的“素材”抽屉里把它加入项目。',
   'library.placeholder': '搜索模型：robot、desk、tree……（英文关键词效果最好）',
   'library.cc0Only': '只看 CC0（无需署名）',
-  'library.needsKey': '这个来源需要你的 API 密钥（可免费申请）：在设置 → 素材来源里填入。',
   'library.none': '没有找到模型。',
   'library.have': '已下载',
   'library.get': '下载',
@@ -364,5 +363,9 @@ export const zhCN: Record<Key, string> = {
   'assets.tellAi': '接着告诉 AI 助手怎么用，比如“把 {name} 放到桌子上”。',
   'assets.fromLibrary': '我的素材库',
   'assets.emptyLibrary': '素材库是空的：先到侧边栏的“素材库”里下载。',
-  'assets.add': '加入'
+  'assets.add': '加入',
+  'library.connectTitle': '连接 Poly Pizza',
+  'library.connectNote': '上万个免费的低多边形模型。在 Poly Pizza 免费注册，复制 API 密钥，在这里填一次即可。',
+  'library.addKey': '填写密钥',
+  'settings.backLibrary': '返回素材库'
 }

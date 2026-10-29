@@ -347,7 +347,6 @@ export const en = {
   'library.intro': 'Free 3D models, downloaded once and reused in any 3D project. Add one to a project in the studio’s Assets drawer.',
   'library.placeholder': 'Search models: robot, desk, tree… (English works best)',
   'library.cc0Only': 'CC0 only (no credit needed)',
-  'library.needsKey': 'This source needs your API key (free): add it in Settings → Asset sources.',
   'library.none': 'No models found.',
   'library.have': 'Downloaded',
   'library.get': 'Download',
@@ -365,7 +364,11 @@ export const en = {
   'assets.tellAi': 'Then tell the AI assistant where it goes, e.g. “put {name} on the table”.',
   'assets.fromLibrary': 'Your library',
   'assets.emptyLibrary': 'Your library is empty: download models in Asset library.',
-  'assets.add': 'Add'
+  'assets.add': 'Add',
+  'library.connectTitle': 'Connect Poly Pizza',
+  'library.connectNote': 'Thousands of free low-poly models. Make a free account on Poly Pizza, copy your API key, and add it here once.',
+  'library.addKey': 'Add the key',
+  'settings.backLibrary': 'Back to the asset library'
 }
 
 export type Key = keyof typeof en
