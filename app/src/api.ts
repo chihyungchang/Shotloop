@@ -208,7 +208,8 @@ export const api = {
   saveSettings: (settings: Settings) => invoke<void>('save_settings', { settings }),
   initialProject: () => invoke<string | null>('initial_project'),
   reveal: (path: string) => invoke<void>('reveal', { path }),
-  openPath: (path: string) => invoke<void>('open_path', { path })
+  openPath: (path: string) => invoke<void>('open_path', { path }),
+  setTrayText: (status: string, show: string, quit: string) => invoke<void>('set_tray_text', { status, show, quit })
 }
 
 export const onQueue = (f: (jobs: Job[]) => void): Promise<UnlistenFn> => listen<Job[]>('queue', e => f(e.payload))

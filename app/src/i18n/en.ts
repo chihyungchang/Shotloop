@@ -203,7 +203,11 @@ export const en = {
   'ai.connected.one': 'Connected · 1 model',
   'ai.visionNote': 'Checks look at stills: choose a vision model (e.g. qwen2.5vl, gemma3, llama3.2-vision) with tool calling.',
   'ai.key': 'API key',
-  'ai.keyOptional': 'Optional'
+  'ai.keyOptional': 'Optional',
+
+  'tray.idle': 'Nothing running',
+  'tray.show': 'Show Shotloop',
+  'tray.quit': 'Quit Shotloop'
 }
 
 export type Key = keyof typeof en

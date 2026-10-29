@@ -201,7 +201,10 @@ impl Queue {
     }
 
     fn notify(&self, app: &AppHandle) {
-        let _ = app.emit("queue", self.list());
+        let jobs = self.list();
+        let active = jobs.iter().filter(|j| matches!(j.state.as_str(), "queued" | "running")).count();
+        crate::tray::set_count(app, active);
+        let _ = app.emit("queue", jobs);
     }
 
     /// Adds a job; a render already queued or running is not added twice

@@ -202,5 +202,9 @@ export const ptBR: Record<Key, string> = {
   'ai.connected.one': 'Conectado · 1 modelo',
   'ai.visionNote': 'As verificações olham os quadros: escolha um modelo com visão e chamada de ferramentas (ex.: qwen2.5vl, gemma3, llama3.2-vision).',
   'ai.key': 'Chave da API',
-  'ai.keyOptional': 'Opcional'
+  'ai.keyOptional': 'Opcional',
+
+  'tray.idle': 'Nada em execução',
+  'tray.show': 'Mostrar o Shotloop',
+  'tray.quit': 'Sair do Shotloop'
 }

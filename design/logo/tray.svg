@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="28 28 144 144" width="44" height="44">
+  <!-- The menu bar icon: a macOS template image (black and alpha); 22 pt at 2x -->
+  <rect x="100" y="40" width="40" height="40" rx="6" fill="#000" transform="translate(120 60) scale(.875) translate(-120 -60)"/>
+  <path d="M100 80 L60 80 A40 40 0 0 1 100 40 Z" fill="#000" transform="translate(80 60) scale(.875) translate(-80 -60)"/>
+  <path d="M100 80 L60 80 A40 40 0 0 0 100 120 Z" fill="#000" transform="translate(80 100) scale(.875) translate(-80 -100)"/>
+  <path d="M100 120 L140 120 A40 40 0 0 0 100 80 Z" fill="#000" transform="translate(120 100) scale(.875) translate(-120 -100)"/>
+  <path d="M100 120 L140 120 A40 40 0 0 1 100 160 Z" fill="#000" transform="translate(120 140) scale(.875) translate(-120 -140)"/>
+  <rect x="60" y="120" width="40" height="40" rx="6" fill="#000" transform="translate(80 140) scale(.875) translate(-80 -140)"/>
+</svg>

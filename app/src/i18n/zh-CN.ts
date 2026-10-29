@@ -202,5 +202,9 @@ export const zhCN: Record<Key, string> = {
   'ai.connected.one': '已连接 · 1 个模型',
   'ai.visionNote': '检查要看静帧：请选择支持视觉和工具调用的模型（如 qwen2.5vl、gemma3、llama3.2-vision）。',
   'ai.key': 'API 密钥',
-  'ai.keyOptional': '可选'
+  'ai.keyOptional': '可选',
+
+  'tray.idle': '没有任务在运行',
+  'tray.show': '显示 Shotloop',
+  'tray.quit': '退出 Shotloop'
 }

@@ -4,6 +4,7 @@
 mod env;
 mod queue;
 mod settings;
+mod tray;
 
 use queue::{Job, Launch, Queue, Spec};
 use serde_json::Value;
@@ -253,7 +254,17 @@ pub fn run() {
             *queue.launch.lock().unwrap() = launch_for(root, &settings);
             queue.start(app.handle().clone());
             app.manage(App { queue, config_dir });
+            let tray = tray::create(app.handle())?;
+            app.manage(tray);
             Ok(())
+        })
+        // Closing the window keeps Shotloop in the menu bar, so renders go
+        // on; Quit (the app menu or the tray) ends it
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                let _ = window.hide();
+            }
         })
         .invoke_handler(tauri::generate_handler![
             doctor,
@@ -274,8 +285,18 @@ pub fn run() {
             save_settings,
             initial_project,
             reveal,
-            open_path
+            open_path,
+            tray::set_tray_text
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running Shotloop");
+        .build(tauri::generate_context!())
+        .expect("error while building Shotloop")
+        .run(|app, event| {
+            // Clicking the Dock icon brings the hidden window back
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { .. } = event {
+                tray::show_main(app);
+            }
+            #[cfg(not(target_os = "macos"))]
+            let _ = (app, event);
+        });
 }

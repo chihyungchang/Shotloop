@@ -7,7 +7,7 @@ import { Sidebar, type Page } from './components/Sidebar'
 import { Studio } from './components/studio/Studio'
 import { remember } from './recent'
 import { useTheme } from './theme/theme'
-import { useLanguage } from './i18n'
+import { t, useLanguage } from './i18n'
 
 // Two layouts, as in open-design: the workspace (sidebar + Home, All
 // projects, Settings) and the Studio, one project full-window.
@@ -72,6 +72,12 @@ export default function App() {
       clearInterval(timer)
     }
   }, [refresh])
+
+  // The menu bar menu speaks the UI's language
+  const active = jobs.filter(j => j.state === 'running' || j.state === 'queued').length
+  useEffect(() => {
+    api.setTrayText(active ? t('sidebar.queue', { n: active }) : t('tray.idle'), t('tray.show'), t('tray.quit')).catch(() => {})
+  }, [active, language.lang])
 
   if (project) return <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} />
 
