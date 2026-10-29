@@ -141,7 +141,7 @@ export function activityLine(line: string): string {
     case 'edit_file': case 'edit': case 'multiedit': return t('act.edit', { what })
     case 'list_files': case 'glob': case 'grep': case 'ls': return t('act.list')
     case 'render_stills': return t('act.stills', { what: rest ? t('act.shot', { n: rest.match(/\d+/)?.[0] ?? rest }) : t('act.shot', { n: '' }) })
-    case 'read_checklist': case 'report_checks': return t('act.checks', { what: rest ? t('act.shot', { n: rest.match(/\d+/)?.[0] ?? rest }) : '' })
+    case 'read_checklist': case 'report_checks': return rest ? t('act.checks', { what: t('act.shot', { n: rest.match(/\d+/)?.[0] ?? rest }) }) : t('act.checking')
     case 'bash': return t('act.run')
     case 'agent': return t('act.think')
   }

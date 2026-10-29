@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { t } from '../../i18n'
 import { Icon } from '../Icon'
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
@@ -61,12 +62,12 @@ export function VideoPlayer({ src, className = '', autoPlay = true, loop = true,
     <div className={`player ${className}`}>
       <video ref={ref} src={src} loop={loop} muted={isMuted} playsInline onClick={toggle} />
       {!playing && (
-        <button className="player-big" onClick={toggle} aria-label="Play">
+        <button className="player-big" onClick={toggle} aria-label={t('player.play')}>
           <Icon name="play" size={26} />
         </button>
       )}
       <div className="player-bar" onClick={e => e.stopPropagation()}>
-        <button className="player-btn" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}>
+        <button className="player-btn" onClick={toggle} aria-label={t(playing ? 'player.pause' : 'player.play')}>
           <Icon name={playing ? 'pause' : 'play'} size={14} />
         </button>
         <div
@@ -93,7 +94,7 @@ export function VideoPlayer({ src, className = '', autoPlay = true, loop = true,
         </div>
         <span className="player-time">{clock(time)} / {clock(duration)}</span>
         {sound && (
-          <button className="player-btn" onClick={() => setMuted(m => !m)} aria-label={isMuted ? 'Unmute' : 'Mute'}>
+          <button className="player-btn" onClick={() => setMuted(m => !m)} aria-label={t(isMuted ? 'player.unmute' : 'player.mute')}>
             <Icon name={isMuted ? 'muted' : 'volume'} size={14} />
           </button>
         )}

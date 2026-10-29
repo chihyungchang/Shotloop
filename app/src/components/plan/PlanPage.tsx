@@ -283,7 +283,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
                       </div>
                     </div>
                   ))}
-                  <button className="add-shot" onClick={() => edit({ ...sb, shots: [...sb.shots, { title: 'New shot', duration: 4, show: '', text: '', motion: '' }] })}>
+                  <button className="add-shot" onClick={() => edit({ ...sb, shots: [...sb.shots, { title: t('plan.newShot'), duration: 4, show: '', text: '', motion: '' }] })}>
                     <Icon name="plus" size={14} /> {t('plan.addShot')}
                   </button>
                 </div>
