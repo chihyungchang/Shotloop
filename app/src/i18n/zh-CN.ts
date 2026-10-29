@@ -368,5 +368,9 @@ export const zhCN: Record<Key, string> = {
   'library.connectNote': '上万个免费的低多边形模型。在 Poly Pizza 免费注册，复制 API 密钥，在这里填一次即可。',
   'library.addKey': '填写密钥',
   'settings.backLibrary': '返回素材库',
-  'library.try': '试试：'
+  'library.try': '试试：',
+  'library.blocked': 'Poly Pizza 只允许浏览器下载文件，已在浏览器里打开模型页面：下载 GLB 后，到“我的素材 → 从文件导入”添加。',
+  'library.openPage': '打开模型页面',
+  'library.import': '从文件导入',
+  'library.importNote': '从其他网站下载了 .glb 模型？在这里导入，记得先确认它的许可。'
 }

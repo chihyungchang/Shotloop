@@ -1,3 +1,4 @@
+import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useEffect, useState } from 'react'
 import { api, fileUrl, type Asset, type LibraryItem } from '../api'
 import { t } from '../i18n'
@@ -67,6 +68,7 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [getting, setGetting] = useState<Record<string, 'busy' | 'failed'>>({})
+  const [blocked, setBlocked] = useState(false)
 
   const run = async (more = false, q = query) => {
     if (!more) {
@@ -104,8 +106,13 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
         return rest
       })
       onAdded()
-    } catch {
+    } catch (e) {
       setGetting(g => ({ ...g, [it.id]: 'failed' }))
+      // The host won't serve the file to an app: download it in the browser
+      if (/blocked:/.test(String(e))) {
+        setBlocked(true)
+        if (it.page) api.openUrl(it.page)
+      }
     }
   }
   const needsKey = error && /api key|needs an api key/i.test(error)
@@ -144,6 +151,7 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
           </div>
         )
         : error && <div className="error-box small">{error}</div>}
+      {blocked && <div className="note-box small">{t('library.blocked')}</div>}
       {source === 'polypizza' && !query.trim() && !error && (
         <div className="suggest">
           <span className="small muted">{t('library.try')}</span>
@@ -167,6 +175,9 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
               </div>
               <div className="asset-foot">
                 <span className={`license${/^cc0/i.test(it.license) ? ' cc0' : ''}`}>{it.license || '?'}</span>
+                {it.page && (
+                  <button className="icon-button" title={t('library.openPage')} onClick={() => api.openUrl(it.page!)}><Icon name="arrow" size={13} /></button>
+                )}
                 {owned
                   ? <span className="small ok-note"><Icon name="check" size={12} /> {t('library.have')}</span>
                   : (
@@ -187,9 +198,30 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
 }
 
 function Mine({ assets, reload }: { assets: Asset[] | null; reload: () => void }) {
+  const [error, setError] = useState<string | null>(null)
+  const importFile = async () => {
+    const file = await pick({ title: t('library.import'), filters: [{ name: 'glTF binary', extensions: ['glb'] }] })
+    if (typeof file !== 'string') return
+    setError(null)
+    try {
+      await api.libraryImport(file)
+      reload()
+    } catch (e) {
+      setError(String(e))
+    }
+  }
+  const bar = (
+    <div className="row between">
+      <span className="small muted">{t('library.importNote')}</span>
+      <button onClick={importFile}><Icon name="plus" size={13} /> {t('library.import')}</button>
+    </div>
+  )
   if (!assets) return <p className="muted">{t('common.loading')}</p>
-  if (!assets.length) return <p className="empty">{t('library.emptyMine')}</p>
+  if (!assets.length) return <>{bar}{error && <div className="error-box small">{error}</div>}<p className="empty">{t('library.emptyMine')}</p></>
   return (
+    <>
+    {bar}
+    {error && <div className="error-box small">{error}</div>}
     <div className="asset-grid">
       {assets.map(a => (
         <div key={a.id} className="asset-card">
@@ -208,5 +240,6 @@ function Mine({ assets, reload }: { assets: Asset[] | null; reload: () => void }
         </div>
       ))}
     </div>
+    </>
   )
 }

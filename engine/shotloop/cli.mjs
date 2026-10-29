@@ -14,7 +14,7 @@
 //   shotloop title    <project> <title>                  rename the project
 //   shotloop library  search --source polypizza|smithsonian --query … [--key] [--cursor] [--all]
 //                     get --item '<search result>' | list [<project>] | remove <id>
-//                     use <project> <id> | unuse <project> <id>   the 3D asset library
+//                     use <project> <id> | unuse <project> <id> | import <file.glb> [--title]   the 3D asset library
 //   shotloop music    <project> [--preset calm|bright|groove|tech | --file <audio> | --none] [--gain 0–2]
 //   shotloop prune    <project>                          drop unused cache entries
 //   shotloop doctor                                      Chrome, ffmpeg, Blender
@@ -165,6 +165,7 @@ try {
       else if (sub === 'get') result(await library.download(JSON.parse(values.item ?? 'null')))
       else if (sub === 'list') result(a ? library.projectAssets(loadProject(a)) : library.list())
       else if (sub === 'remove') result(library.remove(a))
+      else if (sub === 'import') result(library.importFile(a, { name: values.title }))
       else if (sub === 'use') result(library.use(loadProject(a), b))
       else if (sub === 'unuse') result(library.unuse(loadProject(a), b))
       else throw new Error('library search|get|list|remove|use|unuse')

@@ -660,3 +660,4 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
 .connect-actions { display: flex; gap: 8px; flex: none; }
 
 .suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.note-box { padding: 10px 12px; border-radius: var(--r-md); background: var(--info-soft); color: var(--text); }

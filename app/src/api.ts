@@ -294,6 +294,8 @@ export const api = {
   libraryGet: (item: LibraryItem) => invoke<Asset>('library', { action: 'get', item }),
   libraryList: (project?: string) => invoke<Asset[]>('library', { action: 'list', project }),
   libraryRemove: (id: string) => invoke<void>('library', { action: 'remove', id }),
+  // A .glb from this Mac into the library
+  libraryImport: (file: string) => invoke<Asset>('library', { action: 'import', id: file }),
   libraryUse: (project: string, id: string) => invoke<Asset>('library', { action: 'use', project, id }),
   libraryUnuse: (project: string, id: string) => invoke<void>('library', { action: 'unuse', project, id }),
   applyStoryboard: (path: string) => invoke<{ shots: string[]; duration: number }>('apply_storyboard', { path }),

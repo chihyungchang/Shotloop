@@ -317,7 +317,7 @@ async fn library(handle: AppHandle, action: String, item: Option<Value>, id: Opt
         match action.as_str() {
             "get" => args.extend(["--item", item.as_deref().unwrap_or("null")]),
             "list" => args.extend(project.as_deref()),
-            "remove" => args.extend(id.as_deref()),
+            "remove" | "import" => args.extend(id.as_deref()),
             "use" | "unuse" => args.extend(project.as_deref().into_iter().chain(id.as_deref())),
             _ => return Err(format!("unknown library action {action}")),
         }

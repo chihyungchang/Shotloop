@@ -109,6 +109,8 @@ async function fetchTo(url, file) {
   const res = await fetch(url, { headers: UA, signal: AbortSignal.timeout(180000) }).catch(e => {
     throw new Error(`could not reach ${new URL(url).host} (${e.cause?.code ?? e.name}): check the network`)
   })
+  // Poly Pizza's file host turns away requests that aren't from a browser
+  if (res.status === 403) throw new Error(`blocked: ${new URL(url).host} only serves files to a web browser; open the model's page and download it there, then import the file`)
   if (!res.ok) throw new Error(`download failed: ${res.status} ${url}`)
   fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()))
 }
@@ -151,6 +153,21 @@ function readAssets(base) {
       return []
     }
   }).sort((a, b) => String(b.added).localeCompare(String(a.added)))
+}
+
+// A model file from this Mac (downloaded by hand from any site) into the
+// library; its licence is the person's to state
+export function importFile(file, { name, license = '', author = '', page = null } = {}) {
+  if (!fs.existsSync(file)) throw new Error(`no such file: ${file}`)
+  if (!/\.glb$/i.test(file)) throw new Error('import a .glb file (glTF binary)')
+  const base = path.basename(file, path.extname(file))
+  const id = `local-${safe(base)}`
+  const dir = path.join(LIBRARY, id)
+  fs.mkdirSync(dir, { recursive: true })
+  fs.copyFileSync(file, path.join(dir, 'model.glb'))
+  const asset = { id, name: name || base.replace(/[-_]+/g, ' '), source: 'local', license, author, page, added: new Date().toISOString() }
+  fs.writeFileSync(path.join(dir, 'asset.json'), JSON.stringify(asset, null, 2) + '\n')
+  return withFiles(asset, dir)
 }
 
 export const list = () => readAssets(LIBRARY)
