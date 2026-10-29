@@ -105,6 +105,52 @@ async fn convert_episode(handle: AppHandle, src: String, dst: String) -> Result<
     blocking(move || engine(&handle.state::<App>(), &["convert", &src, &dst])).await
 }
 
+/// Creates a starter project from an idea (`shotloop new`)
+#[tauri::command]
+async fn create_project(
+    handle: AppHandle,
+    dir: String,
+    idea: String,
+    title: String,
+    track: String,
+    aspect: String,
+    duration: u32,
+) -> Result<Value, String> {
+    let duration = duration.to_string();
+    blocking(move || {
+        engine(
+            &handle.state::<App>(),
+            &["new", &dir, "--idea", &idea, "--title", &title, "--track", &track, "--aspect", &aspect, "--duration", &duration],
+        )
+    })
+    .await
+}
+
+/// Summaries for project cards; `examples` adds the repository's examples
+#[tauri::command]
+async fn list_projects(handle: AppHandle, paths: Vec<String>, examples: bool) -> Result<Value, String> {
+    // Posters live in each project's cache folder
+    for p in &paths {
+        let _ = handle.asset_protocol_scope().allow_directory(p, true);
+    }
+    blocking(move || {
+        let app = handle.state::<App>();
+        let mut args: Vec<&str> = vec!["list"];
+        args.extend(paths.iter().map(String::as_str));
+        if examples {
+            args.push("--examples");
+        }
+        let list = engine(&app, &args)?;
+        for p in list.as_array().into_iter().flatten() {
+            if let Some(root) = p["root"].as_str() {
+                let _ = handle.asset_protocol_scope().allow_directory(root, true);
+            }
+        }
+        Ok(list)
+    })
+    .await
+}
+
 #[tauri::command]
 fn read_text(project: String, path: String) -> Result<String, String> {
     std::fs::read_to_string(project_file(&project, &path)?).map_err(|e| e.to_string())
@@ -187,6 +233,8 @@ pub fn run() {
             open_project,
             project_status,
             convert_episode,
+            create_project,
+            list_projects,
             read_text,
             write_text,
             enqueue,

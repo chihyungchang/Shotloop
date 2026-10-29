@@ -35,8 +35,8 @@ export function Setup() {
     : []
 
   return (
-    <section className="panel">
-      <h2>Setup</h2>
+    <section className="panel setup">
+      <h3>Dependencies</h3>
       {doctorError && <p className="error">{doctorError}</p>}
       {!doctor && !doctorError && <p className="muted">Checking dependencies…</p>}
       {doctor && (

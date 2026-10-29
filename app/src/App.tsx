@@ -1,28 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { api, onProjectChanged, onQueue, type Job, type Project as ProjectData } from './api'
-import { ProjectScreen } from './components/ProjectScreen'
-import { StartScreen } from './components/StartScreen'
+import { api, onProjectChanged, onQueue, type Job, type Project } from './api'
+import { Home } from './components/Home'
+import { Projects } from './components/Projects'
+import { SettingsPage } from './components/SettingsPage'
+import { Sidebar, type Page } from './components/Sidebar'
+import { Studio } from './components/studio/Studio'
+import { remember } from './recent'
 
-const RECENT = 'shotloop.recent'
-
-export function readRecent(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(RECENT) ?? '[]')
-  } catch {
-    return []
-  }
-}
-
-function remember(path: string) {
-  try {
-    localStorage.setItem(RECENT, JSON.stringify([path, ...readRecent().filter(p => p !== path)].slice(0, 8)))
-  } catch {
-    // storage unavailable: recents are a convenience
-  }
-}
-
+// Two layouts, as in open-design: the workspace (sidebar + Home, All
+// projects, Settings) and the Studio, one project full-window.
 export default function App() {
-  const [project, setProject] = useState<ProjectData | null>(null)
+  const [page, setPage] = useState<Page>('home')
+  const [project, setProject] = useState<Project | null>(null)
   const [jobs, setJobs] = useState<Job[]>([])
   const [error, setError] = useState<string | null>(null)
   const root = useRef<string | null>(null)
@@ -47,6 +36,11 @@ export default function App() {
       setError(String(e))
     }
   }, [])
+
+  const close = () => {
+    root.current = null
+    setProject(null)
+  }
 
   useEffect(() => {
     api.initialProject().then(p => {
@@ -74,16 +68,17 @@ export default function App() {
     }
   }, [refresh])
 
-  if (!project) return <StartScreen onOpen={open} error={error} jobs={jobs} />
+  if (project) return <Studio project={project} jobs={jobs} refresh={refresh} close={close} />
+
   return (
-    <ProjectScreen
-      project={project}
-      jobs={jobs}
-      refresh={refresh}
-      close={() => {
-        root.current = null
-        setProject(null)
-      }}
-    />
+    <div className="workspace-shell">
+      <Sidebar page={page} setPage={setPage} open={open} jobs={jobs} />
+      <main className="workspace-main">
+        {error && <p className="error banner">{error}</p>}
+        {page === 'home' && <Home open={open} />}
+        {page === 'projects' && <Projects open={open} />}
+        {page === 'settings' && <SettingsPage />}
+      </main>
+    </div>
   )
 }

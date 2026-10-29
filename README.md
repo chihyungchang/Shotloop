@@ -27,8 +27,14 @@ npm install --prefix agent
 npm run app                  # tauri dev; Rust toolchain needed
 ```
 
-Open a project folder (try `examples/ep01-password-crack-time`), or
-convert a legacy episode from the start screen. The Setup panel checks
+Home starts a short from an idea: pick 2D or 3D, 9:16 or 16:9 and a
+length, and Shotloop writes a starter project that renders as it is. Or
+open one of the examples. In the Studio, the agent conversation for the
+selected shot is on the left, the shot (preview, stills, code) on a dark
+stage in the middle with the filmstrip and its notes and checks below,
+and the render queue and export in a drawer on the right. The layout
+follows [open-design](https://github.com/nexu-io/open-design)'s workspace
+and studio, adapted to video. The Setup panel checks
 Chrome, ffmpeg and Blender and takes your Anthropic API key for the agent.
 `npm run app:build` makes `Shotloop.app`; it runs the engine and agent
 from `$SHOTLOOP_ROOT`, or from the checkout it was built from (bundling
@@ -42,6 +48,7 @@ npm run shotloop -- render   examples/hello-3d --shot 02-close --stills   # star
 npm run shotloop -- render   examples/hello-3d --shot 02-close            # draft clip
 npm run shotloop -- export   examples/hello-3d --draft                    # only changed shots render
 npm run shotloop -- convert  engine/video/explainers/3d/ep02-claude-code-enter my-ep02
+npm run shotloop -- new      my-short --idea "Why does your phone battery age?" --track 2d --duration 30
 npm run shotloop -- doctor
 ```
 

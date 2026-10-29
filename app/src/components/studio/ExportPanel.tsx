@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { api, fileUrl, type ExportResult, type Job, type Mode, type Project } from '../api'
-import { estimate, formatSeconds } from '../model'
+import { api, fileUrl, type ExportResult, type Job, type Mode, type Project } from '../../api'
+import { estimate, formatSeconds } from '../../model'
 
 const ASPECTS = ['9:16', '16:9']
 
@@ -34,7 +34,6 @@ export function ExportPanel({ project, jobs }: { project: Project; jobs: Job[] }
 
   return (
     <div className="export">
-      <h3>Export</h3>
       <div className="segmented">
         {(['draft', 'final'] as Mode[]).map(m => (
           <button key={m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>{m === 'draft' ? 'Draft' : 'Final'}</button>

@@ -1,5 +1,5 @@
-import { api, type Job, type Project } from '../api'
-import { formatSeconds, jobEstimate } from '../model'
+import { api, type Job, type Project } from '../../api'
+import { formatSeconds, jobEstimate } from '../../model'
 
 // The render queue (docs/PRD.md §7.7): renders one shot at a time,
 // agent work alongside; progress and time estimates per job
@@ -11,7 +11,7 @@ export function QueuePanel({ project, jobs }: { project: Project; jobs: Job[] })
   return (
     <div className="queue">
       <div className="row between">
-        <h3>Queue</h3>
+        <h3>Active</h3>
         {total > 0 && <span className="muted small">renders ~{formatSeconds(total)} left</span>}
       </div>
       {!active.length && <p className="muted small">Nothing running. Final renders keep going here while you work.</p>}

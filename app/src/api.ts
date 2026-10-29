@@ -41,6 +41,7 @@ export interface Checks {
 }
 
 export interface FixRecord {
+  at?: string
   task: 'fix' | 'check'
   shot: string
   request: string | null
@@ -67,6 +68,7 @@ export interface Shot {
   error: { at: string; mode: Mode; message: string } | null
   checks: Checks | null
   fix: FixRecord | null
+  fixes: FixRecord[]
 }
 
 export interface Project {
@@ -147,11 +149,34 @@ export interface ExportResult {
   rendered: string[]
 }
 
+export interface ProjectSummary {
+  root: string
+  title: string
+  slug: string
+  track: '2d' | '3d'
+  size: { width: number; height: number }
+  duration: number
+  shots: number
+  poster: string | null
+  changed: string
+}
+
+export interface NewProject {
+  dir: string
+  idea: string
+  title: string
+  track: '2d' | '3d'
+  aspect: '9:16' | '16:9'
+  duration: number
+}
+
 export const api = {
   doctor: () => invoke<Doctor>('doctor'),
   openProject: (path: string) => invoke<Project>('open_project', { path }),
   status: (path: string) => invoke<Project>('project_status', { path }),
   convert: (src: string, dst: string) => invoke<{ dst: string }>('convert_episode', { src, dst }),
+  createProject: (p: NewProject) => invoke<{ root: string }>('create_project', { ...p }),
+  listProjects: (paths: string[], examples = false) => invoke<ProjectSummary[]>('list_projects', { paths, examples }),
   readText: (project: string, path: string) => invoke<string>('read_text', { project, path }),
   writeText: (project: string, path: string, content: string) => invoke<void>('write_text', { project, path, content }),
   enqueue: (spec: Spec) => invoke<number>('enqueue', { spec }),
