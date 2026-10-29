@@ -661,3 +661,7 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
 
 .suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .note-box { padding: 10px 12px; border-radius: var(--r-md); background: var(--info-soft); color: var(--text); }
+/* WebKit (the app's web view) doesn't centre a grid item in these small
+   tiles the way Chrome does: centre the marks with flex instead */
+.mode-tile, .cli-logo, .option-logo, .connect-logo { display: flex; align-items: center; justify-content: center; }
+.brand-icon, .mode-tile .brand-icon, .cli-logo .brand-icon, .option-logo .brand-icon { display: block; width: 1em; height: 1em; }
