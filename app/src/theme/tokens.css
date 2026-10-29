@@ -50,6 +50,8 @@
   --r-tray: 20px;
   --r-pill: 999px;
   --cell-gap: 8px;
+  /* The window's title bar strip (macOS traffic lights) */
+  --titlebar: 40px;
   --cell-overlap: 0;
 
   --ease: cubic-bezier(0.23, 1, 0.32, 1);
