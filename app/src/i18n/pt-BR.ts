@@ -288,6 +288,8 @@ export const ptBR: Record<Key, string> = {
   'film.watch': 'Ver o filme',
   'film.rendering': 'Renderizando alterações…',
   'film.note': 'Todos os planos juntos, com música: o filme como será exportado',
+  'film.stale': '{n} planos mudaram: aqui tocam a última renderização.',
+  'film.update': 'Atualizar',
   'film.failed': 'Alguns planos falharam; veja a fila.',
   'studio.quality': 'Qualidade',
   'studio.revealFinder': 'Mostrar no Finder',

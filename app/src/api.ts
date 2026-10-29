@@ -312,7 +312,7 @@ export const api = {
   // The music bed: read with no change, or set a preset, a file, none, a volume
   music: (path: string, change: { preset?: string; file?: string; none?: boolean; gain?: number; bed?: boolean } = {}) => invoke<MusicInfo & { bed?: string | null }>('music', { path, ...change }),
   quality: (path: string, change: { samples?: number; reset?: boolean } = {}) => invoke<{ samples: number; custom: boolean; default: number }>('quality', { path, ...change }),
-  filmPreview: (path: string, mode: Mode) => invoke<{ file: string }>('film_preview', { path, finalMode: mode === 'final' })
+  filmPreview: (path: string, mode: Mode) => invoke<{ file: string; stale: string[] }>('film_preview', { path, finalMode: mode === 'final' })
 }
 
 export const onQueue = (f: (jobs: Job[]) => void): Promise<UnlistenFn> => listen<Job[]>('queue', e => f(e.payload))

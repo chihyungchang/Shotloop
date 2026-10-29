@@ -288,6 +288,8 @@ export const zhCN: Record<Key, string> = {
   'film.watch': '整片预览',
   'film.rendering': '正在渲染改动…',
   'film.note': '所有镜头连起来并配上音乐，就是导出后的样子',
+  'film.stale': '有 {n} 个镜头改过，这里播放的是它们上次渲染的画面。',
+  'film.update': '更新这些镜头',
   'film.failed': '有镜头渲染失败，请看队列。',
   'studio.quality': '画质',
   'studio.revealFinder': '在访达中显示',

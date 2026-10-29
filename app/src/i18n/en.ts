@@ -289,6 +289,8 @@ export const en = {
   'film.watch': 'Watch the film',
   'film.rendering': 'Rendering changes…',
   'film.note': 'All shots joined, with music: the film as it will export',
+  'film.stale': '{n} shots changed since their frames: they play their last render here.',
+  'film.update': 'Update them',
   'film.failed': 'Some shots failed to render; see the queue.',
   'studio.quality': 'Quality',
   'studio.revealFinder': 'Show in Finder',

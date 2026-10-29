@@ -11,7 +11,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { openPage } from '../lib/chrome.mjs'
-import { entry, writeJson } from './cache.mjs'
+import { entry, takes, writeJson } from './cache.mjs'
 import { musicBed as musicWav } from './bed.mjs'
 import { emit, ffmpeg, pixelSize } from './compose.mjs'
 import { renderShot } from './render.mjs'
@@ -95,17 +95,27 @@ export async function assemble(project, { mode = 'draft', aspects = ['9:16', '16
 // The whole film to watch in the app: the shots' clips joined as they
 // are, with the music under them, at the project's own aspect. Cached by
 // what went in, so watching it again costs nothing.
+// A shot whose frames are out of date plays its latest clip in this mode
+// (listed in `stale`), so watching never waits for renders; only a shot
+// with no clip at all stops it.
 export async function preview(project, { mode = 'draft' } = {}) {
-  const missing = pendingShots(project, mode)
+  const stale = []
+  const clips = project.shots.map(s => {
+    const current = entry(project, s, mode).clip
+    if (current) return current
+    const last = takes(project, s).findLast(t => t.mode === mode && t.clip && fs.existsSync(t.clip))?.clip
+    if (last) stale.push(s.id)
+    return last ?? null
+  })
+  const missing = project.shots.filter((s, i) => !clips[i])
   if (missing.length) {
     throw new Error(`not rendered (${mode}): ${missing.map(s => s.id).join(', ')}; render them first`)
   }
-  const clips = project.shots.map(s => entry(project, s, mode).clip)
   const music = musicWav(project)
   const key = createHash('sha256').update(JSON.stringify([clips, music, project.duration])).digest('hex').slice(0, 16)
   const dir = path.join(project.state, 'film')
   const file = path.join(dir, `${mode}-${key}.mp4`)
-  if (fs.existsSync(file)) return { mode, file, cached: true }
+  if (fs.existsSync(file)) return { mode, file, cached: true, stale }
 
   fs.mkdirSync(dir, { recursive: true })
   // One preview per mode: older ones go
@@ -126,7 +136,7 @@ export async function preview(project, { mode = 'draft' } = {}) {
     fs.rmSync(list, { force: true })
     fs.rmSync(joined, { force: true })
   }
-  return { mode, file, cached: false }
+  return { mode, file, cached: false, stale }
 }
 
 // The cover: thumb.html at 1080×1920, text kept inside the 3:4 crop by

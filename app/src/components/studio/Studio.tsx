@@ -34,7 +34,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   const mode = editMode(project)
   const [selected, setSelected] = useState(project.shots[0]?.id ?? '')
   const [drawer, setDrawer] = useState<Drawer>(null)
-  const [film, setFilm] = useState<string | null>(null)
+  const [film, setFilm] = useState<{ file: string; stale: string[] } | null>(null)
   // Asked for the whole film while shots were still out of date
   const [wantFilm, setWantFilm] = useState(false)
   const [filmError, setFilmError] = useState<string | null>(null)
@@ -58,24 +58,25 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
 
   // Render every shot whose frames are out of date, one at a time
   const renderPending = () => {
+    setFilmError(null)
     for (const s of pending) api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false })
     setDrawer('queue')
   }
   const toggle = (d: Drawer) => setDrawer(cur => (cur === d ? null : d))
 
-  // The whole film: render what is out of date first, then open it
+  // The whole film, right away: out-of-date shots play their latest
+  // frames (and say so); only shots never rendered are rendered first
   const openFilm = async () => {
     setFilmError(null)
-    if (pending.length) {
-      setWantFilm(true)
-      for (const s of pending) api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false })
-      return
-    }
     try {
-      setFilm((await api.filmPreview(project.root, mode)).file)
+      setFilm(await api.filmPreview(project.root, mode))
     } catch (e) {
-      // Shots without frames: say so in words, the details are in the queue
-      setFilmError(/not rendered/.test(String(e)) ? t('film.failed') : String(e))
+      if (/not rendered/.test(String(e)) && pending.length && !wantFilm) {
+        setWantFilm(true)
+        for (const s of pending) api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false })
+      } else {
+        setFilmError(/not rendered/.test(String(e)) ? t('film.failed') : String(e))
+      }
     }
   }
   const failed = pending.some(s => views.get(s.id)!.state === 'failed')
@@ -149,7 +150,10 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} />}
       </section>
 
-      {film && <FilmPreview project={project} file={film} close={() => setFilm(null)} />}
+      {film && (
+        <FilmPreview project={project} file={film.file} stale={film.stale} close={() => setFilm(null)}
+          update={() => { setFilm(null); renderPending() }} />
+      )}
 
       {drawer && (
         <aside className="drawer">

@@ -270,9 +270,7 @@ fn open_blender_download() -> Result<(), String> {
 async fn film_preview(handle: AppHandle, path: String, final_mode: bool) -> Result<Value, String> {
     blocking(move || {
         let mut args = vec!["preview", path.as_str()];
-        if final_mode {
-            args.push("--final");
-        }
+        args.push(if final_mode { "--final" } else { "--draft" });
         engine(&handle.state::<App>(), &args)
     })
     .await
