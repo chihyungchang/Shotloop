@@ -40,11 +40,11 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
       <nav>
         {NAV.map(([id, label, icon]) => (
           <button key={id} className={`nav-item${page === id ? ' on' : ''}`} onClick={() => setPage(id)}>
-            <Icon name={icon} /> {t(label)}
+            <Icon name={icon} size={18} /> {t(label)}
           </button>
         ))}
         <button className="nav-item" onClick={openFolder}>
-          <Icon name="folder" /> {t('nav.openFolder')}
+          <Icon name="folder" size={18} /> {t('nav.openFolder')}
         </button>
       </nav>
       {recent.length > 0 && (
@@ -52,7 +52,7 @@ export function Sidebar({ page, setPage, open, jobs, theme }: {
           <span className="section-label">{t('nav.recent')}</span>
           {recent.slice(0, 8).map(p => (
             <button key={p} className="nav-item small" onClick={() => open(p)} title={p}>
-              <Icon name="film" /> <span className="ellipsis">{baseName(p)}</span>
+              <Icon name="film" size={16} /> <span className="ellipsis">{baseName(p)}</span>
             </button>
           ))}
         </div>

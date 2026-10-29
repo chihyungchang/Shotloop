@@ -26,7 +26,7 @@ export function Setup({ settings, update }: { settings: Settings; update: (s: Pa
     : []
 
   return (
-    <section className="panel setup">
+    <section className="settings-block setup">
       <div className="row between">
         <h3>{t('setup.deps')}</h3>
         <button className="ghost small" onClick={check}>{t('setup.checkAgain')}</button>

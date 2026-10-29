@@ -120,6 +120,7 @@ export function Home({ open }: { open: (path: string) => void }) {
       <p className="hero-sub muted">{t('home.sub')}</p>
 
       <div className="composer">
+        <div className="composer-card">
         <textarea
           value={idea}
           rows={3}
@@ -158,6 +159,7 @@ export function Home({ open }: { open: (path: string) => void }) {
             {busy ? <span className="spinner" /> : <Icon name="send" size={18} />}
           </button>
         </div>
+        </div>
         <div className="composer-foot">
           <button className="link-muted" onClick={chooseFolder}>
             <Icon name="folder" size={14} /> {folder ?? t('home.chooseFolder')}
@@ -183,19 +185,22 @@ export function Home({ open }: { open: (path: string) => void }) {
       {examples.length > 0 && (
         <section className="examples">
           <span className="section-label">{t('home.examples')}</span>
+          <div className="example-list">
           {examples.map(p => (
             <button key={p.root} className="example" onClick={() => open(p.root)}>
               <div className={`example-poster${p.size.width > p.size.height ? ' wide' : ''}`}>
                 {p.poster ? <img src={fileUrl(p.poster)} alt="" /> : <Icon name="film" size={20} />}
               </div>
-              <div>
-                <strong><Icon name="spark" size={14} /> {p.title}</strong>
+              <div className="example-text">
+                <strong>{p.title}</strong>
                 <span className="muted small">
                   {p.track.toUpperCase()} · {t('common.shots', { n: p.shots })} · {formatSeconds(p.duration)} · {p.size.width > p.size.height ? '16:9' : '9:16'}
                 </span>
               </div>
+              <span className="example-go"><Icon name="arrow" size={14} /></span>
             </button>
           ))}
+          </div>
           <button className="link-muted convert" onClick={convert}>
             <Icon name="refresh" size={14} /> {t('home.convert')}
           </button>

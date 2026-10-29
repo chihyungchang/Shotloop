@@ -1,28 +1,29 @@
-/* Shotloop design tokens: a pro video editor's look. Dark first, dense,
-   tight radii, one accent that never competes with the footage.
+/* Shotloop design tokens, after open-design's craft: a quiet neutral
+   ground, one floating main card, hover as a faint ink veil, soft
+   shadows, short eased motion, and one loud colour (the teal of the
+   logo) kept for selection and the send button. The stage stays a dark
+   graphite in both themes so frames read true.
 
    Components use only these tokens, never raw values. <html data-theme>
    picks light or dark (theme.ts resolves "system" before first paint).
 
-   Ground      --bg (window, sidebar), --surface (panels), --surface-2
-               (insets, inputs), --surface-hover
-   Lines       --border (panel and row rules), --border-strong (controls,
-               3:1 on every surface)
-   Text        --text, --text-2 (meta), --text-3 (hints); every text
-               token holds 4.5:1 on every surface in both themes
-   Accent      --accent (a fill: selection, the main action), --accent-fg
-               (text on it), --accent-soft (tinted fills), --accent-text
-               (accent as text), --accent-line (accent as a border),
-               --nav-on-* (the current page), --focus
-   Action      --primary / --primary-fg: the one main button per view
-   Selected    --seg-on-*: the chosen segment of a segmented control
-   Stage       --stage*: the canvas frames are judged on, a dark graphite
-               in both themes so colours read true and black frames show
-               their edge
+   Ground      --bg (window, sidebar), --surface (cards, the main panel),
+               --surface-2 (trays, tracks, insets), --surface-hover,
+               --veil (hover and current-row fill: ink at a few percent)
+   Lines       --border, --border-soft, --border-strong (controls, 3:1)
+   Text        --text, --text-strong, --text-2 (meta), --text-3 (hints);
+               every text token holds 4.5:1 on every surface
+   Accent      --accent (a fill), --accent-fg, --accent-soft (tint),
+               --accent-text (accent as text), --accent-line, --focus
+   Action      --primary / --primary-fg: an ink pill, one per view;
+               --send-bg / --send-fg: the composer's send button
+   Selected    --seg-on-*: the raised segment of a segmented control
+   Stage       --stage*: the canvas frames are judged on
    Status      --success, --warning, --danger, --info (+ -soft fills)
-   Shape       --r-* radii, --shadow-*, --cell-gap
+   Shape       --r-* radii, --shadow-*, --ring (a card's inner hairline)
+   Motion      --ease, --dur-* (all off under prefers-reduced-motion)
    Type        --font-*, --display-* (Home headline), --label-* (section
-               labels: small, uppercase, tracked)
+               labels)
 */
 
 :root {
@@ -31,77 +32,102 @@
   --text-md: 13px;
   --text-lg: 15px;
   --text-xl: 24px;
-  --text-display: 38px;
-  --dur: 140ms;
+  --text-display: 34px;
   --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
-  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'PingFang SC', system-ui, sans-serif;
+  --font-display: ui-serif, 'New York', Georgia, 'Songti SC', 'STSong', serif;
   --font-mono: 'SF Mono', ui-monospace, 'JetBrains Mono', Menlo, monospace;
-  --display-weight: 650;
-  --display-tracking: -0.015em;
-  --label-font: 600 var(--text-xs)/1.4 var(--font-sans);
-  --label-tracking: 0.06em;
-  --label-transform: uppercase;
+  --display-weight: 600;
+  --display-tracking: -0.02em;
+  --label-font: 600 11px/1.4 var(--font-sans);
+  --label-tracking: 0.04em;
+  --label-transform: none;
 
-  --r-xs: 3px;
-  --r-sm: 4px;
-  --r-md: 6px;
-  --r-lg: 7px;
-  --r-xl: 8px;
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-tray: 20px;
   --r-pill: 999px;
-  --cell-gap: 6px;
+  --cell-gap: 8px;
   --cell-overlap: 0;
+
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --dur-fast: 100ms;
+  --dur: 150ms;
+  --dur-slow: 220ms;
 }
 
 /* ---------------------------------------------------------- neutrals */
 
 :root {
   color-scheme: light;
-  --bg: #e9ebee;
-  --surface: #f8f9fa;
-  --surface-2: #eef0f2;
-  --surface-hover: #e4e7ea;
-  --border: #d5d9de;
-  --border-strong: #87909a;
-  --text: #15181c;
-  --text-2: #4f5761;
-  --text-3: #626a74;
-  --seg-on-bg: #15181c;
-  --seg-on-fg: #f8f9fa;
-  --stage: #1b1e22;
-  --stage-raised: #272a2f;
-  --stage-border: #3b4047;
-  --stage-text: #b3bac3;
+  --bg: #e9e9eb;
+  --surface: #fcfcfc;
+  --surface-2: #efeff0;
+  --surface-hover: #e6e6e8;
+  --veil: rgb(20 22 26 / 0.07);
+  --border: #dedfe1;
+  --border-soft: #ebebec;
+  --border-strong: #8e9299;
+  --text: #2b2d31;
+  --text-strong: #141518;
+  --text-2: #5b5f66;
+  --text-3: #686c73;
+  --seg-on-bg: #ffffff;
+  --seg-on-fg: #141518;
+  --primary: #1d1f22;
+  --primary-fg: #fcfcfc;
+  --send-bg: #1d1f22;
+  --send-fg: #2dd4bf;
+  --stage: #1b1d20;
+  --stage-raised: #27292d;
+  --stage-border: #3b3e44;
+  --stage-text: #b3b7be;
   --success: #15803d;
   --warning: #b45309;
   --danger: #dc2626;
   --info: #1d6fd6;
-  --shadow-sm: none;
-  --shadow-md: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-xs: 0 1px 0 rgb(28 27 26 / 0.04);
+  --shadow-sm: 0 1px 2px rgb(28 27 26 / 0.05), 0 1px 3px rgb(28 27 26 / 0.04);
+  --shadow-md: 0 6px 24px rgb(28 27 26 / 0.07), 0 2px 6px rgb(28 27 26 / 0.04);
+  --shadow-lg: 0 24px 60px rgb(28 27 26 / 0.16), 0 8px 16px rgb(28 27 26 / 0.07);
+  --ring: inset 0 0 0 1px rgb(255 255 255 / 0.7);
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #0e0f11;
-  --surface: #1c1e22;
-  --surface-2: #26292e;
-  --surface-hover: #2f3238;
-  --border: #41464e;
-  --border-strong: #7f8893;
-  --text: #eef0f3;
-  --text-2: #b9c0c9;
-  --text-3: #9ca4ae;
-  --seg-on-bg: #eef0f3;
-  --seg-on-fg: #0e0f11;
-  --stage: #17191d;
-  --stage-raised: #23262b;
-  --stage-border: #3b4047;
-  --stage-text: #b9c0c9;
+  --bg: #151517;
+  --surface: #1f2022;
+  --surface-2: #29292c;
+  --surface-hover: #313134;
+  --veil: rgb(255 255 255 / 0.07);
+  --border: #37383c;
+  --border-soft: #2d2e31;
+  --border-strong: #80838a;
+  --text: #e6e6e8;
+  --text-strong: #fafafa;
+  --text-2: #b0b2b8;
+  --text-3: #9a9da4;
+  --seg-on-bg: #3a3a3e;
+  --seg-on-fg: #fafafa;
+  --primary: #ececee;
+  --primary-fg: #151517;
+  --send-bg: #2dd4bf;
+  --send-fg: #06201d;
+  --stage: #141517;
+  --stage-raised: #222428;
+  --stage-border: #3b3e44;
+  --stage-text: #b9bcc2;
   --success: #34d399;
   --warning: #fbbf24;
   --danger: #f87171;
   --info: #60a5fa;
-  --shadow-sm: none;
-  --shadow-md: none;
+  --shadow-xs: 0 1px 0 rgb(0 0 0 / 0.2);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3), 0 1px 3px rgb(0 0 0 / 0.2);
+  --shadow-md: 0 6px 24px rgb(0 0 0 / 0.35), 0 2px 6px rgb(0 0 0 / 0.2);
+  --shadow-lg: 0 24px 60px rgb(0 0 0 / 0.55), 0 8px 16px rgb(0 0 0 / 0.3);
+  --ring: inset 0 0 0 1px rgb(255 255 255 / 0.05);
 }
 
 /* ---------------------------------------------------------- accent
@@ -109,19 +135,17 @@
    tint, the accent as text and the current page's text. */
 
 :root {
-  --accent: #0f766e; --accent-fg: #ffffff; --accent-soft: #d5f2ee; --accent-text: #0b766d; --nav-on-fg: #0b5f58;
+  --accent: #0f766e; --accent-fg: #ffffff; --accent-soft: #dcf3ef; --accent-text: #0b766d; --nav-on-fg: #0b5f58;
 }
 :root[data-theme='dark'] {
-  --accent: #2dd4bf; --accent-fg: #06201d; --accent-soft: #113f3a; --accent-text: #5eead4; --nav-on-fg: #99f6e4;
+  --accent: #2dd4bf; --accent-fg: #06201d; --accent-soft: #123b36; --accent-text: #5eead4; --nav-on-fg: #99f6e4;
 }
 
 /* ---------------------------------------------------------- derived */
 
 :root {
   --accent-line: var(--accent);
-  --primary: var(--accent);
-  --primary-fg: var(--accent-fg);
-  --nav-on-bg: var(--accent-soft);
+  --nav-on-bg: var(--veil);
   --mark-bg: var(--accent-soft);
   --mark-fg: var(--accent-text);
   --focus: var(--accent);

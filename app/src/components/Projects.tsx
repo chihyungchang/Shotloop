@@ -24,13 +24,13 @@ export function Projects({ open }: { open: (path: string) => void }) {
   return (
     <div className="projects-page">
       <h1>{t('projects.title')}</h1>
-      <div className="tabs-row">
-        <button className={`pill${tab === 'recent' ? ' on' : ''}`} onClick={() => setTab('recent')}>{t('projects.recent')}</button>
-        <button className={`pill${tab === 'examples' ? ' on' : ''}`} onClick={() => setTab('examples')}>{t('projects.examples')}</button>
+      <div className="subtabs" role="tablist">
+        <button role="tab" aria-selected={tab === 'recent'} className={tab === 'recent' ? 'on' : ''} onClick={() => setTab('recent')}>{t('projects.recent')}</button>
+        <button role="tab" aria-selected={tab === 'examples'} className={tab === 'examples' ? 'on' : ''} onClick={() => setTab('examples')}>{t('projects.examples')}</button>
       </div>
       {items === null && <p className="muted">{t('common.loading')}</p>}
       {items?.length === 0 && (
-        <p className="muted">{t(tab === 'recent' ? 'projects.emptyRecent' : 'projects.emptyExamples')}</p>
+        <p className="empty">{t(tab === 'recent' ? 'projects.emptyRecent' : 'projects.emptyExamples')}</p>
       )}
       <div className="card-grid">
         {items?.map(p => (
@@ -41,10 +41,12 @@ export function Projects({ open }: { open: (path: string) => void }) {
                 : <span className="poster-empty"><Icon name="film" size={28} /></span>}
               <span className="duration">{formatSeconds(p.duration)}</span>
             </div>
+            <div className="card-text">
             <strong className="ellipsis">{p.title}</strong>
             <div className="card-meta">
               <span className="muted small">{t('common.shots', { n: p.shots })} · {formatDate(p.changed, { dateStyle: 'medium' })}</span>
               <span className="tag">{p.track.toUpperCase()} · {p.size.width > p.size.height ? '16:9' : '9:16'}</span>
+            </div>
             </div>
           </button>
         ))}
