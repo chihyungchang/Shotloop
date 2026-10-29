@@ -14,7 +14,7 @@
     "music": "node engine/video/music.mjs",
     "shotloop": "node engine/shotloop/cli.mjs",
     "app": "pnpm --filter @shotloop/app tauri dev",
-    "app:build": "pnpm --filter @shotloop/app tauri build --config src-tauri/tauri.bundle.json",
+    "app:build": "pnpm --filter @shotloop/app tauri build --config src-tauri/tauri.bundle.json --bundles app && node app/scripts/dmg.mjs",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck"
   },

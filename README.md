@@ -39,7 +39,8 @@ first, dense, a lifted graphite stage where frames read true, with light,
 dark and follow-the-system modes and one teal accent,
 all as tokens in [`app/src/theme/tokens.css`](app/src/theme/tokens.css). The Setup panel checks
 Chrome, ffmpeg and Blender and takes your Anthropic API key for the agent.
-`pnpm app:build` makes `Shotloop.app` with Node.js and ffmpeg inside
+`pnpm app:build` makes `Shotloop.app`, and a disk image of it
+([`app/scripts/dmg.mjs`](app/scripts/dmg.mjs)), with Node.js and ffmpeg inside
 (fetched at pinned versions and checked by
 [`app/scripts/sidecars.mjs`](app/scripts/sidecars.mjs)), so users install
 only Chrome, and Blender if they make 3D projects: Home asks for it when
