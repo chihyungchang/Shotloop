@@ -11,9 +11,11 @@ import { t, tSplit } from '../i18n'
 type Track = '2d' | '3d'
 type Aspect = '9:16' | '16:9'
 
-const TRACKS: Record<Track, { word: Key; hint: Key; idea: Key }> = {
-  '2d': { word: 'home.track.2d', hint: 'home.hint.2d', idea: 'home.idea.2d' },
-  '3d': { word: 'home.track.3d', hint: 'home.hint.3d', idea: 'home.idea.3d' }
+// word: the headline's highlight; chip: the option (what the frame is);
+// hint: what it suits
+const TRACKS: Record<Track, { word: Key; chip: Key; hint: Key; idea: Key }> = {
+  '2d': { word: 'home.track.2d', chip: 'home.chip.2d', hint: 'home.hint.2d', idea: 'home.idea.2d' },
+  '3d': { word: 'home.track.3d', chip: 'home.chip.3d', hint: 'home.hint.3d', idea: 'home.idea.3d' }
 }
 const LENGTHS = [15, 30, 45, 60]
 
@@ -125,7 +127,7 @@ export function Home({ open, openSettings }: { open: (path: string) => void; ope
               {(['2d', '3d'] as Track[]).map(tr => (
                 <button key={tr} role="radio" aria-checked={track === tr} className={`chip${track === tr ? ' on' : ''}`}
                   onClick={() => setTrack(tr)} title={t(TRACKS[tr].hint)}>
-                  {track === tr && <Icon name="spark" size={12} />}{t(TRACKS[tr].word)}
+                  {track === tr && <Icon name="spark" size={12} />}{t(TRACKS[tr].chip)}
                 </button>
               ))}
             </div>

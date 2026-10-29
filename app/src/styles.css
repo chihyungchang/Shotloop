@@ -177,7 +177,7 @@ textarea { resize: vertical; }
 .settings-nav-item:hover:not(:disabled) { background: var(--veil); color: var(--text); }
 .settings-nav-item.on { background: var(--veil); color: var(--text-strong); }
 .settings-card { background: var(--surface); margin: 12px 12px 12px 0; border-radius: var(--r-xl); overflow: auto; box-shadow: var(--shadow-sm), var(--ring), 0 0 0 1px var(--border-soft); }
-.settings-body { padding: 26px 36px 56px; max-width: 900px; display: flex; flex-direction: column; gap: 22px; animation: fade-in 180ms var(--ease) both; }
+.settings-body { padding: 26px 36px 56px; max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; animation: fade-in 180ms var(--ease) both; }
 .settings-savebar { position: sticky; top: 0; z-index: 2; display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin: -26px -36px 0; padding: 14px 36px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(16px); }
 .settings-block { display: flex; flex-direction: column; gap: 14px; padding-bottom: 24px; border-bottom: 1px solid var(--border-soft); }
 .settings-block:last-child { border-bottom: 0; }

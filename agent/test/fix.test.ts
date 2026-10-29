@@ -14,7 +14,7 @@ import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
-const EXAMPLE = path.resolve(HERE, '..', '..', 'examples', 'ep01-password-crack-time')
+const EXAMPLE = path.resolve(HERE, '..', '..', 'fixtures', 'ep01-password-crack-time')
 const MAIN = path.resolve(HERE, '..', 'src', 'main.ts')
 const SHOT = '09-end-card-source'
 

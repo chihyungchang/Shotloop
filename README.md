@@ -17,7 +17,7 @@ Status: MVP (docs/PRD.md §7, P0). The product plan is
 | [`agent/`](agent/) | The agent sidecar: plain-language fixes, automatic checks against the checklist, publish copy. |
 | [`engine/video/`](engine/video/README.md) | The original explainer pipeline (recorder, Blender driver, music synth, episodes). |
 | [`examples/`](examples/) | The examples the app opens from Home: short 2D explainers in 9:16 and 16:9, each with a one-line `description`. |
-| [`fixtures/`](fixtures/) | `hello-3d`, a two-shot 3D project that needs no downloaded assets, for trying the engine and the agent from a terminal. |
+| [`fixtures/`](fixtures/) | Projects for the tests and the terminal walkthroughs: `ep01-password-crack-time` (2D, the agent tests' project) and `hello-3d`, a two-shot 3D project that needs no downloaded assets. |
 
 ## Run the app
 
