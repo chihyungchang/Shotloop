@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "title": "为什么天空是蓝色的？",
+  "description": "光、空气和瑞利散射：一支 28 秒的物理小讲解。",
+  "slug": "sky-blue",
+  "track": "2d",
+  "fps": 30,
+  "size": {
+    "width": 1080,
+    "height": 1920
+  },
+  "shots": [
+    {
+      "id": "01-question",
+      "title": "问题：为什么天空是蓝色的？",
+      "duration": 3.5
+    },
+    {
+      "id": "02-white-light",
+      "title": "阳光是所有颜色的混合",
+      "duration": 4.5
+    },
+    {
+      "id": "03-scattering",
+      "title": "空气分子更爱散射蓝光",
+      "duration": 4.5
+    },
+    {
+      "id": "04-ratio",
+      "title": "1/λ⁴：蓝光约是红光的 5.9 倍",
+      "duration": 4
+    },
+    {
+      "id": "05-whole-sky",
+      "title": "蓝光从四面八方来",
+      "duration": 4
+    },
+    {
+      "id": "06-sunset",
+      "title": "日落：光穿过更厚的空气",
+      "duration": 4.5
+    },
+    {
+      "id": "07-end",
+      "title": "结尾卡",
+      "duration": 3
+    }
+  ],
+  "captions": null,
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md"
+}
