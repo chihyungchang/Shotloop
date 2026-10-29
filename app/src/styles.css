@@ -786,3 +786,7 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
 .dialog-backdrop { position: fixed; inset: 0; z-index: 60; background: rgb(0 0 0 / 0.42); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 16px; animation: fade-in 140ms var(--ease) both; }
 .dialog { background: var(--surface); color: var(--text); border-radius: var(--r-xl); padding: 18px 18px 16px; box-shadow: var(--shadow-lg, 0 20px 50px rgb(0 0 0 / 0.25)), 0 0 0 1px var(--border-soft); animation: fade-up 180ms var(--ease) both; }
 .dialog strong { font-size: 15px; color: var(--text-strong); }
+/* In the scrolling thread, bubbles and the compare view keep their full
+   height (an overflow-hidden flex item may otherwise shrink to fit) */
+.bubble, .bubble > *, .compare, .compare-view, .compare-bar { flex-shrink: 0; }
+.compare { min-width: 0; }
