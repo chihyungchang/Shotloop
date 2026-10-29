@@ -79,6 +79,8 @@ export interface Project {
   root: string
   // One of the bundled examples: changing its plan makes a copy first
   example?: boolean
+  // An example opened and not saved yet: kept only if saved
+  draft?: boolean
   // 3D: render samples per final frame
   samples?: number | null
   title: string
@@ -310,6 +312,10 @@ export const api = {
   libraryImport: (file: string) => invoke<Asset>('library', { action: 'import', id: file }),
   libraryUse: (project: string, id: string) => invoke<Asset>('library', { action: 'use', project, id }),
   libraryUnuse: (project: string, id: string) => invoke<void>('library', { action: 'unuse', project, id }),
+  defaultWorkspace: () => invoke<string>('default_workspace'),
+  openExample: (path: string) => invoke<{ root: string }>('open_example', { path }),
+  saveDraft: (path: string, to: string) => invoke<{ root: string }>('save_draft', { path, to }),
+  discardDraft: (path: string) => invoke<unknown>('discard_draft', { path }),
   forkProject: (path: string, to: string) => invoke<{ root: string }>('fork_project', { path, to }),
   deriveStoryboard: (path: string) => invoke<unknown | null>('derive_storyboard', { path }),
   applyStoryboard: (path: string) => invoke<{ shots: string[]; duration: number }>('apply_storyboard', { path }),

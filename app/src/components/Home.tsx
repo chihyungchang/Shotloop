@@ -25,7 +25,7 @@ const slugify = (s: string) =>
 
 // Home: start a short from an idea (open-design's composer, for video),
 // or open one of the examples
-export function Home({ open, openSettings }: { open: (path: string, plan?: boolean) => void; openSettings: () => void }) {
+export function Home({ open, openSettings, ensureFolder }: { open: (path: string, plan?: boolean) => void; openSettings: () => void; ensureFolder: () => Promise<string> }) {
   const settings = useSettings()
   const ai = settings && aiSummary(settings)
   const [idea, setIdea] = useState('')
@@ -75,8 +75,8 @@ export function Home({ open, openSettings }: { open: (path: string, plan?: boole
       if (!ok) return setBlender('missing')
     }
     setBlender(null)
-    const parent = folder ?? (await chooseFolder())
-    if (!parent) return
+    const parent = folder ?? (await ensureFolder())
+    setFolder(parent)
     setBusy(true)
     try {
       const title = idea.trim().split(/[.?!\n]/)[0].slice(0, 60)

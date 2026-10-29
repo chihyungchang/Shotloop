@@ -792,3 +792,12 @@ button.wide { width: 100%; justify-content: center; min-height: 38px; }
 .compare { min-width: 0; }
 .banner.copying { display: flex; align-items: center; gap: 8px; color: var(--text-2); }
 .examples-note { font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+.workspace-dialog { width: min(420px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 10px; }
+.workspace-dialog p { margin: 0; }
+.workspace-icon { width: 40px; height: 40px; border-radius: var(--r-lg); background: var(--accent-soft); color: var(--accent-text); display: flex; align-items: center; justify-content: center; }
+.workspace-path { padding: 6px 10px; border-radius: var(--r-md); background: var(--surface-2); color: var(--text-2); overflow-wrap: anywhere; }
+.danger-text { color: var(--danger); }
+.draft-save { display: inline-flex; align-items: center; gap: 8px; }
+.tag.warn { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); }
+.banner.floating { position: fixed; top: 52px; left: 50%; transform: translateX(-50%); z-index: 70; cursor: pointer; }
+.dialog-actions button.danger-text { color: var(--danger); }

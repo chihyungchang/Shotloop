@@ -11,6 +11,8 @@
 //   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d] [--aspect 9:16|16:9] [--duration 30]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
+//   shotloop move     <project> --to <folder>               move a project (a draft being saved)
+//   shotloop discard  <draft>                               delete a draft (only under $SHOTLOOP_DRAFTS)
 //   shotloop quality  <project> [--samples N | --reset]     3D final render samples
 //   shotloop preview  <project> [--draft|--final]             the whole film to watch (cached)
 //   shotloop storyboard <project> [--derive]             apply storyboard.json to the project
@@ -28,6 +30,7 @@
 
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
@@ -87,6 +90,34 @@ const result = value => {
 // The example projects: $SHOTLOOP_EXAMPLES (the app's writable copy) or the repository's
 const EXAMPLES = process.env.SHOTLOOP_EXAMPLES ?? fileURLToPath(new URL('../../examples', import.meta.url))
 const isExample = dir => path.resolve(dir).startsWith(path.resolve(EXAMPLES) + path.sep)
+// Drafts: examples opened and not saved yet ($SHOTLOOP_DRAFTS, the app's)
+const DRAFTS = process.env.SHOTLOOP_DRAFTS ?? path.join(os.homedir(), '.shotloop', 'drafts')
+const isDraft = dir => path.resolve(dir).startsWith(path.resolve(DRAFTS) + path.sep)
+
+// A folder for a project that is not taken yet: <slug>, <slug>-2, …
+function freeDir(parent, slug) {
+  let dest = path.join(parent, slug)
+  for (let n = 2; fs.existsSync(dest); n++) dest = path.join(parent, `${slug}-${n}`)
+  return dest
+}
+
+// A copied project's records name files by absolute path: point them at
+// the copy
+function relocate(dest, from) {
+  const state = path.join(dest, '.shotloop')
+  if (!fs.existsSync(state)) return
+  const walk = d => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const f = path.join(d, e.name)
+      if (e.isDirectory()) walk(f)
+      else if (e.name.endsWith('.json')) {
+        const text = fs.readFileSync(f, 'utf8')
+        if (text.includes(from)) fs.writeFileSync(f, text.split(JSON.stringify(from).slice(1, -1)).join(JSON.stringify(dest).slice(1, -1)).split(from).join(dest))
+      }
+    }
+  }
+  walk(state)
+}
 
 // The first `name` on PATH, as the shell would run it
 const onPath = name =>
@@ -149,7 +180,7 @@ try {
     case 'status':
       {
         const project = loadProject(args[0])
-        result({ ...projectStatus(project), example: isExample(args[0]), samples: project.track === '3d' ? finalSamples(project) : null })
+        result({ ...projectStatus(project), example: isExample(args[0]), draft: isDraft(args[0]), samples: project.track === '3d' ? finalSamples(project) : null })
       }
       break
     case 'render': {
@@ -234,14 +265,34 @@ try {
       ]).map(s => ({ ...s, example: isExample(s.root) })))
       break
     case 'fork': {
-      // An example copied into the person's own folder, to change freely
-      // (its frames come along, so it plays at once; exports don't)
+      // A copy of a project (an example, as a draft to change freely);
+      // its frames come along, so it plays at once; exports don't
       const project = loadProject(args[0])
       if (!values.to) throw new Error('fork needs --to <folder>')
-      let dest = path.join(values.to, project.slug)
-      for (let n = 2; fs.existsSync(dest); n++) dest = path.join(values.to, `${project.slug}-${n}`)
+      const dest = freeDir(values.to, project.slug)
       fs.cpSync(project.root, dest, { recursive: true, filter: src => path.relative(project.root, src) !== 'out' })
+      relocate(dest, project.root)
       result({ root: dest })
+      break
+    }
+    case 'move': {
+      // A draft saved: the whole project moved into a folder
+      const project = loadProject(args[0])
+      if (!values.to) throw new Error('move needs --to <folder>')
+      const dest = freeDir(values.to, project.slug)
+      fs.mkdirSync(values.to, { recursive: true })
+      fs.cpSync(project.root, dest, { recursive: true })
+      relocate(dest, project.root)
+      fs.rmSync(project.root, { recursive: true, force: true })
+      result({ root: dest })
+      break
+    }
+    case 'discard': {
+      // A draft thrown away; only ever inside the drafts folder
+      const root = path.resolve(args[0] ?? '')
+      if (!isDraft(root)) throw new Error('only drafts can be discarded')
+      fs.rmSync(root, { recursive: true, force: true })
+      result({ removed: root })
       break
     }
     case 'prune':

@@ -23,7 +23,7 @@ type Drawer = 'queue' | 'export' | 'assets' | null
 // the left, the shot on a dark stage in the middle with the filmstrip and
 // the shot's notes under it, queue and export in a drawer on the right;
 // quality, Finder and theme sit in the "more" menu.
-export function Studio({ project, jobs, refresh, close, theme, openSettings, openPlan }: {
+export function Studio({ project, jobs, refresh, close, theme, openSettings, openPlan, save, saving }: {
   project: Project
   jobs: Job[]
   refresh: () => void
@@ -31,6 +31,9 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   theme: ReturnType<typeof useTheme>
   openSettings: () => void
   openPlan: () => Promise<void> | void
+  // A draft (an example opened): saving keeps it
+  save?: () => void
+  saving?: boolean
 }) {
   const mode = editMode(project)
   const [selected, setSelected] = useState(project.shots[0]?.id ?? '')
@@ -107,6 +110,14 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         </div>
         <PlanLink project={project} openPlan={openPlan} />
         <div className="spacer" />
+        {save && (
+          <span className="draft-save">
+            <span className="tag warn" title={t('draft.note')}>{t('draft.tag')}</span>
+            <button className="primary" onClick={save} disabled={saving} title={t('draft.note')}>
+              {saving ? <span className="spinner small" /> : <Icon name="download" size={14} />} {t('draft.save')}
+            </button>
+          </span>
+        )}
         {filmError && <span className="small error ellipsis" title={filmError}>{filmError}</span>}
         <button onClick={openFilm} disabled={wantFilm}>
           {wantFilm ? <span className="spinner small" /> : <Icon name="play" size={14} />} {t(wantFilm ? 'film.rendering' : 'film.watch')}
@@ -230,7 +241,6 @@ function PlanLink({ project, openPlan }: { project: Project; openPlan: () => Pro
   const [busy, setBusy] = useState(false)
   return (
     <>
-      {project.example && <span className="tag" title={t('example.note')}>{t('example.tag')}</span>}
       <button className="ghost plan-link" disabled={busy} title={project.example ? t('example.note') : undefined} onClick={async () => {
         setBusy(true)
         try {

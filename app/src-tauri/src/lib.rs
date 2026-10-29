@@ -283,6 +283,42 @@ async fn apply_storyboard(handle: AppHandle, path: String) -> Result<Value, Stri
     blocking(move || engine(&handle.state::<App>(), &["storyboard", &path])).await
 }
 
+/// Where projects go when the person picks no folder: ~/Documents/Shotloop
+#[tauri::command]
+fn default_workspace(handle: AppHandle) -> Result<String, String> {
+    let dir = handle.path().document_dir().map_err(|e| e.to_string())?.join("Shotloop");
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    Ok(dir.to_string_lossy().into_owned())
+}
+
+/// An example opened as a draft: a copy in the drafts folder, kept only
+/// if the person saves it
+#[tauri::command]
+async fn open_example(handle: AppHandle, path: String) -> Result<Value, String> {
+    let drafts = std::env::var("SHOTLOOP_DRAFTS").map_err(|e| e.to_string())?;
+    fork_project(handle, path, drafts).await
+}
+
+/// A draft saved into the person's folder
+#[tauri::command]
+async fn save_draft(handle: AppHandle, path: String, to: String) -> Result<Value, String> {
+    blocking(move || {
+        let app = handle.state::<App>();
+        let out = engine(&app, &["move", &path, "--to", &to])?;
+        if let Some(root) = out["root"].as_str() {
+            let _ = handle.asset_protocol_scope().allow_directory(root, true);
+        }
+        Ok(out)
+    })
+    .await
+}
+
+/// A draft thrown away (the engine refuses anything outside the drafts)
+#[tauri::command]
+async fn discard_draft(handle: AppHandle, path: String) -> Result<Value, String> {
+    blocking(move || engine(&handle.state::<App>(), &["discard", &path])).await
+}
+
 /// A copy of a project (an example) in the person's folder, to change
 #[tauri::command]
 async fn fork_project(handle: AppHandle, path: String, to: String) -> Result<Value, String> {
@@ -452,6 +488,12 @@ pub fn run() {
                 env::seed_examples(&root.join("examples"), &examples);
                 std::env::set_var("SHOTLOOP_EXAMPLES", &examples);
             }
+            // Drafts (examples opened, not saved) last one session: the
+            // ones left from the last are thrown away
+            let drafts = app.path().app_data_dir()?.join("drafts");
+            let _ = std::fs::remove_dir_all(&drafts);
+            let _ = std::fs::create_dir_all(&drafts);
+            std::env::set_var("SHOTLOOP_DRAFTS", &drafts);
             let queue = Queue::new();
             *queue.launch.lock().unwrap() = launch_for(root, &settings);
             queue.start(app.handle().clone());
@@ -501,6 +543,10 @@ pub fn run() {
             apply_storyboard,
             derive_storyboard,
             fork_project,
+            default_workspace,
+            open_example,
+            save_draft,
+            discard_draft,
             quality,
             library_search,
             library,
