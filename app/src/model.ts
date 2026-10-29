@@ -159,6 +159,38 @@ export function buildProgress(job: Job, total: number): { done: number; total: n
   return { done: Math.min(written.size, total), total }
 }
 
+// Seconds without an event before an agent reads as "thinking": it writes
+// a whole shot (or the world) in one long turn that sends nothing
+export const QUIET = 20
+
+// What a running agent is doing now, in words: its last step, or that it
+// has been thinking for a while
+export function agentNow(job: Job): string | null {
+  const last = job.log.at(-1)
+  if (!last) return null
+  const quiet = job.state === 'running' && job.logAt ? (Date.now() - job.logAt) / 1000 : 0
+  return quiet > QUIET ? t('act.thinkFor', { time: formatSeconds(quiet) }) : activityLine(last)
+}
+
+// Where a build stands, shot by shot: the shot the AI works on now (and
+// how), the shots whose code it has written, and whether it is still on
+// the shared look (world/) before the first shot
+export function buildSteps(job: Job | null) {
+  const written = new Set<string>()
+  let current: string | null = null
+  let action: 'write' | 'stills' | 'check' | null = null
+  let world = false
+  for (const l of job?.log ?? []) {
+    const m = l.match(/^(\w+)\s+(?:.*?shots\/)?(\d+[a-z0-9-]*)/i)
+    if (m && /^(write_file|edit_file|render_stills|report_checks|read_checklist)$/i.test(m[1])) {
+      current = m[2]
+      action = /render_stills/i.test(m[1]) ? 'stills' : /checks?/i.test(m[1]) ? 'check' : 'write'
+      if (action === 'write' && /shot\.\w+$/.test(l)) written.add(current)
+    } else if (/^(write_file|edit_file)\s+world\//i.test(l)) world = true
+  }
+  return { current, action, written, world }
+}
+
 // A render's stage, in words
 const STAGES: Record<string, 'stage.frames' | 'stage.captions' | 'stage.screen' | 'stage.export'> = { frames: 'stage.frames', captions: 'stage.captions', screen: 'stage.screen', export: 'stage.export' }
 export const stageName = (s: string) => (STAGES[s] ? t(STAGES[s]) : s)

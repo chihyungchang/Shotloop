@@ -127,6 +127,21 @@ ${c.body ?? ''}
 ${facts.map(f => `- ${f.text}${f.source ? ` (source: ${f.source})` : ''}`).join('\n') || '(none)'}
 `)
 
+  // script.md and storyboard.md, the readable plan, in the examples' form:
+  // one numbered line per shot, and a table of what each shot shows
+  const line = s => String(s ?? '').replace(/\s*\n\s*/g, ' ').trim()
+  const cell = s => line(s).replace(/\|/g, '\\|')
+  fs.writeFileSync(path.join(project.root, 'script.md'), `# ${project.title} · Script
+
+${shots.map((s, i) => `${i + 1}. ${line(s.text) || line(s.title)}`).join('\n')}
+`)
+  fs.writeFileSync(path.join(project.root, 'storyboard.md'), `# ${project.title} · Storyboard
+
+| # | Time | Shot | Motion |
+| --- | --- | --- | --- |
+${shots.map((s, i) => `| ${i + 1} | ${s.duration} s | ${cell(s.title)}: ${cell(s.show)} | ${cell(s.motion)} |`).join('\n')}
+`)
+
   // The starter caption layer follows the plan: 3D shows each shot's
   // text; 2D draws its text in the frame, so the layer goes
   const cfg = { ...project.config, shots: shots.map(({ id, title, duration }) => ({ id, title, duration })) }

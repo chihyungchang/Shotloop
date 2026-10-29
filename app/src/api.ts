@@ -114,6 +114,7 @@ export interface Job {
   state: JobState
   progress: Progress | null
   log: string[]
+  logAt: number | null
   result: any
   error: string | null
   createdAt: number
@@ -295,6 +296,7 @@ export const api = {
   saveSettings: (settings: Settings) => invoke<void>('save_settings', { settings }),
   initialProject: () => invoke<string | null>('initial_project'),
   reveal: (path: string) => invoke<void>('reveal', { path }),
+  trashProject: (path: string) => invoke<void>('trash_project', { path }),
   openPath: (path: string) => invoke<void>('open_path', { path }),
   openBlenderDownload: () => invoke<void>('open_blender_download'),
   setTrayText: (status: string, show: string, quit: string, done: string, failed: string) => invoke<void>('set_tray_text', { status, show, quit, done, failed }),

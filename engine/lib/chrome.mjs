@@ -47,6 +47,18 @@ export async function openPage({
       '--no-default-browser-check',
       '--hide-scrollbars',
       '--force-color-profile=srgb',
+      // No keychain: otherwise macOS asks the person to let the app read
+      // "Chrome Safe Storage" the first time a render starts Chrome
+      '--use-mock-keychain',
+      '--password-store=basic',
+      // No sync, updates or other calls home from a render
+      '--disable-background-networking',
+      '--disable-component-update',
+      '--disable-sync',
+      // Chrome hard-links its own .app into a temp folder at every start
+      // (code sign clone); started by Shotloop, macOS counts that as
+      // Shotloop modifying another app and asks for App Management
+      '--disable-features=MacAppCodeSignClone',
       // Pages opened from file:// may import ES modules from disk
       // (three.js for 3D video pages); off by default in Chrome
       '--allow-file-access-from-files',

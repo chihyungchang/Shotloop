@@ -206,9 +206,11 @@ export function status(project, shot) {
   const out = { id: shot.id }
   for (const mode of MODES) {
     const e = entry(project, shot, mode)
+    // Only an older clip makes a shot stale: test stills alone (the AI's
+    // checks during a build) are not a render of the shot to watch
     const older = fs.existsSync(base)
       && fs.readdirSync(base).some(d => d.startsWith(`${mode}-`) && d !== path.basename(e.dir)
-        && fs.existsSync(path.join(base, d, 'meta.json')))
+        && readJson(path.join(base, d, 'meta.json'), null)?.clip)
     const state = e.clip ? 'cached' : older ? 'stale' : 'missing'
     // Stale: what changed since the last render in this mode that
     // recorded its parts (older renders didn't: 'unknown')

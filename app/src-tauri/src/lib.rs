@@ -250,6 +250,32 @@ fn save_settings(app: State<'_, App>, settings: Settings) -> Result<(), String> 
     Ok(())
 }
 
+/// A project to the Trash (recoverable from there). Not an example, and
+/// not while a job of it is queued or running
+#[tauri::command]
+fn trash_project(app: State<'_, App>, path: String) -> Result<(), String> {
+    let dir = Path::new(&path);
+    if !dir.join("shotloop.json").is_file() {
+        return Err(format!("{path} is not a Shotloop project"));
+    }
+    if dir.starts_with(&app.queue.launch.lock().unwrap().root) {
+        return Err("examples can't be deleted".into());
+    }
+    if app.queue.list().iter().any(|j| j.project == path && (j.state == "queued" || j.state == "running")) {
+        return Err("busy".into());
+    }
+    // macOS 15+ has /usr/bin/trash; before that, Finder does it
+    let ok = if Path::new("/usr/bin/trash").exists() {
+        Command::new("/usr/bin/trash").arg(dir).status()
+    } else {
+        let script = format!("tell application \"Finder\" to delete (POSIX file {:?} as alias)", path);
+        Command::new("/usr/bin/osascript").args(["-e", &script]).status()
+    }
+    .map_err(|e| e.to_string())?
+    .success();
+    if ok { Ok(()) } else { Err(format!("couldn't move {path} to the Trash")) }
+}
+
 /// A project to open at launch: `shotloop <project dir>` or $SHOTLOOP_OPEN
 #[tauri::command]
 fn initial_project() -> Option<String> {
@@ -550,6 +576,7 @@ pub fn run() {
             save_settings,
             initial_project,
             reveal,
+            trash_project,
             open_path,
             open_blender_download,
             open_url,

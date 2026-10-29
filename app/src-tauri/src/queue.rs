@@ -174,6 +174,8 @@ pub struct Job {
     pub state: String,
     pub progress: Option<Progress>,
     pub log: Vec<String>,
+    /// When the last log line came in: a long silence is the AI thinking
+    pub log_at: Option<u64>,
     pub result: Option<Value>,
     pub error: Option<String>,
     pub created_at: u64,
@@ -283,6 +285,7 @@ impl Queue {
                 state: "queued".into(),
                 progress: None,
                 log: vec![],
+                log_at: None,
                 result: None,
                 error: None,
                 created_at: now(),
@@ -465,13 +468,15 @@ impl Queue {
                         .or_else(|| ev["summary"].as_str().map(|s| format!("{} {}", ev["name"].as_str().unwrap_or(""), s)))
                         .unwrap_or_else(|| kind.to_string());
                     j.log.push(text);
+                    j.log_at = Some(now());
                     if j.log.len() > LOG_LINES {
                         j.log.remove(0);
                     }
                 }
             });
-            // Shot status changed: let the UI refresh it right away
-            if kind == "done" {
+            // Shot status changed (a render, or the AI's test stills or
+            // shot code mid-build): let the UI refresh it right away
+            if kind == "done" || (kind == "tool" && matches!(ev["name"].as_str(), Some("render_stills" | "write_file" | "edit_file"))) {
                 let _ = app.emit("project-changed", spec.project());
             }
         }

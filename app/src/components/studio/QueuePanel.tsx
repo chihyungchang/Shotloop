@@ -1,5 +1,5 @@
 import { api, type Job, type Project } from '../../api'
-import { activityLine, buildProgress, formatEta, formatSeconds, jobEstimate, jobLabel, stageName } from '../../model'
+import { agentNow, buildProgress, formatEta, formatSeconds, jobEstimate, jobLabel, stageName } from '../../model'
 import { Icon } from '../Icon'
 import { useEffect, useState } from 'react'
 import { t } from '../../i18n'
@@ -65,6 +65,7 @@ function JobRow({ job, project }: { job: Job; project: Project }) {
   const pTotal = p?.total ?? 0
   const pct = pTotal ? Math.round((p!.done / pTotal) * 100) : null
   const now = job.log.at(-1)
+  const doing = agent ? agentNow(job) : null
   return (
     <div className={`job ${job.state}`} title={elapsed != null && running ? t('act.elapsed', { time: formatSeconds(elapsed) }) : undefined}>
       <div className="job-head">
@@ -89,13 +90,13 @@ function JobRow({ job, project }: { job: Job; project: Project }) {
       {running && (
         <div className={`bar${pTotal ? '' : ' indeterminate'}`}><i style={pTotal ? { width: `${Math.max(3, (p!.done / pTotal) * 100)}%` } : undefined} /></div>
       )}
-      {running && agent && now && (
-        <div className="job-now small"><span className="pulse" /> <span className="ellipsis" title={now}>{activityLine(now)}</span></div>
+      {running && agent && doing && (
+        <div className="job-now small"><span className="pulse" /> <span className="ellipsis" title={now}>{doing}</span></div>
       )}
       {running && (
         <div className="muted small job-meta">
           {job.progress && !agent ? t('queue.stage', { stage: stageName(job.progress.stage), done: job.progress.done, total: job.progress.total })
-            : p ? t('act.shots', { done: p.done, total: p.total })
+            : p ? `${t('act.shots', { done: p.done, total: p.total })} · ${t('act.elapsed', { time: formatSeconds(elapsed) })}`
             : !agent ? (now ?? t('queue.starting')) : t('act.elapsed', { time: formatSeconds(elapsed) })}
           {eta != null && <span>{t('queue.etaLeft', { time: formatEta(eta) })}</span>}
         </div>

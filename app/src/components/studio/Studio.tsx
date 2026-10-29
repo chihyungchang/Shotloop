@@ -83,6 +83,8 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
     setWantFilm(true)
     for (const s of waiting) api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false })
   }
+  // No shot has a clip yet (just built): the film is rendered for the first time
+  const fresh = waiting.length > 0 && project.shots.every(s => s[mode].state === 'missing')
   const openFilm = () => (waiting.length ? setAsk(true) : playNow())
   const failed = pending.some(s => views.get(s.id)!.state === 'failed')
   useEffect(() => {
@@ -159,10 +161,11 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
       {ask && (
         <ChangesDialog project={project} shots={waiting} mode={mode} close={() => setAsk(false)}
           failed={waiting.filter(s => views.get(s.id)!.state === 'failed').map(s => s.id)}
-          title={t('changes.titleWatch', { n: waiting.length })} note={t('changes.noteWatch')}
+          title={t(fresh ? 'changes.titleFirst' : 'changes.titleWatch', { n: waiting.length })} note={t(fresh ? 'changes.noteFirst' : 'changes.noteWatch', { n: waiting.length })}
           actions={[
-            { label: t('changes.watchNow'), onClick: playNow, disabled: waiting.some(s => s[mode].state === 'missing'), hint: t('changes.needFirst') },
-            { label: t('changes.updateWatch'), onClick: updateThenPlay, primary: true }
+            // Nothing to watch yet: no "ignore", only render
+            ...(fresh ? [] : [{ label: t('changes.watchNow'), onClick: playNow, disabled: waiting.some(s => s[mode].state === 'missing'), hint: t('changes.needFirst') }]),
+            { label: t(fresh ? 'changes.renderWatch' : 'changes.updateWatch'), onClick: updateThenPlay, primary: true }
           ]} />
       )}
       {film && <FilmPreview project={project} file={film.file} close={() => setFilm(null)} />}

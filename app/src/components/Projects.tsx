@@ -1,4 +1,4 @@
-import { open as pick } from '@tauri-apps/plugin-dialog'
+import { ask, open as pick } from '@tauri-apps/plugin-dialog'
 import { useEffect, useState } from 'react'
 import { api, fileUrl, type ProjectSummary } from '../api'
 import { formatSeconds } from '../model'
@@ -11,6 +11,20 @@ import { formatDate, t, lang } from '../i18n'
 export function Projects({ open }: { open: (path: string) => void }) {
   const [tab, setTab] = useState<'recent' | 'examples'>('recent')
   const [items, setItems] = useState<ProjectSummary[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  // To the Trash, after a native confirm; it can be put back from there
+  const remove = async (p: ProjectSummary) => {
+    setError(null)
+    if (!(await ask(t('projects.deleteAsk', { title: p.title }), { title: t('projects.delete'), kind: 'warning', okLabel: t('projects.deleteOk'), cancelLabel: t('plan.cancel') }))) return
+    try {
+      await api.trashProject(p.root)
+      forget(p.root)
+      setItems(list => list?.filter(x => x.root !== p.root) ?? null)
+    } catch (e) {
+      setError(String(e) === 'busy' ? t('projects.deleteBusy') : String(e))
+    }
+  }
 
   useEffect(() => {
     setItems(null)
@@ -44,9 +58,11 @@ export function Projects({ open }: { open: (path: string) => void }) {
       {items?.length === 0 && (
         <p className="empty">{t(tab === 'recent' ? 'projects.emptyRecent' : 'projects.emptyExamples')}</p>
       )}
+      {error && <p className="small warn-note">{error}</p>}
       <div className="card-grid">
         {items?.map(p => (
-          <button key={p.root} className="project-card" onClick={() => open(p.root)} title={p.root}>
+          <div key={p.root} className="project-item">
+          <button className="project-card" onClick={() => open(p.root)} title={p.root}>
             <div className="poster">
               {p.poster
                 ? <img src={fileUrl(p.poster)} alt="" />
@@ -62,6 +78,12 @@ export function Projects({ open }: { open: (path: string) => void }) {
             </div>
             </div>
           </button>
+          {tab === 'recent' && (
+            <button className="icon-button project-delete" onClick={() => remove(p)} title={t('projects.delete')} aria-label={t('projects.delete')}>
+              <Icon name="trash" size={14} />
+            </button>
+          )}
+          </div>
         ))}
       </div>
     </div>
