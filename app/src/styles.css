@@ -107,7 +107,7 @@ textarea { resize: vertical; }
 .hero { font-family: var(--font-display); font-size: var(--text-display); font-weight: var(--display-weight); text-align: center; letter-spacing: var(--display-tracking); line-height: 1.2; animation: fade-up 400ms var(--ease) 40ms both; }
 .hero mark { background: var(--mark-bg); color: var(--mark-fg); padding: 0 10px; border-radius: var(--r-md); font-style: italic; }
 .hero-sub { text-align: center; margin: 8px 0 26px; font-size: 14px; font-weight: 500; animation: fade-up 400ms var(--ease) 80ms both; }
-.composer { background: var(--surface-2); border-radius: var(--r-tray); padding: 4px 4px 6px; animation: fade-up 350ms var(--ease) 100ms both; }
+.composer { position: relative; z-index: 5; background: var(--surface-2); border-radius: var(--r-tray); padding: 4px 4px 6px; animation: fade-up 350ms var(--ease) 100ms both; }
 .composer-card { background: var(--surface); border: 1px solid transparent; border-radius: var(--r-xl); padding: 14px 14px 12px; box-shadow: var(--shadow-xs);
   transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease); }
 .composer-card:focus-within { border-color: var(--border); box-shadow: var(--shadow-sm); }
