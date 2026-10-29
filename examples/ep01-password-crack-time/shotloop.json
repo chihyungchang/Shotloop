@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "title": "How long to crack your password?",
+  "slug": "ep01-password-crack-time",
+  "track": "2d",
+  "fps": 30,
+  "size": {
+    "width": 1080,
+    "height": 1920
+  },
+  "shots": [
+    {
+      "id": "01-password-field-dots",
+      "title": "A password field, dots typing in",
+      "duration": 2.4
+    },
+    {
+      "id": "02-stack-16-gpu",
+      "title": "A stack of 16 GPU boards in perspective, fans sp",
+      "duration": 4.8
+    },
+    {
+      "id": "03-eight-slot-machine",
+      "title": "Eight slot-machine drums of a–z spinning, then l",
+      "duration": 4.8
+    },
+    {
+      "id": "04-same-drums-now",
+      "title": "Same drums, now with A–Z, 0–9, symbols",
+      "duration": 4.8
+    },
+    {
+      "id": "05-three-horizontal-bars",
+      "title": "Three horizontal bars for 2024 / 2025 / 2026 shr",
+      "duration": 4.8
+    },
+    {
+      "id": "06-hit-ground-flashes",
+      "title": "Hit",
+      "duration": 4.8
+    },
+    {
+      "id": "07-list-illustrative-passwords",
+      "title": "A list of illustrative passwords",
+      "duration": 4.8
+    },
+    {
+      "id": "08-three-ruled-rows",
+      "title": "Three ruled rows with mint checks",
+      "duration": 4.8
+    },
+    {
+      "id": "09-end-card-source",
+      "title": "End card",
+      "duration": 2.4
+    }
+  ],
+  "captions": null,
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md",
+  "convertedFrom": "../../engine/video/explainers/2d/ep01-password-crack-time"
+}

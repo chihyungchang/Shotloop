@@ -1,0 +1,10 @@
+{
+  "bpm": 100,
+  "duration": 2.4,
+  "chords": [[57, 60, 64]],
+  "sections": [{ "from": 0, "to": 2.4, "layers": ["pad", "bass", "hat"] }],
+  "hits": [1.2],
+  "risers": [],
+  "fadeIn": 0.1,
+  "fadeOut": 0.5
+}

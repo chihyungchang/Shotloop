@@ -1,0 +1,103 @@
+<!doctype html>
+<!--
+  01 · Cover (1080×1920), rendered by engine thumb.mjs. The text sits in
+  the middle band (y 420–1500) so the 3:4 profile-grid crops keep it.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;900&family=JetBrains+Mono:wght@500&display=block"
+    />
+    <style>
+      * {
+        margin: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #050607;
+        color: #e8f0ec;
+        font-family: Archivo, sans-serif;
+      }
+      #bar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 38%;
+        height: 12px;
+        background: #38f2a9;
+      }
+      #chrome {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        top: 150px;
+        display: flex;
+        justify-content: space-between;
+        font: 500 30px 'JetBrains Mono', monospace;
+        letter-spacing: 0.08em;
+        color: #8a958f;
+      }
+      #main {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        top: 600px;
+      }
+      .q {
+        font-weight: 900;
+        font-size: 92px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .big {
+        margin-top: 40px;
+        font-weight: 900;
+        font-size: 300px;
+        line-height: 0.85;
+        letter-spacing: -0.06em;
+        color: #38f2a9;
+      }
+      .unit {
+        font-weight: 900;
+        font-size: 120px;
+        letter-spacing: -0.04em;
+        color: #38f2a9;
+      }
+      .or {
+        margin-top: 70px;
+        padding-top: 50px;
+        border-top: 3px solid #2a3330;
+        font-weight: 900;
+        font-size: 110px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        color: #ff4d55;
+      }
+      .src {
+        margin-top: 44px;
+        font: 500 28px 'JetBrains Mono', monospace;
+        letter-spacing: 0.06em;
+        color: #8a958f;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="bar"></div>
+    <div id="chrome"><span>01 — PASSWORDS</span><span>OLIVERZ.DEV</span></div>
+    <div id="main">
+      <div class="q">How long to crack<br />your password?</div>
+      <div class="big">132<span class="unit"> years</span></div>
+      <div class="or">…or instantly.</div>
+      <div class="src">HIVE SYSTEMS 2026 PASSWORD TABLE</div>
+    </div>
+    <script>
+      window.ready = document.fonts.ready
+    </script>
+  </body>
+</html>

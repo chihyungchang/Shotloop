@@ -1,0 +1,24 @@
+<!doctype html>
+<!-- Caption layer: transparent, composited over every frame. render(t) is film time. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; width: 720px; height: 1280px; overflow: hidden; background: transparent; }
+      #cap { position: absolute; left: 44px; right: 44px; top: 140px; padding: 20px 24px; border-radius: 14px;
+        background: rgba(11, 15, 25, 0.85); color: #fff; font: 700 44px/1.15 system-ui, sans-serif; }
+    </style>
+  </head>
+  <body>
+    <div id="cap"></div>
+    <script>
+      const LINES = [[0, 'A packet sets off'], [1.2, 'and keeps going']]
+      window.render = t => {
+        document.getElementById('cap').textContent = LINES.filter(([at]) => t >= at).at(-1)[1]
+      }
+      window.DURATION = 2.4
+      window.ready = Promise.resolve()
+      render(0)
+    </script>
+  </body>
+</html>

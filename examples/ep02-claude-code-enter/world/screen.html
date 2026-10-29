@@ -1,0 +1,71 @@
+<!doctype html>
+<!--
+  02 · The monitor's screen, rendered to an image sequence by
+  engine/video/blender.mjs and mapped onto the screen in scene.py.
+  render(t) draws the terminal at t seconds. Text is illustrative.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=block"
+    />
+    <style>
+      * {
+        margin: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1024px;
+        height: 640px;
+        overflow: hidden;
+        background: #0b0f19;
+        color: #e8eef8;
+        font: 500 34px/1.5 'JetBrains Mono', monospace;
+      }
+      #term {
+        padding: 36px 44px;
+        white-space: pre-wrap;
+      }
+      .dim {
+        color: #8a93a6;
+      }
+      .amber {
+        color: #ffb340;
+      }
+      .caret {
+        display: inline-block;
+        width: 0.6em;
+        height: 1.1em;
+        vertical-align: -0.2em;
+        background: #ffb340;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="term"></div>
+    <script>
+      const term = document.getElementById('term')
+      const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      const PROMPT = '> explain how auth works here'
+      const ANSWER = 'Requests carry a session token, checked in middleware before any route runs.'
+      function render(t) {
+        const lines = []
+        lines.push(esc(PROMPT.slice(0, Math.max(2, Math.floor(t * 18)))))
+        if (t > 2.1 && t < 33.6) lines.push(`<span class="dim">⏺ Working${'.'.repeat(Math.floor(t * 2) % 4)}</span>`)
+        if (t >= 33.7) lines.push(esc(ANSWER.slice(0, Math.floor((t - 33.7) * 45))))
+        if (t >= 35.2) lines.push('<span class="amber">⏺ Read(src/app.ts)</span>')
+        if (t >= 35.8) lines.push(`  Allow? (y/n) ${t >= 36.6 ? 'y' : ''}`)
+        if (t >= 37.4) lines.push('<span class="dim">  ⎿ read 120 lines</span>')
+        const caret = Math.floor(t * 3) % 2 ? '<span class="caret"></span>' : ''
+        term.innerHTML = lines.join('\n') + caret
+      }
+      window.DURATION = 48
+      window.render = render
+      window.ready = document.fonts.ready
+      render(Number(new URLSearchParams(location.search).get('t') ?? 0))
+    </script>
+  </body>
+</html>

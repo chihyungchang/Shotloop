@@ -1,0 +1,667 @@
+<!doctype html>
+<!--
+  Explainer 01 · How long to crack your password? Step 4 (code) of the
+  explainer workflow; copy.md, script.md and storyboard.md come first.
+  9:16 at 720×1280 CSS px. Nothing animates on its own: window.render(t)
+  draws the frame at t seconds for engine/video/record.mjs. Open with
+  ?play to preview in real time, or ?t=12.3 for one frame.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=block"
+    />
+    <style>
+      :root {
+        --bg: #050607;
+        --raised: #0b0f10;
+        --fg: #e8f0ec;
+        --muted: #8a958f;
+        --line: #2a3330;
+        --mint: #38f2a9;
+        --red: #ff4d55;
+        --sans: Archivo, system-ui, sans-serif;
+        --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      html,
+      body {
+        width: 720px;
+        height: 1280px;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--sans);
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        display: none;
+      }
+      .mono {
+        font-family: var(--mono);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .display {
+        font-weight: 900;
+        letter-spacing: -0.035em;
+        line-height: 0.95;
+      }
+      .mint {
+        color: var(--mint);
+      }
+      .red {
+        color: var(--red);
+      }
+      /* Safe area: x 40–620, y 110–1030 (platform UI covers the rest) */
+      .safe {
+        position: absolute;
+        left: 44px;
+        right: 100px;
+      }
+
+      #chrome {
+        position: absolute;
+        left: 44px;
+        right: 100px;
+        top: 96px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 18px;
+        color: var(--muted);
+        z-index: 5;
+      }
+      #progress {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 8px;
+        background: var(--mint);
+        z-index: 5;
+      }
+      #flash {
+        position: absolute;
+        inset: 0;
+        background: var(--red);
+        opacity: 0;
+        z-index: 4;
+        pointer-events: none;
+      }
+
+      /* 1 · hook */
+      #hook {
+        top: 300px;
+        font-size: 78px;
+      }
+      #hook span {
+        display: inline-block;
+        margin-right: 0.22em;
+      }
+      #field {
+        top: 760px;
+        height: 96px;
+        border: 3px solid var(--fg);
+        display: flex;
+        align-items: center;
+        padding: 0 28px;
+        font-family: var(--mono);
+        font-size: 54px;
+        letter-spacing: 0.12em;
+      }
+      #fieldLabel {
+        top: 716px;
+        font-size: 18px;
+        color: var(--muted);
+      }
+      .caret {
+        display: inline-block;
+        width: 4px;
+        height: 56px;
+        background: var(--mint);
+        margin-left: 6px;
+      }
+
+      /* 2 · GPU stack (3D) */
+      #rig {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 250px;
+        height: 520px;
+        perspective: 1300px;
+      }
+      #stack {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform-style: preserve-3d;
+      }
+      .board {
+        position: absolute;
+        width: 150px;
+        height: 96px;
+        margin: -48px 0 0 -75px;
+        background: #11161a;
+        border: 2px solid var(--line);
+        border-left: 6px solid var(--mint);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+      }
+      .fan {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 2px solid #3d4945;
+        position: relative;
+        flex: none;
+      }
+      .fan i {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 30px;
+        height: 4px;
+        margin: -2px 0 0 -15px;
+        background: #5f6b66;
+      }
+      .board b {
+        width: 100%;
+        font: 700 12px var(--mono);
+        color: var(--muted);
+        letter-spacing: 0.08em;
+      }
+      #rigLabel {
+        top: 820px;
+      }
+      #rigLabel .display {
+        font-size: 84px;
+      }
+      #rigLabel p {
+        margin-top: 16px;
+        font-size: 34px;
+        color: var(--muted);
+      }
+
+      /* 3 + 4 · slot drums (3D) */
+      .drums {
+        position: absolute;
+        left: 44px;
+        right: 100px;
+        top: 470px;
+        display: flex;
+        gap: 8px;
+      }
+      .win {
+        flex: 1;
+        height: 132px;
+        overflow: hidden;
+        perspective: 520px;
+        border-top: 3px solid var(--line);
+        border-bottom: 3px solid var(--line);
+        position: relative;
+      }
+      .cyl {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 0;
+        transform-style: preserve-3d;
+      }
+      .face {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 84px;
+        margin-top: -42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font: 700 58px var(--mono);
+        backface-visibility: hidden;
+        background: var(--bg);
+      }
+      .drumTitle {
+        top: 250px;
+        font-size: 50px;
+      }
+      .drumTitle small {
+        display: block;
+        margin-top: 16px;
+        font: 500 22px var(--mono);
+        color: var(--muted);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .stamp {
+        position: absolute;
+        left: 44px;
+        top: 700px;
+        font-size: 96px;
+        padding: 10px 22px 14px;
+        background: var(--mint);
+        color: var(--bg);
+        transform-origin: left center;
+      }
+      #years {
+        position: absolute;
+        left: 44px;
+        top: 660px;
+        font-size: 250px;
+        color: var(--mint);
+      }
+      #yearsWord {
+        position: absolute;
+        left: 50px;
+        top: 900px;
+        font-size: 64px;
+      }
+
+      /* 5 · bars */
+      #bars {
+        top: 470px;
+        display: grid;
+        gap: 34px;
+      }
+      .barRow {
+        display: grid;
+        gap: 10px;
+      }
+      .barRow .mono {
+        font-size: 22px;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+      }
+      .barRow .mono b {
+        color: var(--fg);
+        font-size: 28px;
+      }
+      .bar {
+        height: 54px;
+        background: var(--fg);
+        transform-origin: left center;
+      }
+      .bar.now {
+        background: var(--mint);
+      }
+
+      /* 6 · twist */
+      #twist {
+        top: 270px;
+        font-size: 64px;
+      }
+      #twist u {
+        text-decoration-color: var(--mint);
+        text-decoration-thickness: 6px;
+        text-underline-offset: 8px;
+      }
+      #questions {
+        top: 720px;
+        display: grid;
+        gap: 18px;
+        font-size: 58px;
+      }
+
+      /* 7 · cracked list */
+      #cracked {
+        top: 250px;
+        font-size: 76px;
+      }
+      #list {
+        top: 500px;
+        display: grid;
+      }
+      .pw {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 82px;
+        border-bottom: 2px solid var(--line);
+        font: 500 38px var(--mono);
+      }
+      .pw em {
+        font-style: normal;
+        font: 700 22px var(--mono);
+        letter-spacing: 0.1em;
+        padding: 6px 12px;
+        background: var(--red);
+        color: var(--bg);
+      }
+      #first {
+        top: 960px;
+        font-size: 30px;
+        color: var(--muted);
+      }
+
+      /* 8 · fixes */
+      #works {
+        top: 250px;
+        font-size: 76px;
+      }
+      #fixes {
+        top: 470px;
+        display: grid;
+        border-top: 3px solid var(--fg);
+      }
+      .fix {
+        display: grid;
+        grid-template-columns: 64px 1fr;
+        gap: 10px;
+        padding: 26px 0;
+        border-bottom: 2px solid var(--line);
+      }
+      .fix .tick {
+        width: 46px;
+        height: 46px;
+        background: var(--mint);
+        color: var(--bg);
+        font: 900 34px var(--sans);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .fix strong {
+        display: block;
+        font-size: 44px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .fix span {
+        display: block;
+        margin-top: 8px;
+        font-size: 26px;
+        color: var(--muted);
+      }
+
+      /* 9 · end */
+      #endName {
+        top: 330px;
+        font-size: 110px;
+      }
+      #endSource {
+        top: 600px;
+        font-size: 22px;
+        line-height: 1.6;
+        color: var(--muted);
+        border-top: 3px solid var(--fg);
+        padding-top: 20px;
+      }
+      #follow {
+        top: 820px;
+        display: inline-block;
+        right: auto;
+        padding: 18px 28px;
+        background: var(--mint);
+        color: var(--bg);
+        font: 700 30px var(--mono);
+        letter-spacing: 0.06em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="progress"></div>
+    <div id="flash"></div>
+    <div id="chrome" class="mono"><span id="kicker">01 — Passwords</span><span>oliverz.dev</span></div>
+
+    <section class="scene" id="s1">
+      <h1 class="safe display" id="hook"></h1>
+      <div class="safe mono" id="fieldLabel">Password</div>
+      <div class="safe" id="field"><span id="dots"></span><span class="caret" id="caret"></span></div>
+    </section>
+
+    <section class="scene" id="s2">
+      <div id="rig"><div id="stack"></div></div>
+      <div class="safe" id="rigLabel">
+        <div class="display">16× <span class="mint">RTX&nbsp;5090</span></div>
+        <p>GPUs, guessing passwords nonstop.</p>
+      </div>
+    </section>
+
+    <section class="scene" id="s3">
+      <h2 class="safe display drumTitle">8 random characters.<small>lowercase only: a–z</small></h2>
+      <div class="drums" id="drums3"></div>
+      <div class="stamp display" id="stamp3">≈ 2 WEEKS</div>
+    </section>
+
+    <section class="scene" id="s4">
+      <h2 class="safe display drumTitle">Now mix it all up.<small>A–Z · a–z · 0–9 · symbols</small></h2>
+      <div class="drums" id="drums4"></div>
+      <div class="display" id="years">0</div>
+      <div class="display" id="yearsWord">YEARS</div>
+    </section>
+
+    <section class="scene" id="s5">
+      <h2 class="safe display" style="top: 250px; font-size: 70px">Safe?<br />It keeps falling.</h2>
+      <div class="safe" id="bars"></div>
+      <p class="safe" id="faster" style="top: 900px; font-size: 40px; font-weight: 800">
+        Cracking gets <span class="mint">20–25% faster</span> every year.
+      </p>
+    </section>
+
+    <section class="scene" id="s6">
+      <h2 class="safe display" id="twist">But that's for a <u>random</u> password nobody has ever seen.</h2>
+      <div class="safe display red" id="questions">
+        <div id="q1">Reused?</div>
+        <div id="q2">Leaked in a breach?</div>
+        <div id="q3">A real word?</div>
+      </div>
+    </section>
+
+    <section class="scene" id="s7">
+      <h2 class="safe display red" id="cracked">Cracked almost instantly.</h2>
+      <div class="safe" id="list"></div>
+      <p class="safe" id="first">Attackers try leaked passwords first.</p>
+    </section>
+
+    <section class="scene" id="s8">
+      <h2 class="safe display" id="works">What actually works</h2>
+      <div class="safe" id="fixes">
+        <div class="fix" id="f1"><div class="tick">✓</div><div><strong>Long + random</strong><span>Let a password manager make it.</span></div></div>
+        <div class="fix" id="f2"><div class="tick">✓</div><div><strong>Never reuse one</strong><span>One leak shouldn't open every account.</span></div></div>
+        <div class="fix" id="f3"><div class="tick">✓</div><div><strong>Turn on 2FA</strong><span>That 132-year table assumes you didn't.</span></div></div>
+      </div>
+    </section>
+
+    <section class="scene" id="s9">
+      <div class="safe display" id="endName">oliverz<span class="mint">.</span>dev</div>
+      <div class="safe mono" id="endSource">
+        Source: Hive Systems 2026 Password Table<br />
+        16 × RTX 5090 · bcrypt, cost 10<br />
+        Times assume random, never-leaked passwords
+      </div>
+      <div class="safe" id="follow">Follow for more ↗</div>
+    </section>
+
+    <script>
+      const $ = id => document.getElementById(id)
+      const clamp = x => Math.min(1, Math.max(0, x))
+      // 0 → 1 over [a, a + d], eased out
+      const rise = (t, a, d = 0.35) => 1 - Math.pow(1 - clamp((t - a) / d), 3)
+      const lift = (el, p, dy = 40) => {
+        el.style.opacity = p
+        el.style.transform = `translateY(${(1 - p) * dy}px)`
+      }
+      const pop = (el, p) => {
+        el.style.opacity = p
+        el.style.transform = `scale(${0.7 + p * 0.3})`
+      }
+
+      const BAR = 2.4 // 100 bpm, 4/4
+      const EIGHTH = BAR / 8
+      const DURATION = 16 * BAR
+      const SCENES = [
+        ['s1', 0, 1], ['s2', 1, 3], ['s3', 3, 5], ['s4', 5, 7],
+        ['s5', 7, 9], ['s6', 9, 11], ['s7', 11, 13], ['s8', 13, 15],
+        ['s9', 15, 16]
+      ].map(([id, a, b]) => ({ el: $(id), from: a * BAR, to: b * BAR }))
+
+      // 1 · hook words
+      const HOOK = ['How', 'long', 'would', 'a', 'hacker', 'need', 'to', 'crack', '<span class="mint">your</span>', 'password?']
+      $('hook').innerHTML = HOOK.map(w => `<span>${w}</span>`).join('')
+      const hookWords = [...$('hook').children]
+
+      // 2 · sixteen boards
+      for (let i = 0; i < 16; i++) {
+        const b = document.createElement('div')
+        b.className = 'board'
+        b.innerHTML = '<div class="fan"><i></i><i></i></div><div class="fan"><i></i><i></i></div><div class="fan"><i></i><i></i></div><b>RTX 5090</b>'
+        b.dataset.x = (i % 4) - 1.5
+        b.dataset.y = Math.floor(i / 4) - 1.5
+        $('stack').appendChild(b)
+      }
+      const boards = [...$('stack').children]
+
+      // 3 + 4 · drums: a cylinder of faces per character slot
+      function makeDrums(host, alphabet, result) {
+        const n = alphabet.length
+        const step = 360 / n
+        const radius = 42 / Math.tan(Math.PI / n)
+        return [...result].map((ch, i) => {
+          const win = document.createElement('div')
+          win.className = 'win'
+          const cyl = document.createElement('div')
+          cyl.className = 'cyl'
+          for (let k = 0; k < n; k++) {
+            const f = document.createElement('div')
+            f.className = 'face'
+            f.textContent = alphabet[k]
+            f.style.transform = `rotateX(${k * step}deg) translateZ(${radius}px)`
+            cyl.appendChild(f)
+          }
+          win.appendChild(cyl)
+          host.appendChild(win)
+          return { cyl, radius, step, target: alphabet.indexOf(ch), offset: i * 37 }
+        })
+      }
+      const LOWER = 'abcdefghijklmnopqrstuvwxyz'
+      const MIXED = 'aB3#kQ9!xM2$pZ7&fR5@tL8^wE4*'
+      const drums3 = makeDrums($('drums3'), LOWER, 'kqzmwtpe')
+      const drums4 = makeDrums($('drums4'), MIXED, 'Q9#kM!x2')
+
+      // Spin at a constant speed, then settle onto the target face
+      function spin(d, t, start, stop) {
+        const speed = 1100 // deg/s
+        const run = Math.max(0, Math.min(t, stop) - start) * speed + d.offset
+        let angle = run
+        if (t > stop) {
+          const goal = Math.ceil((run - d.target * d.step) / 360 + 1) * 360 + d.target * d.step
+          angle = run + (goal - run) * rise(t, stop, 0.28)
+        }
+        d.cyl.style.transform = `translateZ(${-d.radius}px) rotateX(${-angle}deg)`
+        const locked = t > stop + 0.28
+        d.cyl.parentElement.style.borderColor = locked ? 'var(--mint)' : 'var(--line)'
+      }
+
+      // 5 · bars
+      const BARS = [['2024', 225], ['2025', 164], ['2026', 132]]
+      $('bars').innerHTML = BARS.map(([y, v], i) => `<div class="barRow" id="r${i}"><div class="mono"><span>${y} · 8 chars, all types</span><b>${v} yrs</b></div><div class="bar${i === 2 ? ' now' : ''}" id="b${i}" style="width:${(v / 225) * 100}%"></div></div>`).join('')
+
+      // 7 · illustrative "leaked" passwords
+      const LEAKED = ['password123', 'summer2024!', 'qwerty', 'iloveyou', 'Dragon1990']
+      $('list').innerHTML = LEAKED.map((p, i) => `<div class="pw" id="p${i}"><span>${p}</span><em id="e${i}">Cracked</em></div>`).join('')
+
+      function render(t) {
+        for (const s of SCENES) s.el.style.display = t >= s.from && t < s.to ? 'block' : 'none'
+        $('progress').style.width = `${(t / DURATION) * 100}%`
+        const kickers = ['01 — Passwords', '01 — The rig', '01 — The math', '01 — The math', '01 — The trend', '01 — The catch', '01 — The catch', '01 — The fix', '01 — Sources']
+        $('kicker').textContent = kickers[SCENES.findIndex(s => t >= s.from && t < s.to)] ?? kickers[8]
+        $('flash').style.opacity = t >= 9 * BAR ? 0.55 * (1 - clamp((t - 9 * BAR) / 0.45)) : 0
+
+        // 1
+        hookWords.forEach((w, i) => lift(w, rise(t, 0.05 + i * 0.11, 0.3), 30))
+        $('dots').textContent = '•'.repeat(Math.min(12, Math.max(0, Math.floor((t - 0.9) * 9))))
+        $('caret').style.opacity = Math.floor(t * 3) % 2 ? 0.2 : 1
+
+        // 2: boards slide in on eighths, the stack turns
+        const t2 = t - BAR
+        // A 4 × 4 rig laid on a tilted floor; boards drop in on eighths
+        // and bob a little, as if under load
+        boards.forEach((b, i) => {
+          const p = rise(t2, 0.1 + i * 0.12, 0.3)
+          const x = b.dataset.x * 170
+          const y = b.dataset.y * 116
+          const z = (1 - p) * 260 + Math.sin(t * 5 + i) * 4 * p
+          b.style.opacity = p
+          b.style.transform = `translate3d(${x}px, ${y}px, ${z}px)`
+          b.querySelectorAll('.fan i').forEach((f, k) => {
+            f.style.transform = `rotate(${t * 1400 + k * 90 + i * 17}deg)`
+          })
+        })
+        $('stack').style.transform = `scale(0.82) rotateX(52deg) rotateZ(${-28 + t2 * 5}deg)`
+        lift($('rigLabel'), rise(t2, 0.9, 0.4))
+
+        // 3: drums spin from bar 4, lock left to right on eighths
+        const s3 = 3 * BAR
+        drums3.forEach((d, i) => spin(d, t, s3, s3 + 1.2 + i * EIGHTH))
+        lift(document.querySelector('#s3 .drumTitle'), rise(t, s3 + 0.05))
+        pop($('stamp3'), rise(t, 4 * BAR + 0.6, 0.18))
+
+        // 4: longer spin, then the year counter rolls up
+        const s4 = 5 * BAR
+        drums4.forEach((d, i) => spin(d, t, s4, s4 + 0.6 + i * (EIGHTH / 1.5)))
+        lift(document.querySelector('#s4 .drumTitle'), rise(t, s4 + 0.05))
+        const c = rise(t, s4 + 2.3, 1.5)
+        $('years').textContent = Math.round(132 * c)
+        $('years').style.opacity = t > s4 + 2.3 ? 1 : 0
+        pop($('yearsWord'), rise(t, s4 + 3.7, 0.18))
+
+        // 5: bars grow in turn
+        const s5 = 7 * BAR
+        BARS.forEach((_, i) => {
+          lift($(`r${i}`), rise(t, s5 + 0.5 + i * 0.6, 0.3), 20)
+          $(`b${i}`).style.transform = `scaleX(${rise(t, s5 + 0.6 + i * 0.6, 0.5)})`
+        })
+        lift($('faster'), rise(t, s5 + 2.9))
+
+        // 6: the catch
+        const s6 = 9 * BAR
+        lift($('twist'), rise(t, s6 + 0.15))
+        ;['q1', 'q2', 'q3'].forEach((q, i) => lift($(q), rise(t, s6 + 1.8 + i * 0.6, 0.25), 30))
+
+        // 7: stamps on eighths
+        const s7 = 11 * BAR
+        pop($('cracked'), rise(t, s7 + 0.05, 0.2))
+        LEAKED.forEach((_, i) => {
+          lift($(`p${i}`), rise(t, s7 + 0.4 + i * 0.15, 0.25), 20)
+          pop($(`e${i}`), rise(t, s7 + 1.2 + i * EIGHTH, 0.12))
+        })
+        lift($('first'), rise(t, s7 + 3.3))
+
+        // 8: fixes on beats
+        const s8 = 13 * BAR
+        lift($('works'), rise(t, s8 + 0.05))
+        ;['f1', 'f2', 'f3'].forEach((f, i) => lift($(f), rise(t, s8 + 0.6 + i * 0.6, 0.3), 30))
+
+        // 9
+        const s9 = 15 * BAR
+        lift($('endName'), rise(t, s9 + 0.05))
+        lift($('endSource'), rise(t, s9 + 0.35))
+        pop($('follow'), rise(t, s9 + 0.7, 0.2))
+      }
+
+      window.DURATION = DURATION
+      window.render = render
+      window.ready = document.fonts.ready
+
+      const params = new URLSearchParams(location.search)
+      if (params.has('play')) {
+        const start = performance.now()
+        const tick = () => {
+          render(((performance.now() - start) / 1000) % DURATION)
+          requestAnimationFrame(tick)
+        }
+        tick()
+      } else render(Number(params.get('t') ?? 0))
+    </script>
+  </body>
+</html>
