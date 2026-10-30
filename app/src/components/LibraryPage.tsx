@@ -217,7 +217,7 @@ function Mine({ assets, reload }: { assets: Asset[] | null; reload: () => void }
       <button onClick={importFile}><Icon name="plus" size={13} /> {t('library.import')}</button>
     </div>
   )
-  if (!assets) return <p className="muted">{t('common.loading')}</p>
+  if (!assets) return <div className="asset-grid" aria-busy>{Array.from({ length: 8 }, (_, i) => <div key={i} className="asset-card skeleton"><span className="shimmer" /></div>)}</div>
   if (!assets.length) return <>{bar}{error && <div className="error-box small">{error}</div>}<p className="empty">{t('library.emptyMine')}</p></>
   return (
     <>

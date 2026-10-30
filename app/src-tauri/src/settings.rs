@@ -39,6 +39,38 @@ pub struct Settings {
     /// Asset library sources: the person's own keys
     pub polypizza_key: String,
     pub smithsonian_key: String,
+    /// Shots the AI builds at the same time, 1–5; 0 picks by the machine
+    pub parallel: u32,
+}
+
+/// This Mac: logical cores and memory, and the shots to build at once
+/// that it handles well (each is a CLI agent, its tool server and, while
+/// it renders, a headless Chrome: about 0.6 GB)
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Machine {
+    pub cores: u32,
+    pub memory_gb: u32,
+    pub auto_parallel: u32,
+}
+
+pub fn machine() -> Machine {
+    let cores = std::thread::available_parallelism().map(|n| n.get() as u32).unwrap_or(4);
+    let memory_gb = std::process::Command::new("/usr/sbin/sysctl")
+        .args(["-n", "hw.memsize"])
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .and_then(|s| s.trim().parse::<u64>().ok())
+        .map(|b| (b / (1 << 30)) as u32)
+        .unwrap_or(8);
+    let auto_parallel = match (cores, memory_gb) {
+        (c, m) if c >= 10 && m >= 16 => 5,
+        (c, m) if c >= 8 && m >= 16 => 4,
+        (_, m) if m >= 8 => 3,
+        _ => 2,
+    };
+    Machine { cores, memory_gb, auto_parallel }
 }
 
 pub fn load(dir: &Path) -> Settings {
@@ -132,6 +164,8 @@ impl Settings {
         if !self.chrome.is_empty() {
             env.push(("CHROME".into(), self.chrome.clone()));
         }
+        let parallel = if (1..=5).contains(&self.parallel) { self.parallel } else { machine().auto_parallel };
+        env.push(("SHOTLOOP_PARALLEL".into(), parallel.to_string()));
         env
     }
 }

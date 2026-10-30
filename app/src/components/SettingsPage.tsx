@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { SAVED } from '../ai/useSettings'
-import { api, EMPTY_SETTINGS, type About, type Settings } from '../api'
+import { api, EMPTY_SETTINGS, type About, type Settings, type Machine } from '../api'
 import { checkForUpdate, installUpdate, useUpdate } from '../update'
 import { LANGS, t, type LangPref, type useLanguage } from '../i18n'
 import type { Key } from '../i18n/en'
@@ -117,6 +117,7 @@ function General({ settings, savePref, theme, language }: {
           <ThemeToggle pref={theme.pref} setPref={theme.setPref} />
         </div>
       </section>
+      <Parallel settings={settings} savePref={savePref} />
       <section className="settings-block">
         <h3>{t('settings.alerts')}</h3>
         <p className="hint">{t('settings.alertsNote')}</p>
@@ -125,6 +126,40 @@ function General({ settings, savePref, theme, language }: {
         <button className="link try" onClick={() => api.testAlert()}><Icon name="play" size={11} /> {t('activity.try')}</button>
       </section>
     </>
+  )
+}
+
+// How many shots the AI builds at once: auto (by this Mac) or 1–5
+function Parallel({ settings, savePref }: { settings: Settings; savePref: (patch: Partial<Settings>) => void }) {
+  const [m, setM] = useState<Machine | null>(null)
+  useEffect(() => {
+    api.machine().then(setM, () => setM(null))
+  }, [])
+  const value = settings.parallel >= 1 && settings.parallel <= 5 ? settings.parallel : 0
+  const auto = m?.autoParallel ?? 3
+  // Auto shows the machine's number; an arrow makes it a manual choice
+  const n = value || auto
+  const step = (d: number) => savePref({ parallel: Math.min(5, Math.max(1, n + d)) })
+  return (
+    <section className="settings-block">
+      <h3>{t('settings.parallel')}</h3>
+      <p className="hint">{t('settings.parallelNote')}</p>
+      <div className="pref-row">
+        <span>{t('settings.parallelLabel')}</span>
+        <div className="pref-end">
+          {value !== 0 && <button className="link" onClick={() => savePref({ parallel: 0 })}>{t('settings.parallelReset', { n: auto })}</button>}
+          <div className="stepper-control" role="group" aria-label={t('settings.parallelLabel')}>
+            <button className="icon-button prev" onClick={() => step(-1)} disabled={n <= 1} aria-label={t('settings.parallelLess')} title={t('settings.parallelLess')}><Icon name="chevron" size={14} /></button>
+            <span className="stepper-value" aria-live="polite">
+              <strong>{n}</strong>
+              {value === 0 && <small>{t('settings.parallelAuto')}</small>}
+            </span>
+            <button className="icon-button next" onClick={() => step(1)} disabled={n >= 5} aria-label={t('settings.parallelMore')} title={t('settings.parallelMore')}><Icon name="chevron" size={14} /></button>
+          </div>
+        </div>
+      </div>
+      {m && <p className="hint">{t('settings.parallelMachine', { cores: m.cores, memory: m.memoryGb, n: m.autoParallel })}</p>}
+    </section>
   )
 }
 

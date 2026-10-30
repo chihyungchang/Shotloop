@@ -44,7 +44,12 @@ export function AssetsPanel({ project, refresh }: { project: Project; refresh: (
       {used?.length ? <p className="hint">{t('assets.tellAi', { name: used[0].name })}</p> : null}
 
       <h3>{t('assets.fromLibrary')}</h3>
-      {library === null && <p className="small muted">{t('common.loading')}</p>}
+      {library === null && Array.from({ length: 3 }, (_, i) => (
+        <div key={i} className="asset-row skeleton" aria-busy>
+          <span className="asset-row-thumb sk-block" />
+          <span className="asset-row-text"><span className="sk-line w60" /><span className="sk-line w40" /></span>
+        </div>
+      ))}
       {library?.length === 0 && <p className="small muted">{t('assets.emptyLibrary')}</p>}
       {library?.filter(a => !inProject.has(a.id)).map(a => row(a, (
         <button className="small" onClick={() => change(() => api.libraryUse(project.root, a.id))}><Icon name="plus" size={12} /> {t('assets.add')}</button>

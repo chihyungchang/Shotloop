@@ -198,7 +198,11 @@ export interface Settings {
   // Asset library sources: the person's own keys
   polypizzaKey: string
   smithsonianKey: string
+  // Shots the AI builds at once, 1–5; 0 picks by the machine
+  parallel: number
 }
+
+export interface Machine { cores: number; memoryGb: number; autoParallel: number }
 
 // A search result from an asset source, and an asset on this Mac
 export interface LibraryItem {
@@ -229,7 +233,7 @@ export interface Asset {
 }
 
 export const EMPTY_SETTINGS: Settings = {
-  provider: '', apiPreset: '', apiProtocol: '', apiUrl: '', apiKeys: {}, cli: '', model: '', localUrl: '', localModel: '', localKey: '', blender: '', chrome: '', notifySound: false, notifyDesktop: false, polypizzaKey: '', smithsonianKey: ''
+  provider: '', apiPreset: '', apiProtocol: '', apiUrl: '', apiKeys: {}, cli: '', model: '', localUrl: '', localModel: '', localKey: '', blender: '', chrome: '', notifySound: false, notifyDesktop: false, polypizzaKey: '', smithsonianKey: '', parallel: 0
 }
 
 export interface MusicInfo {
@@ -300,6 +304,7 @@ export const api = {
   writeText: (project: string, path: string, content: string) => invoke<void>('write_text', { project, path, content }),
   // Agent jobs reply in the UI language
   enqueue: (spec: Spec) => invoke<number>('enqueue', { spec: ['fix', 'check', 'plan', 'build', 'publish'].includes(spec.kind) ? { ...spec, lang: lang() } : spec }),
+  machine: () => invoke<Machine>('machine'),
   aiUsage: () => invoke<Usage | null>('ai_usage'),
   jobs: () => invoke<Job[]>('jobs'),
   cancel: (id: number) => invoke<void>('cancel_job', { id }),

@@ -24,6 +24,7 @@ export function Stage({ project, shot, view, mode, refresh }: {
   const [tab, setTab] = useState<Tab>(view.clip ? 'preview' : 'stills')
   const [take, setTake] = useState<Take | null>(null)
   const stills = take?.stills ?? view.stills
+  const busy = view.state === 'rendering' || view.state === 'queued'
   const clip = take ? take.preview ?? take.clip : view.clip
   const version = take?.take ?? view.take?.take
   const wide = project.size.width > project.size.height
@@ -80,10 +81,28 @@ export function Stage({ project, shot, view, mode, refresh }: {
                 </figure>
               ))}
             </div>
-          : <div className="stage-empty">
-              <p>{t('stage.noStills')}</p>
-              <button onClick={() => render(mode, true)}>{t('stage.renderStills')}</button>
-            </div>)}
+          : (
+            // Where the three stills will be, with the way to get them
+            <div className={`stage-stills placeholder${wide ? ' wide' : ''}${busy ? ' busy' : ''}`}>
+              {STILLS.map(name => (
+                <figure key={name}>
+                  {/* A transparent image of the frame's shape, laid out like a still */}
+                  <img className="still-ph" src={wide ? SPACER_WIDE : SPACER_TALL} alt="" />
+                  {busy && <span className="shimmer sweep" />}
+                  <figcaption>{t(name)}</figcaption>
+                </figure>
+              ))}
+              <div className="still-ph-call">
+                {busy
+                  // While frames render, the progress bar below says it
+                  ? !view.job?.progress && <p><span className="spinner small" /> {t(view.state === 'queued' ? 'stage.stillsQueued' : 'stage.stillsRendering')}</p>
+                  : <>
+                      <p>{t('stage.noStills')}</p>
+                      <button onClick={() => render(mode, true)}>{t('stage.renderStills')}</button>
+                    </>}
+              </div>
+            </div>
+          ))}
         {tab === 'code' && <CodeTabs project={project} shot={shot} mode={mode} refresh={refresh} />}
         {view.job && view.state === 'rendering' && view.job.progress && (
           <div className="stage-progress">
@@ -153,7 +172,7 @@ function Editor({ project, file, version, onSaved }: { project: Project; file: s
     }
   }
   if (error) return <p className="error">{error}</p>
-  if (text == null) return <p className="muted">{t('common.loading')}</p>
+  if (text == null) return <CodeSkeleton />
   return (
     <div className="editor">
       <textarea
@@ -178,6 +197,20 @@ function Editor({ project, file, version, onSaved }: { project: Project; file: s
         <span className="muted small">{file}</span>
         <button className="small" onClick={() => save()} disabled={!dirty}>{dirty ? t('editor.save') : t('common.saved')}</button>
       </div>
+    </div>
+  )
+}
+
+const spacer = (w: number, h: number) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"/>`)}`
+const SPACER_TALL = spacer(9, 16)
+const SPACER_WIDE = spacer(16, 9)
+
+// Lines of code in outline while the file loads
+function CodeSkeleton() {
+  const widths = [38, 72, 64, 0, 55, 81, 47, 69, 0, 33, 76, 58, 42]
+  return (
+    <div className="editor code-skeleton" aria-busy>
+      {widths.map((w, i) => (w ? <span key={i} className="sk-line" style={{ width: `${w}%`, marginLeft: i % 4 === 2 ? 24 : 0 }} /> : <span key={i} className="sk-gap" />))}
     </div>
   )
 }

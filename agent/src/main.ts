@@ -251,11 +251,12 @@ async function pool<T>(items: T[], n: number, f: (item: T) => Promise<void>) {
   }))
 }
 
-// Shots built at the same time
-const PARALLEL = 3
+// Shots built at the same time: Settings → General (the app resolves
+// "auto" by the machine), 1–5
+const PARALLEL = Math.min(5, Math.max(1, Number(process.env.SHOTLOOP_PARALLEL) || 3))
 
 // The world and every shot, from the applied storyboard: the world first
-// (unless a 2D look already is one), then the shots three at a time, each by
+// (unless a 2D look already is one), then the shots five at a time, each by
 // its own agent that may write only its shot
 async function buildTask() {
   let project = await status(dir)

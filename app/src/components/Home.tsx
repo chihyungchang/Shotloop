@@ -38,11 +38,11 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
   const [folder, setFolder] = useState(projectsFolder())
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [examples, setExamples] = useState<ProjectSummary[]>([])
+  const [examples, setExamples] = useState<ProjectSummary[] | null>(null)
   // 3D needs Blender: null until checked, 'missing' shows the install prompt
   const [blender, setBlender] = useState<null | 'missing' | 'stillMissing'>(null)
 
-  const [mine, setMine] = useState<ProjectSummary[]>([])
+  const [mine, setMine] = useState<ProjectSummary[] | null>(null)
   useEffect(() => {
     // Examples in the UI's language: Chinese for Chinese, English otherwise
     const want = lang() === 'zh-CN' ? 'zh-CN' : 'en'
@@ -161,10 +161,10 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
             {track === '2d' && <LookPicker value={look} onChange={setLook} />}
           </div>
           {ai && (
-            <button className="model-chip" onClick={openSettings} title={t('ai.change')}>
-              {hasBrand(ai.brand) ? <BrandIcon id={ai.brand} size={15} /> : null}
-              {!ai.ready || !hasBrand(ai.brand) ? <span className={`dot ${ai.ready ? 'ok' : 'warn'}`} /> : null}
-              <span className="ellipsis">{ai.name}{ai.model ? ` · ${ai.model}` : ''}</span>
+            // Just the AI's mark: its name and model are in the tooltip
+            <button className="model-chip icon-only" onClick={openSettings} title={`${ai.name}${ai.model ? ` · ${ai.model}` : ''} · ${t('ai.change')}`} aria-label={`${ai.name}${ai.model ? ` · ${ai.model}` : ''}`}>
+              {hasBrand(ai.brand) ? <BrandIcon id={ai.brand} size={16} /> : <Icon name={ai.mode === 'local' ? 'cpu' : 'spark'} size={15} />}
+              {!ai.ready && <span className="dot warn" />}
             </button>
           )}
           <button className="send" onClick={() => create()} disabled={!idea.trim() || busy} aria-label={t('home.create')} title={t('home.create')}>
@@ -194,7 +194,9 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
       )}
       {error && <p className="error">{error}</p>}
 
-      {mine.length > 0 && (
+      {mine === null || examples === null
+        ? <RowsSkeleton />
+        : mine.length > 0 && (
         <section className="examples">
           <span className="section-label">{t('home.mine')}</span>
           <div className="example-list">
@@ -203,7 +205,7 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
         </section>
       )}
 
-      {examples.length > 0 && (
+      {examples && examples.length > 0 && (
         <section className="examples">
           <span className="section-label">{t('home.examples')} <span className="muted small examples-note">{t('example.note')}</span></span>
           <div className="example-list">
@@ -217,6 +219,23 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
 
 // A project as a card: its poster, title and shape; a draft (nothing
 // rendered yet) says so
+// The lists of projects in outline while they load
+function RowsSkeleton() {
+  return (
+    <section className="examples" aria-busy>
+      <span className="sk-line w20" />
+      <div className="example-list">
+        {Array.from({ length: 3 }, (_, i) => (
+          <div key={i} className="example skeleton">
+            <span className="example-poster sk-block" />
+            <span className="example-text"><span className="sk-line w50" /><span className="sk-line w80" /><span className="sk-line w30" /></span>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function ProjectCard({ p, onClick }: { p: ProjectSummary; onClick: () => void }) {
   return (
     <button className="example" onClick={onClick}>

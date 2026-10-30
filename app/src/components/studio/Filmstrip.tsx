@@ -1,6 +1,7 @@
 import { fileUrl, type Mode, type Project } from '../../api'
 import { formatSeconds, type ShotView } from '../../model'
 import { t } from '../../i18n'
+import { ShotSketch } from '../plan/ShotSketch'
 
 const LABEL = (s: ShotView['state']) => t(`state.${s}`)
 
@@ -35,7 +36,10 @@ export function Filmstrip({ project, views, mode, selected, onSelect }: {
               title={`${shot.id} · ${formatSeconds(shot.duration)} · ${LABEL(v.state)} (${t(`mode.${mode}`)})`}
             >
               <div className="frame-thumb">
-                {thumb ? <img src={fileUrl(thumb, v.take?.take)} alt="" className={v.stale ? 'dim' : ''} /> : null}
+                {thumb
+                  ? <img src={fileUrl(thumb, v.take?.take)} alt="" className={v.stale ? 'dim' : ''} />
+                  : <ShotSketch look={project.look} text={shot.title ?? shot.id} n={i + 1} total={project.shots.length} wide={project.size.width > project.size.height} faint={v.state !== 'rendering'} />}
+                {!thumb && (v.state === 'rendering' || v.state === 'queued') && <span className="shimmer sweep" />}
                 <span className="frame-no">{i + 1}</span>
                 {v.failedChecks.length > 0 && (
                   <span className="frame-flag" title={t('film.failedChecks', { rules: v.failedChecks.join(', ') })}>{v.failedChecks.length}</span>

@@ -777,6 +777,8 @@ textarea.autotext { resize: none; overflow: hidden; line-height: 1.5; min-height
 .chip-select:focus-within { box-shadow: 0 0 0 2px var(--focus); }
 .chips { flex-wrap: nowrap; min-width: 0; }
 .model-chip { max-width: 180px; }
+.model-chip.icon-only { position: relative; width: 34px; min-width: 34px; padding: 0; justify-content: center; }
+.model-chip.icon-only .dot { position: absolute; top: 4px; right: 4px; }
 
 /* WebKit gives buttons and inline SVGs their own offsets: centre the
    sidebar foot's pill, bell and marks explicitly */
@@ -912,3 +914,45 @@ textarea.autotext { resize: none; overflow: hidden; line-height: 1.5; min-height
 .sketch.faint .sketch-text, .sketch.faint .sketch-kicker { opacity: 0.45; }
 .sketch.faint .sketch-art { opacity: 0.35; }
 .sketch.faint { filter: saturate(0.85); }
+
+/* Loading outlines: blocks and lines that shimmer where content will be */
+.sk-block { display: block; background: linear-gradient(100deg, var(--surface-2) 30%, color-mix(in srgb, var(--text) 7%, var(--surface-2)) 50%, var(--surface-2) 70%); background-size: 200% 100%; animation: sheen 1.6s linear infinite; }
+.sk-line.w20 { width: 20%; } .sk-line.w30 { width: 30%; }
+.skeleton { pointer-events: none; animation: fade-in 300ms var(--ease) both; }
+.project-item.skeleton { gap: 10px; }
+.project-item.skeleton .poster { aspect-ratio: 16 / 10; border-radius: var(--r-xl); }
+.project-item.skeleton .sk-line { margin-left: 4px; }
+.example.skeleton { display: flex; align-items: center; gap: 14px; padding: 10px 16px; }
+.example.skeleton .example-poster::after { display: none; }
+.example.skeleton .example-text { gap: 7px; }
+.asset-row.skeleton .asset-row-thumb { border-radius: var(--r-sm); }
+.asset-row.skeleton .asset-row-text { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.code-skeleton { gap: 9px; padding: 14px 16px; background: var(--surface-2); }
+.code-skeleton .sk-line { height: 9px; background: linear-gradient(100deg, color-mix(in srgb, var(--text) 7%, var(--surface-2)) 30%, color-mix(in srgb, var(--text) 13%, var(--surface-2)) 50%, color-mix(in srgb, var(--text) 7%, var(--surface-2)) 70%); background-size: 200% 100%; }
+.sk-gap { height: 9px; }
+
+/* The stills tab before a shot has stills: three frames in outline */
+.stage-stills.placeholder { position: relative; }
+.stage-stills.placeholder figure { position: relative; }
+.stage-stills .still-ph { box-sizing: border-box; border: 1.5px dashed var(--stage-border); background: color-mix(in srgb, #fff 3%, transparent); box-shadow: none; cursor: default; }
+.stage-stills.placeholder figure > .shimmer.sweep { position: absolute; inset: 0 0 22px; border-radius: var(--r-md); background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.09) 50%, transparent 70%); background-size: 200% 100%; }
+.stage-stills.placeholder.busy .still-ph { border-style: solid; border-color: color-mix(in srgb, var(--accent) 45%, var(--stage-border)); }
+.still-ph-call { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--stage-text); text-align: center; pointer-events: none; }
+.still-ph-call > * { pointer-events: auto; }
+.still-ph-call p { white-space: nowrap; display: flex; align-items: center; gap: 8px; margin: 0; padding: 6px 12px; border-radius: 999px; background: color-mix(in srgb, var(--stage) 80%, transparent); }
+.still-ph-call button { background: var(--stage-raised); color: #fafafa; border-color: var(--stage-border); }
+
+/* The filmstrip: a shot without stills shows its sketch */
+.frame-thumb > .sketch { height: 100%; width: auto; border-radius: 0; box-shadow: none; }
+.frame-thumb > .sketch.wide { height: 100%; }
+.frame-thumb > .shimmer.sweep { position: absolute; inset: 0; }
+
+/* A number with arrows either side: ‹ 5 › */
+.pref-end { display: flex; align-items: center; gap: 12px; }
+.stepper-control { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--r-pill); background: var(--surface); box-shadow: 0 0 0 1px var(--border); }
+.stepper-control .icon-button { width: 28px; min-height: 28px; border-radius: 50%; }
+.stepper-control .icon-button.prev .icon { transform: rotate(90deg); }
+.stepper-control .icon-button.next .icon { transform: rotate(-90deg); }
+.stepper-value { min-width: 44px; display: flex; flex-direction: column; align-items: center; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.stepper-value strong { font-size: 15px; color: var(--text-strong); }
+.stepper-value small { font-size: 10px; font-weight: 600; color: var(--accent-text, var(--accent)); }

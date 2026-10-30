@@ -54,7 +54,17 @@ export function Projects({ open }: { open: (path: string) => void }) {
         <button role="tab" aria-selected={tab === 'recent'} className={tab === 'recent' ? 'on' : ''} onClick={() => setTab('recent')}>{t('projects.recent')}</button>
         <button role="tab" aria-selected={tab === 'examples'} className={tab === 'examples' ? 'on' : ''} onClick={() => setTab('examples')}>{t('projects.examples')}</button>
       </div>
-      {items === null && <p className="muted">{t('common.loading')}</p>}
+      {items === null && (
+        <div className="card-grid" aria-busy>
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className="project-item skeleton" style={{ animationDelay: `${i * 60}ms` }}>
+              <span className="poster sk-block" />
+              <span className="sk-line w70" />
+              <span className="sk-line w40" />
+            </div>
+          ))}
+        </div>
+      )}
       {items?.length === 0 && (
         <p className="empty">{t(tab === 'recent' ? 'projects.emptyRecent' : 'projects.emptyExamples')}</p>
       )}

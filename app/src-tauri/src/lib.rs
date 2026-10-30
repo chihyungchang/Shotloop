@@ -225,6 +225,12 @@ fn enqueue(handle: AppHandle, app: State<'_, App>, spec: Spec) -> u64 {
     app.queue.enqueue(&handle, spec)
 }
 
+/// This Mac's cores and memory, and how many shots it builds at once
+#[tauri::command]
+fn machine() -> settings::Machine {
+    settings::machine()
+}
+
 /// The AI subscription's last reported usage (see queue::load_usage)
 #[tauri::command]
 fn ai_usage(handle: AppHandle) -> Option<Value> {
@@ -580,6 +586,7 @@ pub fn run() {
             enqueue,
             jobs,
             ai_usage,
+            machine,
             cancel_job,
             clear_jobs,
             get_settings,
