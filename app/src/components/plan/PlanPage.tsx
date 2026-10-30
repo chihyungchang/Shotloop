@@ -7,6 +7,7 @@ import { Icon } from '../Icon'
 import { LookPreview } from '../LookPicker'
 import { LOOKS, lookAbout, lookName } from '../../looks'
 import { Title } from '../studio/Studio'
+import { AutoText, ShotSketch } from './ShotSketch'
 
 const FILE = 'storyboard.json'
 const round1 = (x: number) => Math.round(x * 10) / 10
@@ -139,6 +140,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
   }
 
   const total = round1(sb?.shots.reduce((t, s) => t + (Number(s.duration) || 0), 0) ?? 0)
+  const wide = project.size.width > project.size.height
   const failed = (phase === 'plan' ? planJob : buildJob)?.state === 'failed' ? (phase === 'plan' ? planJob : buildJob) : null
   const why = failed && agentError(failed.error)
 
@@ -191,16 +193,10 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
       )}
 
       {phase === 'build'
-        ? <BuildView project={project} job={buildJob ?? null} toStudio={toStudio} back={() => setPhase('plan')} />
+        ? <BuildView project={project} plan={sb} job={buildJob ?? null} toStudio={toStudio} back={() => setPhase('plan')} />
         : !sb
           ? (
-            <div className="plan-wait">
-              <span className="agent-avatar large"><Icon name="spark" size={22} /></span>
-              <strong>{t(deriving || !loaded ? 'plan.reading' : planning ? 'plan.writing' : 'plan.none')}</strong>
-              {!deriving && loaded && <p className="muted">{t('plan.writingNote')}</p>}
-              {planning && (planJob!.state === 'running' ? <StepList steps={planSteps(planJob!)} /> : <p className="muted small">{t('queue.waiting')}</p>)}
-              {planning && <p className="muted small">{t('plan.usual')}</p>}
-            </div>
+            <PlanWait project={project} job={planning ? planJob! : null} reading={deriving || !loaded} />
           )
           : (
             <div className={`plan-body${planning ? ' busy' : ''}`}>
@@ -222,21 +218,31 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
                 {sb.copy.idea && <p className="plan-idea"><span className="muted small">{t('plan.idea')}</span>{sb.copy.idea}</p>}
                 <label className="field">
                   <span>{t('plan.hook')}</span>
-                  <textarea rows={2} value={sb.copy.hook} onChange={e => edit({ ...sb, copy: { ...sb.copy, hook: e.target.value } })} />
+                  <AutoText className="hook-input" value={sb.copy.hook} onChange={v => edit({ ...sb, copy: { ...sb.copy, hook: v } })} />
                 </label>
                 <label className="field">
                   <span>{t('plan.body')}</span>
-                  <textarea rows={9} value={sb.copy.body} onChange={e => edit({ ...sb, copy: { ...sb.copy, body: e.target.value } })} />
+                  <AutoText minRows={4} value={sb.copy.body} onChange={v => edit({ ...sb, copy: { ...sb.copy, body: v } })} />
                 </label>
                 <div className="field">
                   <span>{t('plan.facts')}</span>
-                  {sb.copy.facts.map((f, i) => (
-                    <div key={i} className="fact">
-                      <input value={f.text} placeholder={t('plan.factText')} onChange={e => edit({ ...sb, copy: { ...sb.copy, facts: sb.copy.facts.map((x, k) => (k === i ? { ...x, text: e.target.value } : x)) } })} />
-                      <input className="source" value={f.source} placeholder={t('plan.factSource')} onChange={e => edit({ ...sb, copy: { ...sb.copy, facts: sb.copy.facts.map((x, k) => (k === i ? { ...x, source: e.target.value } : x)) } })} />
-                      <button className="icon-button" aria-label={t('plan.remove')} onClick={() => edit({ ...sb, copy: { ...sb.copy, facts: sb.copy.facts.filter((_, k) => k !== i) } })}><Icon name="x" size={14} /></button>
-                    </div>
-                  ))}
+                  <ol className="facts">
+                    {sb.copy.facts.map((f, i) => (
+                      <li key={i} className="fact">
+                        <span className="fact-no">{i + 1}</span>
+                        <div className="fact-body">
+                          <AutoText value={f.text} placeholder={t('plan.factText')} aria-label={t('plan.factText')}
+                            onChange={v => edit({ ...sb, copy: { ...sb.copy, facts: sb.copy.facts.map((x, k) => (k === i ? { ...x, text: v } : x)) } })} />
+                          <label className="fact-source">
+                            <Icon name="link" size={12} />
+                            <AutoText value={f.source} placeholder={t('plan.factSource')} aria-label={t('plan.factSource')}
+                              onChange={v => edit({ ...sb, copy: { ...sb.copy, facts: sb.copy.facts.map((x, k) => (k === i ? { ...x, source: v } : x)) } })} />
+                          </label>
+                        </div>
+                        <button className="icon-button" aria-label={t('plan.remove')} title={t('plan.remove')} onClick={() => edit({ ...sb, copy: { ...sb.copy, facts: sb.copy.facts.filter((_, k) => k !== i) } })}><Icon name="x" size={13} /></button>
+                      </li>
+                    ))}
+                  </ol>
                   <button className="ghost small add" onClick={() => edit({ ...sb, copy: { ...sb.copy, facts: [...sb.copy.facts, { text: '', source: '' }] } })}><Icon name="plus" size={13} /> {t('plan.addFact')}</button>
                 </div>
                 <div className="plan-ask">
@@ -272,29 +278,37 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
                 )}
                 <div className="timeline" aria-hidden>
                   {sb.shots.map((s, i) => (
-                    <i key={i} style={{ flex: Math.max(0.5, Number(s.duration) || 0), background: HUES[i % HUES.length] }} title={`${i + 1}. ${s.title}`}>{i + 1}</i>
+                    <i key={i} style={{ flex: Math.max(0.5, Number(s.duration) || 0), background: HUES[i % HUES.length] }} title={`${i + 1}. ${s.title}`}>
+                      <b>{i + 1}</b><span>{t('unit.s', { n: Number(s.duration) || 0 })}</span>
+                    </i>
                   ))}
                 </div>
                 <div className="shot-cards">
                   {sb.shots.map((s, i) => (
                     <div key={i} className="shot-card">
-                      <div className="shot-card-head">
-                        <span className="shot-no" style={{ background: HUES[i % HUES.length] }}>{i + 1}</span>
-                        <input className="shot-title" value={s.title} onChange={e => setShot(i, { title: e.target.value })} aria-label={t('plan.shotTitle')} />
-                        <label className="duration">
-                          <input type="number" min={1} max={30} step={0.5} value={s.duration} onChange={e => setShot(i, { duration: Number(e.target.value) })} />
-                          <span className="muted small">{t('plan.sec')}</span>
-                        </label>
-                        <div className="shot-actions">
-                          <button className="icon-button" disabled={i === 0} onClick={() => moveShot(i, -1)} aria-label={t('plan.up')}><Icon name="chevron" size={14} /></button>
-                          <button className="icon-button down" disabled={i === sb.shots.length - 1} onClick={() => moveShot(i, 1)} aria-label={t('plan.down')}><Icon name="chevron" size={14} /></button>
-                          <button className="icon-button" disabled={sb.shots.length < 2} onClick={() => edit({ ...sb, shots: sb.shots.filter((_, k) => k !== i) })} aria-label={t('plan.remove')}><Icon name="x" size={14} /></button>
+                      <ShotSketch look={project.track === '2d' ? sb.look : null} text={s.text || s.title} n={i + 1} total={sb.shots.length} wide={wide} />
+                      <div className="shot-main">
+                        <div className="shot-card-head">
+                          <span className="shot-no" style={{ background: HUES[i % HUES.length] }}>{i + 1}</span>
+                          <input className="shot-title" value={s.title} onChange={e => setShot(i, { title: e.target.value })} aria-label={t('plan.shotTitle')} />
+                          <label className="duration" title={t('plan.sec')}>
+                            <input type="number" min={1} max={30} step={0.5} value={s.duration} onChange={e => setShot(i, { duration: Number(e.target.value) })} />
+                            <span className="muted small">{t('plan.sec')}</span>
+                          </label>
+                          <div className="shot-actions">
+                            <button className="icon-button" disabled={i === 0} onClick={() => moveShot(i, -1)} aria-label={t('plan.up')} title={t('plan.up')}><Icon name="chevron" size={14} /></button>
+                            <button className="icon-button down" disabled={i === sb.shots.length - 1} onClick={() => moveShot(i, 1)} aria-label={t('plan.down')} title={t('plan.down')}><Icon name="chevron" size={14} /></button>
+                            <button className="icon-button" disabled={sb.shots.length < 2} onClick={() => edit({ ...sb, shots: sb.shots.filter((_, k) => k !== i) })} aria-label={t('plan.remove')} title={t('plan.remove')}><Icon name="x" size={14} /></button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="shot-fields">
-                        <label><span>{t('plan.show')}</span><textarea rows={2} value={s.show} onChange={e => setShot(i, { show: e.target.value })} /></label>
-                        <label><span>{t('plan.text')}</span><input value={s.text} onChange={e => setShot(i, { text: e.target.value })} /></label>
-                        <label><span>{t('plan.motion')}</span><input value={s.motion} onChange={e => setShot(i, { motion: e.target.value })} /></label>
+                        <label className="shot-field onscreen">
+                          <span>{t('plan.text')}</span>
+                          <AutoText value={s.text} onChange={v => setShot(i, { text: v })} />
+                        </label>
+                        <div className="shot-fields">
+                          <label className="shot-field"><span>{t('plan.show')}</span><AutoText value={s.show} onChange={v => setShot(i, { show: v })} /></label>
+                          <label className="shot-field"><span>{t('plan.motion')}</span><AutoText value={s.motion} onChange={v => setShot(i, { motion: v })} /></label>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -312,7 +326,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
 // The build: what the AI is doing now, and each shot as its stills land.
 // A build runs for minutes with long quiet turns, so the page always says
 // what is happening and for how long
-function BuildView({ project, job, toStudio, back }: { project: Project; job: Job | null; toStudio: () => void; back: () => void }) {
+function BuildView({ project, plan, job, toStudio, back }: { project: Project; plan: Storyboard | null; job: Job | null; toStudio: () => void; back: () => void }) {
   const running = !!job && (job.state === 'queued' || job.state === 'running')
   useTicking(running)
   // The stills the editor shows: 3D previews, 2D finals
@@ -320,66 +334,134 @@ function BuildView({ project, job, toStudio, back }: { project: Project; job: Jo
   const ready = project.shots.filter(s => stills(s)).length
   const steps = buildSteps(job)
   const elapsed = job?.startedAt ? ((job.finishedAt ?? Date.now()) - job.startedAt) / 1000 : null
+  const wide = project.size.width > project.size.height
+  const total = project.shots.length
+  // Each shot's state: stills, in work (and how), code written, waiting
+  const view = project.shots.map((s, i) => {
+    const current = stills(s)
+    const still = current ?? latestStills(s)
+    const action = running ? steps.active.get(s.id) : undefined
+    const written = steps.written.has(s.id) || steps.finished.has(s.id)
+    const state = action ? t(action === 'stills' ? 'build.rendering' : action === 'check' ? 'build.checking' : 'build.writing')
+      : current ? null
+      : written ? t(still ? 'build.updating' : 'build.written')
+      : running ? t('build.waiting') : null
+    return { s, i, current, still, stale: !current && !!still, action, written, state, text: plan?.shots[i]?.text || s.title || s.id }
+  })
   return (
     <div className="build">
       <div className="build-head">
         <span className="agent-avatar large">{running ? <span className="spinner" /> : <Icon name="check" size={20} />}</span>
-        <div>
+        <div className="build-words">
           <strong>{t(running ? 'plan.building' : job?.state === 'failed' ? 'plan.buildFailed' : 'plan.built')}</strong>
           <p className="muted small">
-            {running && elapsed != null
-              ? `${t('act.elapsed', { time: formatSeconds(elapsed) })} · ${t('build.usual')}`
-              : t('plan.buildNote', { done: ready, total: project.shots.length })}
+            {t('build.readyCount', { done: ready, total })}
+            {elapsed != null && ` · ${t(running ? 'act.elapsed' : 'build.took', { time: formatSeconds(elapsed) })}`}
+            {running && ` · ${t('build.usual')}`}
           </p>
         </div>
         <div className="spacer" />
         {!running && <button className="ghost" onClick={back}>{t('plan.backToPlan')}</button>}
         <button className={running ? '' : 'primary'} onClick={toStudio}>{t(running ? 'plan.openNow' : 'plan.openStudio')} <Icon name="arrow" size={13} /></button>
       </div>
+      <div className="build-bar" aria-hidden>
+        {view.map(v => (
+          <i key={v.s.id} title={`${v.i + 1}. ${v.s.title ?? v.s.id}`} style={{ flex: Math.max(0.5, v.s.duration), '--hue': HUES[v.i % HUES.length] } as React.CSSProperties}
+            className={v.current ? 'done' : v.action ? 'active' : v.written ? 'written' : ''} />
+        ))}
+      </div>
       {running && job!.state === 'queued' && <p className="muted small">{t('queue.waiting')}</p>}
-      {running && job!.state === 'running' && <StepList steps={buildStepList(job!, project.shots, project.look ?? null)} />}
+      {running && job!.state === 'running' && <StepList steps={buildStepList(job!, project.shots, project.look ?? null)} row />}
       {job?.state === 'failed' && job.error && <pre className="error-box small">{job.error}</pre>}
-      <div className="build-grid">
-        {project.shots.map((s, i) => {
-          // Current stills, else the last ones (dimmed while they are redone)
-          const still = stills(s) ?? latestStills(s)
-          const stale = !stills(s) && !!still
-          const action = running ? steps.active.get(s.id) : undefined
-          const active = !!action
-          const state = active ? t(action === 'stills' ? 'build.rendering' : action === 'check' ? 'build.checking' : 'build.writing')
-            : stills(s) ? null
-            : steps.written.has(s.id) || steps.finished.has(s.id) ? t(stale ? 'build.updating' : 'build.written')
-            : running ? t('build.waiting') : null
-          return (
-            <figure key={s.id} className={`build-shot${still ? ' ready' : ''}${stale ? ' stale' : ''}${active ? ' active' : ''}`}>
-              <div className={`build-frame${project.size.width > project.size.height ? ' wide' : ''}`}>
-                {still ? <img src={fileUrl(still[1])} alt="" /> : <span className={active ? 'shimmer' : 'build-empty'} />}
-                {state && <span className="build-state small">{active && <span className="pulse" />}{state}</span>}
-              </div>
-              <figcaption><span className="shot-no" style={{ background: HUES[i % HUES.length] }}>{i + 1}</span> <span className="ellipsis">{s.title}</span></figcaption>
-            </figure>
-          )
-        })}
+      <div className={`build-grid${wide ? ' wide' : ''}`}>
+        {view.map(v => (
+          <figure key={v.s.id} className={`build-shot${v.still ? ' ready' : ''}${v.stale ? ' stale' : ''}${v.action ? ' active' : ''}`}>
+            <div className={`build-frame${wide ? ' wide' : ''}`}>
+              {v.still
+                ? <img src={fileUrl(v.still[1])} alt="" />
+                : <ShotSketch look={project.look} text={v.text} n={v.i + 1} total={total} wide={wide} faint={!v.action} />}
+              {v.action && !v.still && <span className="shimmer sweep" />}
+              {v.state && <span className="build-state small">{v.action && <span className="pulse" />}{v.state}</span>}
+            </div>
+            <figcaption>
+              <span className="shot-no" style={{ background: HUES[v.i % HUES.length] }}>{v.i + 1}</span>
+              <span className="ellipsis">{v.s.title ?? v.s.id}</span>
+              <span className="muted">{t('unit.s', { n: v.s.duration })}</span>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Before the plan exists: what the AI is doing, for how long, and the
+// outline of what it will hand back (the copy and a column of frames)
+function PlanWait({ project, job, reading }: { project: Project; job: Job | null; reading: boolean }) {
+  useTicking(!!job)
+  const elapsed = job?.startedAt ? (Date.now() - job.startedAt) / 1000 : null
+  const n = Math.max(4, Math.min(8, Math.round(project.duration / 5)))
+  return (
+    <div className="plan-wait">
+      <div className="wait-card">
+        <span className="agent-avatar large">{job ? <span className="spinner" /> : <Icon name="spark" size={22} />}</span>
+        <div className="wait-words">
+          <strong>{t(reading ? 'plan.reading' : job ? 'plan.writing' : 'plan.none')}</strong>
+          {!reading && <p className="muted small">{t('plan.writingNote')}</p>}
+        </div>
+        {job && (
+          <span className="wait-time small muted">
+            {job.state === 'queued' ? t('queue.waiting') : elapsed != null ? `${t('act.elapsed', { time: formatSeconds(elapsed) })} · ${t('plan.usualShort')}` : ''}
+          </span>
+        )}
+        {job?.state === 'running' && <StepList steps={planSteps(job)} row />}
+      </div>
+      <div className="plan-skeleton" aria-hidden>
+        <div className="sk-col">
+          <span className="sk-label">{t('plan.idea')}</span>
+          <p className="sk-idea">{project.title}</p>
+          <span className="sk-label">{t('plan.hook')}</span>
+          <span className="sk-line w80" />
+          <span className="sk-label">{t('plan.body')}</span>
+          <span className="sk-line" /><span className="sk-line" /><span className="sk-line w90" /><span className="sk-line w60" />
+          <span className="sk-label">{t('plan.facts')}</span>
+          <span className="sk-line w70" /><span className="sk-line w50" />
+        </div>
+        <div className="sk-col">
+          <span className="sk-label">{t('plan.board')}</span>
+          {Array.from({ length: n }, (_, i) => (
+            <div key={i} className="sk-shot" style={{ animationDelay: `${i * 120}ms` }}>
+              <ShotSketch look={project.look} text="" n={i + 1} total={n} wide={project.size.width > project.size.height} faint />
+              <div className="sk-shot-lines"><span className="sk-line w40" /><span className="sk-line w80" /><span className="sk-line w60" /></div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
 }
 
 // What the AI does, step by step: done, now (with what and how long), next
-function StepList({ steps }: { steps: Step[] }) {
+function StepList({ steps, row = false }: { steps: Step[]; row?: boolean }) {
   useTicking(true)
   return (
-    <ol className="steps">
-      {steps.map((s, i) => (
-        <li key={i} className={s.state}>
-          <span className="step-mark">{s.state === 'done' ? <Icon name="check" size={12} /> : s.state === 'active' ? <span className="spinner small" /> : i + 1}</span>
-          <span className="step-text">
-            <span>{s.label}</span>
-            {s.detail && <span className="small muted">{s.detail}</span>}
-          </span>
-        </li>
-      ))}
-    </ol>
+    <div className={`steps-wrap${row ? ' row' : ''}`}>
+      <ol className={`steps${row ? ' row' : ''}`}>
+        {steps.map((s, i) => (
+          <li key={i} className={s.state}>
+            <span className="step-mark">{s.state === 'done' ? <Icon name="check" size={12} /> : s.state === 'active' ? <span className="spinner small" /> : i + 1}</span>
+            <span className="step-text">
+              <span>{s.label}</span>
+              {!row && s.detail && <span className="small muted">{s.detail}</span>}
+            </span>
+          </li>
+        ))}
+      </ol>
+      {/* In a row, what the current step is doing goes under it */}
+      {row && steps.find(s => s.state === 'active' && s.detail) && (
+        <p className="step-detail small"><span className="pulse" /> {steps.find(s => s.state === 'active')!.detail}</p>
+      )}
+    </div>
   )
 }
 
