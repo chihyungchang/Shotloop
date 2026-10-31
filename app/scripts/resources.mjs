@@ -34,8 +34,9 @@ for (const rel of ENGINE) copy(path.join(REPO, rel), path.join(OUT, rel))
 copy(path.join(REPO, 'examples'), path.join(OUT, 'examples'))
 
 // The examples ship with their current frames only, so they play at once:
-// older renders, fix records, previews of the whole film and the music
-// (made again in a moment) stay behind. Takes name files by absolute
+// older renders, fix records, previews of the whole film and the music,
+// and each shot's preview with music (all made again in a moment) stay
+// behind. Takes name files by absolute
 // path on this machine, so they go too; the current entries are found
 // by their keys.
 for (const name of fs.readdirSync(path.join(OUT, 'examples'))) {
@@ -55,8 +56,12 @@ for (const name of fs.readdirSync(path.join(OUT, 'examples'))) {
     const keep = new Set(MODES.map(m => `${m}-${shotKey(project, shot, m)}`))
     for (const e of fs.readdirSync(dir)) {
       if (!keep.has(e) && e !== 'checks.json') fs.rmSync(path.join(dir, e), { recursive: true, force: true })
-      // Frames of renders that were cut short
-      else if (keep.has(e)) for (const w of fs.readdirSync(path.join(dir, e))) if (w.startsWith('work-')) fs.rmSync(path.join(dir, e, w), { recursive: true, force: true })
+      // Frames of renders that were cut short, and the shot with music
+      else if (keep.has(e)) {
+        for (const w of fs.readdirSync(path.join(dir, e))) {
+          if (w.startsWith('work-') || /^preview-.*\.mp4$/.test(w)) fs.rmSync(path.join(dir, e, w), { recursive: true, force: true })
+        }
+      }
     }
     fs.writeFileSync(path.join(dir, 'takes.json'), '[]\n')
   }
