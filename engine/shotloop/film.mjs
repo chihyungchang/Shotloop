@@ -14,7 +14,8 @@ import { openPage } from '../lib/chrome.mjs'
 import { entry, takes, writeJson } from './cache.mjs'
 import { musicBed as musicWav } from './bed.mjs'
 import { emit, ffmpeg, pixelSize } from './compose.mjs'
-import { renderShot } from './render.mjs'
+import { findShot, loadProject, saveConfig } from './project.mjs'
+import { renderShot, stillFrames } from './render.mjs'
 
 export const ASPECTS = { '9:16': [9, 16], '16:9': [16, 9] }
 
@@ -146,30 +147,67 @@ export async function preview(project, { mode = 'draft' } = {}) {
 
 // The cover: thumb.html at 1080×1920, text kept inside the 3:4 crop by
 // the page itself. A cover may use a frame of the film as its background
-// (shotloop.json coverFrame: { shot, time }), read by the page from
-// out/cover-frame.png
-export async function renderCover(project, { at = stamp(), mode = 'final' } = {}) {
+// (shotloop.json coverFrame: { shot, time }, time within the shot), read
+// by the page from out/cover-frame.png. Without a clip of the shot yet,
+// the nearest of its stills stands in.
+// preview: rendered to .shotloop/cover.png (the AI's drafts and the
+// export panel's preview) instead of a new file in out/
+export async function renderCover(project, { at = stamp(), mode = 'final', preview = false } = {}) {
   if (!project.cover) return null
+  fs.mkdirSync(project.out, { recursive: true })
+  const frame = path.join(project.out, 'cover-frame.png')
   const cf = project.config.coverFrame
-  if (cf) {
-    const shot = project.shots.find(s => s.id === cf.shot)
-    const clip = shot && (entry(project, shot, mode).clip ?? entry(project, shot, 'draft').clip)
-    if (clip) {
-      fs.mkdirSync(project.out, { recursive: true })
-      await ffmpeg(['-ss', String(cf.time), '-i', clip, '-frames:v', '1',
-        '-vf', `scale=${project.size.width}:${project.size.height}`, path.join(project.out, 'cover-frame.png')])
-    }
+  const shot = cf && project.shots.find(s => s.id === cf.shot)
+  const src = shot && coverSource(project, shot, Number(cf.time) || 0, mode)
+  if (src) {
+    await ffmpeg([...(src.clip ? ['-ss', String(src.time), '-i', src.clip] : ['-i', src.still]), '-frames:v', '1',
+      '-vf', `scale=${project.size.width}:${project.size.height}`, frame])
+  } else {
+    fs.rmSync(frame, { force: true })
   }
-  const out = path.join(project.out, `${project.slug}.cover.${at}.png`)
+  const out = preview ? path.join(project.state, 'cover.png') : path.join(project.out, `${project.slug}.cover.${at}.png`)
+  fs.mkdirSync(path.dirname(out), { recursive: true })
   const page = await openPage({ width: 1080, height: 1920 })
   try {
-    await page.goto(pathToFileURL(project.cover).href)
+    // A fresh load: the page may have been rewritten since the last one
+    await page.goto(`${pathToFileURL(project.cover).href}?t=${Date.now()}`)
     await page.evaluate('window.ready')
     await page.screenshot(out)
   } finally {
     await page.close()
   }
   return out
+}
+
+// Where the cover's frame comes from: the shot's clip (this mode, else
+// the other), else its nearest still
+function coverSource(project, shot, time, mode) {
+  time = Math.min(Math.max(0, time), Math.max(0, shot.duration - 1 / project.fps))
+  for (const m of [mode, mode === 'final' ? 'draft' : 'final']) {
+    const clip = entry(project, shot, m).clip
+    if (clip) return { clip, time }
+  }
+  const stills = entry(project, shot, 'final').stills ?? entry(project, shot, 'draft').stills
+    ?? takes(project, shot).findLast(t => t.stills?.every(f => fs.existsSync(f)))?.stills
+  if (!stills) return null
+  const at = stillFrames(project, shot).map(f => (f - 1) / project.fps)
+  const i = at.reduce((best, t, k) => (Math.abs(t - time) < Math.abs(at[best] - time) ? k : best), 0)
+  return { still: stills[i] }
+}
+
+// The cover's background frame: { shot, time } or null for none
+export function setCoverFrame(project, frame) {
+  const cfg = { ...project.config }
+  if (frame) {
+    findShot(project, frame.shot)
+    const time = Number(frame.time)
+    if (!(time >= 0)) throw new Error('the cover frame needs a time ≥ 0 within the shot')
+    cfg.coverFrame = { shot: frame.shot, time }
+  } else {
+    delete cfg.coverFrame
+  }
+  saveConfig(project.root, cfg)
+  return loadProject(project.root)
 }
 
 export function copyPublish(project, at = stamp()) {

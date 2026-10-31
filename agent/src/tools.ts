@@ -6,7 +6,7 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import fs from 'node:fs'
 import path from 'node:path'
-import { renderStills } from './engine.ts'
+import { renderCover, renderStills } from './engine.ts'
 import { emit } from './events.ts'
 
 type Tool = Anthropic.Beta.BetaTool
@@ -87,6 +87,21 @@ export const TOOLS: Tool[] = [
     description: 'Render the stills of a shot (in the editor’s quality) (its first, middle and last frame, captions composited) with the current code, and return them as images. Takes from seconds (2D) to a minute or two (3D). A render error is returned as text.',
     strict: true,
     input_schema: object({ shot: { type: 'string', description: 'Shot id, e.g. "01-room".' } }, ['shot'])
+  },
+  {
+    name: 'view_image',
+    description: 'Look at a PNG or JPEG image of the project, e.g. "cover-reference.png". Returns it as an image.',
+    strict: true,
+    input_schema: object({ path: { type: 'string' } }, ['path'])
+  },
+  {
+    name: 'render_cover',
+    description: 'Render the cover page (thumb.html) at 1080×1920 and return it as an image. Sets its background frame first: a moment of one shot, which the page can show from out/cover-frame.png. frame_shot "" means no frame (the file is removed).',
+    strict: true,
+    input_schema: object({
+      frame_shot: { type: 'string', description: 'Shot id the frame comes from, e.g. "03-speed"; "" for none.' },
+      frame_time: { type: 'number', description: 'Seconds into that shot (0 for none).' }
+    }, ['frame_shot', 'frame_time'])
   },
   {
     name: 'read_checklist',
@@ -183,6 +198,32 @@ export async function runTool(ctx: ToolContext, name: string, input: Record<stri
       if (!r.stills) throw new Error('the render produced no stills')
       ctx.renders.set(shot, r.stills)
       return stillBlocks(r.stills)
+    }
+    case 'view_image': {
+      const { abs, rel } = resolve(ctx, str('path'))
+      const type = /\.png$/i.test(rel) ? 'image/png' : /\.jpe?g$/i.test(rel) ? 'image/jpeg' : null
+      if (!type) throw new Error(`${rel} is not a PNG or JPEG image`)
+      if (!fs.existsSync(abs)) throw new Error(`${rel} does not exist`)
+      if (fs.statSync(abs).size > 4 * 1024 * 1024) throw new Error(`${rel} is larger than 4 MB`)
+      emit({ type: 'tool', name, summary: rel })
+      return [
+        { type: 'text', text: `${rel}:` },
+        { type: 'image', source: { type: 'base64', media_type: type, data: fs.readFileSync(abs).toString('base64') } }
+      ]
+    }
+    case 'render_cover': {
+      // Only the cover task, which may write the cover page
+      const page = JSON.parse(fs.readFileSync(path.join(ctx.root, 'shotloop.json'), 'utf8')).cover
+      if (!page || !canWrite(ctx, page)) throw new Error('the cover is not part of this task')
+      const shot = str('frame_shot')
+      const time = Number(input.frame_time ?? 0)
+      emit({ type: 'tool', name, summary: shot ? `${shot} @ ${time} s` : 'no frame' })
+      const file = await renderCover(ctx.root, shot ? { shot, time } : null)
+      if (!file) throw new Error('this project has no cover page')
+      return [
+        { type: 'text', text: 'cover:' },
+        { type: 'image', source: { type: 'base64', media_type: 'image/png', data: fs.readFileSync(file).toString('base64') } }
+      ]
     }
     case 'read_checklist':
       emit({ type: 'tool', name })

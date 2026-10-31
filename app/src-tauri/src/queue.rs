@@ -1,7 +1,7 @@
 //! The render queue (docs/PRD.md §7.7). Jobs run in lanes, one job at a
 //! time per lane: `render` for shot renders and exports (one shot at a
 //! time, so a final render runs in the background while the person keeps
-//! working) and `agent` for fixes, checks and publish copy.
+//! working) and `agent` for fixes, checks, publish copy and the cover.
 //!
 //! Every job is a child process (the engine CLI or the agent sidecar)
 //! that prints one JSON event per line; the queue keeps the latest
@@ -31,6 +31,9 @@ pub enum Spec {
     Fix { project: String, shot: String, request: String, lang: Option<String> },
     Check { project: String, shot: String, lang: Option<String> },
     Publish { project: String, lang: Option<String> },
+    /// The cover page (thumb.html), designed in the video's look, filled
+    /// from a saved cover template, or after an uploaded image
+    Cover { project: String, request: Option<String>, template: Option<String>, reference: Option<bool>, lang: Option<String> },
     /// Copy and storyboard (storyboard.json), or a revision of them
     Plan { project: String, request: Option<String>, lang: Option<String> },
     /// The world and every shot, from the applied storyboard
@@ -52,6 +55,7 @@ impl Spec {
             | Spec::Fix { project, .. }
             | Spec::Check { project, .. }
             | Spec::Publish { project, .. }
+            | Spec::Cover { project, .. }
             | Spec::Plan { project, .. }
             | Spec::Build { project, .. } => project,
         }
@@ -73,6 +77,7 @@ impl Spec {
             Spec::Fix { shot, request, .. } => format!("Fix {}: {}", shot, request),
             Spec::Check { shot, .. } => format!("Check {}", shot),
             Spec::Publish { .. } => "Write publish copy".into(),
+            Spec::Cover { .. } => "Design the cover".into(),
             Spec::Plan { request: Some(r), .. } => format!("Plan: {}", r),
             Spec::Plan { .. } => "Plan the copy and storyboard".into(),
             Spec::Build { .. } => "Build the shots".into(),
@@ -116,6 +121,21 @@ impl Spec {
             }
             Spec::Publish { project, lang } => {
                 let mut a = vec![s("publish"), project.clone()];
+                if let Some(l) = lang {
+                    a.extend([s("--lang"), l.clone()]);
+                }
+                ("agent/src/main.ts", a)
+            }
+            Spec::Cover { project, request, template, reference, lang } => {
+                let mut a = vec![s("cover"), project.clone()];
+                if let Some(r) = request {
+                    a.extend([s("--request"), r.clone()]);
+                }
+                if let Some(t) = template {
+                    a.extend([s("--template"), t.clone()]);
+                } else if *reference == Some(true) {
+                    a.push(s("--reference"));
+                }
                 if let Some(l) = lang {
                     a.extend([s("--lang"), l.clone()]);
                 }
@@ -271,6 +291,7 @@ impl Queue {
                 Spec::Fix { .. } => "fix",
                 Spec::Check { .. } => "check",
                 Spec::Publish { .. } => "publish",
+                Spec::Cover { .. } => "cover",
                 Spec::Plan { .. } => "plan",
                 Spec::Build { .. } => "build",
             };

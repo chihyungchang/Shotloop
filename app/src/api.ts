@@ -85,6 +85,9 @@ export interface Project {
   samples?: number | null
   // 2D: the built-in look the world started from
   look?: string | null
+  // The cover's background frame, and how the AI last made the cover
+  coverFrame?: { shot: string; time: number } | null
+  coverMade?: { how: 'default' | 'free' | 'template' | 'reference'; template?: string } | null
   title: string
   slug: string
   track: '2d' | '3d'
@@ -116,7 +119,7 @@ export type JobState = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
 
 export interface Job {
   id: number
-  kind: 'render' | 'export' | 'fix' | 'check' | 'publish' | 'plan' | 'build'
+  kind: 'render' | 'export' | 'fix' | 'check' | 'publish' | 'cover' | 'plan' | 'build'
   lane: 'render' | 'agent'
   label: string
   project: string
@@ -139,6 +142,7 @@ export type Spec =
   | { kind: 'fix'; project: string; shot: string; request: string; lang?: string }
   | { kind: 'check'; project: string; shot: string; lang?: string }
   | { kind: 'publish'; project: string; lang?: string }
+  | { kind: 'cover'; project: string; request?: string; template?: string; reference?: boolean; lang?: string }
   | { kind: 'plan'; project: string; request?: string; lang?: string }
   | { kind: 'build'; project: string; lang?: string }
 
@@ -257,6 +261,16 @@ export interface Detected {
   servers: { id: string; name: string; url: string; running: boolean; models: string[] }[]
 }
 
+export interface CoverTemplate {
+  id: string
+  name: string
+  // The title of the project it was saved from
+  from: string | null
+  created: string | null
+  page: string
+  preview: string | null
+}
+
 export interface ExportResult {
   mode: Mode
   at: string
@@ -303,7 +317,7 @@ export const api = {
   readText: (project: string, path: string) => invoke<string>('read_text', { project, path }),
   writeText: (project: string, path: string, content: string) => invoke<void>('write_text', { project, path, content }),
   // Agent jobs reply in the UI language
-  enqueue: (spec: Spec) => invoke<number>('enqueue', { spec: ['fix', 'check', 'plan', 'build', 'publish'].includes(spec.kind) ? { ...spec, lang: lang() } : spec }),
+  enqueue: (spec: Spec) => invoke<number>('enqueue', { spec: ['fix', 'check', 'plan', 'build', 'publish', 'cover'].includes(spec.kind) ? { ...spec, lang: lang() } : spec }),
   machine: () => invoke<Machine>('machine'),
   aiUsage: () => invoke<Usage | null>('ai_usage'),
   jobs: () => invoke<Job[]>('jobs'),
@@ -335,6 +349,12 @@ export const api = {
   libraryImport: (file: string) => invoke<Asset>('library', { action: 'import', id: file }),
   libraryUse: (project: string, id: string) => invoke<Asset>('library', { action: 'use', project, id }),
   libraryUnuse: (project: string, id: string) => invoke<void>('library', { action: 'unuse', project, id }),
+  // Cover templates: covers saved to start the next ones from
+  coverTemplates: () => invoke<CoverTemplate[]>('covers', { action: 'list' }),
+  saveCoverTemplate: (project: string, name: string) => invoke<CoverTemplate>('covers', { action: 'save', project, name }),
+  removeCoverTemplate: (id: string) => invoke<void>('covers', { action: 'remove', id }),
+  // An image for the AI to design the cover after (cover-reference.png)
+  coverReference: (project: string, file: string) => invoke<string>('covers', { action: 'reference', project, file }),
   defaultWorkspace: () => invoke<string>('default_workspace'),
   openExample: (path: string) => invoke<{ root: string }>('open_example', { path }),
   saveDraft: (path: string, to: string) => invoke<{ root: string }>('save_draft', { path, to }),

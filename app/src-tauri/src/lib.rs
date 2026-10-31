@@ -455,6 +455,27 @@ async fn library(handle: AppHandle, action: String, item: Option<Value>, id: Opt
     .await
 }
 
+/// Cover templates: list them, save a project's cover as one, remove one;
+/// or an image into the project for the AI to design the cover after
+#[tauri::command]
+async fn covers(handle: AppHandle, action: String, project: Option<String>, id: Option<String>, name: Option<String>, file: Option<String>) -> Result<Value, String> {
+    blocking(move || {
+        let p = project.as_deref().unwrap_or("");
+        let mut args: Vec<&str> = match action.as_str() {
+            "list" => vec!["covers", "list"],
+            "save" => vec!["covers", "save", p],
+            "remove" => vec!["covers", "remove", id.as_deref().unwrap_or("")],
+            "reference" => vec!["covers", "reference", p, "--file", file.as_deref().unwrap_or("")],
+            _ => return Err(format!("unknown covers action {action}")),
+        };
+        if let (true, Some(n)) = (action == "save", name.as_deref()) {
+            args.extend(["--title", n]);
+        }
+        engine(&handle.state::<App>(), &args)
+    })
+    .await
+}
+
 /// Rename the project (shotloop.json title)
 #[tauri::command]
 async fn set_title(handle: AppHandle, path: String, title: String) -> Result<Value, String> {
@@ -556,6 +577,11 @@ pub fn run() {
             std::fs::create_dir_all(&library)?;
             std::env::set_var("SHOTLOOP_LIBRARY", &library);
             let _ = app.asset_protocol_scope().allow_directory(&library, true);
+            // Cover templates, the same way
+            let covers = app.path().app_data_dir()?.join("covers");
+            std::fs::create_dir_all(&covers)?;
+            std::env::set_var("SHOTLOOP_COVERS", &covers);
+            let _ = app.asset_protocol_scope().allow_directory(&covers, true);
             let queue = Queue::new();
             *queue.launch.lock().unwrap() = launch_for(root, &settings);
             queue.start(app.handle().clone());
@@ -584,6 +610,7 @@ pub fn run() {
             read_text,
             write_text,
             enqueue,
+            covers,
             jobs,
             ai_usage,
             machine,

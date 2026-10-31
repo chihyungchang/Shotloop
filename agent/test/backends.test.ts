@@ -42,7 +42,7 @@ test('MCP server: the narrow tools only, scoped writes, session recorded', async
   try {
     const { tools } = await client.listTools()
     assert.deepEqual(tools.map(t => t.name),
-      ['list_files', 'read_file', 'write_file', 'edit_file', 'render_stills', 'read_checklist', 'report_checks'])
+      ['list_files', 'read_file', 'write_file', 'edit_file', 'render_stills', 'view_image', 'render_cover', 'read_checklist', 'report_checks'])
 
     const read = await client.callTool({ name: 'read_file', arguments: { path: `shots/${SHOT}/shot.js` } })
     assert.match((read.content as any)[0].text, /export default function render/)
@@ -115,7 +115,7 @@ test('local model: OpenAI-compatible tool loop with stills as images', async () 
     assert.equal(result.summary, 'Done locally.')
     assert.deepEqual(result.touched, [code])
     assert.equal(api.requests[0].model, 'qwen2.5vl')
-    assert.equal(api.requests[0].tools.length, 7)
+    assert.equal(api.requests[0].tools.length, 9)
     // After render_stills: a tool message, then the stills as image parts
     const afterRender = api.requests[3].messages
     assert.equal(afterRender.at(-2).role, 'tool')

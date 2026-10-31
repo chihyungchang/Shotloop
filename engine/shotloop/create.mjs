@@ -190,6 +190,9 @@ export function captions({ width, height }, shots) {
 `
 }
 
+// Still the cover page a new project starts with (whatever its title)?
+export const isStarterCover = html => html.replace(/<h1>[\s\S]*?<\/h1>/, '<h1></h1>') === thumb('')
+
 function thumb(title) {
   return `<!doctype html>
 <!-- Cover, 1080×1920; the text stays inside the centred 3:4 crop (y 240–1680). -->

@@ -4,6 +4,10 @@
 //   shotloop-agent fix     <project> --shot <id> --request "the cable is hidden"
 //   shotloop-agent check   <project> --shot <id> [--review-only]
 //   shotloop-agent publish <project>
+//   shotloop-agent cover   <project> [--request "…"] [--template <id> | --reference]
+//                                             design the cover (thumb.html) in the video's look,
+//                                             fill a saved cover template, or recreate the design
+//                                             of an uploaded image (cover-reference.png)
 //   shotloop-agent detect                     CLI agents and local model servers here
 //   shotloop-agent test                       one tiny request through the chosen backend
 //   shotloop-agent plan    <project> [--request "…"]  copy and storyboard (storyboard.json)
@@ -19,15 +23,17 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
-import { renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
+import { engine, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
 import { emit, setJson } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
-import { buildShotSystem, buildWorldSystem, checkSystem, fixSystem, planSystem, postLanguage, publishSystem, replyLanguage } from './prompts.ts'
+import { buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, planSystem, postLanguage, publishSystem, replyLanguage } from './prompts.ts'
 import type { ToolContext } from './tools.ts'
 
 const OPTIONS = {
     shot: { type: 'string' },
     request: { type: 'string' },
+    template: { type: 'string' },
+    reference: { type: 'boolean' },
     model: { type: 'string' },
     'review-only': { type: 'boolean' },
     lang: { type: 'string' },
@@ -100,6 +106,9 @@ function assetsBrief(project: ProjectStatus) {
   if (!assets.length) return ''
   return `\n\nModels in assets/ (import them as the format describes):\n${assets.map(a => `- assets/${a.id}/model.glb: ${a.name} (${a.license}${a.author ? `, ${a.author}` : ''})`).join('\n')}`
 }
+
+// A project in one line, for prompts
+const head = (p: ProjectStatus) => `"${p.title}" (${p.track.toUpperCase()}, ${p.size.width}×${p.size.height}, ${p.duration} s, ${p.shots.length} shots)`
 
 function shotBrief(project: ProjectStatus, shot: ShotStatus) {
   const rel = (f: string) => path.relative(project.root, f)
@@ -268,7 +277,6 @@ async function buildTask() {
       .map(e => `world/${e.name}:\n${read(path.join(worldDir, e.name))}`).join('\n\n')
     : ''
   const copy = read(path.join(project.root, 'copy.md'))
-  const head = (p: ProjectStatus) => `"${p.title}" (${p.track.toUpperCase()}, ${p.size.width}×${p.size.height}, ${p.duration} s, ${p.shots.length} shots)`
   const touched = new Set<string>()
   emit({ type: 'log', message: `agent: ${describe()}` })
 
@@ -357,6 +365,57 @@ async function publishTask() {
   return { task: 'publish', summary, touched: [...ctx.touched], file }
 }
 
+const TEMPLATE_RULES = `A template mixes two kinds of things; tell them apart before you edit.
+- The series design, which you keep exactly, even where this video's look differs: the fonts, sizes and weights of every text, where each text sits, the text and accent colors, how the background is treated (its darkening or tint), and series marks (a name, an episode label, a logo, a border or a rule).
+- The last video's content, which you replace: every word and number, and anything that illustrates the last video's subject (drawings, icons, diagrams, labels about its topic). Remove such an illustration, or draw this video's equivalent in the same style and place; never relabel the old one to fit.
+- The background frame: pick this video's own with render_cover (when the template shows no frame, set none). It fills the whole page (object-fit: cover, no bands), and the overlay is adjusted so the frame sits in the template's tone and the text keeps its contrast.
+- When a text is longer than the template's, shorten it first; only then reduce its font size or let it wrap.`
+
+const REFERENCE_RULES = `The person uploaded cover-reference.png, a cover whose design they want for this video and the next ones of the series. Look at it with view_image first, and describe to yourself what makes it: the layout and where each text sits, the size, weight and style of each text, the colors, the background and how it is treated, decorations and marks.
+- Recreate that design in thumb.html at 1080×1920 (scale the reference's layout to it when its shape differs, keeping the 3:4 crop rule), with the closest system fonts.
+- Fill it with this video's content: its own words in the same roles (kicker, headline, highlighted words, a number), and this video's own imagery (a frame through render_cover, or drawings) where the reference has its imagery. Every number from copy.md.
+- Never put the reference itself on the cover as a picture: its words and imagery are baked in. The one exception is when it is itself a logo, frame or overlay (transparent areas, nothing about another video): then use the file as a layer, cropped with CSS.
+- Render with render_cover and compare with the reference (view_image again if needed). Fix the largest difference in design, not content, and render again; stop after four renders.`
+
+// The cover: thumb.html designed from the copy, the look and the shots'
+// stills, then rendered for the export panel's preview
+async function coverTask() {
+  const project = await status(dir)
+  if (!project.files.cover) throw new Error('this project has no cover page (shotloop.json "cover")')
+  const page = path.relative(project.root, project.files.cover).split(path.sep).join('/')
+  const ctx = context(project.root, [page])
+  const docs = ['copy.md', 'script.md', 'storyboard.json']
+    .filter(f => fs.existsSync(path.join(project.root, f)))
+    .map(f => `${f}:\n${read(path.join(project.root, f))}`)
+    .join('\n\n')
+  const shots = project.shots.map(s => `- ${s.id}${s.title ? ` (${s.title})` : ''}: ${s.duration} s`).join('\n')
+  const ask = values.request?.trim() ? `The person asks: "${values.request.trim()}"\n\n` : ''
+  // A saved template: it becomes this cover's page, for the AI to fill
+  let template = ''
+  if (values.template) {
+    const t = await engine<{ name: string }>(['covers', 'apply', project.root, values.template])
+    template = `${page} is the person's cover template "${t.name}", shared by the covers of a series. ${TEMPLATE_RULES}\n\n`
+  } else if (values.reference) {
+    if (!fs.existsSync(path.join(path.dirname(project.files.cover), 'cover-reference.png'))) throw new Error('no cover-reference.png to design after')
+    template = `${REFERENCE_RULES}\n\n`
+  }
+  emit({ type: 'log', message: `agent: ${describe()}` })
+  const summary = await runAgent('code', {
+    effort: template ? 'medium' : 'high',
+    system: coverSystem() + replyLanguage(values.lang),
+    prompt: `${ask}${template}${values.template ? 'Fill the template for' : values.reference ? 'Recreate that design for' : 'Design the cover of'} ${head(project)}.\n\nShots:\n${shots}\n\n${docs}\n\n${page} now:\n${read(project.files.cover)}`,
+    ctx
+  })
+  // How the cover was made, for the export dialog to say
+  const made = values.template ? { how: 'template', template: (await engine<{ name: string }[]>(['covers', 'list'])).find((x: any) => x.id === values.template)?.name ?? values.template }
+    : { how: values.reference ? 'reference' : 'free' }
+  fs.mkdirSync(path.join(project.root, '.shotloop'), { recursive: true })
+  fs.writeFileSync(path.join(project.root, '.shotloop', 'cover.json'), JSON.stringify({ ...made, at: new Date().toISOString() }) + '\n')
+  // The cover as it now is, whether or not the agent rendered it last
+  const file = await renderCover(project.root)
+  return { task: 'cover', summary, touched: [...ctx.touched], file }
+}
+
 try {
   let value: unknown
   if (task === 'detect') value = await detect()
@@ -366,12 +425,12 @@ try {
     if (!values.url && protocol === 'openai') throw new Error('models needs --url <base URL>')
     value = await listModels(values.url ?? '', values.key, protocol)
   } else {
-    if (!dir || !['fix', 'check', 'publish', 'plan', 'build'].includes(task)) {
-      console.error('usage: shotloop-agent fix|check|publish|plan|build <project> [--shot <id>] [--request "…"] [--json] | detect | models --url <…>')
+    if (!dir || !['fix', 'check', 'publish', 'cover', 'plan', 'build'].includes(task)) {
+      console.error('usage: shotloop-agent fix|check|publish|cover|plan|build <project> [--shot <id>] [--request "…"] [--json] | detect | models --url <…>')
       process.exit(1)
     }
     preflight()
-    value = task === 'publish' ? await publishTask() : task === 'plan' ? await planTask() : task === 'build' ? await buildTask() : await shotTask(task as 'fix' | 'check')
+    value = task === 'publish' ? await publishTask() : task === 'cover' ? await coverTask() : task === 'plan' ? await planTask() : task === 'build' ? await buildTask() : await shotTask(task as 'fix' | 'check')
   }
   emit({ type: 'result', value })
 } catch (err) {

@@ -87,7 +87,7 @@ export async function runLocal(m: LocalModel, system: string, prompt: string, ct
               images.push({ type: 'image_url', image_url: { url: `data:${b.source.media_type};base64,${b.source.data}` } })
             }
           }
-          if (images.length) content += ' (the stills follow as images)'
+          if (images.length) content += ' (the images follow)'
         }
       } catch (err) {
         content = `Error: ${err instanceof Error ? err.message : String(err)}`
@@ -95,7 +95,7 @@ export async function runLocal(m: LocalModel, system: string, prompt: string, ct
       }
       messages.push({ role: 'tool', tool_call_id: call.id, content })
     }
-    if (images.length) messages.push({ role: 'user', content: [{ type: 'text', text: 'Stills from render_stills, in order start, middle, end:' }, ...images] })
+    if (images.length) messages.push({ role: 'user', content: [{ type: 'text', text: 'Images from the tools above, in order (render_stills: start, middle, end):' }, ...images] })
   }
   throw new Error(`stopped after ${maxTurns} turns without finishing`)
 }

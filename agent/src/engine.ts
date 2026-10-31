@@ -78,3 +78,9 @@ export const status = (project: string) => engine<ProjectStatus>(['status', proj
 
 export const renderStills = (project: string, shot: string) =>
   engine<RenderResult>(['render', project, '--shot', shot, '--stills'])
+
+// The cover (thumb.html) rendered to .shotloop/cover.png, its background
+// frame set first: { shot, time } or null for none (undefined: unchanged)
+export const renderCover = (project: string, frame?: { shot: string; time: number } | null) =>
+  engine<string | null>(['cover', project, '--preview',
+    ...(frame ? ['--frame', `${frame.shot}@${frame.time}`] : frame === null ? ['--none'] : [])])

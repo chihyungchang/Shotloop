@@ -7,7 +7,8 @@
 //                     (neither: the editor's quality, draft for 3D and final for 2D)
 //   shotloop assemble <project> [--final] [--aspect 9:16,16:9]
 //   shotloop export   <project> [--draft] [--aspect 9:16,16:9]
-//   shotloop cover    <project>
+//   shotloop cover    <project> [--frame <shot>@<seconds> | --none] [--preview]
+//                     (--frame/--none: set the background frame first; --preview: to .shotloop/cover.png)
 //   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d] [--aspect 9:16|16:9] [--duration 30] [--look <id>]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
@@ -22,6 +23,8 @@
 //                     get --item '<search result>' | list [<project>] | remove <id>
 //                     use <project> <id> | unuse <project> <id> | import <file.glb> [--title]   the 3D asset library
 //   shotloop music    <project> [--preset calm|bright|groove|tech | --file <audio> | --none] [--gain 0–2] [--bed]
+//   shotloop covers   list | save <project> [--title <name>] | apply <project> <id> | remove <id>
+//                     | reference <project> --file <image>     cover templates, an image to design after
 //   shotloop prune    <project>                          drop unused cache entries
 //   shotloop doctor                                      Chrome, ffmpeg, Blender
 //
@@ -34,13 +37,14 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
-import { editMode, prune, status, worldKey } from './cache.mjs'
+import { editMode, prune, readJson, status, worldKey } from './cache.mjs'
 import { emit, setJson } from './compose.mjs'
-import { newProject, projectsIn, summaries } from './create.mjs'
-import { assemble, exportFilm, preview, renderCover } from './film.mjs'
+import { isStarterCover, newProject, projectsIn, summaries } from './create.mjs'
+import { assemble, exportFilm, preview, renderCover, setCoverFrame } from './film.mjs'
 import { findShot, loadProject } from './project.mjs'
 import { DEFAULT_SAMPLES, finalSamples, musicInfo, setMusic, setSamples, setTitle } from './settings.mjs'
 import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
+import * as covers from './covers.mjs'
 import * as library from './library.mjs'
 import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
@@ -75,6 +79,8 @@ const OPTIONS = {
     duration: { type: 'string' },
     look: { type: 'string' },
     examples: { type: 'boolean' },
+    frame: { type: 'string' },
+    preview: { type: 'boolean' },
     json: { type: 'boolean' }
 }
 
@@ -194,12 +200,22 @@ function projectStatus(project) {
 
 const aspects = () => values.aspect?.split(',')
 
+// How the cover was made: the AI's record, else "default" while it is
+// still the page a new project starts with; null when nobody knows
+function coverMade(project) {
+  const made = readJson(path.join(project.state, 'cover.json'), null)
+  if (made) return made
+  return project.cover && fs.existsSync(project.cover) && isStarterCover(fs.readFileSync(project.cover, 'utf8')) ? { how: 'default' } : null
+}
+
 try {
   switch (cmd) {
     case 'status':
       {
         const project = loadProject(args[0])
-        result({ ...projectStatus(project), example: isExample(args[0]), draft: isDraft(args[0]), samples: project.track === '3d' ? finalSamples(project) : null, look: project.config.look ?? null })
+        result({ ...projectStatus(project), example: isExample(args[0]), draft: isDraft(args[0]), samples: project.track === '3d' ? finalSamples(project) : null, look: project.config.look ?? null,
+          // The cover: its background frame, and how the AI last made it (.shotloop/cover.json)
+          coverFrame: project.config.coverFrame ?? null, coverMade: coverMade(project), })
       }
       break
     case 'render': {
@@ -236,6 +252,16 @@ try {
       else throw new Error('library search|get|list|remove|use|unuse')
       break
     }
+    case 'covers': {
+      const [sub, a] = args
+      if (sub === 'list') result(covers.list())
+      else if (sub === 'save') result(await covers.save(loadProject(a), values.title))
+      else if (sub === 'apply') result(covers.apply(loadProject(a), args[2]))
+      else if (sub === 'reference') result(await covers.reference(loadProject(a), values.file))
+      else if (sub === 'remove') result(covers.remove(a))
+      else throw new Error('covers list|save|apply|reference|remove')
+      break
+    }
     case 'storyboard':
       result(values.derive ? deriveStoryboard(loadProject(args[0])) : applyStoryboard(loadProject(args[0])))
       break
@@ -264,9 +290,16 @@ try {
         result(await preview(project, { mode: values.final ? 'final' : values.draft ? 'draft' : editMode(project) }))
       }
       break
-    case 'cover':
-      result(await renderCover(loadProject(args[0])))
+    case 'cover': {
+      let project = loadProject(args[0])
+      if (values.frame) {
+        const at = values.frame.lastIndexOf('@')
+        if (at < 1) throw new Error('--frame is <shot>@<seconds>, e.g. 02-scale@1.5')
+        project = setCoverFrame(project, { shot: values.frame.slice(0, at), time: values.frame.slice(at + 1) })
+      } else if (values.none) project = setCoverFrame(project, null)
+      result(await renderCover(project, { preview: !!values.preview }))
       break
+    }
     case 'new':
       if (!args[0]) throw new Error('new needs <project dir>')
       // A taken folder (two ideas with the same name) gets -2, -3, …

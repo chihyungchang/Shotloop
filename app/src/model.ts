@@ -110,6 +110,8 @@ export function jobLabel(job: Job): string {
       return t('job.check', { shot: job.shot ?? '' })
     case 'publish':
       return t('job.publish')
+    case 'cover':
+      return t('job.cover')
     case 'plan':
       return t('job.plan')
     case 'build':
@@ -125,6 +127,7 @@ function fileWords(file: string): string {
   if (/captions/.test(file)) return t('act.captions')
   if (/storyboard/.test(file)) return t('act.storyboard')
   if (/copy\.md/.test(file)) return t('act.copy')
+  if (/thumb\.html/.test(file)) return t('act.cover')
   return t('act.file')
 }
 
@@ -142,6 +145,7 @@ export function activityLine(line: string): string {
     case 'edit_file': case 'edit': case 'multiedit': return t('act.edit', { what })
     case 'list_files': case 'glob': case 'grep': case 'ls': return t('act.list')
     case 'render_stills': return t('act.stills', { what: rest ? t('act.shot', { n: rest.match(/\d+/)?.[0] ?? rest }) : t('act.shot', { n: '' }) })
+    case 'render_cover': return t('act.coverRender')
     case 'read_checklist': case 'report_checks': return rest ? t('act.checks', { what: t('act.shot', { n: rest.match(/\d+/)?.[0] ?? rest }) }) : t('act.checking')
     case 'bash': return t('act.run')
     case 'agent': return t('act.think')
