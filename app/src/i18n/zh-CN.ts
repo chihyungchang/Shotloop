@@ -454,6 +454,8 @@ export const zhCN: Record<Key, string> = {
   'export.need.one': '需渲染 1 个镜头 · 约 {time}',
   'export.ready': '镜头都已渲染好，导出只需拼接',
   'music.listen': '试听',
+  'music.shuffle': '换一首',
+  'music.shuffleHint': '同样的风格，换一段新的：调、速度和节奏都会变',
   'music.stop': '停止',
   'pub.title': '标题',
   'pub.description': '描述',

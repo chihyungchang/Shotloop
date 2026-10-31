@@ -10,9 +10,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { render as renderMusic, wav } from '../video/music.mjs'
 import { musicKey } from './cache.mjs'
-
-// The film's cuts: where each shot after the first starts
-export const cutTimes = project => project.shots.slice(1).map(s => s.start)
+import { composeBed, cutTimes } from './score.mjs'
 
 // The tempo near `bpm` (±12%) whose beats, and better its bar lines, sit
 // closest to the cuts; `bpm` itself when there are no cuts
@@ -56,7 +54,10 @@ export function musicBed(project) {
   // Written under a temporary name, so a cut-short bed is never reused
   const part = `${file}.${process.pid}.wav`
   if (project.music.endsWith('.json')) {
-    const cfg = JSON.parse(fs.readFileSync(project.music, 'utf8'))
+    let cfg = JSON.parse(fs.readFileSync(project.music, 'utf8'))
+    // A composed bed (score.mjs) is arranged again to the film as it is
+    // now: the same seed keeps its key, tempo and patterns
+    if (cfg.mood && cfg.seed != null) cfg = { ...cfg, ...composeBed(cfg.mood, { seed: cfg.seed, duration: project.duration, cuts: cutTimes(project) }) }
     const bpm = cfg.syncCuts === false ? cfg.bpm : fitBpm(cfg.bpm, cutTimes(project))
     fs.writeFileSync(part, wav(renderMusic({
       ...cfg, bpm, duration: project.duration, sections: fitSections(cfg.sections, project.duration),

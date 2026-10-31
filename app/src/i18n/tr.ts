@@ -454,6 +454,8 @@ export const tr: Record<Key, string> = {
   'export.need': 'İşlenecek {n} çekim · yaklaşık {time}',
   'export.ready': 'Tüm çekimler hazır: dışa aktarma yalnızca birleştirir',
   'music.listen': 'Dinle',
+  'music.shuffle': 'Başka',
+  'music.shuffleHint': 'Aynı hava, yeni bir parça: ton, tempo ve ritim değişir',
   'music.stop': 'Durdur',
   'pub.title': 'Başlık',
   'pub.description': 'Açıklama',

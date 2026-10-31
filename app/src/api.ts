@@ -387,7 +387,7 @@ export const api = {
   setTitle: (path: string, title: string) => invoke<{ title: string }>('set_title', { path, title }),
   setStyle: (path: string, style: string) => invoke<{ style: string }>('set_style', { path, style }),
   // The music bed: read with no change, or set a preset, a file, none, a volume
-  music: (path: string, change: { preset?: string; file?: string; none?: boolean; gain?: number; bed?: boolean } = {}) => invoke<MusicInfo & { bed?: string | null }>('music', { path, ...change }),
+  music: (path: string, change: { preset?: string; shuffle?: boolean; file?: string; none?: boolean; gain?: number; bed?: boolean } = {}) => invoke<MusicInfo & { bed?: string | null }>('music', { path, ...change }),
   quality: (path: string, change: { samples?: number; reset?: boolean } = {}) => invoke<{ samples: number; custom: boolean; default: number }>('quality', { path, ...change }),
   filmPreview: (path: string, mode: Mode) => invoke<{ file: string; stale: string[] }>('film_preview', { path, finalMode: mode === 'final' })
 }

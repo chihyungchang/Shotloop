@@ -455,6 +455,8 @@ export const en = {
   'export.need': '{n} shots to render · about {time}',
   'export.ready': 'All shots ready: export only joins them',
   'music.listen': 'Listen',
+  'music.shuffle': 'Shuffle',
+  'music.shuffleHint': 'Same mood, a new piece: another key, tempo and rhythm',
   'music.stop': 'Stop',
   'pub.title': 'Title',
   'pub.description': 'Description',

@@ -454,6 +454,8 @@ export const de: Record<Key, string> = {
   'export.need': '{n} Shots zu rendern · etwa {time}',
   'export.ready': 'Alle Shots fertig: Der Export fügt sie nur zusammen',
   'music.listen': 'Anhören',
+  'music.shuffle': 'Andere',
+  'music.shuffleHint': 'Gleiche Stimmung, neues Stück: Tonart, Tempo und Rhythmus ändern sich',
   'music.stop': 'Stoppen',
   'pub.title': 'Titel',
   'pub.description': 'Beschreibung',

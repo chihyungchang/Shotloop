@@ -454,6 +454,8 @@ export const it: Record<Key, string> = {
   'export.need': '{n} inquadrature da renderizzare · circa {time}',
   'export.ready': 'Tutte le inquadrature sono pronte: l’esportazione le unisce soltanto',
   'music.listen': 'Ascolta',
+  'music.shuffle': 'Un’altra',
+  'music.shuffleHint': 'Stesso stile, un altro brano: cambiano tonalità, tempo e ritmo',
   'music.stop': 'Interrompi',
   'pub.title': 'Titolo',
   'pub.description': 'Descrizione',

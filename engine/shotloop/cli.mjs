@@ -25,7 +25,7 @@
 //   shotloop library  search --source polypizza|smithsonian --query … [--key] [--cursor] [--all]
 //                     get --item '<search result>' | list [<project>] | remove <id>
 //                     use <project> <id> | unuse <project> <id> | import <file.glb> [--title]   the 3D asset library
-//   shotloop music    <project> [--preset calm|bright|groove|tech | --file <audio> | --none] [--gain 0–2] [--bed]
+//   shotloop music    <project> [--preset calm|bright|groove|tech | --shuffle | --file <audio> | --none] [--gain 0–2] [--bed]
 //   shotloop covers   list | save <project> [--title <name>] | apply <project> <id> | remove <id>
 //                     | reference <project> --file <image>     cover templates, an image to design after
 //   shotloop prune    <project>                          drop unused cache entries
@@ -61,6 +61,7 @@ const OPTIONS = {
     stills: { type: 'boolean' },
     force: { type: 'boolean' },
     preset: { type: 'string' },
+    shuffle: { type: 'boolean' },
     source: { type: 'string' },
     query: { type: 'string' },
     key: { type: 'string' },
@@ -299,8 +300,8 @@ try {
       break
     case 'music': {
       const project = loadProject(args[0])
-      const change = values.preset || values.file || values.none || values.gain != null
-      const info = change ? setMusic(project, { preset: values.preset, file: values.file, none: values.none, gain: values.gain }) : musicInfo(project)
+      const change = values.preset || values.shuffle || values.file || values.none || values.gain != null
+      const info = change ? setMusic(project, { preset: values.preset, shuffle: values.shuffle, file: values.file, none: values.none, gain: values.gain }) : musicInfo(project)
       // --bed: the bed itself, to listen to (made now if needed)
       result(values.bed ? { ...info, bed: musicBed(loadProject(args[0])) } : info)
       break

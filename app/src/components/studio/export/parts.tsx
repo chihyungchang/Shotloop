@@ -64,7 +64,7 @@ export function Music({ project, refresh }: { project: Project; refresh: () => v
             <button role="radio" aria-checked={music?.kind === 'none'} className={music?.kind === 'none' ? 'on' : ''} onClick={() => change({ none: true })}>{t('music.none')}</button>
             {PRESETS.map(p => {
               const on = music?.kind === 'preset' && music.preset === p
-              return <button key={p} role="radio" aria-checked={on} className={on ? 'on' : ''} onClick={() => change({ preset: p })}>{t(`music.${p}`)}</button>
+              return <button key={p} role="radio" aria-checked={on} className={on ? 'on' : ''} onClick={() => !on && change({ preset: p })}>{t(`music.${p}`)}</button>
             })}
             {music?.kind === 'preset' && !PRESETS.includes(music.preset as (typeof PRESETS)[number]) && (
               <button role="radio" aria-checked className="on">{t('music.custom')}</button>
@@ -85,6 +85,12 @@ export function Music({ project, refresh }: { project: Project; refresh: () => v
             <button className="link listen" onClick={playing ? stop : listen}>
               {playing === 'loading' ? <span className="spinner small" /> : <Icon name={playing ? 'pause' : 'play'} size={11} />} {t(playing ? 'music.stop' : 'music.listen')}
             </button>
+            {/* A preset is a mood: each pick is composed anew; this asks for another */}
+            {music.kind === 'preset' && PRESETS.includes(music.preset as (typeof PRESETS)[number]) && (
+              <button className="link listen" onClick={() => change({ shuffle: true })} title={t('music.shuffleHint')}>
+                <Icon name="refresh" size={11} /> {t('music.shuffle')}
+              </button>
+            )}
           </div>
         </div>
       )}

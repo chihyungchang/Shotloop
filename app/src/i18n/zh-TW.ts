@@ -454,6 +454,8 @@ export const zhTW: Record<Key, string> = {
   'export.need': '需渲染 {n} 個鏡頭 · 約 {time}',
   'export.ready': '所有鏡頭都已就緒：匯出只需合併',
   'music.listen': '試聽',
+  'music.shuffle': '換一首',
+  'music.shuffleHint': '同樣的風格，換一段新的：調性、速度和節奏都會變',
   'music.stop': '停止',
   'pub.title': '標題',
   'pub.description': '說明',

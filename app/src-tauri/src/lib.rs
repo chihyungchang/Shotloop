@@ -529,12 +529,15 @@ async fn set_style(handle: AppHandle, path: String, style: String) -> Result<Val
 /// The project's music bed: read it, or set a preset, an audio file, none,
 /// and the volume
 #[tauri::command]
-async fn music(handle: AppHandle, path: String, preset: Option<String>, file: Option<String>, none: Option<bool>, gain: Option<f64>, bed: Option<bool>) -> Result<Value, String> {
+async fn music(handle: AppHandle, path: String, preset: Option<String>, shuffle: Option<bool>, file: Option<String>, none: Option<bool>, gain: Option<f64>, bed: Option<bool>) -> Result<Value, String> {
     blocking(move || {
         let gain = gain.map(|g| g.to_string());
         let mut args = vec!["music", path.as_str()];
         if let Some(p) = preset.as_deref() {
             args.extend(["--preset", p]);
+        }
+        if shuffle == Some(true) {
+            args.push("--shuffle");
         }
         if let Some(f) = file.as_deref() {
             args.extend(["--file", f]);

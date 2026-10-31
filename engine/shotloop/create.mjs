@@ -10,6 +10,7 @@ import path from 'node:path'
 import { editMode, entry, takes } from './cache.mjs'
 import { DEFAULT_LOOK, lookById, lookPage, LOOKS, styleFiles } from './looks.mjs'
 import { STYLES, styleById } from './styles.mjs'
+import { composeBed } from './score.mjs'
 import { isProject, loadProject, saveConfig, SIZES } from './project.mjs'
 
 const round1 = x => Math.round(x * 10) / 10
@@ -30,6 +31,11 @@ function planShots(duration) {
   shots.push({ id: `${String(n).padStart(2, '0')}-end`, title: 'End card', duration: round1(duration - used) })
   return shots
 }
+
+// The music a new film starts with: a mood that suits its style (the
+// person changes it in Export), composed anew for this film
+const STYLE_MOOD = { scene: 'calm', map: 'calm', '3d': 'calm', infographic: 'bright', kinetic: 'groove', ui: 'tech', blueprint: 'tech' }
+const startMood = style => STYLE_MOOD[style] ?? 'bright'
 
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 
@@ -271,11 +277,8 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
   write('storyboard.md', `# ${title} · Storyboard\n\n| # | Time | Shot | Motion |\n| --- | --- | --- | --- |\n${shots.map((s, i) => `| ${i + 1} | ${s.duration} s | ${s.title} | |`).join('\n')}\n`)
   // 2D draws its text in the frame: no caption layer over it
   if (track === '3d') write('captions.html', captions(size, shots))
-  write('music.json', JSON.stringify({
-    bpm: 100, duration, chords: [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]],
-    sections: [{ from: 0, to: duration, layers: ['pad', 'bass', 'hat'] }],
-    hits: [], risers: [], fadeIn: 0.2, fadeOut: 1.5
-  }, null, 2) + '\n')
+  const cuts = shots.slice(0, -1).reduce((at, s) => [...at, (at.at(-1) ?? 0) + s.duration], [])
+  write('music.json', JSON.stringify(composeBed(startMood(track === '3d' ? '3d' : style), { duration, cuts }), null, 2) + '\n')
   write('thumb.html', thumb(title))
   write('publish.md', `# ${title} · Publish\n\n(written by the agent from copy.md: Export → Publish copy)\n`)
   write('.gitignore', '.shotloop/\nout/\n')

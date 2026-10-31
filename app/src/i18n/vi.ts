@@ -454,6 +454,8 @@ export const vi: Record<Key, string> = {
   'export.need': '{n} cảnh cần kết xuất · khoảng {time}',
   'export.ready': 'Mọi cảnh đã sẵn sàng: khi xuất chỉ cần ghép lại',
   'music.listen': 'Nghe',
+  'music.shuffle': 'Bản khác',
+  'music.shuffleHint': 'Cùng phong cách, bản nhạc mới: đổi giọng, nhịp độ và tiết tấu',
   'music.stop': 'Dừng',
   'pub.title': 'Tiêu đề',
   'pub.description': 'Mô tả',

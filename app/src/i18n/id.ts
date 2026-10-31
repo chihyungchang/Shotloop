@@ -454,6 +454,8 @@ export const id: Record<Key, string> = {
   'export.need': '{n} adegan perlu dirender · sekitar {time}',
   'export.ready': 'Semua adegan siap: ekspor hanya menggabungkannya',
   'music.listen': 'Dengarkan',
+  'music.shuffle': 'Ganti',
+  'music.shuffleHint': 'Suasana sama, lagu baru: kunci, tempo, dan ritme berubah',
   'music.stop': 'Hentikan',
   'pub.title': 'Judul',
   'pub.description': 'Deskripsi',

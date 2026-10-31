@@ -454,6 +454,8 @@ export const ptBR: Record<Key, string> = {
   'export.need': '{n} planos a renderizar · cerca de {time}',
   'export.ready': 'Todos os planos prontos: a exportação só os junta',
   'music.listen': 'Ouvir',
+  'music.shuffle': 'Outra',
+  'music.shuffleHint': 'Mesmo estilo, outra música: muda o tom, o andamento e o ritmo',
   'music.stop': 'Parar',
   'pub.title': 'Título',
   'pub.description': 'Descrição',

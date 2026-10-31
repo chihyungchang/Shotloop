@@ -454,6 +454,8 @@ export const ru: Record<Key, string> = {
   'export.need': 'Кадров к рендеру: {n} · около {time}',
   'export.ready': 'Все кадры готовы: экспорт только склеит их',
   'music.listen': 'Прослушать',
+  'music.shuffle': 'Другая',
+  'music.shuffleHint': 'То же настроение, новая мелодия: другие тональность, темп и ритм',
   'music.stop': 'Стоп',
   'pub.title': 'Заголовок',
   'pub.description': 'Описание',

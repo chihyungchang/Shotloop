@@ -454,6 +454,8 @@ export const ja: Record<Key, string> = {
   'export.need': 'レンダリングが必要なショット {n} 件 · 約 {time}',
   'export.ready': 'すべてのショットが準備済み：書き出しは結合のみ',
   'music.listen': '試聴',
+  'music.shuffle': '別の曲',
+  'music.shuffleHint': '同じ雰囲気で別の曲に：キー、テンポ、リズムが変わります',
   'music.stop': '停止',
   'pub.title': 'タイトル',
   'pub.description': '説明',

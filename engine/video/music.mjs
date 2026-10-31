@@ -10,6 +10,11 @@
 //   hits: [s, ...]      an impact on a cut
 //   risers: [[from, to], ...]  a noise sweep that resolves at `to`
 //   fadeIn, fadeOut (s), gain (master, default 1)
+//   optional rhythms, one bar of sixteenths each (engine/shotloop/score.mjs
+//   writes them; without them a bed plays as it always has):
+//   bass: [semitones above the root, or null to let the note ring] × 16
+//   arp: { rate: notes per beat, order: [chord tone; +3 is an octave up] }
+//   kick, hat: [1 or 0] × 16
 
 import fs from 'node:fs'
 import { pathToFileURL } from 'node:url'
@@ -71,8 +76,29 @@ export function render(cfg) {
     }
   }
 
+  // Bass: a pattern of plucks on the chord, two octaves down
+  if (cfg.bass) {
+    const step = beat / 4
+    let p = 0
+    let lp = 0
+    for (let i = 0; i < n; i++) {
+      const t = i / RATE
+      if (!active('bass', t)) continue
+      // The last note struck at or before this sixteenth
+      const s = Math.floor(t / step)
+      let k = 0
+      while (k < 16 && cfg.bass[(s - k) % 16] == null) k++
+      if (k === 16) continue
+      const since = t - (s - k) * step
+      const f = mtof(chordAt((s - k) * step)[0] - 24 + cfg.bass[(s - k) % 16])
+      p += f / RATE
+      const env = Math.exp(-since / (beat / 2) * 5)
+      lp += (saw(p) - lp) * (0.02 + env * 0.08)
+      add(i, lp * 0.32 * env)
+    }
+  }
   // Bass: eighth-note plucks on the chord root, two octaves down
-  {
+  else {
     let p = 0
     let lp = 0
     for (let i = 0; i < n; i++) {
@@ -87,8 +113,28 @@ export function render(cfg) {
     }
   }
 
+  // Arp: the chord's tones in the given order, an octave up, panned
+  // side to side
+  if (cfg.arp) {
+    const len = beat / cfg.arp.rate
+    const order = cfg.arp.order
+    let p = 0
+    let lp = 0
+    for (let i = 0; i < n; i++) {
+      const t = i / RATE
+      if (!active('arp', t)) continue
+      const step = Math.floor(t / len)
+      const e = (t % len) / len
+      const chord = chordAt(t)
+      const o = order[step % order.length]
+      const m = chord[o % chord.length] + 12 + 12 * Math.floor(o / chord.length)
+      p += mtof(m) / RATE
+      lp += (square(p) - lp) * 0.12
+      add(i, lp * 0.05 * Math.exp(-e * 6 * Math.min(1, len / (beat / 4))), step % 2 ? 0.4 : -0.4)
+    }
+  }
   // Arp: sixteenths over the chord an octave up, panned side to side
-  {
+  else {
     let p = 0
     let lp = 0
     for (let i = 0; i < n; i++) {
@@ -123,10 +169,20 @@ export function render(cfg) {
       }
     }
   }
-  for (let t = 0; t < cfg.duration; t += beat / 2) {
-    const onBeat = Math.round(t / (beat / 2)) % 2 === 0
-    if (onBeat && active('kick', t)) drum(t, 'kick')
-    if (!onBeat && active('hat', t)) drum(t, 'hat')
+  if (cfg.kick || cfg.hat) {
+    const kick = cfg.kick ?? [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
+    const hat = cfg.hat ?? [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0]
+    for (let s = 0; s * beat / 4 < cfg.duration; s++) {
+      const t = s * beat / 4
+      if (kick[s % 16] && active('kick', t)) drum(t, 'kick')
+      if (hat[s % 16] && active('hat', t)) drum(t, 'hat')
+    }
+  } else {
+    for (let t = 0; t < cfg.duration; t += beat / 2) {
+      const onBeat = Math.round(t / (beat / 2)) % 2 === 0
+      if (onBeat && active('kick', t)) drum(t, 'kick')
+      if (!onBeat && active('hat', t)) drum(t, 'hat')
+    }
   }
 
   // Hits: a deep boom plus a short noise burst on a cut

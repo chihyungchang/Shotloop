@@ -454,6 +454,8 @@ export const ko: Record<Key, string> = {
   'export.need': '렌더링할 샷 {n}개 · 약 {time}',
   'export.ready': '모든 샷 준비됨: 내보내기는 합치기만 합니다',
   'music.listen': '듣기',
+  'music.shuffle': '다른 곡',
+  'music.shuffleHint': '같은 분위기의 새 곡: 조, 템포, 리듬이 바뀝니다',
   'music.stop': '정지',
   'pub.title': '제목',
   'pub.description': '설명',

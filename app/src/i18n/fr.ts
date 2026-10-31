@@ -454,6 +454,8 @@ export const fr: Record<Key, string> = {
   'export.need': '{n} plans à rendre · environ {time}',
   'export.ready': 'Tous les plans sont prêts : l’export ne fait que les assembler',
   'music.listen': 'Écouter',
+  'music.shuffle': 'Autre',
+  'music.shuffleHint': 'Même ambiance, autre morceau : tonalité, tempo et rythme changent',
   'music.stop': 'Arrêter',
   'pub.title': 'Titre',
   'pub.description': 'Description',

@@ -454,6 +454,8 @@ export const es: Record<Key, string> = {
   'export.need': '{n} planos por renderizar · unos {time}',
   'export.ready': 'Todos los planos listos: la exportación solo los une',
   'music.listen': 'Escuchar',
+  'music.shuffle': 'Otra',
+  'music.shuffleHint': 'Mismo estilo, otra pieza: cambian tono, tempo y ritmo',
   'music.stop': 'Detener',
   'pub.title': 'Título',
   'pub.description': 'Descripción',
