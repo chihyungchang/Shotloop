@@ -1,0 +1,61 @@
+{
+  "target": 30.5,
+  "style": "3d",
+  "styleWhy": "A watch movement is real geometry: a 3D exploded view and close camera moves through the spring, gears and balance wheel show how it works better than any diagram.",
+  "styleAlt": "scene",
+  "copy": {
+    "idea": "A mechanical watch keeps time with no battery: a wound spring stores the energy, gears carry it, and an escapement and balance wheel let it out in tiny, even beats.",
+    "hook": "No battery, no chip. So what keeps a mechanical watch ticking?",
+    "body": "Open the case and there is no battery: just springs, gears and jewels.\n\nWinding the crown coils a flat steel spring, the mainspring. That tight coil is the watch's whole energy supply.\n\nA train of gears carries that energy towards the hands. Left alone, the spring would unwind in seconds.\n\nThe escapement stops that: a pallet fork locks the escape wheel, then releases it one tooth at a time.\n\nThe beat comes from the balance wheel, swinging back and forth on a hairspring. In many modern watches it beats 8 times a second: about 691,200 ticks a day.\n\nA coiled spring and a swinging wheel: that is the whole secret.",
+    "facts": [
+      { "text": "A mechanical watch is powered by a wound mainspring, not a battery.", "source": "Encyclopaedia Britannica, \"Watch\" — https://www.britannica.com/technology/watch" },
+      { "text": "A gear train transmits the mainspring's energy to the escapement and the hands.", "source": "Wikipedia, \"Mechanical watch\" — https://en.wikipedia.org/wiki/Mechanical_watch" },
+      { "text": "The escapement (escape wheel and pallet fork) releases the gear train in small, regular steps and gives the balance wheel impulses.", "source": "Wikipedia, \"Lever escapement\" — https://en.wikipedia.org/wiki/Lever_escapement" },
+      { "text": "The balance wheel and its hairspring oscillate at a steady rate and are the watch's timekeeping element.", "source": "Wikipedia, \"Balance wheel\" — https://en.wikipedia.org/wiki/Balance_wheel" },
+      { "text": "Many modern watches beat at 28,800 vibrations per hour, i.e. 8 beats per second (4 Hz); 28,800 × 24 ≈ 691,200 beats a day.", "source": "Wikipedia, \"Mechanical watch\" (beat rates) — https://en.wikipedia.org/wiki/Mechanical_watch; arithmetic: 28,800 per hour × 24 hours = 691,200" },
+      { "text": "Watch bearings are jewels, usually synthetic rubies, which reduce friction.", "source": "Wikipedia, \"Jewel bearing\" — https://en.wikipedia.org/wiki/Jewel_bearing" }
+    ]
+  },
+  "shots": [
+    { "title": "No battery?", "duration": 3.5,
+      "show": "The watch floats in a dark studio, three-quarter view, steel case and bright dial, seconds hand sweeping. A warm rim light glints on the case. The caseback turns slightly towards camera, hinting at the gold movement behind a sapphire window.",
+      "text": "No battery. What keeps it ticking?",
+      "motion": "Slow push-in and orbit of about 20° around the floating watch; seconds hand ticks.",
+      "source": "" },
+    { "title": "Exploded view", "duration": 4.5,
+      "show": "The watch flies apart into its exploded view along one vertical axis: crystal and dial on top, then hands, gear train, mainspring barrel, escapement and balance wheel, mainplate at the bottom. Small red ruby jewels glow in the plates. Each layer carries a short floating label.",
+      "text": "Inside: a spring, gears and a beating wheel",
+      "motion": "Layers separate one after another with eased motion while the camera rises and tilts down a little.",
+      "source": "" },
+    { "title": "The mainspring", "duration": 4.5,
+      "show": "Close on the mainspring barrel, its lid cut away: a flat steel spiral spring inside. The crown on the left turns; the spiral coils tighter around the centre arbor, and a warm gold glow builds in the coil as stored energy.",
+      "text": "Winding coils the mainspring: stored energy",
+      "motion": "Crown rotates, spring visibly tightens, glow rises; camera dollies in from above at a slight angle.",
+      "source": "" },
+    { "title": "The gear train", "duration": 4.5,
+      "show": "The barrel's teeth drive a chain of brass gears (centre, third, fourth wheel) leading up to the hands. A gold pulse of light travels from gear to gear as each one turns, ending at the hands on the dial above.",
+      "text": "Gears carry that energy to the hands",
+      "motion": "Gears rotate at their ratios; the camera tracks sideways along the chain from barrel to hands.",
+      "source": "" },
+    { "title": "The escapement", "duration": 5,
+      "show": "Macro on the steel escape wheel and the pallet fork with two red ruby pallets, a small floating label \"escapement\" beside them. The fork rocks, locks a tooth, releases it, locks the next: the wheel moves in clean steps instead of spinning freely. A small flash marks each tick.",
+      "text": "The escapement releases it tick by tick",
+      "motion": "Fork rocks left-right, escape wheel steps one tooth per beat; slow camera push-in, slight orbit.",
+      "source": "" },
+    { "title": "The balance wheel", "duration": 5,
+      "show": "The gold balance wheel and its blue-steel hairspring, seen from above at an angle. The wheel swings back and forth, the hairspring breathing in and out, nudging the pallet fork at each swing. A counter floating beside it rolls up: 8 per second, then ≈691,200 per day.",
+      "text": "8 beats a second, ≈691,200 a day",
+      "motion": "Balance oscillates continuously; camera slowly orbits about 30°; counter rolls and lands with a bounce.",
+      "source": "28,800 beats/hour (common rate) × 24 h ≈ 691,200" },
+    { "title": "End card", "duration": 3.5,
+      "show": "The exploded layers fly back together into the complete watch, which turns face-forward in the dark studio, seconds hand sweeping.",
+      "text": "A spring, a wheel, no battery",
+      "motion": "Layers reassemble with eased motion; camera pulls back to the hero framing of shot 1.",
+      "source": "" }
+  ],
+  "recurring": [
+    { "name": "The watch and its movement",
+      "design": "One round watch, 40 mm case: brushed steel case, white dial with black indices and hands, sapphire crystal. Movement: brass/gold plates and gears, steel mainspring, steel escape wheel, pallet fork with red ruby pallets, gold balance wheel with blue-steel hairspring, small red ruby jewels in the plates. Exploded view always stacks along the same vertical axis in the same order (crystal, dial, hands, gear train, barrel, escapement, balance, mainplate), crown on the left. Dark charcoal studio, warm key light, cool rim light. Gold glow always means stored or flowing energy.",
+      "shots": [1, 2, 3, 4, 5, 6, 7] }
+  ]
+}

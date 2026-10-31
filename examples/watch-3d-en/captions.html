@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- Caption layer, 720×1280, transparent, on the film's timeline: an amber
+     eyebrow over a white headline, centred in the safe area (x 40–620),
+     in the top 40%. Each line eases in and out; pure function of t. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html, body { margin: 0; width: 720px; height: 1280px; overflow: hidden; background: transparent; }
+      #box { position: absolute; left: 40px; width: 580px; top: 148px; text-align: center; color: #fff; }
+      #eye { font: 700 20px/1 "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing: 0.16em;
+        text-transform: uppercase; color: #f2b35c; margin-bottom: 18px; }
+      #cap { font: 700 50px/1.12 "Helvetica Neue", Helvetica, Arial, sans-serif;
+        text-shadow: 0 2px 22px rgba(0, 0, 0, 0.6); }
+    </style>
+  </head>
+  <body>
+    <div id="box"><div id="eye"></div><div id="cap"></div></div>
+    <script>
+      const LINES = [
+        [0, 'Mechanical watch', 'No battery. What keeps it ticking?'],
+        [3.5, 'Exploded view', 'Inside: a spring, gears and a beating wheel'],
+        [8, 'The mainspring', 'Winding coils the mainspring: stored energy'],
+        [12.5, 'The gear train', 'Gears carry that energy to the hands'],
+        [17, 'The escapement', 'The escapement releases it tick by tick'],
+        [22, 'The balance wheel', '8 beats a second, ≈691,200 a day'],
+        [27, 'Mechanical watch', 'A spring, a wheel, no battery'],
+      ]
+      const IN = 0.35, OUT = 0.22
+      const ease = x => { x = Math.min(Math.max(x, 0), 1); return x * x * (3 - 2 * x) }
+      const box = document.getElementById('box')
+      window.render = t => {
+        let i = 0
+        LINES.forEach(([at], k) => { if (t >= at) i = k })
+        const [at, eye, cap] = LINES[i]
+        const next = i + 1 < LINES.length ? LINES[i + 1][0] : Infinity
+        const a = i === 0 ? 1 : ease((t - at) / IN)
+        const b = ease((next - t) / OUT)
+        document.getElementById('eye').textContent = eye
+        document.getElementById('cap').textContent = cap
+        box.style.opacity = Math.min(a, b)
+        box.style.transform = `translateY(${(1 - a) * 14}px)`
+      }
+      window.ready = document.fonts.ready
+      render(0)
+    </script>
+  </body>
+</html>

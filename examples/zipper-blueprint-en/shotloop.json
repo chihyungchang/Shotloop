@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "title": "How does a zipper work?",
+  "description": "Teeth, a slider and a wedge: the zipper drawn as a blueprint, part by part.",
+  "lang": "en",
+  "slug": "zipper-blueprint-en",
+  "track": "2d",
+  "fps": 30,
+  "size": {
+    "width": 1080,
+    "height": 1920
+  },
+  "shots": [
+    {
+      "id": "01-hook-the-zipper",
+      "title": "Hook: the zipper",
+      "duration": 4
+    },
+    {
+      "id": "02-one-tooth-exploded",
+      "title": "One tooth, exploded",
+      "duration": 5
+    },
+    {
+      "id": "03-two-rows-offset",
+      "title": "Two rows, offset",
+      "duration": 4.5
+    },
+    {
+      "id": "04-inside-the-slider",
+      "title": "Inside the slider",
+      "duration": 5.5
+    },
+    {
+      "id": "05-why-it-holds",
+      "title": "Why it holds",
+      "duration": 5
+    },
+    {
+      "id": "06-only-the-wedge-opens",
+      "title": "Only the wedge opens it",
+      "duration": 5
+    },
+    {
+      "id": "07-end-card",
+      "title": "End card",
+      "duration": 3
+    }
+  ],
+  "captions": null,
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md",
+  "style": "blueprint",
+  "look": "midnight"
+}

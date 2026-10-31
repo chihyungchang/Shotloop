@@ -1,0 +1,95 @@
+{
+  "target": 32.5,
+  "style": "map",
+  "styleWhy": "Coffee's story is geography: a belt of growing countries around the equator and the sea routes that carry the beans north, which a map shows at a glance.",
+  "styleAlt": "infographic",
+  "look": "midnight",
+  "copy": {
+    "idea": "Where the world's coffee comes from: the band of tropical countries that grow it, the few that dominate, and the routes that carry it to the cups of Europe and North America.",
+    "hook": "About 170 million bags of coffee are grown every year. Where?",
+    "body": "Around 170 million 60-kilo bags of coffee are produced every year.\n\nAlmost all of it grows in a band around the equator, between the tropics: the coffee belt, more than 70 countries.\n\nOne country leads by far: Brazil grows about a third of the world's coffee.\n\nNext come Vietnam, mostly robusta, then Colombia, Indonesia and Ethiopia.\n\nEthiopia is where arabica coffee began.\n\nFrom the belt, the beans sail north: the European Union and the United States are the biggest importers.\n\nEvery cup, a long journey.",
+    "facts": [
+      { "text": "World coffee production is about 170 million 60-kg bags a year.", "source": "International Coffee Organization, Coffee Market Report (2023/24 crop year), https://www.ico.org" },
+      { "text": "Coffee is grown in more than 70 countries, almost all between the Tropic of Cancer and the Tropic of Capricorn (the 'coffee belt').", "source": "National Coffee Association USA, 'Where Coffee Grows', https://www.ncausa.org" },
+      { "text": "Brazil is the largest producer, with about a third of world output (≈66 of ≈175 million bags ≈ 38%).", "source": "USDA Foreign Agricultural Service, Coffee: World Markets and Trade (2024), https://www.fas.usda.gov" },
+      { "text": "The top five producers are Brazil, Vietnam, Colombia, Indonesia and Ethiopia; Vietnam grows mostly robusta.", "source": "USDA Foreign Agricultural Service, Coffee: World Markets and Trade (2024), https://www.fas.usda.gov" },
+      { "text": "Arabica coffee originated in the highlands of Ethiopia.", "source": "Encyclopaedia Britannica, 'Coffee', https://www.britannica.com/topic/coffee" },
+      { "text": "The European Union and the United States are the largest coffee importers.", "source": "USDA Foreign Agricultural Service, Coffee: World Markets and Trade (2024), https://www.fas.usda.gov" }
+    ]
+  },
+  "shots": [
+    {
+      "title": "170 million bags",
+      "duration": 4,
+      "show": "The whole globe, dark navy oceans and slate land, turning slowly. Small coffee-bean pins pop up one after another around the equator while a big gold rolling counter at the top climbs to ≈170 million and lands with a bounce, the unit 'bags / year' beneath it.",
+      "text": "≈170 million bags a year. From where?",
+      "motion": "Globe rotates; bean pins pop in with a small bounce in a ripple along the equator; counter rolls from 0 and bounces on 170,000,000.",
+      "source": "ICO Coffee Market Report, 2023/24 (60-kg bags)"
+    },
+    {
+      "title": "The coffee belt",
+      "duration": 5,
+      "show": "The globe unrolls into the flat world map. Two dashed lines draw on, labelled Tropic of Cancer and Tropic of Capricorn; the band between them fills with a soft gold glow. Then the growing countries light leaf green one by one from the Americas to Africa to Asia, while a small counter beside the band ticks up to 70+.",
+      "text": "Grown in 70+ countries between the tropics",
+      "motion": "Globe-to-flat morph; tropic lines draw left to right; band fades in; country fills ripple west to east; counter ticks to 70+.",
+      "source": "National Coffee Association USA, 'Where Coffee Grows'"
+    },
+    {
+      "title": "Brazil leads",
+      "duration": 5,
+      "show": "Camera flies from the world into South America. Brazil fills a brighter leaf green and grows a gold pin with rank badge '1'. Beside it a big counter rolls to ≈1/3, and a split bar at the bottom (the world's coffee) splits: Brazil's third in green, the rest in dim slate.",
+      "text": "Brazil grows about 1 in 3 bags",
+      "motion": "Zoom and pan into Brazil; the fill pulses brighter; pin drops; counter rolls; split bar wipes and separates into its two shares.",
+      "source": "USDA FAS, Coffee: World Markets and Trade, 2024 (≈66 of ≈175M bags ≈ 38%)"
+    },
+    {
+      "title": "The top five",
+      "duration": 5,
+      "show": "Camera pulls back out to the coffee belt. Rank pins drop in turn with their badges: 2 Vietnam (labelled 'robusta'), 3 Colombia, 4 Indonesia, 5 Ethiopia, each country brightening to the same leaf green as Brazil, which keeps its '1' pin.",
+      "text": "Then Vietnam, Colombia, Indonesia, Ethiopia",
+      "motion": "Camera glides east across the belt; each pin drops with a bounce as the camera passes; country names type on beside the pins.",
+      "source": "USDA FAS, Coffee: World Markets and Trade, 2024"
+    },
+    {
+      "title": "Where arabica began",
+      "duration": 4.5,
+      "show": "Camera flies into East Africa. Ethiopia's highlands glow warm gold inside its green fill; its '5' pin stays, and a small coffee-plant icon sprouts on the highlands with the label 'arabica'. Faint ripples spread from it across the map.",
+      "text": "Ethiopia: where arabica coffee began",
+      "motion": "Zoom into the Horn of Africa; gold glow breathes; plant icon grows leaf by leaf; ripple rings expand outward.",
+      "source": "Encyclopaedia Britannica, 'Coffee'"
+    },
+    {
+      "title": "Routes north",
+      "duration": 6,
+      "show": "Camera pulls out to the full flat map with the belt and the five green producers. Coffee-orange arcs draw on from Brazil, Colombia, Vietnam, Indonesia and Ethiopia to two destinations that light cool blue: the European Union and the United States. Small bean dots run along every arc like a flow.",
+      "text": "Most sails north to Europe and the US",
+      "motion": "Arcs draw on one after another; destination fills fade in blue; bean dots stream continuously along the arcs; camera drifts slowly north.",
+      "source": "USDA FAS, Coffee: World Markets and Trade, 2024 (largest importers)"
+    },
+    {
+      "title": "End card",
+      "duration": 3,
+      "show": "The globe again, slowly turning, wrapped in the glowing orange routes from the previous shot, bean dots still flowing; the title 'Where does the world's coffee come from' settles above it.",
+      "text": "Every cup, a long journey",
+      "motion": "Globe turns; arcs shimmer; bean dots keep running; title fades and settles.",
+      "source": ""
+    }
+  ],
+  "recurring": [
+    {
+      "name": "World map with the coffee belt",
+      "design": "Navy ocean, slate-grey land; the coffee belt is a soft gold band between two dashed tropic lines labelled at the left edge; growing countries in leaf green (meaning: where coffee grows), always the same green.",
+      "shots": [1, 2, 3, 4, 5, 6, 7]
+    },
+    {
+      "name": "Rank pins",
+      "design": "Gold teardrop pins with a white numeric badge 1–5 (Brazil 1, Vietnam 2, Colombia 3, Indonesia 4, Ethiopia 5), country name in white type to the right of the pin; once dropped they stay.",
+      "shots": [3, 4, 5]
+    },
+    {
+      "name": "Trade routes",
+      "design": "Coffee-orange arcs bowing north from each top-five producer to its destination, with small bean-shaped dots flowing along them; importing destinations (EU, US) fill cool blue (meaning: where coffee goes).",
+      "shots": [6, 7]
+    }
+  ]
+}

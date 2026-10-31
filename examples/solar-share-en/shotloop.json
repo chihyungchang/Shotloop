@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "title": "How much of our power is solar?",
+  "description": "Solar makes 6.9% of the world's power, and grows faster than any other source.",
+  "lang": "en",
+  "slug": "solar-share-en",
+  "track": "2d",
+  "fps": 30,
+  "size": {
+    "width": 1080,
+    "height": 1920
+  },
+  "shots": [
+    {
+      "id": "01-hook-how-much-is",
+      "title": "Hook: how much is solar?",
+      "duration": 3.5
+    },
+    {
+      "id": "02-still-a-small-slice",
+      "title": "Still a small slice",
+      "duration": 4.5
+    },
+    {
+      "id": "03-29-in-one-year",
+      "title": "+29% in one year",
+      "duration": 4
+    },
+    {
+      "id": "04-doubled-in-three-years",
+      "title": "Doubled in three years",
+      "duration": 4
+    },
+    {
+      "id": "05-biggest-source-of-new",
+      "title": "Biggest source of new power",
+      "duration": 4.5
+    },
+    {
+      "id": "06-end-card",
+      "title": "End card",
+      "duration": 3
+    }
+  ],
+  "captions": null,
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md",
+  "look": "midnight",
+  "style": "infographic"
+}

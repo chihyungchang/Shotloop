@@ -1,0 +1,94 @@
+{
+  "target": 32,
+  "style": "blueprint",
+  "styleWhy": "A zipper is a small machine you understand by taking it apart, so line drawings that cut it open and label each part show the mechanism clearly.",
+  "styleAlt": "infographic",
+  "look": "midnight",
+  "copy": {
+    "idea": "A zipper is two rows of identical teeth and one slider. The slider pushes the teeth together at an angle so each one nests into the next, and once they are locked a sideways pull can't separate them.",
+    "hook": "Tiny teeth, no glue: so how does a zipper hold?",
+    "body": "Every tooth has the same shape: a bump on top and a hollow underneath.\n\nThe two rows are offset by half a tooth, so each tooth on one side lines up with a gap on the other.\n\nThe slider is a Y-shaped channel. As you pull it up, it guides the two rows together at an angle and presses each tooth's bump into the hollow of the tooth beside it.\n\nOnce the teeth are interlocked, pulling the two sides apart spreads the force along the row of locked teeth, and the hooks stay put.\n\nTo open it, the wedge inside the slider pushes the teeth apart one at a time, at the one angle where they come loose.\n\nThe modern design was patented in 1917 as a 'separable fastener'.",
+    "facts": [
+      { "text": "Each zipper tooth has a hook or bump on one side and a hollow or pocket on the other, and they nest into the teeth beside them.", "source": "Explain that Stuff, \"How do zippers work?\", https://www.explainthatstuff.com/zippers.html" },
+      { "text": "The two rows of teeth are offset so the teeth of one side fit between the teeth of the other.", "source": "Explain that Stuff, \"How do zippers work?\", https://www.explainthatstuff.com/zippers.html" },
+      { "text": "The slider has a Y-shaped channel that brings the two rows together at an angle and meshes the teeth; moving it the other way, a wedge separates them.", "source": "Encyclopaedia Britannica, \"zipper\", https://www.britannica.com/technology/zipper" },
+      { "text": "Interlocked teeth resist being pulled apart sideways; they can only be separated at an angle, which the slider provides.", "source": "Explain that Stuff, \"How do zippers work?\", https://www.explainthatstuff.com/zippers.html" },
+      { "text": "The modern zipper was patented in the US in 1917 as a 'Separable Fastener'.", "source": "Encyclopaedia Britannica, \"zipper\", https://www.britannica.com/technology/zipper" }
+    ]
+  },
+  "shots": [
+    {
+      "title": "Hook: the zipper",
+      "duration": 4,
+      "show": "A tall vertical zipper fills the frame on the blueprint grid: the two fabric tapes and two rows of teeth (left row blue, right row amber) draw on stroke by stroke from top to bottom, open in a V. The slider draws on at the bottom and rides up, closing the teeth behind it into one interlocked column. A callout line snaps out to the slider: 'slider'; another to the teeth: 'teeth'.",
+      "text": "Tiny teeth, no glue: how does it hold?",
+      "motion": "Line art traces on; slider travels up with an ease, teeth clicking shut in sequence behind it; the camera eases in slightly.",
+      "source": ""
+    },
+    {
+      "title": "One tooth, exploded",
+      "duration": 5,
+      "show": "Close-up of the zipper column; one blue tooth lifts out and slides into an exploded view at full size in the centre, rotating to a 3/4 section view and cut open. Callouts draw on: 'bump' pointing to the raised top, 'hollow' to the pocket underneath, with a dimension line across its width. A ghost of the next tooth slides under it to show the bump will sit in that hollow.",
+      "text": "Every tooth: bump above, hollow below",
+      "motion": "Tooth lifts and slides apart from the row, section hatching fills in, callout lines extend and labels type on, the ghost tooth glides into place.",
+      "source": "Explain that Stuff, \"How do zippers work?\""
+    },
+    {
+      "title": "Two rows, offset",
+      "duration": 4.5,
+      "show": "Top view of the two rows of teeth on their tapes, left row blue, right row amber, facing each other across a gap. A dimension marker measures one tooth pitch, then a half-pitch marker shows the right row shifted down by half a tooth. Dashed guide lines from each blue tooth point into a gap on the amber side; the rows slide together and mesh like fingers.",
+      "text": "Two rows, offset by half a tooth",
+      "motion": "Dimension lines draw on, the amber row shifts half a pitch, dashed guides flash, then both rows slide inward and interleave.",
+      "source": "Explain that Stuff, \"How do zippers work?\""
+    },
+    {
+      "title": "Inside the slider",
+      "duration": 5.5,
+      "show": "The slider is cut open into a Y-shaped channel, drawn large and centred: two upper arms, one lower throat, labelled 'Y-channel' and 'wedge'. Blue teeth stream in through the left arm, amber through the right; as they meet in the throat each tooth tilts on an angle marker (an arc showing the tilt), its bump drops into the next tooth's hollow, and the meshed column exits at the bottom. Each tooth pulses teal as it locks.",
+      "text": "The slider tilts each tooth into the next",
+      "motion": "Teeth flow continuously through the channel, angle arcs open and close at the meeting point, teal lock pulses run down the exiting column.",
+      "source": "Encyclopaedia Britannica, \"zipper\""
+    },
+    {
+      "title": "Why it holds",
+      "duration": 5,
+      "show": "The closed zipper column, side by side with a cross-section strip of locked teeth. Red force arrows pull the left and right tapes outward; small red arrows split off and spread along every tooth in the row while each bump-in-hollow lock glows teal and does not move. A 'pull' label with growing arrow lengths shows the force rising; the column stays shut.",
+      "text": "Pull sideways: every locked tooth shares the load",
+      "motion": "Red arrows grow outward and tremble, the force fans out tooth by tooth down the column, teal locks pulse steadily, the teeth stay put.",
+      "source": "Explain that Stuff, \"How do zippers work?\""
+    },
+    {
+      "title": "Only the wedge opens it",
+      "duration": 5,
+      "show": "The same cut-open slider Y-channel as shot 4, now moving down the closed column. The central wedge (outlined amber-white) pries the meshed teeth apart; each tooth tilts along the same angle arc and unhooks, blue going out the left arm, amber the right. A counter-arrow and a callout read 'one tooth at a time'.",
+      "text": "The wedge peels them apart",
+      "motion": "Slider glides down, teeth unhook in sequence with a small tilt and spring apart into the arms, teal lock glows switching off as each tooth leaves.",
+      "source": "Encyclopaedia Britannica, \"zipper\""
+    },
+    {
+      "title": "End card",
+      "duration": 3,
+      "show": "The full zipper from shot 1 zips shut one last time, its slider reaching the top. Beside it a patent-style title block draws on, like a drawing's corner stamp: 'SEPARABLE FASTENER', with the year rolling up to 1917.",
+      "text": "Patented in 1917",
+      "motion": "Slider races up, title-block border traces on, year counter rolls and lands with a bounce.",
+      "source": "Encyclopaedia Britannica, \"zipper\""
+    }
+  ],
+  "recurring": [
+    {
+      "name": "Zipper column",
+      "design": "Vertical zipper centred in the frame: two fabric tapes drawn as hatched strips, left row of teeth blue, right row amber, slider at the bottom when open or top when closed, pull tab hanging down. Line art in the look's white ink on the grid; teal glow means a tooth is locked, red means force.",
+      "shots": [1, 2, 5, 7]
+    },
+    {
+      "name": "Tooth shape",
+      "design": "Each tooth drawn the same: a rounded rectangular head with a raised bump on top and a hollow pocket underneath, labelled 'bump' and 'hollow'; blue on the left row, amber on the right.",
+      "shots": [2, 3, 4, 5, 6]
+    },
+    {
+      "name": "Slider cutaway",
+      "design": "Large cut-open slider centred: Y-shaped channel with two arms at the top (left arm takes blue teeth, right arm amber) and the throat at the bottom, a central wedge between the arms, labels 'Y-channel' and 'wedge', and an angle arc at the meeting point.",
+      "shots": [4, 6]
+    }
+  ]
+}

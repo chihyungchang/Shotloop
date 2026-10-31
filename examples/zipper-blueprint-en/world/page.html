@@ -1,0 +1,296 @@
+<!doctype html>
+<!--
+  shotloop-look: midnight
+  shotloop-style: blueprint
+  World of a 2D Shotloop project in the "Midnight" look: dark navy, warm gold and teal accents; science and explainers.
+  720×1280 CSS px, rendered at 1.5x. Every shot draws through window.kit;
+  nothing animates on its own, every frame is a pure function of time.
+
+  Layout: kicker and headline at the top (y 154…), the stage (an SVG
+  covering the frame, viewBox 0 0 720 1280) for diagrams, numbers and icons.
+  Keep text and the subject inside x 40…620, y 110…1024 (the
+  platforms' buttons cover the rest); backgrounds may fill the whole frame.
+
+  kit:
+    W, H                            frame size
+    PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM   the safe area (x PAD…SAFE_RIGHT)
+    C                               the look (the ground and the type only): text,
+                                    muted, accent (the highlighted word), accent2,
+                                    accent3, line, panel
+    C.hue                           content colors, the same in every look: red,
+                                    orange, yellow, green, teal, blue, violet, pink,
+                                    gray. Pictures and data take the colors their
+                                    subject needs (the sky blue, the sun yellow, a
+                                    loss red, growth green), not the look's accents
+    C.series                        default chart colors, from C.hue
+    FONT, HEAD_FONT                 font stacks (normal widths; never squeeze text)
+    clamp, lerp, ease(p), rise(t, a, d = 0.4), pop(t, a, d = 0.5)
+                                    timing: rise is 0→1 over [a, a+d] eased out,
+                                    pop overshoots a little (for things that land)
+    frame({ kicker, head, typed = 1, sub, subIn = 1, progress, align, top })
+                                    sets the top texts; head is a string or lines,
+                                    *word* is highlighted in the accent; typed
+                                    0→1 types it in; progress 0→1 fills the bar
+    stage(svgMarkup) → q            replaces the stage's content, returns
+                                    q(selector) for its elements
+    set(el, { attr: value, style: { … } })
+    drawOn(el, p)                   draws a stroked path/line/circle on, p 0→1
+    count(p, from, to, digits = 0)  a number for counters
+    stagger(t, i, a, step = 0.12, d = 0.4)   item i of a group revealed in turn
+    hold(t, a, b, d = 0.3)          0→1→0: on screen from a to b, fading d
+    float(t, amp = 4, period = 3, phase = 0)  gentle idle motion (px) for things at rest
+    view({ x, y, s })               the stage's camera: zoom s around (x, y),
+                                    after stage(); s = 1 is the whole frame
+    readTime(text)                  seconds a caption must stay fully on screen
+    hash(a, b = 0)                  seeded random 0…1, the same every frame
+                                    (never Math.random)
+    waffle({ x, y, w, n, cols, lit, color, p, litP })  SVG markup: n squares,
+                                    revealed with p, the first lit lighting with litP
+    arrow(x1, y1, x2, y2, { color, width })      SVG markup
+    bars({ x, y, w, h, values, labels, colors, p }) SVG markup, bars grow with p
+    card(t, { kicker, title, body, progress })  the starter title card
+
+  Blueprint (this style): how a thing works, drawn as technical line art
+  on a grid: outlines, hatched sections, parts that separate (exploded
+  view), dimension lines and callouts. Draw strokes on with drawOn; move
+  parts apart with exploded(); label every part with callout().
+    part({ x, y, w, h, rx = 6, label, hatch = false, color = C.text, fill })  SVG markup
+    gear(cx, cy, r, { teeth = 12, angle = 0, color = C.text, hole = 0.3 })    SVG markup
+    spring(x1, y1, x2, y2, { coils = 8, amp = 12, color = C.text })            SVG markup
+    dim(x1, y1, x2, y2, label, { off = 24, color = C.muted })                   SVG markup:
+                                    a dimension line with ticks and its label
+    callout(x, y, label, { dx = 60, dy = -40, color = C.text, p = 1 })          SVG markup:
+                                    a leader line from (x, y) to its label
+    exploded(i, p, { gap = 60, axis = 'y' }) → offset   part i's offset in an exploded view
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --text: #f4f7ff; --muted: #9fb0d6; --accent: #ffb340; --accent2: #4fd1c5; --accent3: #ff6b8b;
+        --line: rgba(255, 255, 255, 0.16); --panel: rgba(255, 255, 255, 0.07);
+        --font: 'PingFang SC', -apple-system, sans-serif; --head: 'PingFang SC', -apple-system, sans-serif;
+      }
+      * { box-sizing: border-box; margin: 0; }
+      html, body { width: 720px; height: 1280px; overflow: hidden; color: var(--text); font-family: var(--font); }
+      body { background: radial-gradient(120% 80% at 50% 0%, #1b2d63 0%, #0d1736 55%, #080e24 100%); }
+      #stage { position: absolute; inset: 0; width: 720px; height: 1280px; overflow: visible; }
+      #progress { position: absolute; left: 0; top: 0; height: 6px; width: 0; background: var(--accent); }
+      #kicker { position: absolute; left: 40px; top: 110px; width: 580px; font: 600 20px var(--font);
+        letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+      #head { position: absolute; left: 40px; top: 154px; width: 580px; font: 800 61px/1.12 var(--head);
+        letter-spacing: -0.01em; text-shadow: 0 2px 18px rgba(6, 12, 34, 0.45); }
+      #head b { color: var(--accent); font-weight: inherit; }
+      #head .ghost { opacity: 0; }
+      #sub { position: absolute; left: 40px; width: 580px; font: 500 26px/1.4 var(--font); color: var(--muted); }
+
+      /* The grid over the look's ground (a layer of its own: the ground stays) */
+      body::before { content: ''; position: absolute; inset: 0; pointer-events: none;
+        background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+        linear-gradient(var(--grid2) 1px, transparent 1px), linear-gradient(90deg, var(--grid2) 1px, transparent 1px);
+        background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px; }
+    </style>
+  </head>
+  <body>
+    <svg id="stage" viewBox="0 0 720 1280" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="progress"></div>
+    <div id="kicker"></div>
+    <div id="head"></div>
+    <div id="sub"></div>
+    <script>
+      const $ = id => document.getElementById(id)
+      const W = 720, H = 1280, PAD = 40, SAFE_TOP = 110, SAFE_RIGHT = 620, SAFE_BOTTOM = 1024
+      const C = {
+        text: '#f4f7ff', muted: '#9fb0d6', accent: '#ffb340', accent2: '#4fd1c5', accent3: '#ff6b8b',
+        line: 'rgba(255, 255, 255, 0.16)', panel: 'rgba(255, 255, 255, 0.07)', hue: {"red":"#ff5a5f","orange":"#ff9f40","yellow":"#ffd23f","green":"#4ade80","teal":"#2dd4bf","blue":"#4da3ff","violet":"#a78bfa","pink":"#f472b6","gray":"#9aa4b2"}
+      }
+      C.series = [C.hue.blue, C.hue.orange, C.hue.green, C.hue.violet, C.hue.gray]
+      const FONT = "'PingFang SC', -apple-system, sans-serif", HEAD_FONT = "'PingFang SC', -apple-system, sans-serif"
+      const clamp = x => Math.min(1, Math.max(0, x))
+      const lerp = (a, b, p) => a + (b - a) * p
+      const ease = p => { p = clamp(p); return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2 }
+      // 0 → 1 over [a, a + d], eased out
+      const rise = (t, a, d = 0.4) => 1 - Math.pow(1 - clamp((t - a) / d), 3)
+      // Eased out with a small overshoot, for things that land
+      const pop = (t, a, d = 0.5) => {
+        const p = clamp((t - a) / d), c = 1.7
+        return p <= 0 ? 0 : 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2)
+      }
+      // Item i of a group, revealed step seconds after the one before
+      const stagger = (t, i, a, step = 0.12, d = 0.4) => rise(t, a + i * step, d)
+      // 0 → 1 → 0: on screen from a to b, fading in and out over d
+      const hold = (t, a, b, d = 0.3) => Math.min(rise(t, a, d), 1 - rise(t, b - d, d))
+      // Gentle idle motion (px) for things at rest
+      const float = (t, amp = 4, period = 3, phase = 0) => amp * Math.sin((t / period + phase) * Math.PI * 2)
+      // Seconds a caption must stay fully on screen: 1 s, plus 0.3 s per
+      // word, 0.15 s per Chinese character (agent/src/principles.ts)
+      function readTime(text) {
+        const cjk = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu
+        const chars = (String(text).match(cjk) || []).length
+        const words = String(text).replace(cjk, ' ').split(/\s+/).filter(w => /[\p{L}\p{N}]/u.test(w)).length
+        return chars + words ? 1 + 0.3 * words + 0.15 * chars : 0
+      }
+      // A seeded random number in [0, 1): the same for the same a and b
+      function hash(a, b = 0) {
+        let h = Math.imul(Math.round(a * 1000) ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(Math.round(b * 1000), 0xc2b2ae35)
+        h ^= h >>> 13
+        h = Math.imul(h, 0x27d4eb2f)
+        h ^= h >>> 16
+        return (h >>> 0) / 4294967296
+      }
+      const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+
+      // Headline lines typed in by character; untyped text keeps its place
+      function typeLines(lines, typed) {
+        const fmt = s => esc(s).replace(/\*(.+?)\*/g, '<b>$1</b>')
+        const plain = lines.map(l => l.replace(/\*/g, ''))
+        const total = plain.reduce((n, l) => n + l.length, 0)
+        let left = Math.round(clamp(typed) * total)
+        return lines.map((line, i) => {
+          const n = Math.min(left, plain[i].length)
+          left -= n
+          if (n >= plain[i].length) return '<div>' + fmt(line) + '</div>'
+          return '<div>' + esc(plain[i].slice(0, n)) + '<span class="ghost">' + (esc(plain[i].slice(n)) || '&nbsp;') + '</span></div>'
+        }).join('')
+      }
+
+      // The top texts for one frame
+      function frame({ kicker = '', head = '', typed = 1, sub = '', subIn = 1, progress = 0, align = 'left', top = 154 } = {}) {
+        $('progress').style.width = clamp(progress) * 100 + '%'
+        $('kicker').textContent = kicker
+        const el = $('head')
+        el.style.top = top + 'px'
+        el.style.textAlign = align
+        el.innerHTML = typeLines(Array.isArray(head) ? head : head ? [head] : [], typed)
+        const s = $('sub')
+        s.textContent = sub
+        s.style.textAlign = align
+        s.style.top = top + el.offsetHeight + 18 + 'px'
+        s.style.opacity = clamp(subIn)
+        s.style.transform = 'translateY(' + (1 - clamp(subIn)) * 16 + 'px)'
+        $('kicker').style.textAlign = align
+        return el
+      }
+
+      // The stage's content for this frame; q finds its elements
+      function stage(markup) {
+        const svg = $('stage')
+        svg.innerHTML = markup
+        // Every frame starts from the whole frame; view() moves in
+        svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H)
+        return sel => svg.querySelector(sel)
+      }
+      function set(el, props) {
+        if (!el) return el
+        for (const [k, v] of Object.entries(props)) {
+          if (k === 'style') Object.assign(el.style, v)
+          else if (k === 'text') el.textContent = v
+          else el.setAttribute(k, v)
+        }
+        return el
+      }
+      // Stroke draw-on, p 0 → 1
+      function drawOn(el, p) {
+        if (!el) return el
+        const len = el.getTotalLength ? el.getTotalLength() : 1000
+        el.style.strokeDasharray = len
+        el.style.strokeDashoffset = len * (1 - clamp(p))
+        return el
+      }
+      const count = (p, from, to, digits = 0) => lerp(from, to, clamp(p)).toFixed(digits)
+      // The stage's camera: zoom s around (x, y)
+      function view({ x = W / 2, y = H / 2, s = 1 } = {}) {
+        const vw = W / s, vh = H / s
+        $('stage').setAttribute('viewBox', (x - vw / 2) + ' ' + (y - vh / 2) + ' ' + vw + ' ' + vh)
+      }
+
+      function arrow(x1, y1, x2, y2, { color = C.accent, width = 5 } = {}) {
+        const a = Math.atan2(y2 - y1, x2 - x1), hl = width * 3.2
+        const p = (r, s) => (x2 + Math.cos(a + r) * s).toFixed(1) + ',' + (y2 + Math.sin(a + r) * s).toFixed(1)
+        return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + (x2 - Math.cos(a) * hl * 0.6) + '" y2="' + (y2 - Math.sin(a) * hl * 0.6) +
+          '" stroke="' + color + '" stroke-width="' + width + '" stroke-linecap="round"/>' +
+          '<polygon points="' + x2 + ',' + y2 + ' ' + p(Math.PI - 0.45, hl) + ' ' + p(Math.PI + 0.45, hl) + '" fill="' + color + '"/>'
+      }
+
+      // A bar chart that grows with p (each bar a little after the last)
+      function bars({ x = PAD, y = H * 0.72, w = SAFE_RIGHT - PAD, h = H * 0.3, values = [], labels = [], colors = C.series, p = 1 } = {}) {
+        const max = Math.max(...values, 1), n = values.length, gap = w * 0.06, bw = (w - gap * (n - 1)) / n
+        return values.map((v, i) => {
+          const k = rise(p * (n * 0.25 + 1), i * 0.25, 1), bh = (v / max) * h * k, bx = x + i * (bw + gap)
+          return '<rect x="' + bx + '" y="' + (y - bh) + '" width="' + bw + '" height="' + bh + '" rx="' + Math.min(10, bw / 6) +
+            '" fill="' + colors[i % colors.length] + '"/>' +
+            (labels[i] != null ? '<text x="' + (bx + bw / 2) + '" y="' + (y + 30) + '" text-anchor="middle" font-size="' + Math.round(61 * 0.3) +
+              '" fill="' + C.muted + '" font-family="' + FONT.replace(/"/g, '') + '">' + esc(labels[i]) + '</text>' : '')
+        }).join('')
+      }
+
+      // A waffle: n squares in rows of cols, revealed in order with p; the
+      // first lit of them light up in order with litP
+      function waffle({ x = PAD, y = H * 0.45, w = SAFE_RIGHT - PAD, n = 100, cols = 10, lit = 0, color = C.accent, p = 1, litP = 1 } = {}) {
+        const step = w / cols, size = step * 0.84
+        const on = Math.round(lit * clamp(litP))
+        let out = ''
+        for (let k = 0; k < n; k++) {
+          const show = clamp(p * n - k)
+          if (show <= 0) break
+          out += '<rect x="' + (x + (k % cols) * step) + '" y="' + (y + Math.floor(k / cols) * step) + '" width="' + size + '" height="' + size +
+            '" rx="' + size * 0.18 + '" fill="' + (k < on ? color : C.panel) + '" stroke="' + C.line + '" opacity="' + show + '"/>'
+        }
+        return out
+      }
+
+      // The starter title card, until a shot gets its own design
+      function card(t, { kicker, title, body, progress }) {
+        stage('')
+        frame({ kicker, head: title.replace(/<\/?b>/g, '*'), typed: rise(t, 0.1, 0.6), sub: body, subIn: rise(t, 0.6), progress })
+      }
+
+      window.kit = { $, W, H, PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM, C, FONT, HEAD_FONT, clamp, lerp, ease, rise, pop, stagger, hold, float, readTime, hash, waffle,
+        frame, stage, view, set, drawOn, count, arrow, bars, card }
+
+      document.documentElement.style.setProperty('--grid', C.line)
+      document.documentElement.style.setProperty('--grid2', C.panel)
+      const svgDefs = '<defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="' + C.muted + '" stroke-width="1.4"/></pattern></defs>'
+      const baseStage = stage
+      stage = markup => baseStage(svgDefs + markup)
+      const lbl = (x, y, text, color, anchor = 'start') => '<text x="' + x + '" y="' + y + '" font-size="15" font-weight="600" fill="' + color + '" text-anchor="' + anchor + '" font-family="' + FONT.replace(/"/g, '') + '">' + esc(text) + '</text>'
+      function part({ x, y, w, h, rx = 6, label, hatch = false, color = C.text, fill = 'none' } = {}) {
+        return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + rx + '" fill="' + (hatch ? 'url(#hatch)' : fill) + '" stroke="' + color + '" stroke-width="2"/>' +
+          (label ? lbl(x + w / 2, y + h / 2 + 5, label, color, 'middle') : '')
+      }
+      function gear(cx, cy, r, { teeth = 12, angle = 0, color = C.text, hole = 0.3 } = {}) {
+        const pts = []
+        for (let i = 0; i < teeth * 2; i++) {
+          const a = angle + (i / (teeth * 2)) * Math.PI * 2, rr = i % 2 ? r * 0.82 : r
+          pts.push([cx + Math.cos(a - 0.08) * rr, cy + Math.sin(a - 0.08) * rr], [cx + Math.cos(a + 0.08) * rr, cy + Math.sin(a + 0.08) * rr])
+        }
+        return '<path d="M' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('L') + 'Z" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round"/>' +
+          '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * hole + '" fill="none" stroke="' + color + '" stroke-width="2"/>'
+      }
+      function spring(x1, y1, x2, y2, { coils = 8, amp = 12, color = C.text } = {}) {
+        const n = coils * 2, dx = (x2 - x1) / n, dy = (y2 - y1) / n, len = Math.hypot(x2 - x1, y2 - y1) || 1
+        const nx = -(y2 - y1) / len, ny = (x2 - x1) / len
+        let d = 'M' + x1 + ',' + y1
+        for (let i = 1; i < n; i++) d += 'L' + (x1 + dx * i + nx * amp * (i % 2 ? 1 : -1)).toFixed(1) + ',' + (y1 + dy * i + ny * amp * (i % 2 ? 1 : -1)).toFixed(1)
+        return '<path d="' + d + 'L' + x2 + ',' + y2 + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round"/>'
+      }
+      function dim(x1, y1, x2, y2, label, { off = 24, color = C.muted } = {}) {
+        const len = Math.hypot(x2 - x1, y2 - y1) || 1, nx = -(y2 - y1) / len * off, ny = (x2 - x1) / len * off
+        const a = [x1 + nx, y1 + ny], b = [x2 + nx, y2 + ny]
+        return '<g stroke="' + color + '" stroke-width="1.5">' +
+          '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + a[0] + '" y2="' + a[1] + '"/><line x1="' + x2 + '" y1="' + y2 + '" x2="' + b[0] + '" y2="' + b[1] + '"/>' +
+          '<line x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] + '"/></g>' + lbl((a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - 8, label, color, 'middle')
+      }
+      function callout(x, y, label, { dx = 60, dy = -40, color = C.text, p = 1 } = {}) {
+        if (p <= 0) return ''
+        const ex = x + dx * clamp(p), ey = y + dy * clamp(p)
+        return '<circle cx="' + x + '" cy="' + y + '" r="4" fill="' + color + '"/><line x1="' + x + '" y1="' + y + '" x2="' + ex + '" y2="' + ey + '" stroke="' + color + '" stroke-width="1.5"/>' +
+          '<g opacity="' + clamp(p * 2 - 1) + '">' + lbl(ex + (dx >= 0 ? 8 : -8), ey + 5, label, color, dx >= 0 ? 'start' : 'end') + '</g>'
+      }
+      const exploded = (i, p, { gap = 60, axis = 'y' } = {}) => i * gap * ease(p)
+      Object.assign(window.kit, { stage, part, gear, spring, dim, callout, exploded })
+      window.ready = document.fonts.ready
+    </script>
+  </body>
+</html>

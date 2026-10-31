@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "title": "How a fake parcel text steals your card",
+  "description": "A delivery scam step by step on a phone, and how to spot it.",
+  "lang": "en",
+  "slug": "fake-parcel-text-en",
+  "track": "2d",
+  "fps": 30,
+  "size": {
+    "width": 1080,
+    "height": 1920
+  },
+  "shots": [
+    {
+      "id": "01-hook-the-text-lands",
+      "title": "Hook: the text lands",
+      "duration": 4
+    },
+    {
+      "id": "02-red-flags-in-the",
+      "title": "Red flags in the text",
+      "duration": 5
+    },
+    {
+      "id": "03-the-tap-and-the",
+      "title": "The tap and the fake page",
+      "duration": 5
+    },
+    {
+      "id": "04-card-details-typed-in",
+      "title": "Card details typed in",
+      "duration": 5
+    },
+    {
+      "id": "05-where-your-details-go",
+      "title": "Where your details go",
+      "duration": 5
+    },
+    {
+      "id": "06-how-to-beat-it",
+      "title": "How to beat it",
+      "duration": 6
+    },
+    {
+      "id": "07-end-card",
+      "title": "End card",
+      "duration": 3
+    }
+  ],
+  "captions": null,
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md",
+  "style": "ui",
+  "look": "graphite"
+}

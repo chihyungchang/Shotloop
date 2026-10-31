@@ -137,19 +137,62 @@ fn copy_dir(from: &Path, to: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
+/// An example's files, render cache and exports aside, as one hash
+fn example_hash(dir: &Path) -> Option<u64> {
+    use std::hash::{Hash, Hasher};
+    fn walk(dir: &Path, base: &Path, h: &mut std::collections::hash_map::DefaultHasher) -> std::io::Result<()> {
+        let mut entries: Vec<_> = std::fs::read_dir(dir)?.flatten().collect();
+        entries.sort_by_key(|e| e.file_name());
+        for e in entries {
+            let name = e.file_name();
+            if name == ".shotloop" || name == "out" {
+                continue;
+            }
+            let path = e.path();
+            if e.file_type()?.is_dir() {
+                walk(&path, base, h)?;
+            } else {
+                path.strip_prefix(base).unwrap_or(&path).hash(h);
+                std::fs::read(&path)?.hash(h);
+            }
+        }
+        Ok(())
+    }
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    walk(dir, dir, &mut h).ok()?;
+    Some(h.finish())
+}
+
 /// The bundled examples, copied to a writable folder: opening a project
 /// writes its render cache into it, and the app bundle is read-only.
-/// Examples not yet there are added; ones already there are kept as the
-/// user left them.
+/// The folder follows the bundle: new examples are added, ones the bundle
+/// changed (any file but the render cache) are copied again, and ones it
+/// no longer has go. An unchanged example keeps the renders made in it.
 pub fn seed_examples(bundled: &Path, dest: &Path) {
     let Ok(entries) = std::fs::read_dir(bundled) else { return };
+    let config = |dir: &Path| example_hash(dir);
+    let mut kept = std::collections::HashSet::new();
     for entry in entries.flatten() {
+        if !entry.path().is_dir() {
+            continue;
+        }
+        kept.insert(entry.file_name());
         let to = dest.join(entry.file_name());
-        if entry.path().is_dir() && !to.exists() {
-            if let Err(e) = copy_dir(&entry.path(), &to) {
-                eprintln!("shotloop: could not copy example {}: {e}", entry.path().display());
-                let _ = std::fs::remove_dir_all(&to);
-            }
+        if to.exists() && config(&entry.path()) == config(&to) {
+            continue;
+        }
+        let _ = std::fs::remove_dir_all(&to);
+        if let Err(e) = copy_dir(&entry.path(), &to) {
+            eprintln!("shotloop: could not copy example {}: {e}", entry.path().display());
+            let _ = std::fs::remove_dir_all(&to);
+        }
+    }
+    // Examples the bundle no longer has
+    let Ok(old) = std::fs::read_dir(dest) else { return };
+    for entry in old.flatten() {
+        let path = entry.path();
+        if path.is_dir() && !kept.contains(&entry.file_name()) && path.join("shotloop.json").exists() {
+            let _ = std::fs::remove_dir_all(&path);
         }
     }
 }

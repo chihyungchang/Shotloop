@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "title": "Why is the sky blue?",
+  "description": "Sunlight scatters off the air: why the sky is blue and sunsets red.",
+  "lang": "en",
+  "slug": "sky-blue-en",
+  "track": "2d",
+  "fps": 30,
+  "size": {
+    "width": 1080,
+    "height": 1920
+  },
+  "shots": [
+    {
+      "id": "01-blue-sky-red-sunset",
+      "title": "Blue sky, red sunset",
+      "duration": 4
+    },
+    {
+      "id": "02-white-light-every-colour",
+      "title": "White light, every colour",
+      "duration": 4
+    },
+    {
+      "id": "03-air-scatters-blue",
+      "title": "Air scatters blue",
+      "duration": 5.5
+    },
+    {
+      "id": "04-blue-from-everywhere",
+      "title": "Blue from everywhere",
+      "duration": 4.5
+    },
+    {
+      "id": "05-the-long-sunset-path",
+      "title": "The long sunset path",
+      "duration": 5.5
+    },
+    {
+      "id": "06-red-gets-through",
+      "title": "Red gets through",
+      "duration": 4.5
+    },
+    {
+      "id": "07-same-air-different-path",
+      "title": "Same air, different path",
+      "duration": 3
+    }
+  ],
+  "captions": null,
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md",
+  "look": "midnight",
+  "style": "scene"
+}

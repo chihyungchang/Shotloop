@@ -5,6 +5,7 @@
   "slug": "sunlight-en",
   "lang": "en",
   "track": "2d",
+  "style": "scene",
   "fps": 30,
   "size": {
     "width": 1080,

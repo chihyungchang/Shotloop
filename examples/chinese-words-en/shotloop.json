@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "title": "English words born in Chinese",
+  "description": "Ketchup, tycoon, typhoon, kowtow: four words and where they came from.",
+  "lang": "en",
+  "slug": "chinese-words-en",
+  "track": "2d",
+  "fps": 30,
+  "size": {
+    "width": 1080,
+    "height": 1920
+  },
+  "shots": [
+    {
+      "id": "01-hook-four-words",
+      "title": "Hook: four words",
+      "duration": 3.5
+    },
+    {
+      "id": "02-ketchup",
+      "title": "Ketchup",
+      "duration": 6
+    },
+    {
+      "id": "03-tycoon",
+      "title": "Tycoon",
+      "duration": 5.5
+    },
+    {
+      "id": "04-typhoon",
+      "title": "Typhoon",
+      "duration": 6
+    },
+    {
+      "id": "05-kowtow",
+      "title": "Kowtow",
+      "duration": 5.5
+    },
+    {
+      "id": "06-end-card",
+      "title": "End card",
+      "duration": 3
+    }
+  ],
+  "captions": null,
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md",
+  "style": "kinetic",
+  "look": "ember"
+}

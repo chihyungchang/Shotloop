@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "title": "Where does the world's coffee come from?",
+  "description": "From the coffee belt to your cup: who grows it and where it sails.",
+  "lang": "en",
+  "slug": "coffee-map-en",
+  "track": "2d",
+  "fps": 30,
+  "size": {
+    "width": 1080,
+    "height": 1920
+  },
+  "shots": [
+    {
+      "id": "01-170-million-bags",
+      "title": "170 million bags",
+      "duration": 4
+    },
+    {
+      "id": "02-the-coffee-belt",
+      "title": "The coffee belt",
+      "duration": 5
+    },
+    {
+      "id": "03-brazil-leads",
+      "title": "Brazil leads",
+      "duration": 5
+    },
+    {
+      "id": "04-the-top-five",
+      "title": "The top five",
+      "duration": 5
+    },
+    {
+      "id": "05-where-arabica-began",
+      "title": "Where arabica began",
+      "duration": 4.5
+    },
+    {
+      "id": "06-routes-north",
+      "title": "Routes north",
+      "duration": 6
+    },
+    {
+      "id": "07-end-card",
+      "title": "End card",
+      "duration": 3
+    }
+  ],
+  "captions": null,
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md",
+  "style": "map",
+  "look": "midnight"
+}
