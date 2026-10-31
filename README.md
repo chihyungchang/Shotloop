@@ -165,7 +165,7 @@ my-video/
   assets/<id>/         3D models from the asset library
   copy.md  script.md  captions.html  music.json  thumb.html  publish.json
   .shotloop/           cache: per shot and input hash, takes, checks, fixes
-  out/                 exported films, covers, publish kits (timestamped)
+  out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
 - **3D**: `world.py` builds the shared world with `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` runs in the world's namespace and creates one camera; `at(t)` maps shot-local seconds to film time.

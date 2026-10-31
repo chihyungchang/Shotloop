@@ -165,7 +165,7 @@ my-video/
   assets/<id>/         从素材库加入的 3D 模型
   copy.md  script.md  captions.html  music.json  thumb.html  publish.json
   .shotloop/           缓存：按镜头和输入哈希保存的渲染、记录、检查、修改
-  out/                 导出的成片、封面、发布文案（带时间戳）
+  out/                 引擎的导出文件（带时间戳）；App 会把每次导出复制到你选的位置，新建一个文件夹
 ```
 
 </details>

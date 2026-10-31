@@ -5,9 +5,9 @@ import type { useTheme } from '../../theme/theme'
 import { Icon } from '../Icon'
 import { ThemeToggle } from '../ThemeToggle'
 import { AgentPanel } from './AgentPanel'
-import { ExportPanel } from './ExportPanel'
 import { AssetsPanel } from './AssetsPanel'
 import { ChangesDialog } from './ChangesDialog'
+import { ExportDialog } from './export/ExportDialog'
 import { FilmPreview } from './FilmPreview'
 import { Filmstrip } from './Filmstrip'
 import { QueuePanel } from './QueuePanel'
@@ -15,14 +15,14 @@ import { ShotNotes } from './ShotNotes'
 import { Stage } from './Stage'
 import { t } from '../../i18n'
 
-type Drawer = 'queue' | 'export' | 'assets' | null
+type Drawer = 'queue' | 'assets' | null
 
 // One project, full-window (open-design's Studio, for a film), with one
 // main line: pick a shot in the filmstrip, watch it, tell the agent what
 // is wrong, watch the whole film, export. The agent conversation is on
 // the left, the shot on a dark stage in the middle with the filmstrip and
-// the shot's notes under it, queue and export in a drawer on the right;
-// quality, Finder and theme sit in the "more" menu.
+// the shot's notes under it, the queue in a drawer on the right, export
+// in a dialog over it; Finder and theme sit in the "more" menu.
 export function Studio({ project, jobs, refresh, close, theme, openSettings, openPlan, save, saving }: {
   project: Project
   jobs: Job[]
@@ -43,6 +43,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   const [wantFilm, setWantFilm] = useState(false)
   const [filmError, setFilmError] = useState<string | null>(null)
   const [menu, setMenu] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
 
   // Keep the selection valid when shots are renamed or removed
   useEffect(() => {
@@ -132,7 +133,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         <button className={drawer === 'queue' ? 'on' : ''} onClick={() => toggle('queue')}>
           <Icon name="queue" size={14} /> {t('studio.queue')}{active.length ? <span className="count">{active.length}</span> : null}
         </button>
-        <button className="dark" onClick={() => setDrawer('export')}>
+        <button className="dark" onClick={() => setExportOpen(true)}>
           {exporting ? <span className="spinner small" /> : <Icon name="export" size={14} />} {t(exporting ? 'export.exporting' : 'studio.export')}
         </button>
         <MoreMenu open={menu} setOpen={setMenu}>
@@ -169,14 +170,15 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
           ]} />
       )}
       {film && <FilmPreview project={project} file={film.file} close={() => setFilm(null)} />}
+      {exportOpen && <ExportDialog project={project} jobs={jobs} refresh={refresh} openSettings={openSettings} close={() => setExportOpen(false)} />}
 
       {drawer && (
         <aside className="drawer">
           <div className="drawer-head">
-            <strong>{t(drawer === 'queue' ? 'drawer.queue' : drawer === 'assets' ? 'studio.assets' : 'drawer.export')}</strong>
+            <strong>{t(drawer === 'queue' ? 'drawer.queue' : 'studio.assets')}</strong>
             <button className="icon-button" onClick={() => setDrawer(null)} aria-label={t('common.close')}><Icon name="x" /></button>
           </div>
-          {drawer === 'queue' ? <QueuePanel project={project} jobs={jobs} /> : drawer === 'assets' ? <AssetsPanel project={project} refresh={refresh} /> : <ExportPanel project={project} jobs={jobs} refresh={refresh} openSettings={openSettings} />}
+          {drawer === 'queue' ? <QueuePanel project={project} jobs={jobs} /> : <AssetsPanel project={project} refresh={refresh} />}
         </aside>
       )}
     </div>

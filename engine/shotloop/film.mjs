@@ -16,6 +16,7 @@ import { musicBed as musicWav } from './bed.mjs'
 import { emit, ffmpeg, pixelSize } from './compose.mjs'
 import { findShot, loadProject, saveConfig } from './project.mjs'
 import { renderShot, stillFrames } from './render.mjs'
+import { deliver } from './deliver.mjs'
 
 export const ASPECTS = { '9:16': [9, 16], '16:9': [16, 9] }
 
@@ -218,17 +219,22 @@ export function copyPublish(project, at = stamp()) {
 }
 
 // Renders whatever is missing (one shot at a time, cached shots are
-// reused), then assembles and writes the publish kit
-export async function exportFilm(project, { mode = 'final', aspects } = {}) {
-  const missing = pendingShots(project, mode)
+// reused), then assembles and writes the publish kit. Each part can be
+// left out (video, cover, publish: false); the copy comes only once the
+// AI has written it (publish.json). to: also deliver the files into a
+// new folder there, named after the work (deliver.mjs)
+export async function exportFilm(project, { mode = 'final', aspects, video = true, cover: withCover = true, publish: withPublish = true, to, name, lang } = {}) {
+  const missing = video ? pendingShots(project, mode) : []
   for (const [i, shot] of missing.entries()) {
     emit({ type: 'log', message: `rendering ${shot.id} (${i + 1}/${missing.length}, ${mode})` })
     await renderShot(project, shot, { mode })
   }
-  const film = await assemble(project, { mode, aspects })
-  const cover = await renderCover(project, { at: film.at, mode })
-  const publish = copyPublish(project, film.at)
-  const result = { ...film, cover, publish, rendered: missing.map(s => s.id) }
+  const film = video ? await assemble(project, { mode, aspects }) : { mode, at: stamp(), films: [] }
+  const cover = withCover ? await renderCover(project, { at: film.at, mode }) : null
+  const written = fs.existsSync(path.join(project.root, 'publish.json'))
+  const publish = withPublish && written ? copyPublish(project, film.at) : null
+  let result = { ...film, cover, publish, folder: null, rendered: missing.map(s => s.id) }
+  if (to) result = deliver(project, result, { to, name, lang })
   writeJson(path.join(project.out, 'latest.json'), result)
   emit({ type: 'done', what: 'export', ...result })
   return result

@@ -222,7 +222,38 @@ fn write_text(project: String, path: String, content: String) -> Result<(), Stri
 
 #[tauri::command]
 fn enqueue(handle: AppHandle, app: State<'_, App>, spec: Spec) -> u64 {
+    // An export into a folder of the person's: the UI shows its files
+    if let Spec::Export { to: Some(to), .. } = &spec {
+        if let Some(dir) = expand_home(&handle, to) {
+            let _ = handle.asset_protocol_scope().allow_directory(dir, true);
+        }
+    }
     app.queue.enqueue(&handle, spec)
+}
+
+/// "~/…" as a path in the home folder
+fn expand_home(handle: &AppHandle, p: &str) -> Option<std::path::PathBuf> {
+    match p.strip_prefix("~") {
+        Some(rest) => handle.path().home_dir().ok().map(|h| h.join(rest.trim_start_matches('/'))),
+        None => Some(std::path::PathBuf::from(p)),
+    }
+}
+
+/// The publish copy into an export's folder, when the AI finished it after
+/// the export
+#[tauri::command]
+async fn deliver_copy(handle: AppHandle, path: String, folder: String, name: Option<String>, lang: Option<String>) -> Result<Value, String> {
+    blocking(move || {
+        let mut args = vec!["deliver-copy", path.as_str(), "--to", folder.as_str()];
+        if let Some(n) = name.as_deref() {
+            args.extend(["--name", n]);
+        }
+        if let Some(l) = lang.as_deref() {
+            args.extend(["--lang", l]);
+        }
+        engine(&handle.state::<App>(), &args)
+    })
+    .await
 }
 
 /// This Mac's cores and memory, and how many shots it builds at once
@@ -456,7 +487,8 @@ async fn library(handle: AppHandle, action: String, item: Option<Value>, id: Opt
 }
 
 /// Cover templates: list them, save a project's cover as one, remove one;
-/// or an image into the project for the AI to design the cover after
+/// an image into the project for the AI to design the cover after; the
+/// cover rendered as a preview (.shotloop/cover.png)
 #[tauri::command]
 async fn covers(handle: AppHandle, action: String, project: Option<String>, id: Option<String>, name: Option<String>, file: Option<String>) -> Result<Value, String> {
     blocking(move || {
@@ -466,6 +498,7 @@ async fn covers(handle: AppHandle, action: String, project: Option<String>, id: 
             "save" => vec!["covers", "save", p],
             "remove" => vec!["covers", "remove", id.as_deref().unwrap_or("")],
             "reference" => vec!["covers", "reference", p, "--file", file.as_deref().unwrap_or("")],
+            "preview" => vec!["cover", p, "--preview"],
             _ => return Err(format!("unknown covers action {action}")),
         };
         if let (true, Some(n)) = (action == "save", name.as_deref()) {
@@ -611,6 +644,7 @@ pub fn run() {
             write_text,
             enqueue,
             covers,
+            deliver_copy,
             jobs,
             ai_usage,
             machine,

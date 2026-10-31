@@ -138,7 +138,7 @@ export interface Job {
 
 export type Spec =
   | { kind: 'render'; project: string; shot: string; mode: Mode; stills: boolean }
-  | { kind: 'export'; project: string; mode: Mode; aspects: string[] }
+  | { kind: 'export'; project: string; mode: Mode; aspects: string[]; video?: boolean; cover?: boolean; publish?: boolean; to?: string; name?: string; lang?: string }
   | { kind: 'fix'; project: string; shot: string; request: string; lang?: string }
   | { kind: 'check'; project: string; shot: string; lang?: string }
   | { kind: 'publish'; project: string; lang?: string }
@@ -274,6 +274,8 @@ export interface CoverTemplate {
 export interface ExportResult {
   mode: Mode
   at: string
+  // The folder it was delivered into (none: only out/)
+  folder?: string | null
   films: { aspect: string; file: string }[]
   cover: string | null
   publish: string | null
@@ -317,7 +319,7 @@ export const api = {
   readText: (project: string, path: string) => invoke<string>('read_text', { project, path }),
   writeText: (project: string, path: string, content: string) => invoke<void>('write_text', { project, path, content }),
   // Agent jobs reply in the UI language
-  enqueue: (spec: Spec) => invoke<number>('enqueue', { spec: ['fix', 'check', 'plan', 'build', 'publish', 'cover'].includes(spec.kind) ? { ...spec, lang: lang() } : spec }),
+  enqueue: (spec: Spec) => invoke<number>('enqueue', { spec: ['fix', 'check', 'plan', 'build', 'publish', 'cover', 'export'].includes(spec.kind) ? { ...spec, lang: lang() } : spec }),
   machine: () => invoke<Machine>('machine'),
   aiUsage: () => invoke<Usage | null>('ai_usage'),
   jobs: () => invoke<Job[]>('jobs'),
@@ -355,6 +357,10 @@ export const api = {
   removeCoverTemplate: (id: string) => invoke<void>('covers', { action: 'remove', id }),
   // An image for the AI to design the cover after (cover-reference.png)
   coverReference: (project: string, file: string) => invoke<string>('covers', { action: 'reference', project, file }),
+  // The cover page rendered as a preview (.shotloop/cover.png)
+  coverPreview: (project: string) => invoke<string | null>('covers', { action: 'preview', project }),
+  // The publish copy into an export's folder, written after the export
+  deliverCopy: (path: string, folder: string, name: string) => invoke<string>('deliver_copy', { path, folder, name, lang: lang() }),
   defaultWorkspace: () => invoke<string>('default_workspace'),
   openExample: (path: string) => invoke<{ root: string }>('open_example', { path }),
   saveDraft: (path: string, to: string) => invoke<{ root: string }>('save_draft', { path, to }),

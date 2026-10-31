@@ -27,7 +27,19 @@ const LOG_LINES: usize = 240;
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum Spec {
     Render { project: String, shot: String, mode: String, stills: bool },
-    Export { project: String, mode: String, aspects: Vec<String> },
+    /// The film and its kit; each part can be left out, and `to` delivers
+    /// the files into a new folder there named after the work (`name`)
+    Export {
+        project: String,
+        mode: String,
+        aspects: Vec<String>,
+        video: Option<bool>,
+        cover: Option<bool>,
+        publish: Option<bool>,
+        to: Option<String>,
+        name: Option<String>,
+        lang: Option<String>,
+    },
     Fix { project: String, shot: String, request: String, lang: Option<String> },
     Check { project: String, shot: String, lang: Option<String> },
     Publish { project: String, lang: Option<String> },
@@ -98,8 +110,18 @@ impl Spec {
                 }
                 ("engine/shotloop/cli.mjs", a)
             }
-            Spec::Export { project, mode, aspects } => {
+            Spec::Export { project, mode, aspects, video, cover, publish, to, name, lang } => {
                 let mut a = vec![s("export"), project.clone(), s("--aspect"), aspects.join(",")];
+                for (on, flag) in [(video, "--no-video"), (cover, "--no-cover"), (publish, "--no-publish")] {
+                    if *on == Some(false) {
+                        a.push(s(flag));
+                    }
+                }
+                for (value, flag) in [(to, "--to"), (name, "--name"), (lang, "--lang")] {
+                    if let Some(v) = value {
+                        a.extend([s(flag), v.clone()]);
+                    }
+                }
                 if mode == "draft" {
                     a.push(s("--draft"));
                 }

@@ -6,7 +6,9 @@
 //   shotloop render   <project> --shot <id> [--draft|--final] [--stills] [--force]
 //                     (neither: the editor's quality, draft for 3D and final for 2D)
 //   shotloop assemble <project> [--final] [--aspect 9:16,16:9]
-//   shotloop export   <project> [--draft] [--aspect 9:16,16:9]
+//   shotloop export   <project> [--draft] [--aspect 9:16,16:9] [--no-video] [--no-cover] [--no-publish]
+//                     [--to <folder> [--name <work>] [--lang <ui language>]]   (--to: into a new folder there)
+//   shotloop deliver-copy <project> --to <export folder> [--name] [--lang]   the publish copy, written later
 //   shotloop cover    <project> [--frame <shot>@<seconds> | --none] [--preview]
 //                     (--frame/--none: set the background frame first; --preview: to .shotloop/cover.png)
 //   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d] [--aspect 9:16|16:9] [--duration 30] [--look <id>]
@@ -37,7 +39,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
-import { editMode, prune, readJson, status, worldKey } from './cache.mjs'
+import { editMode, prune, readJson, status, worldKey, writeJson } from './cache.mjs'
+import { deliverCopy } from './deliver.mjs'
 import { emit, setJson } from './compose.mjs'
 import { isStarterCover, newProject, projectsIn, summaries } from './create.mjs'
 import { assemble, exportFilm, preview, renderCover, setCoverFrame } from './film.mjs'
@@ -81,6 +84,11 @@ const OPTIONS = {
     examples: { type: 'boolean' },
     frame: { type: 'string' },
     preview: { type: 'boolean' },
+    'no-cover': { type: 'boolean' },
+    'no-video': { type: 'boolean' },
+    'no-publish': { type: 'boolean' },
+    name: { type: 'string' },
+    lang: { type: 'string' },
     json: { type: 'boolean' }
 }
 
@@ -236,7 +244,21 @@ try {
     }
     case 'export': {
       const project = loadProject(args[0])
-      result(await exportFilm(project, { mode: values.draft ? 'draft' : 'final', aspects: aspects() }))
+      result(await exportFilm(project, {
+        mode: values.draft ? 'draft' : 'final', aspects: aspects(),
+        video: !values['no-video'], cover: !values['no-cover'], publish: !values['no-publish'],
+        to: values.to, name: values.name, lang: values.lang
+      }))
+      break
+    }
+    case 'deliver-copy': {
+      const project = loadProject(args[0])
+      if (!values.to) throw new Error('deliver-copy needs --to <export folder>')
+      const file = deliverCopy(project, values.to, { name: values.name, lang: values.lang })
+      // The last export now has its copy
+      const latest = readJson(path.join(project.out, 'latest.json'), null)
+      if (latest?.folder === values.to) writeJson(path.join(project.out, 'latest.json'), { ...latest, publish: file })
+      result(file)
       break
     }
     case 'library': {
