@@ -31,6 +31,21 @@ export function fitBpm(bpm, cuts) {
   return Math.round(best * 100) / 100
 }
 
+// Seconds the bed fades out over at the film's end, at least
+export const FADE_OUT = 3
+
+// A bed's sections fitted to the film: music.json is written for the
+// length a project had when it was made, and the plan may make the film
+// longer or shorter. The last section plays on to the end, so the music
+// never stops before the picture; sections past the end go
+export function fitSections(sections, duration) {
+  const list = (sections ?? []).filter(s => s.from < duration).map(s => ({ ...s, to: Math.min(s.to, duration) }))
+  if (!list.length) return [{ from: 0, to: duration, layers: ['pad', 'bass', 'hat'] }]
+  const last = list.reduce((a, b) => (b.to > a.to ? b : a))
+  last.to = duration
+  return list
+}
+
 export function musicBed(project) {
   const key = musicKey(project)
   if (!key) return null
@@ -43,11 +58,14 @@ export function musicBed(project) {
   if (project.music.endsWith('.json')) {
     const cfg = JSON.parse(fs.readFileSync(project.music, 'utf8'))
     const bpm = cfg.syncCuts === false ? cfg.bpm : fitBpm(cfg.bpm, cutTimes(project))
-    fs.writeFileSync(part, wav(renderMusic({ ...cfg, bpm, duration: project.duration, gain: (cfg.gain ?? 1) * gain })))
+    fs.writeFileSync(part, wav(renderMusic({
+      ...cfg, bpm, duration: project.duration, sections: fitSections(cfg.sections, project.duration),
+      fadeOut: Math.max(cfg.fadeOut ?? 0, FADE_OUT), gain: (cfg.gain ?? 1) * gain
+    })))
   } else {
     const d = project.duration
     execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', project.music, '-t', String(d),
-      '-af', `volume=${gain},afade=t=in:d=0.3,afade=t=out:st=${Math.max(0, d - 1.5)}:d=1.5`, '-ar', '44100', '-ac', '2', part])
+      '-af', `volume=${gain},afade=t=in:d=0.3,afade=t=out:st=${Math.max(0, d - FADE_OUT)}:d=${FADE_OUT}:curve=qsin`, '-ar', '44100', '-ac', '2', part])
   }
   fs.renameSync(part, file)
   return file

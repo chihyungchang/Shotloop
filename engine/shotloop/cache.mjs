@@ -140,8 +140,9 @@ export function keyParts(project, shot, mode) {
 // project's music volume, and the film's length (the bed is cut to it)
 export function musicKey(project) {
   if (!project.music) return null
-  // The cuts too: a synthesized bed is tuned to them (bed.mjs)
-  return crypto.createHash('sha256').update(fs.readFileSync(project.music))
+  // The cuts too: a synthesized bed is tuned to them (bed.mjs); bed2: the
+  // sections run to the end and the fade out eases
+  return crypto.createHash('sha256').update('bed2:').update(fs.readFileSync(project.music))
     .update(String(project.config.musicGain ?? 1)).update(`:${project.duration}`)
     .update(`:${project.shots.slice(1).map(s => s.start).join(',')}`).digest('hex').slice(0, 12)
 }

@@ -153,13 +153,15 @@ export function render(cfg) {
     }
   }
 
-  // Master: fades, soft clip, normalise to -1 dBFS
+  // Master: fades, soft clip, normalise to -1 dBFS. The fade out eases
+  // (smoothstep): it starts gently and settles into silence at the end
   const fadeIn = (cfg.fadeIn ?? 0.3) * RATE
   const fadeOut = (cfg.fadeOut ?? 1.5) * RATE
+  const smooth = x => x * x * (3 - 2 * x)
   let peak = 0
   for (let i = 0; i < n; i++) {
     const g =
-      Math.min(1, i / fadeIn) * Math.min(1, (n - i) / fadeOut) * (cfg.gain ?? 1)
+      Math.min(1, i / fadeIn) * smooth(Math.min(1, (n - i) / fadeOut)) * (cfg.gain ?? 1)
     L[i] = Math.tanh(L[i] * g * 1.4)
     R[i] = Math.tanh(R[i] * g * 1.4)
     peak = Math.max(peak, Math.abs(L[i]), Math.abs(R[i]))
