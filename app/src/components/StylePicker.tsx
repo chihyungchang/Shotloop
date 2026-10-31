@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { t } from '../i18n'
 import { STYLES, styleAbout, styleById, styleName } from '../styles'
 import { Icon } from './Icon'
-import { Tile } from './LookPicker'
+import { Tile, useMenuInView } from './LookPicker'
 
 // The visual style for a new 2D video (engine/shotloop/styles.mjs): a chip
 // that opens a grid of styles, each a frame of the example that defines it
@@ -10,6 +10,8 @@ import { Tile } from './LookPicker'
 export function StylePicker({ value, onChange }: { value: string; onChange: (id: string) => void }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const menu = useRef<HTMLDivElement>(null)
+  useMenuInView(menu, open)
   useEffect(() => {
     if (!open) return
     const away = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false)
@@ -34,7 +36,7 @@ export function StylePicker({ value, onChange }: { value: string; onChange: (id:
         <Icon name="chevron" size={12} />
       </button>
       {open && (
-        <div className="menu tile-menu style-menu" role="menu">
+        <div className="menu tile-menu style-menu" role="menu" ref={menu}>
           <Tile on={!value} name={t('style.autoName')} title={t('style.autoAbout')} onClick={() => pick('')} mosaic={STYLES.map(s => s.still)} />
           {STYLES.filter(s => s.track === '2d').map(s => (
             <Tile key={s.id} on={value === s.id} name={styleName(s.id)} image={s.still} title={styleAbout(s.id)} onClick={() => pick(s.id)} />
