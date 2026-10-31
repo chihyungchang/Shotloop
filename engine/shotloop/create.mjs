@@ -94,8 +94,18 @@ function page2d({ width, height }) {
 `
 }
 
+// The idea's first sentence as a title, at most 60 characters, cut at a
+// word (an ellipsis marks the cut) so no word is left half-written
+export function firstLine(idea, max = 60) {
+  const t = String(idea).split(/[.?!\n。？！]/)[0].trim()
+  if (t.length <= max) return t
+  const cut = t.slice(0, max - 1)
+  const space = cut.lastIndexOf(' ')
+  return (space > max / 2 ? cut.slice(0, space) : cut).replace(/[\s,;:–-]+$/, '') + '…'
+}
+
 function shot2d(shot, i, n, idea) {
-  const title = i === 0 ? esc(idea.split(/[.?!]/)[0].slice(0, 60)) : i === n - 1 ? 'Follow for <b>more</b>' : esc(shot.title)
+  const title = i === 0 ? esc(firstLine(idea)) : i === n - 1 ? 'Follow for <b>more</b>' : esc(shot.title)
   return `// ${shot.id}: ${shot.title}. Starter shot: a title card to replace.
 // Shot-local time: t = 0 is this shot's first frame.
 
@@ -237,7 +247,7 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
   // A look the person chose; none: the planner picks one
   if (look && !lookById(look)) throw new Error(`no look "${look}" (${LOOKS.map(l => l.id).join(', ')})`)
   const size = aspect === '16:9' ? SIZES.landscape : SIZES.portrait
-  title = title?.trim() || idea.split(/[.?!\n]/)[0].trim().slice(0, 60) || path.basename(root)
+  title = title?.trim() || firstLine(idea) || path.basename(root)
   idea = idea.trim()
   const shots = planShots(duration)
 

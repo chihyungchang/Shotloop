@@ -109,7 +109,11 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
     setFolder(parent)
     setBusy(true)
     try {
-      const title = idea.trim().split(/[.?!\n]/)[0].slice(0, 60)
+      // The first sentence, cut at a word (as the engine's firstLine)
+      const first = idea.trim().split(/[.?!\n。？！]/)[0].trim()
+      const cut = first.slice(0, 59)
+      const space = cut.lastIndexOf(' ')
+      const title = first.length <= 60 ? first : (space > 30 ? cut.slice(0, space) : cut).replace(/[\s,;:–-]+$/, '') + '…'
       const r = await api.createProject({
         dir: `${parent}/${slugify(title)}`,
         idea: idea.trim(),
