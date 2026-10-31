@@ -317,6 +317,8 @@ async function trackBrief(project: ProjectStatus) {
 // The visual styles the plan picks from (engine/shotloop/styles.mjs)
 async function stylesBrief(project: ProjectStatus) {
   const all = await loadStyles()
+  const chosen = project.styleChosen ? all.find(s => s.id === project.style) : null
+  if (chosen) return `\n\nVisual style: "${chosen.id}" (${chosen.name.en}), chosen by the person: keep it as "style" and plan every shot in it. ${chosen.frames} Reference: ${chosen.why} Look at its reference stills (view_style) first.`
   const threeD = await threeDPossible(project)
   const open = all.filter(s => (s.track === project.track && project.track === '2d') || (s.track === '3d' && threeD))
   if (project.track === '3d' || !open.length) return ''
@@ -330,7 +332,7 @@ async function looksBrief(project: ProjectStatus) {
   const { LOOKS } = await import(new URL('../../engine/shotloop/looks.mjs', import.meta.url).href) as { LOOKS: { id: string; about: string; scene?: unknown }[] }
   const chosen = (JSON.parse(read(path.join(project.root, 'shotloop.json'))) as { look?: string }).look
   if (chosen) return `\nLook: "${chosen}" (chosen by the person; keep it unless the style you pick cannot use it).`
-  return `\nLooks (pick one for "look", one the style can use):\n${LOOKS.map(l => `- ${l.id}: ${l.about}${l.scene ? '' : ' (infographic only)'}`).join('\n')}`
+  return `\nLooks (pick one for "look", one the style can use):\n${LOOKS.map(l => `- ${l.id}: ${l.about}${l.scene ? '' : ' (not for the cinematic scene)'}`).join('\n')}`
 }
 
 // At most n at a time, in order
@@ -354,7 +356,8 @@ async function buildTask() {
   // The world's text files (not folders such as __pycache__, not media)
   const worldFiles = () => fs.existsSync(worldDir)
     ? fs.readdirSync(worldDir, { withFileTypes: true })
-      .filter(e => e.isFile() && /\.(py|js|mjs|html|css|json|md|txt|svg)$/i.test(e.name))
+      // Not data (the map's countries): too long to read, never edited
+      .filter(e => e.isFile() && /\.(py|js|mjs|html|css|json|md|txt|svg)$/i.test(e.name) && !/\.data\./.test(e.name))
       .map(e => `world/${e.name}:\n${read(path.join(worldDir, e.name))}`).join('\n\n')
     : ''
   const copy = read(path.join(project.root, 'copy.md'))

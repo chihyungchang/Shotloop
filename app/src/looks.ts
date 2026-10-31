@@ -40,8 +40,49 @@ export const LOOKS: readonly { id: string; name: Words; about: Words; bg: string
     about: { en: 'Data, facts, news', 'zh-CN': '数据、事实、新闻', 'pt-BR': 'Dados, fatos, notícias' },
     bg: '#ffffff', swatch: '#ffffff',
     text: '#0a0a0a', accent: '#ff3b30', accent2: '#0a0a0a'
+  },
+  {
+    id: 'ocean',
+    name: { en: 'Ocean', 'zh-CN': '深海', 'pt-BR': 'Oceano' },
+    about: { en: 'Nature, water, biology', 'zh-CN': '自然、海洋、生物', 'pt-BR': 'Natureza, água, biologia' },
+    bg: 'radial-gradient(120% 80% at 50% 0%, #0d4a5c 0%, #072a3a 55%, #041822 100%)', swatch: '#0a3442',
+    text: '#eefcff', accent: '#3ee0d0', accent2: '#ff8a6b'
+  },
+  {
+    id: 'ember',
+    name: { en: 'Ember', 'zh-CN': '余烬', 'pt-BR': 'Brasa' },
+    about: { en: 'History, drama, energy', 'zh-CN': '历史、戏剧、能源', 'pt-BR': 'História, drama, energia' },
+    bg: 'radial-gradient(110% 80% at 50% 100%, #3a120a 0%, #1a0907 55%, #0c0505 100%)', swatch: '#1c0a07',
+    text: '#fff4ec', accent: '#ff7a2f', accent2: '#ffc65c'
+  },
+  {
+    id: 'forest',
+    name: { en: 'Forest', 'zh-CN': '森林', 'pt-BR': 'Floresta' },
+    about: { en: 'Nature, climate, health', 'zh-CN': '自然、气候、健康', 'pt-BR': 'Natureza, clima, saúde' },
+    bg: 'radial-gradient(120% 80% at 50% 0%, #1d4a2c 0%, #0f2a19 55%, #08170e 100%)', swatch: '#123020',
+    text: '#f1fbf0', accent: '#a8e05f', accent2: '#ffc94d'
+  },
+  {
+    id: 'graphite',
+    name: { en: 'Graphite', 'zh-CN': '石墨', 'pt-BR': 'Grafite' },
+    about: { en: 'Tech, products, engineering', 'zh-CN': '科技、产品、工程', 'pt-BR': 'Tecnologia, produtos' },
+    bg: 'radial-gradient(120% 80% at 50% 0%, #2b2f36 0%, #1a1d22 55%, #101215 100%)', swatch: '#1e2126',
+    text: '#f5f7fa', accent: '#4c9dff', accent2: '#ffb547'
+  },
+  {
+    id: 'sand',
+    name: { en: 'Sand', 'zh-CN': '沙丘', 'pt-BR': 'Areia' },
+    about: { en: 'Travel, culture, food', 'zh-CN': '旅行、文化、美食', 'pt-BR': 'Viagem, cultura, comida' },
+    bg: 'radial-gradient(130% 90% at 50% 30%, #f6ead6 0%, #eedcc0 70%, #e4ceab 100%)', swatch: '#f1e3cb',
+    text: '#2a2118', accent: '#d2582f', accent2: '#1f8a83'
   }
 ]
+
+// A frame each look renders, per style (engine/shotloop/looks/<id>-<style>.jpg,
+// the same demo shot in every look)
+const PREVIEWS = import.meta.glob('../../engine/shotloop/looks/*.jpg', { eager: true, import: 'default' }) as Record<string, string>
+export const lookPreview = (id: string, style?: string | null) =>
+  PREVIEWS[`../../engine/shotloop/looks/${id}-${style === 'scene' ? 'scene' : 'infographic'}.jpg`] ?? null
 
 const words = (w: Words) => w[lang() as keyof Words] ?? w.en
 export const lookById = (id: string | null | undefined) => LOOKS.find(x => x.id === id) ?? null

@@ -3,6 +3,9 @@
 // The planner picks a look, the person can change it on the plan, and the
 // build starts from it, so the AI writes shots instead of a design system.
 
+import fs from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { EXTRAS } from './extras.mjs'
 import { scenePage } from './scene.mjs'
 
 export const LOOKS = [
@@ -56,9 +59,78 @@ export const LOOKS = [
     line: 'rgba(10, 10, 10, 0.14)', panel: 'rgba(10, 10, 10, 0.05)',
     head: "'PingFang SC', -apple-system, sans-serif", headWeight: 900, glow: 'none'
   }
+,
+  {
+    id: 'ocean',
+    name: { en: 'Ocean', 'zh-CN': '深海', 'pt-BR': 'Oceano' },
+    about: 'deep sea blue-green, aqua and coral; nature, water, biology',
+    bg: 'radial-gradient(120% 80% at 50% 0%, #0d4a5c 0%, #072a3a 55%, #041822 100%)',
+    text: '#eefcff', muted: '#8fbac6', accent: '#3ee0d0', accent2: '#ff8a6b', accent3: '#ffd166',
+    line: 'rgba(255, 255, 255, 0.16)', panel: 'rgba(255, 255, 255, 0.07)',
+    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 2px 18px rgba(2, 20, 28, 0.5)',
+    scene: { sky: ['#03202b', '#04151f', '#020b12'], clouds: [[0.8, 0.18, 0.75, '30, 140, 160', 0.18], [0.12, 0.86, 0.8, '20, 70, 120', 0.14]],
+      specks: ['180, 240, 255', '160, 255, 230'], light: '120, 240, 230', cool: '62, 224, 208' }
+  },
+  {
+    id: 'ember',
+    name: { en: 'Ember', 'zh-CN': '余烬', 'pt-BR': 'Brasa' },
+    about: 'warm black with fire orange and red; history, drama, energy, danger',
+    bg: 'radial-gradient(110% 80% at 50% 100%, #3a120a 0%, #1a0907 55%, #0c0505 100%)',
+    text: '#fff4ec', muted: '#c79a86', accent: '#ff7a2f', accent2: '#ffc65c', accent3: '#ff3d3d',
+    line: 'rgba(255, 255, 255, 0.15)', panel: 'rgba(255, 200, 160, 0.07)',
+    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 0 22px rgba(255, 110, 40, 0.35)',
+    scene: { sky: ['#0d0604', '#140806', '#070303'], clouds: [[0.2, 0.85, 0.8, '200, 70, 20', 0.18], [0.85, 0.15, 0.6, '120, 30, 20', 0.12]],
+      specks: ['255, 220, 190', '255, 170, 110'], light: '255, 150, 70', cool: '255, 198, 92' }
+  },
+  {
+    id: 'forest',
+    name: { en: 'Forest', 'zh-CN': '森林', 'pt-BR': 'Floresta' },
+    about: 'deep green with leaf lime and sun amber; nature, plants, climate, health',
+    bg: 'radial-gradient(120% 80% at 50% 0%, #1d4a2c 0%, #0f2a19 55%, #08170e 100%)',
+    text: '#f1fbf0', muted: '#9dbea1', accent: '#a8e05f', accent2: '#ffc94d', accent3: '#5fd0b8',
+    line: 'rgba(255, 255, 255, 0.15)', panel: 'rgba(255, 255, 255, 0.06)',
+    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 2px 18px rgba(4, 20, 10, 0.5)',
+    scene: { sky: ['#06160c', '#081a10', '#030b06'], clouds: [[0.82, 0.2, 0.7, '70, 140, 60', 0.15], [0.1, 0.85, 0.75, '40, 90, 70', 0.12]],
+      specks: ['220, 255, 210', '255, 240, 180'], light: '255, 220, 120', cool: '168, 224, 95' }
+  },
+  {
+    id: 'graphite',
+    name: { en: 'Graphite', 'zh-CN': '石墨', 'pt-BR': 'Grafite' },
+    about: 'neutral graphite with electric blue; tech, products, engineering',
+    bg: 'radial-gradient(120% 80% at 50% 0%, #2b2f36 0%, #1a1d22 55%, #101215 100%)',
+    text: '#f5f7fa', muted: '#a3aab5', accent: '#4c9dff', accent2: '#f5f7fa', accent3: '#ffb547',
+    line: 'rgba(255, 255, 255, 0.14)', panel: 'rgba(255, 255, 255, 0.06)',
+    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: 'none',
+    scene: { sky: ['#14161a', '#101215', '#08090b'], clouds: [[0.8, 0.2, 0.7, '76, 157, 255', 0.12], [0.15, 0.85, 0.7, '120, 130, 150', 0.1]],
+      specks: ['220, 230, 245', '200, 215, 240'], light: '160, 200, 255', cool: '76, 157, 255' }
+  },
+  {
+    id: 'sand',
+    name: { en: 'Sand', 'zh-CN': '沙丘', 'pt-BR': 'Areia' },
+    about: 'warm sand with terracotta and teal; travel, culture, food, history',
+    bg: 'radial-gradient(130% 90% at 50% 30%, #f6ead6 0%, #eedcc0 70%, #e4ceab 100%)',
+    text: '#2a2118', muted: '#86715a', accent: '#d2582f', accent2: '#1f8a83', accent3: '#e3a23b',
+    line: 'rgba(42, 33, 24, 0.16)', panel: 'rgba(42, 33, 24, 0.05)',
+    head: "'New York', 'Songti SC', Georgia, serif", headWeight: 700, glow: 'none'
+  }
 ]
 
 export const DEFAULT_LOOK = 'midnight'
+
+// Content colors: pictures and data are drawn in the colors their subject
+// needs (real-world colors, colors with a meaning), the same in every
+// look; a look only sets the ground and the type. One set reads on dark
+// grounds, one on light ones
+export const HUES = {
+  dark: { red: '#ff5a5f', orange: '#ff9f40', yellow: '#ffd23f', green: '#4ade80', teal: '#2dd4bf', blue: '#4da3ff', violet: '#a78bfa', pink: '#f472b6', gray: '#9aa4b2' },
+  light: { red: '#d93a3a', orange: '#e0731a', yellow: '#c99a06', green: '#1f9d55', teal: '#0f9488', blue: '#2563eb', violet: '#7c3aed', pink: '#db2777', gray: '#6b7280' }
+}
+// A look with light text sits on a dark ground
+export const darkGround = L => {
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(L.text.slice(i, i + 2), 16))
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 128
+}
+export const huesFor = L => HUES[darkGround(L) ? 'dark' : 'light']
 export const lookById = id => LOOKS.find(l => l.id === id) ?? null
 
 // The page for a look at the project's size, in a style (styles.mjs): the
@@ -80,10 +152,13 @@ export function lookPage(id, { width, height }, style = 'infographic') {
   // The kicker sits 44 px above the headline, on the safe area's top edge
   const headTop = safeTop + 44
   const headWidth = Math.round(tall ? safeRight - pad : w * 0.62)
-  if (style === 'scene' && L.scene) return scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop })
+  if (style === 'scene' && L.scene) return scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop, hue: HUES.dark })
+  // The other 2D styles: this page plus their kit (extras.mjs)
+  const X = EXTRAS[style] ?? { doc: '', css: '', js: '', scripts: [] }
   return `<!doctype html>
 <!--
-  shotloop-look: ${L.id}
+  shotloop-look: ${L.id}${EXTRAS[style] ? `
+  shotloop-style: ${style}` : ''}
   World of a 2D Shotloop project in the "${L.name.en}" look: ${L.about}.
   ${w}×${h} CSS px, rendered at 1.5x. Every shot draws through window.kit;
   nothing animates on its own, every frame is a pure function of time.
@@ -96,9 +171,15 @@ export function lookPage(id, { width, height }, style = 'infographic') {
   kit:
     W, H                            frame size
     PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM   the safe area (x PAD…SAFE_RIGHT)
-    C                               palette: bg-independent colors text, muted,
-                                    accent, accent2, accent3, line, panel,
-                                    series (list for charts)
+    C                               the look (the ground and the type only): text,
+                                    muted, accent (the highlighted word), accent2,
+                                    accent3, line, panel
+    C.hue                           content colors, the same in every look: red,
+                                    orange, yellow, green, teal, blue, violet, pink,
+                                    gray. Pictures and data take the colors their
+                                    subject needs (the sky blue, the sun yellow, a
+                                    loss red, growth green), not the look's accents
+    C.series                        default chart colors, from C.hue
     FONT, HEAD_FONT                 font stacks (normal widths; never squeeze text)
     clamp, lerp, ease(p), rise(t, a, d = 0.4), pop(t, a, d = 0.5)
                                     timing: rise is 0→1 over [a, a+d] eased out,
@@ -125,6 +206,7 @@ export function lookPage(id, { width, height }, style = 'infographic') {
     arrow(x1, y1, x2, y2, { color, width })      SVG markup
     bars({ x, y, w, h, values, labels, colors, p }) SVG markup, bars grow with p
     card(t, { kicker, title, body, progress })  the starter title card
+${X.doc}
 -->
 <html lang="en">
   <head>
@@ -147,6 +229,7 @@ export function lookPage(id, { width, height }, style = 'infographic') {
       #head b { color: var(--accent); font-weight: inherit; }
       #head .ghost { opacity: 0; }
       #sub { position: absolute; left: ${pad}px; width: ${headWidth}px; font: 500 ${Math.round(headSize * 0.42)}px/1.4 var(--font); color: var(--muted); }
+${X.css}
     </style>
   </head>
   <body>
@@ -155,13 +238,14 @@ export function lookPage(id, { width, height }, style = 'infographic') {
     <div id="kicker"></div>
     <div id="head"></div>
     <div id="sub"></div>
-    <script>
+${(X.scripts ?? []).map(f => `    <script src="${f}"></script>\n`).join('')}    <script>
       const $ = id => document.getElementById(id)
       const W = ${w}, H = ${h}, PAD = ${pad}, SAFE_TOP = ${safeTop}, SAFE_RIGHT = ${safeRight}, SAFE_BOTTOM = ${safeBottom}
       const C = {
         text: '${L.text}', muted: '${L.muted}', accent: '${L.accent}', accent2: '${L.accent2}', accent3: '${L.accent3}',
-        line: '${L.line}', panel: '${L.panel}', series: ['${L.accent}', '${L.accent2}', '${L.accent3}', '${L.muted}']
+        line: '${L.line}', panel: '${L.panel}', hue: ${JSON.stringify(huesFor(L))}
       }
+      C.series = [C.hue.blue, C.hue.orange, C.hue.green, C.hue.violet, C.hue.gray]
       const FONT = "'PingFang SC', -apple-system, sans-serif", HEAD_FONT = ${JSON.stringify(L.head)}
       const clamp = x => Math.min(1, Math.max(0, x))
       const lerp = (a, b, p) => a + (b - a) * p
@@ -304,6 +388,7 @@ export function lookPage(id, { width, height }, style = 'infographic') {
 
       window.kit = { $, W, H, PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM, C, FONT, HEAD_FONT, clamp, lerp, ease, rise, pop, stagger, hold, float, readTime, hash, waffle,
         frame, stage, view, set, drawOn, count, arrow, bars, card }
+${X.js}
       window.ready = document.fonts.ready
     </script>
   </body>
@@ -319,5 +404,10 @@ export function untouchedLook(text, size) {
   return !!id && text === lookPage(id, size, style)
 }
 
-// Looks that can draw a style
-export const looksFor = style => LOOKS.filter(l => style !== 'scene' || l.scene)
+// Files a style's page loads beside it in world/ (the map's countries)
+const WORLD_110M = fileURLToPath(new URL('world-110m.json', import.meta.url))
+export function styleFiles(style) {
+  if (style !== 'map') return {}
+  return { 'geo.data.js': `// Natural Earth 1:110m countries (public domain), via world-atlas (ISC)\nwindow.GEO = ${fs.readFileSync(WORLD_110M, 'utf8')}\n` }
+}
+

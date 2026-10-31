@@ -19,3 +19,9 @@ distribution: the CC0 asset packs listed in engine/video/assets/README.md
 (Kenney, Poly Haven, Quaternius) are downloaded, not committed, and keep
 their own licenses. Music beds are synthesized by engine/video/music.mjs
 and contain no samples.
+
+Map data: engine/shotloop/world-110m.json (the countries the map style
+draws) is derived from Natural Earth 1:110m Admin 0 countries
+(https://www.naturalearthdata.com), which is in the public domain, as
+packaged in world-atlas 2.0.2 by Mike Bostock (https://github.com/topojson/world-atlas),
+ISC License.

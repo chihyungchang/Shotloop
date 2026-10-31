@@ -8,7 +8,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { captions, shot3d, WORLD_3D } from './create.mjs'
-import { DEFAULT_LOOK, lookById, lookPage, untouchedLook } from './looks.mjs'
+import { DEFAULT_LOOK, lookById, lookPage, styleFiles, untouchedLook } from './looks.mjs'
 import { loadProject, saveConfig } from './project.mjs'
 import { styleById } from './styles.mjs'
 
@@ -68,6 +68,9 @@ const isStarterPage = file => fs.existsSync(file) && fs.readFileSync(file, 'utf8
 // Code nobody has touched yet: the starter the engine wrote
 const isStarter = file => fs.readFileSync(file, 'utf8').split('\n', 1)[0].includes('Starter shot')
 
+// Nothing built yet: every shot is still its starter
+export const unbuilt = project => project.shots.every(s => !fs.existsSync(s.code) || isStarter(s.code))
+
 // A project made with track "auto" becomes 3D when the plan picks the 3D
 // style, while nothing is built yet: the world and the starters change
 function toThreeD(project) {
@@ -88,9 +91,8 @@ export function applyStoryboard(project) {
   // The visual style the plan picked (styles.mjs); 3D only while the
   // project may still change track
   let style = styleById(sb.style)
-  const unbuilt = project.shots.every(s => !fs.existsSync(s.code) || isStarter(s.code))
   if (style?.track === '3d' && project.track === '2d') {
-    if (project.config.trackAuto && unbuilt) project = toThreeD(project)
+    if (project.config.trackAuto && unbuilt(project)) project = toThreeD(project)
     else style = null
   }
   if (style && style.track !== project.track) style = null
@@ -173,13 +175,16 @@ ${shots.map((s, i) => `| ${i + 1} | ${s.duration} s | ${cell(s.title)}: ${cell(s
   // 2D: the plan's look in its style becomes the world, while the AI
   // hasn't changed it. The scene style needs a look with scene colors
   const twoD = project.track === '2d'
-  const styleId = twoD ? (style?.id ?? project.config.style ?? 'infographic') : null
+  // The plan's style, else the project's own when it fits the track
+  const own = styleById(project.config.style)?.track === project.track ? project.config.style : null
+  const styleId = twoD ? (style?.id ?? own ?? 'infographic') : null
   let look = twoD ? (lookById(sb.look) ? sb.look : project.config.look ?? null) : null
   if (styleId === 'scene' && !lookById(look ?? DEFAULT_LOOK)?.scene) look = DEFAULT_LOOK
   const page = path.join(project.root, 'world', 'page.html')
   if (twoD && (look || style) && (!fs.existsSync(page) || untouchedLook(fs.readFileSync(page, 'utf8'), project.size) || isStarterPage(page))) {
     fs.mkdirSync(path.dirname(page), { recursive: true })
     fs.writeFileSync(page, lookPage(look ?? DEFAULT_LOOK, project.size, styleId))
+    for (const [name, text] of Object.entries(styleFiles(styleId))) fs.writeFileSync(path.join(path.dirname(page), name), text)
   }
 
   // The starter caption layer follows the plan: 3D shows each shot's

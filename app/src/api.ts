@@ -305,7 +305,11 @@ export interface ProjectSummary {
   duration: number
   shots: number
   poster: string | null
+  // The poster's shot as a clip, to play on hover
+  clip?: string | null
   changed: string
+  // The visual style (engine/shotloop/styles.mjs): 3d for 3D projects
+  style?: string | null
 }
 
 export interface NewProject {
@@ -319,6 +323,8 @@ export interface NewProject {
   duration: string
   // 2D look id; '' lets the planner pick
   look: string
+  // 2D visual style id; '' lets the planner pick
+  style: string
 }
 
 export const api = {
@@ -379,6 +385,7 @@ export const api = {
   deriveStoryboard: (path: string) => invoke<unknown | null>('derive_storyboard', { path }),
   applyStoryboard: (path: string) => invoke<{ shots: string[]; duration: number }>('apply_storyboard', { path }),
   setTitle: (path: string, title: string) => invoke<{ title: string }>('set_title', { path, title }),
+  setStyle: (path: string, style: string) => invoke<{ style: string }>('set_style', { path, style }),
   // The music bed: read with no change, or set a preset, a file, none, a volume
   music: (path: string, change: { preset?: string; file?: string; none?: boolean; gain?: number; bed?: boolean } = {}) => invoke<MusicInfo & { bed?: string | null }>('music', { path, ...change }),
   quality: (path: string, change: { samples?: number; reset?: boolean } = {}) => invoke<{ samples: number; custom: boolean; default: number }>('quality', { path, ...change }),

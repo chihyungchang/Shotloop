@@ -6,6 +6,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { saveConfig } from './project.mjs'
+import { unbuilt } from './storyboard.mjs'
+import { styleById } from './styles.mjs'
 
 // Synthesized beds (engine/video/music.mjs): chords one per bar, layers
 const PRESETS = {
@@ -33,6 +35,20 @@ export function setSamples(project, samples) {
   }
   saveConfig(project.root, cfg)
   return { samples: cfg.samples ?? DEFAULT_SAMPLES, custom: cfg.samples != null, default: DEFAULT_SAMPLES }
+}
+
+// The visual style the person picked (styles.mjs): the planner keeps it
+export function setStyle(project, id) {
+  const style = styleById(id)
+  if (!style) throw new Error(`no style "${id}"`)
+  // 3D only for a 2D project made with Auto that has nothing built yet;
+  // a 2D style never for a 3D project
+  if (style.track === '3d' && project.track === '2d' && !(project.config.trackAuto && unbuilt(project))) {
+    throw new Error('3D is only possible for a project made with Auto, before its shots are built')
+  }
+  if (style.track === '2d' && project.track === '3d') throw new Error('a 3D project has no 2D style')
+  saveConfig(project.root, { ...project.config, style: id, styleChosen: true })
+  return { style: id }
 }
 
 export function setTitle(project, title) {

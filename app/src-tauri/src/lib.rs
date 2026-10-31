@@ -137,12 +137,17 @@ async fn create_project(
     // Seconds, or "auto" for the planner to choose
     duration: String,
     look: Option<String>,
+    style: Option<String>,
 ) -> Result<Value, String> {
     blocking(move || {
         let mut args = vec!["new", &dir, "--idea", &idea, "--title", &title, "--track", &track, "--aspect", &aspect, "--duration", &duration];
         let look = look.unwrap_or_default();
         if !look.is_empty() {
             args.extend(["--look", look.as_str()]);
+        }
+        let style = style.unwrap_or_default();
+        if !style.is_empty() {
+            args.extend(["--style", style.as_str()]);
         }
         engine(&handle.state::<App>(), &args)
     })
@@ -515,6 +520,12 @@ async fn set_title(handle: AppHandle, path: String, title: String) -> Result<Val
     blocking(move || engine(&handle.state::<App>(), &["title", &path, "--", &title])).await
 }
 
+/// The visual style the person picked on the plan (shotloop.json style)
+#[tauri::command]
+async fn set_style(handle: AppHandle, path: String, style: String) -> Result<Value, String> {
+    blocking(move || engine(&handle.state::<App>(), &["style", &path, &style])).await
+}
+
 /// The project's music bed: read it, or set a preset, an audio file, none,
 /// and the volume
 #[tauri::command]
@@ -661,6 +672,7 @@ pub fn run() {
             about,
             film_preview,
             set_title,
+            set_style,
             apply_storyboard,
             derive_storyboard,
             fork_project,

@@ -31,7 +31,8 @@ Within them, make it rich: aim for the richest, most dynamic picture the shot al
 - Shared timeline: wildly different durations on one axis, a cursor running.
 - Waffle: a small share of a big total (1,000 squares, 32 lit).
 - Drawn fix: the defence; a request travelling, a lock snapping shut.
-Rhythm across the video: alternate big-number shots with diagram shots; change the dominant color as the story turns (one color for what held or the good answer, another for what was lost or abused) and keep those meanings for the whole video. A picture that comes back in another shot keeps its design (same layout, colors and labels), so the viewer recognises it at once.`
+Color: the look sets only the ground and the type (background, text, headlines, the highlighted word, the source line). Pictures and data take the colors their subject needs, from the kit's C.hue: real-world colors (the sky blue, the sun gold, a leaf green) and colors with a meaning (one for what held or the good answer, another for what was lost or abused), never just the look's accents, always readable on its ground. Keep each meaning for the whole video.
+Rhythm across the video: alternate big-number shots with diagram shots; change the dominant color as the story turns. A picture that comes back in another shot keeps its design (same layout, colors and labels), so the viewer recognises it at once.`
 
 // How a 2D shot's code stays renderable frame by frame
 export const CODE_2D = `2D code rules:

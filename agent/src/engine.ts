@@ -33,6 +33,8 @@ export interface ProjectStatus {
   // planner still decides (2D or 3D, the length)
   look?: string | null
   style?: string | null
+  // The person chose the style: the planner keeps it
+  styleChosen?: boolean
   trackAuto?: boolean
   lengthAuto?: boolean
 }

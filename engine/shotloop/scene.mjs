@@ -4,7 +4,7 @@
 // depths and drift with parallax, a camera moves through it all, and a
 // vignette closes the frame. The look gives the colors (looks.mjs, scene).
 
-export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop }) {
+export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop, hue }) {
   const S = L.scene
   return `<!doctype html>
 <!--
@@ -28,9 +28,16 @@ export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
 
   kit:
     W, H, PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM, C, FONT, HEAD_FONT, MONO
-    C                               colors: text, muted, accent, accent2, accent3 (CSS)
-                                    and rgb: { accent, accent2, accent3, light, cool }
-                                    ('r, g, b' strings for the glow functions)
+    C                               the look (the ground and the type only): text,
+                                    muted, accent (the highlighted word), accent2,
+                                    accent3; C.rgb: the same as 'r, g, b' strings,
+                                    and light, cool (the look's atmosphere)
+    C.hue                           content colors, the same in every look: red,
+                                    orange, yellow, green, teal, blue, violet, pink,
+                                    gray. Lights, objects and data take the colors
+                                    their subject needs (the sun gold, the Earth
+                                    blue, a loss red), not the look's accents
+    rgb(hex) → 'r, g, b'            for the glow functions: halo(x, y, r, rgb(C.hue.red), a)
     c                               the canvas 2D context, in CSS px, camera applied
     clamp, lerp, ease(p), rise(t, a, d = 0.6), fall(t, a, d = 0.4), pop(t, a, d = 0.5)
     stagger(t, i, a, step = 0.12, d = 0.4), hold(t, a, b, d = 0.3),
@@ -48,18 +55,18 @@ export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
                                     plane, 0.5 a far layer (moves half as much), 1.4 near
     screen(x, y, d = 1) → [x, y]    where a world point is on screen under the camera:
                                     place a label (block) on a world object with it
-    light(t, x, y, r, { color = C.rgb.light, glow = 1, rays = 1, streak = 1 })
+    light(t, x, y, r, { color = '255, 214, 150', glow = 1, rays = 1, streak = 1 })
                                     a light source: wide bloom, slowly turning rays, an
                                     anamorphic lens streak, a hot white core
-    sphere(t, x, y, r, { color, atmosphere, light = Math.PI, spin = 0, bands = 0 })
+    sphere(t, x, y, r, { color = C.hue.blue, atmosphere, light = Math.PI, spin = 0, bands = 0 })
                                     a lit ball (planet, cell, atom, drop): color is a hex
                                     base; lit from angle light (radians, toward the light),
                                     a night side, a thin lit rim, an atmosphere glow
     halo(x, y, r, rgb, a)           a soft glow (arrivals, flashes, emphasis)
-    beam(x0, y0, x1, y1, p, { color = C.rgb.light, width = 3, tail = 0.35, guide = 0.16, head = 1 })
+    beam(x0, y0, x1, y1, p, { color = '255, 214, 150', width = 3, tail = 0.35, guide = 0.16, head = 1 })
                                     a pulse of light travelling along a line (constant speed:
                                     pass a linear p for physical things)
-    trail(points, p, { color = C.rgb.accent, width = 3, glow = 1 })
+    trail(points, p, { color = rgb(C.hue.teal), width = 3, glow = 1 })
                                     a glowing polyline drawn on with p: curves and charts as light
     particles(t, { n = 60, seed = 1, x, y, w, h, size = 2, color = C.rgb.cool, vx = 40, vy = 0, life = 3 })
                                     glowing particles streaming through a box (flows, wind,
@@ -108,8 +115,11 @@ export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
       const rgbOf = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).join(', ')
       const C = {
         text: '${L.text}', muted: '${L.muted}', accent: '${L.accent}', accent2: '${L.accent2}', accent3: '${L.accent3}',
-        rgb: { accent: rgbOf('${L.accent}'), accent2: rgbOf('${L.accent2}'), accent3: rgbOf('${L.accent3}'), light: '${S.light}', cool: '${S.cool}' }
+        rgb: { accent: rgbOf('${L.accent}'), accent2: rgbOf('${L.accent2}'), accent3: rgbOf('${L.accent3}'), light: '${S.light}', cool: '${S.cool}' },
+        hue: ${JSON.stringify(hue)}
       }
+      // Content in warm white light unless its subject says otherwise
+      const WARM = '255, 214, 150'
       const DPR = window.devicePixelRatio || 1
       const cv = document.getElementById('world')
       cv.width = Math.round(W * DPR)
@@ -244,7 +254,7 @@ export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
       }
 
       // ---- A light source: bloom, rays, lens streak, hot core ----
-      function light(t, x, y, r, { color = C.rgb.light, glow: gl = 1, rays = 1, streak = 1 } = {}) {
+      function light(t, x, y, r, { color = WARM, glow: gl = 1, rays = 1, streak = 1 } = {}) {
         c.globalCompositeOperation = 'lighter'
         const pulse = 1 + 0.03 * Math.sin(t * 1.7)
         c.fillStyle = radial(x, y, 0, r * 7 * pulse, [[0, 'rgba(' + color + ', ' + 0.32 * gl + ')'], [0.25, 'rgba(' + color + ', ' + 0.12 * gl + ')'], [1, 'rgba(' + color + ', 0)']])
@@ -290,7 +300,7 @@ export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
         const f = v => Math.round(k >= 0 ? v + (255 - v) * k : v * (1 + k))
         return 'rgb(' + f(r) + ', ' + f(g) + ', ' + f(b) + ')'
       }
-      function sphere(t, x, y, r, { color = C.accent2, atmosphere = null, light: la = Math.PI, spin = 0, bands = 0 } = {}) {
+      function sphere(t, x, y, r, { color = C.hue.blue, atmosphere = null, light: la = Math.PI, spin = 0, bands = 0 } = {}) {
         const lx = Math.cos(la), ly = Math.sin(la)
         const atm = atmosphere ?? rgbOf(color)
         halo(x, y, r * 1.7, atm, 0.3)
@@ -322,7 +332,7 @@ export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
       }
 
       // ---- Light that travels ----
-      function beam(x0, y0, x1, y1, p, { color = C.rgb.light, width = 3, tail = 0.35, guide = 0.16, head = 1 } = {}) {
+      function beam(x0, y0, x1, y1, p, { color = WARM, width = 3, tail = 0.35, guide = 0.16, head = 1 } = {}) {
         const pt = q => [lerp(x0, x1, q), lerp(y0, y1, q)]
         if (guide > 0) {
           c.strokeStyle = 'rgba(' + color + ', ' + guide + ')'
@@ -355,7 +365,7 @@ export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
       }
 
       // A glowing polyline drawn on with p (curves and charts as light)
-      function trail(points, p, { color = C.rgb.accent, width = 3, glow: gl = 1 } = {}) {
+      function trail(points, p, { color = rgbOf(C.hue.teal), width = 3, glow: gl = 1 } = {}) {
         if (points.length < 2 || p <= 0) return
         const seg = []
         let total = 0
@@ -432,7 +442,7 @@ export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
         caption({ kicker, head: title.replace(/<\\/?b>/g, '*'), sub: body, p: rise(t, 0.1, 0.7) })
       }
 
-      window.kit = { W, H, PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM, C, FONT, HEAD_FONT, MONO, c, clamp, lerp, ease, rise, fall, pop, stagger, hold, float,
+      window.kit = { W, H, PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM, C, rgb: rgbOf, FONT, HEAD_FONT, MONO, c, clamp, lerp, ease, rise, fall, pop, stagger, hold, float,
         readTime, hash, prng, count, fmt, radial, disc, stage, depth, screen, light, sphere, halo, glow: halo, beam, trail, particles, caption, source, block, setUI, show, card }
       window.ready = document.fonts.ready
     </script>

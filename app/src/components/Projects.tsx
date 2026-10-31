@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react'
 import { api, fileUrl, type ProjectSummary } from '../api'
 import { formatSeconds } from '../model'
 import { forget, readRecent } from '../recent'
+import { examplesFor } from './Home'
 import { Icon } from './Icon'
-import { formatDate, t, lang } from '../i18n'
+import { formatDate, t } from '../i18n'
 
 // All projects: the recently opened ones and the examples, as cards
 // with a poster still (open-design's project grid)
@@ -32,9 +33,7 @@ export function Projects({ open }: { open: (path: string) => void }) {
     api.listProjects(tab === 'recent' ? recent : [], tab === 'examples').then(list => {
       // Forget recents that are gone or no longer projects
       if (tab === 'recent') for (const p of recent) if (!list.some(x => x.root === p && !x.example && !x.draft)) forget(p)
-      // Examples in the UI's language: Chinese for Chinese, English otherwise
-      const want = lang() === 'zh-CN' ? 'zh-CN' : 'en'
-      setItems(tab === 'examples' ? list.filter(p => (p.lang ?? 'zh-CN') === want) : list.filter(p => !p.example && !p.draft))
+      setItems(tab === 'examples' ? examplesFor(list) : list.filter(p => !p.example && !p.draft))
     }, () => setItems([]))
   }, [tab])
 

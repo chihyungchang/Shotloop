@@ -1,14 +1,17 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api, EMPTY_SETTINGS, fileUrl, type ProjectSummary } from '../api'
 import { formatSeconds } from '../model'
 import { BrandIcon, hasBrand } from '../ai/BrandIcon'
 import { aiSummary, useSettings } from '../ai/useSettings'
 import { baseName, cleanRecent, projectsFolder, setProjectsFolder } from '../recent'
 import { Icon } from './Icon'
+import { ExampleGallery } from './ExampleGallery'
 import { LookPicker } from './LookPicker'
+import { StylePicker } from './StylePicker'
+import { lookFits, STYLES, styleName } from '../styles'
 import type { Key } from '../i18n/en'
-import { lang, t, tSplit } from '../i18n'
+import { t, tSplit } from '../i18n'
 
 type Track = 'auto' | '2d' | '3d'
 type Aspect = '9:16' | '16:9'
@@ -37,6 +40,32 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
   const [length, setLength] = useState('auto')
   // 2D: a look, or '' for the AI to pick one that fits the idea
   const [look, setLook] = useState('')
+  // 2D: a visual style, or '' for the AI to pick one that fits the idea
+  const [style, setStyle] = useState('')
+  // A 2D style settles the track; Auto leaves the style to the AI too
+  const chooseStyle = (id: string) => {
+    setStyle(id)
+    if (look && !lookFits(id, look)) setLook('')
+    if (id && track === 'auto') setTrack('2d')
+  }
+  const chooseTrack = (tr: Track) => {
+    setTrack(tr)
+    if (tr === 'auto') setStyle('')
+  }
+  // An example's style for the next video: back to the composer to write it
+  const ideaBox = useRef<HTMLTextAreaElement>(null)
+  const pickStyle = (id: string) => {
+    if (id === '3d') {
+      setTrack('3d')
+      setStyle('')
+    } else {
+      chooseStyle(id)
+      setTrack('2d')
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    ideaBox.current?.closest('.home')?.scrollTo?.({ top: 0, behavior: 'smooth' })
+    ideaBox.current?.focus({ preventScroll: true })
+  }
   const [folder, setFolder] = useState(projectsFolder())
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -46,9 +75,7 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
 
   const [mine, setMine] = useState<ProjectSummary[] | null>(null)
   useEffect(() => {
-    // Examples in the UI's language: Chinese for Chinese, English otherwise
-    const want = lang() === 'zh-CN' ? 'zh-CN' : 'en'
-    api.listProjects([], true).then(list => setExamples(list.filter(p => (p.lang ?? 'zh-CN') === want)), () => setExamples([]))
+    api.listProjects([], true).then(list => setExamples(examplesFor(list)), () => setExamples([]))
     // The person's own recent projects, newest first
     cleanRecent()
       .then(recent => api.listProjects(recent.slice(0, 4)).then(list => recent.slice(0, 4).map(p => list.find(x => x.root === p)).filter((x): x is ProjectSummary => !!x)))
@@ -90,7 +117,8 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
         track,
         aspect,
         duration: length,
-        look: track === '3d' ? '' : look
+        look: track === '3d' ? '' : look,
+        style: track === '3d' ? '' : style
       })
       // A new project starts on its planning page: copy and storyboard first
       open(r.root, true)
@@ -130,6 +158,7 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
       <div className="composer">
         <div className="composer-card">
         <textarea
+          ref={ideaBox}
           value={idea}
           rows={3}
           placeholder={t('home.placeholder', { example: t(TRACKS[track].idea) })}
@@ -143,7 +172,7 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
             <div className="chip-group" role="radiogroup" aria-label={t('home.aria.track')}>
               {(['auto', '2d', '3d'] as Track[]).map(tr => (
                 <button key={tr} role="radio" aria-checked={track === tr} className={`chip${track === tr ? ' on' : ''}`}
-                  onClick={() => setTrack(tr)} title={t(TRACKS[tr].hint)}>
+                  onClick={() => chooseTrack(tr)} title={t(TRACKS[tr].hint)}>
                   {track === tr && <Icon name="spark" size={12} />}{t(TRACKS[tr].chip)}
                 </button>
               ))}
@@ -162,7 +191,9 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
                 {LENGTHS.map(l => <option key={l} value={l}>{l === 'auto' ? t('home.lengthAuto') : t('unit.s', { n: l })}</option>)}
               </select>
             </label>
-            {track !== '3d' && <LookPicker value={look} onChange={setLook} />}
+            {track !== '3d' && <span className="bar-divider" aria-hidden />}
+            {track !== '3d' && <StylePicker value={style} onChange={chooseStyle} />}
+            {track !== '3d' && <LookPicker value={look} onChange={setLook} style={style} />}
           </div>
           {ai && (
             // Just the AI's mark: its name and model are in the tooltip
@@ -210,15 +241,20 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
       )}
 
       {examples && examples.length > 0 && (
-        <section className="examples">
-          <span className="section-label">{t('home.examples')} <span className="muted small examples-note">{t('example.note')}</span></span>
-          <div className="example-list">
-          {examples.map(p => <ProjectCard key={p.root} p={p} onClick={() => open(p.root)} />)}
-          </div>
-        </section>
+        <ExampleGallery examples={examples} open={p => open(p.root)} pickStyle={pickStyle} />
       )}
     </div>
   )
+}
+
+// The examples (in English, for every UI language), grouped by visual
+// style in the styles' order
+export function examplesFor(list: ProjectSummary[]) {
+  const order = (p: ProjectSummary) => {
+    const i = STYLES.findIndex(s => s.id === p.style)
+    return i < 0 ? STYLES.length : i
+  }
+  return list.filter(p => p.example).sort((a, b) => order(a) - order(b))
 }
 
 // A project as a card: its poster, title and shape; a draft (nothing
@@ -250,6 +286,7 @@ function ProjectCard({ p, onClick }: { p: ProjectSummary; onClick: () => void })
         <strong>{p.title}{!p.example && !p.poster && <span className="tag draft-tag">{t('home.draft')}</span>}</strong>
         {p.description && <span className="example-desc ellipsis">{p.description}</span>}
         <span className="example-meta">
+          {p.style && p.style !== '3d' && <span className="tag style-tag">{styleName(p.style)}</span>}
           {p.track.toUpperCase()} · {t('common.shots', { n: p.shots })} · {formatSeconds(p.duration)} · {p.size.width > p.size.height ? '16:9' : '9:16'}
         </span>
       </div>

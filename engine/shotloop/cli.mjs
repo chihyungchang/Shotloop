@@ -11,7 +11,7 @@
 //   shotloop deliver-copy <project> --to <export folder> [--name] [--lang]   the publish copy, written later
 //   shotloop cover    <project> [--frame <shot>@<seconds> | --none] [--preview]
 //                     (--frame/--none: set the background frame first; --preview: to .shotloop/cover.png)
-//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>]
+//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
 //   shotloop move     <project> --to <folder>               move a project (a draft being saved)
@@ -21,6 +21,7 @@
 //   shotloop storyboard <project> [--derive]             apply storyboard.json to the project
 //                     (--derive: write it from the project's shots and notes instead)
 //   shotloop title    <project> <title>                  rename the project
+//   shotloop style    <project> <style id>               the visual style (styles.mjs), kept by the planner
 //   shotloop library  search --source polypizza|smithsonian --query … [--key] [--cursor] [--all]
 //                     get --item '<search result>' | list [<project>] | remove <id>
 //                     use <project> <id> | unuse <project> <id> | import <file.glb> [--title]   the 3D asset library
@@ -45,7 +46,7 @@ import { emit, setJson } from './compose.mjs'
 import { isStarterCover, newProject, projectsIn, summaries } from './create.mjs'
 import { assemble, exportFilm, preview, renderCover, setCoverFrame } from './film.mjs'
 import { findShot, loadProject } from './project.mjs'
-import { DEFAULT_SAMPLES, finalSamples, musicInfo, setMusic, setSamples, setTitle } from './settings.mjs'
+import { DEFAULT_SAMPLES, finalSamples, musicInfo, setMusic, setSamples, setStyle, setTitle } from './settings.mjs'
 import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
 import * as covers from './covers.mjs'
 import * as library from './library.mjs'
@@ -81,6 +82,7 @@ const OPTIONS = {
     track: { type: 'string' },
     duration: { type: 'string' },
     look: { type: 'string' },
+    style: { type: 'string' },
     examples: { type: 'boolean' },
     frame: { type: 'string' },
     preview: { type: 'boolean' },
@@ -225,7 +227,7 @@ try {
           // The cover: its background frame, and how the AI last made it (.shotloop/cover.json)
           coverFrame: project.config.coverFrame ?? null, coverMade: coverMade(project),
           // The visual style (styles.mjs), and what the planner still decides
-          style: project.config.style ?? null, trackAuto: !!project.config.trackAuto, lengthAuto: !!project.config.lengthAuto })
+          style: project.config.style ?? null, styleChosen: !!project.config.styleChosen, trackAuto: !!project.config.trackAuto, lengthAuto: !!project.config.lengthAuto })
       }
       break
     case 'render': {
@@ -292,6 +294,9 @@ try {
     case 'title':
       result(setTitle(loadProject(args[0]), args[1]))
       break
+    case 'style':
+      result(setStyle(loadProject(args[0]), args[1]))
+      break
     case 'music': {
       const project = loadProject(args[0])
       const change = values.preset || values.file || values.none || values.gain != null
@@ -334,7 +339,8 @@ try {
         track: values.track ?? '2d',
         aspect: values.aspect ?? '9:16',
         duration: values.duration === 'auto' ? 'auto' : Number(values.duration ?? 30),
-        look: values.look ?? ''
+        look: values.look ?? '',
+        style: values.style ?? ''
       }))
       break
     case 'list':

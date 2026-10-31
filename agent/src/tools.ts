@@ -90,9 +90,9 @@ export const TOOLS: Tool[] = [
   },
   {
     name: 'view_style',
-    description: 'Look at the reference stills of a visual style (from the example videos that define it): "scene", "infographic" or "3d". Look before you choose a style, and before you build in one, to see the quality to reach.',
+    description: 'Look at the reference stills of a visual style (from the example videos that define it): scene, infographic, map, ui, blueprint, kinetic or 3d. Look before you choose a style, and before you build in one, to see the quality to reach.',
     strict: true,
-    input_schema: object({ style: { type: 'string', description: 'Style id: scene, infographic or 3d.' } }, ['style'])
+    input_schema: object({ style: { type: 'string', description: 'Style id: scene, infographic, map, ui, blueprint, kinetic or 3d.' } }, ['style'])
   },
   {
     name: 'view_image',
@@ -212,7 +212,7 @@ export async function runTool(ctx: ToolContext, name: string, input: Record<stri
         styleStills: (id: string) => string[]
       }
       const style = styleById(id)
-      if (!style) throw new Error(`no style ${id} (scene, infographic, 3d)`)
+      if (!style) throw new Error(`no style ${id} (scene, infographic, map, ui, blueprint, kinetic, 3d)`)
       emit({ type: 'tool', name, summary: id })
       const blocks: Exclude<ToolResult, string | undefined> = [{ type: 'text', text: style.why }]
       for (const f of styleStills(id)) {

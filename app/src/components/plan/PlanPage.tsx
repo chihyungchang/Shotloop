@@ -4,8 +4,7 @@ import { api, fileUrl, type Job, type Project, type Storyboard, type StoryShot }
 import { t } from '../../i18n'
 import { agentNow, buildStepList, buildSteps, formatSeconds, planSteps, type Step } from '../../model'
 import { Icon } from '../Icon'
-import { LookPreview } from '../LookPicker'
-import { LOOKS, lookAbout, lookName } from '../../looks'
+import { LOOKS, lookAbout, lookName, lookPreview } from '../../looks'
 import { lookFits, STYLES, styleName } from '../../styles'
 import { Title } from '../studio/Studio'
 import { AutoText, ShotSketch } from './ShotSketch'
@@ -276,7 +275,16 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
                         const on = sb.style === s.id
                         return (
                           <button key={s.id} role="radio" aria-checked={on} className={`look-card style-card${on ? ' on' : ''}`} disabled={planning}
-                            onClick={() => !on && revise(t('style.switchAsk', { name: styleName(s.id), id: s.id }))}>
+                            onClick={async () => {
+                              if (on) return
+                              // The person's pick: the planner keeps it from now on
+                              try {
+                                await api.setStyle(project.root, s.id)
+                              } catch (e) {
+                                return setError(String(e))
+                              }
+                              revise(t('style.switchAsk', { name: styleName(s.id), id: s.id }))
+                            }}>
                             {styleName(s.id)}{!on && s.id === sb.styleAlt && <span className="tag">{t('style.alt')}</span>}
                           </button>
                         )
@@ -293,7 +301,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
                       return (
                         <button key={l.id} role="radio" aria-checked={sb.look === l.id} className={`look-card${sb.look === l.id ? ' on' : ''}`} disabled={!fits}
                           onClick={() => edit({ ...sb, look: l.id })} title={fits ? lookAbout(l.id) : t('style.lookNo', { name: styleName(sb.style ?? '') })}>
-                          <LookPreview id={l.id} /> <span>{lookName(l.id)}</span>
+                          <img className="look-thumb" src={lookPreview(l.id, sb.style) ?? ''} alt="" /> <span>{lookName(l.id)}</span>
                         </button>
                       )
                     })}
