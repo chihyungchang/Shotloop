@@ -1,4 +1,4 @@
-# What is inside a mechanical watch, and how does it keep time · Script
+# How does a mechanical watch tick? · Script
 
 1. No battery. What keeps it ticking?
 2. Inside: a spring, gears and a beating wheel

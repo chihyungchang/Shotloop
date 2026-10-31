@@ -2,15 +2,16 @@
 
 ## Must show
 
-The globe unrolls into the flat world map. Two dashed lines draw on, labelled Tropic of Cancer and Tropic of Capricorn; the band between them fills with a soft gold glow. Then the growing countries light leaf green one by one from the Americas to Africa to Asia, while a small counter beside the band ticks up to 70+.
+The globe unrolls into the flat world map. Two dashed lines draw on, labelled Tropic of Cancer and Tropic of Capricorn; the band between them fills with a soft gold glow. Then the growing countries light leaf green one by one from the Americas to Africa to Asia, while a small counter beside the band ticks up to 40+.
 
 ## On screen
 
-Grown in 70+ countries between the tropics
+Grown in 40+ countries between the tropics
 
 ## Motion
 
-Globe-to-flat morph; tropic lines draw left to right; band fades in; country fills ripple west to east; counter ticks to 70+.
+Globe-to-flat morph; tropic lines draw left to right; band fades in; country fills ripple west to east; counter ticks to 40+.
 
 ## Review history
 - 2026-10-31: planned in the storyboard.
+- 2026-10-31: facts updated to verified 2026 sources (ICO Aug 2026, USDA FAS Jul 2026, NCA aboutcoffee.org).

@@ -3,9 +3,9 @@
 import { coffeeMap, rankPins } from '../../world/parts.js'
 
 // Pin drops (shot seconds) by rank 2..5, timed to the camera passing each country
-const DROP = { 2: 3.35, 3: 0.7, 4: 3.8, 5: 2.6 }
+const DROP = { 2: 3.35, 3: 0.7, 4: 2.6, 5: 3.8 }
 const DROP_D = 0.8
-const NAMES = { 1: 'Brazil', 2: 'Vietnam', 3: 'Colombia', 4: 'Indonesia', 5: 'Ethiopia' }
+const NAMES = { 1: 'Brazil', 2: 'Vietnam', 3: 'Colombia', 4: 'Ethiopia', 5: 'Indonesia' }
 
 export default function render(t, { window, start }) {
   const kit = window.kit
@@ -49,12 +49,12 @@ export default function render(t, { window, start }) {
     // Source line, small, under the picture
     '<g font-family="' + font + '" font-size="15" fill="' + kit.C.muted + '" opacity="' + rise(t, 0.6, 0.6).toFixed(3) + '">' +
     '<text x="40" y="984">Source: USDA Foreign Agricultural Service,</text>' +
-    '<text x="40" y="1004">Coffee: World Markets and Trade (2024)</text></g>'
+    '<text x="40" y="1004">Coffee: World Markets and Trade (July 2026)</text></g>'
   )
 
   kit.frame({
     kicker: 'The top five',
-    head: ['Then *Vietnam*,', '*Colombia*,', '*Indonesia*,', '*Ethiopia*'],
+    head: ['Then *Vietnam*,', '*Colombia*,', '*Ethiopia*,', '*Indonesia*'],
     typed: rise(t, 0.15, 1.4),
     progress: (start + t) / 32.5
   })

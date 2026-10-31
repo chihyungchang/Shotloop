@@ -1,4 +1,4 @@
-# What is inside a mechanical watch, and how does it keep time · Storyboard
+# How does a mechanical watch tick? · Storyboard
 
 | # | Time | Shot | Motion |
 | --- | --- | --- | --- |

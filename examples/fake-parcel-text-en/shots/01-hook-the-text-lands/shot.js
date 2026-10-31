@@ -1,6 +1,6 @@
 // 01-hook-the-text-lands: Hook: the text lands.
 // The scam alert drops onto a dark lock screen with a buzz; above the phone
-// the reported US loss rolls up to $330M; behind, copies of the same alert
+// the reported US loss rolls up to $470M (2024); behind, copies of the same alert
 // keep piling up (illustrative).
 // Shot-local time: t = 0 is this shot's first frame.
 import { phone, lockScreen, notification, NOTIF_W } from '../../world/parts.js'
@@ -23,7 +23,7 @@ function ghostSlots(hash) {
 export default function render(t, { window, start }) {
   const kit = window.kit
   const { C, rise, pop, clamp, ease, hash, FONT, HEAD_FONT } = kit
-  kit.frame({ kicker: 'Reported losses · US, 2022', head: '', progress: (start + t) / 33 })
+  kit.frame({ kicker: 'US 2024 · #1 reported: parcel texts', head: '', progress: (start + t) / 33 })
 
   // ghost alerts, each falling into its place in the pile
   let ghosts = ''
@@ -47,7 +47,7 @@ export default function render(t, { window, start }) {
 
   // the counter: rolls up, lands with a bounce, glows
   const roll = ease(clamp((t - 0.15) / 1.3))
-  const value = '$' + Math.round(330 * roll) + 'M'
+  const value = '$' + Math.round(470 * roll) + 'M'
   const tb = t - 1.45
   const bounce = tb > 0 ? Math.exp(-tb * 6) * Math.sin(tb * 20) : 0
   const sc = (0.86 + 0.14 * rise(t, 0, 0.35)) * (1 + 0.13 * bounce)
@@ -67,10 +67,10 @@ export default function render(t, { window, start }) {
     '<g transform="translate(360 222) scale(' + sc + ')">' +
     '<g opacity="' + glow + '" filter="url(#glow)">' + num('') + '</g>' + num('') + '</g>' +
     '<text x="360" y="318" text-anchor="middle" font-family="' + HEAD_FONT + '" font-size="38" font-weight="700" fill="' + C.text +
-    '" opacity="' + capIn + '" transform="translate(0 ' + (1 - capIn) * 12 + ')">lost to text scams in one year</text>' +
+    '" opacity="' + capIn + '" transform="translate(0 ' + (1 - capIn) * 12 + ')">lost to text scams in 2024</text>' +
     phone(kit, { ...PH, p: 0.75 + 0.25 * rise(t, 0, 0.35), shake, screen }) +
     '<text text-anchor="middle" font-family="' + FONT + '" font-size="12.5" fill="' + C.muted + '" opacity=".85">' +
-    '<tspan x="360" y="1004">Source: FTC Consumer Protection Data Spotlight,</tspan>' +
-    '<tspan x="360" y="1020">“IYKYK: The top text scams of 2022”, June 2023 · alert pile illustrative</tspan></text>'
+    '<tspan x="360" y="1004">Source: FTC Data Spotlight, “Top text scams of 2024”,</tspan>' +
+    '<tspan x="360" y="1020">14 Apr 2025 · alert pile illustrative</tspan></text>'
   )
 }

@@ -87,7 +87,7 @@ export default function render(t, { window, start }) {
   }
 
   // Source, small under the picture
-  s += txt(40, 1012, 'Source: Encyclopaedia Britannica, “zipper”', { size: 15, weight: 500, ls: '0.02em', op: rise(t, 0.6, 0.5) })
+  s += txt(40, 1012, 'Source: US Patent 1,219,881 (1917)', { size: 15, weight: 500, ls: '0.02em', op: rise(t, 0.6, 0.5) })
 
   kit.stage(s)
 }

@@ -4,7 +4,7 @@
 import { wordStack, counterRoll, counterWidth, embers, measure, sourceLine } from '../../world/parts.js'
 
 const LAND = [0.35, 0.8, 1.25, 1.7]
-const LINES = ['English words', 'born in Chinese']
+const LINES = ['English words', 'shaped by Chinese']
 
 export default function render(t, { window, start }) {
   const kit = window.kit
@@ -36,6 +36,6 @@ export default function render(t, { window, start }) {
     line(LINES[0], cY - size * 1.15, rise(t, -0.25, 0.35), '') +
     line(LINES[1], cY, rise(t, -0.15, 0.35), 'Chinese') +
     wordStack(kit, { t, land: LAND, mark: ease((t - 2.0) / 1.0), shake }) +
-    sourceLine(kit, { text: 'Source: Online Etymology Dictionary', p: rise(t, 2.0, 0.5) })
+    sourceLine(kit, { text: 'Sources: Online Etymology Dictionary; Merriam-Webster', p: rise(t, 2.0, 0.5) })
   )
 }

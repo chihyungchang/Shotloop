@@ -1,7 +1,7 @@
 // 02-still-a-small-slice: Still a small slice.
 // The world electricity bar stands tall; its segments slide in from the top
 // (coal first) with rolling percentages, coal gets outlined, the gold solar
-// slice glows and copies of it stack up beside coal: ≈ 4.9 of them.
+// slice glows and copies of it stack up beside coal: ≈ 3.8 of them.
 // Shot-local time: t = 0 is this shot's first frame.
 import { worldBar, ENERGY } from '../../world/parts.js'
 
@@ -12,8 +12,8 @@ export default function render(t, { window, start }) {
 
   // The standing bar
   const BX = 250, BY = 350, L = 610, T = 120
-  const coalTop = BY, coalBot = BY + 0.34 * L
-  const solarH = 0.069 * L, solarMid = BY + L - solarH / 2
+  const coalTop = BY, coalBot = BY + 0.33 * L
+  const solarH = 0.087 * L, solarMid = BY + L - solarH / 2
 
   // Background: gold specks drifting up
   let specks = ''
@@ -37,11 +37,11 @@ export default function render(t, { window, start }) {
   const link = '<path id="link" d="M ' + (BX - 8) + ' ' + solarMid.toFixed(1) + ' C ' + (SX + 10) + ' ' + solarMid.toFixed(1) + ' ' + SX + ' ' + (solarMid - 20).toFixed(1) +
     ' ' + SX + ' ' + (solarMid - 70).toFixed(1) + ' L ' + SX + ' ' + (coalBot + 112).toFixed(1) + '" fill="none" stroke="' + ENERGY.solar + '" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 9" opacity="0.8"/>'
 
-  // Copies of solar's slice stacking up to coal's height (34 ÷ 6.9 ≈ 4.93)
-  const ratio = 34 / 6.9
+  // Copies of solar's slice stacking up to coal's height (33 ÷ 8.7 ≈ 3.79)
+  const ratio = 33 / 8.7
   let stack = ''
   let filled = 0
-  for (let j = 0; j < 5; j++) {
+  for (let j = 0; j < Math.ceil(ratio); j++) {
     const s = pop(t, 3.25 + j * 0.16, 0.4)
     if (s <= 0) continue
     const part = Math.min(1, ratio - j)
@@ -77,8 +77,8 @@ export default function render(t, { window, start }) {
     stack + marks + label +
     // Source line
     '<g font-family="' + F + '" font-size="13" fill="' + C.muted + '" opacity="' + (0.75 * rise(t, 0.6, 0.4)).toFixed(2) + '">' +
-      '<text x="40" y="996">Source: Ember, Global Electricity Review 2025</text>' +
-      '<text x="40" y="1014">Shares of 2024 generation · coal 34% ÷ solar 6.9% ≈ 4.9</text></g>'
+      '<text x="40" y="996">Source: Ember, Global Electricity Review 2026</text>' +
+      '<text x="40" y="1014">Shares of 2025 generation · coal 33% ÷ solar 8.7% ≈ 3.8</text></g>'
   )
   // The dotted path draws on: dots up to the drawn length, then one long gap
   const path = q('#link')
@@ -92,7 +92,7 @@ export default function render(t, { window, start }) {
 
   k.frame({
     kicker: 'Still a small slice',
-    head: ['*Small* next to', "coal's 34%"],
+    head: ['*Small* next to', "coal's 33%"],
     typed: rise(t, -0.15, 0.7),
     progress: (start + t) / 23.5
   })

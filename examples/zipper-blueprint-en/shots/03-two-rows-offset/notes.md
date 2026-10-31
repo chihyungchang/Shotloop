@@ -2,7 +2,7 @@
 
 ## Must show
 
-Top view of the two rows of teeth on their tapes, left row blue, right row amber, facing each other across a gap. A dimension marker measures one tooth pitch, then a half-pitch marker shows the right row shifted down by half a tooth. Dashed guide lines from each blue tooth point into a gap on the amber side; the rows slide together and mesh like fingers.
+Top view of the two rows of teeth on their tapes, left row blue, right row amber, facing each other across a gap. A dimension marker measures one tooth pitch, then a half-pitch marker shows the right row shifted down by half a tooth. Dashed guide lines from each blue tooth point into a gap on the amber side; the rows slide together and alternate, tooth by tooth.
 
 ## On screen
 

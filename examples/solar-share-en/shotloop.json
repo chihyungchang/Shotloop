@@ -1,7 +1,7 @@
 {
   "version": 1,
   "title": "How much of our power is solar?",
-  "description": "Solar makes 6.9% of the world's power, and grows faster than any other source.",
+  "description": "Solar makes 8.7% of the world's power, and grows more than any other source.",
   "lang": "en",
   "slug": "solar-share-en",
   "track": "2d",
@@ -22,18 +22,18 @@
       "duration": 4.5
     },
     {
-      "id": "03-29-in-one-year",
-      "title": "+29% in one year",
+      "id": "03-30-in-one-year",
+      "title": "+30% in one year",
       "duration": 4
     },
     {
-      "id": "04-doubled-in-three-years",
-      "title": "Doubled in three years",
+      "id": "04-three-quarters-of-new",
+      "title": "Three-quarters of new demand",
       "duration": 4
     },
     {
       "id": "05-biggest-source-of-new",
-      "title": "Biggest source of new power",
+      "title": "Biggest growth, 4 years running",
       "duration": 4.5
     },
     {

@@ -1,6 +1,6 @@
 // 01-hook-how-much-is: Hook: how much is solar?
-// A huge gold counter rolls 0.0% → 6.9% over a breathing sun; the world
-// electricity bar fills its first 6.9% in gold; ≈ 1 unit in 15 lights up.
+// A huge gold counter rolls 0.0% → 8.7% over a breathing sun; the world
+// electricity bar fills its first 8.7% in gold; ≈ 1 unit in 11 lights up.
 // Shot-local time: t = 0 is this shot's first frame.
 import { worldBar, sunDisc, bolt, ENERGY } from '../../world/parts.js'
 
@@ -10,9 +10,9 @@ export default function render(t, { window, start }) {
   const F = k.FONT.replace(/"/g, '')
   const CX = 330
 
-  // Counter rolls 0 → 6.9 over 0.3–1.9 s, then lands with a damped bounce
+  // Counter rolls 0 → 8.7 over 0.3–1.9 s, then lands with a damped bounce
   const roll = ease(clamp((t - 0.3) / 1.6))
-  const value = k.count(roll, 0, 6.9, 1)
+  const value = k.count(roll, 0, 8.7, 1)
   const q = clamp((t - 1.9) / 0.9)
   const bounce = t < 1.9 ? 0 : Math.exp(-5 * q) * Math.sin(3 * Math.PI * q)
   // The first frame already shows a big 0.0% on the sun and the empty bar
@@ -29,10 +29,10 @@ export default function render(t, { window, start }) {
       '" fill="' + ENERGY.solar + '" opacity="' + (0.12 + 0.22 * hash(i, 5)).toFixed(2) + '"/>'
   }
 
-  // ≈ 1 unit in every 15: a row of bolts, the first one gold
+  // ≈ 1 unit in every 11: a row of bolts, the first one gold
   let units = ''
-  const step = 580 / 15
-  for (let i = 0; i < 15; i++) {
+  const step = 580 / 11
+  for (let i = 0; i < 11; i++) {
     const s = stagger(t, i, 1.45, 0.05, 0.3)
     if (s <= 0) continue
     const bx = 40 + step * (i + 0.5), by = 902 + (1 - s) * 14
@@ -48,7 +48,7 @@ export default function render(t, { window, start }) {
     sunDisc(k, { x: CX, y: 575, r: 158, t, p: rise(t, -0.3, 0.6), glow: 0.7 + 0.3 * roll }) +
     // Small label over the number
     '<text x="' + CX + '" y="430" text-anchor="middle" font-family="' + F + '" font-size="19" font-weight="700" letter-spacing="3" fill="' + ENERGY.solarHi +
-      '" opacity="' + rise(t, -0.2, 0.4).toFixed(2) + '">SHARE OF WORLD ELECTRICITY · 2024</text>' +
+      '" opacity="' + rise(t, -0.2, 0.4).toFixed(2) + '">SHARE OF WORLD ELECTRICITY · 2025</text>' +
     // The big counter
     '<g transform="translate(' + CX + ' ' + numY.toFixed(1) + ') scale(' + numScale.toFixed(4) + ')" opacity="' + numIn.toFixed(2) + '">' +
       '<text x="0" y="0" text-anchor="middle" font-family="' + F + '" font-weight="800" font-size="210" letter-spacing="-6" fill="' + ENERGY.solar +
@@ -58,16 +58,16 @@ export default function render(t, { window, start }) {
       tag: 'SOLAR ' + value + '%', tagP: rise(t, 0.5, 0.3) }) +
     units +
     '<text x="40" y="962" font-family="' + F + '" font-size="21" font-weight="600" fill="' + C.muted + '" opacity="' + unitsLabel.toFixed(2) + '">' +
-      '<tspan fill="' + ENERGY.solar + '" font-weight="800">≈ 1</tspan> unit in every <tspan fill="' + C.text + '" font-weight="800">15</tspan></text>' +
+      '<tspan fill="' + ENERGY.solar + '" font-weight="800">≈ 1</tspan> unit in every <tspan fill="' + C.text + '" font-weight="800">11</tspan></text>' +
     // Source line
     '<g font-family="' + F + '" font-size="13" fill="' + C.muted + '" opacity="' + (0.75 * rise(t, 0.8, 0.4)).toFixed(2) + '">' +
-      '<text x="40" y="996">Source: Ember, Global Electricity Review 2025</text>' +
-      '<text x="40" y="1014">Solar = 6.9% of 2024 generation · 100 ÷ 6.9 ≈ 14.5, so ≈ 1 in 15</text></g>'
+      '<text x="40" y="996">Source: Ember, Global Electricity Review 2026</text>' +
+      '<text x="40" y="1014">Solar = 8.7% of 2025 generation · arithmetic: 100 ÷ 8.7 ≈ 11.5, so ≈ 1 in 11</text></g>'
   )
 
   k.frame({
     kicker: 'How much comes from the Sun?',
-    head: ["Solar's share of", 'world power: *6.9%*'],
+    head: ["Solar's share of", 'world power: *8.7%*'],
     typed: rise(t, -0.15, 0.7),
     progress: (start + t) / 23.5
   })

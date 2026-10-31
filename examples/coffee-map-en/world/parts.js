@@ -22,13 +22,13 @@
     tropics  0…1 the two dashed gold tropic lines draw on, west to east
     band     0…1 the soft gold band between them fades in
     labels   0…1 'Tropic of Cancer' / 'Tropic of Capricorn' at the left edge of the lines
-    grow     0…1 the coffee-growing countries (GROWERS, 70+) light leaf green, west to east
+    grow     0…1 the coffee-growing countries (GROWERS; NCA: more than 40 countries) light leaf green, west to east
     bright   { 'Brazil': 0…1, … } a grower brightens from the belt's green to full leaf green
-             (the top five: Brazil, Vietnam, Colombia, Indonesia, Ethiopia)
+             (the top five: Brazil, Vietnam, Colombia, Ethiopia, Indonesia)
 
   rankPins(kit, { view, drop = [1, 1, 1, 1, 1], notes = {}, scale = 1 })
     THE RANK PINS. Gold teardrop pins with a white badge 1–5 on Brazil, Vietnam, Colombia,
-    Indonesia, Ethiopia; the country name in white to the right, typing on as the pin lands.
+    Ethiopia, Indonesia (USDA FAS, July 2026); the country name in white to the right, typing on as the pin lands.
     drop     p 0…1 per rank (index 0 = rank 1, Brazil), or one number for all; once a
              pin has dropped keep its p at 1
     notes    { 2: 'robusta' } a small second line under a name, by rank
@@ -78,8 +78,8 @@ export const TOP5 = [
   { rank: 1, name: 'Brazil', at: [-48, -13] },
   { rank: 2, name: 'Vietnam', at: [107.8, 13] },
   { rank: 3, name: 'Colombia', at: [-74, 4.5] },
-  { rank: 4, name: 'Indonesia', at: [111, -6.5] },
-  { rank: 5, name: 'Ethiopia', at: [39, 8.5] }
+  { rank: 4, name: 'Ethiopia', at: [39, 8.5] },
+  { rank: 5, name: 'Indonesia', at: [111, -6.5] }
 ]
 
 export const DEST = { EU: [9, 50.5], US: [-80, 38.5] }

@@ -43,7 +43,7 @@ export default function render(t, { window, start }) {
     '<rect x="40" y="208" height="3" rx="1.5" width="' + (90 * tl).toFixed(1) + '" fill="' + C.accent + '"/></g>'
 
   // Source line
-  svg += '<text x="40" y="1012" font-size="15" fill="' + C.muted + '" opacity="0.85" font-family="' + font + '">Source: USDA FAS, Coffee: World Markets and Trade (2024)</text>'
+  svg += '<text x="40" y="1012" font-size="15" fill="' + C.muted + '" opacity="0.85" font-family="' + font + '">Source: USDA FAS, Coffee: World Markets and Trade (July 2026)</text>'
 
   kit.stage(svg)
 }

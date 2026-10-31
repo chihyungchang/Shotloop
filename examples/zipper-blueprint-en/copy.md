@@ -2,7 +2,7 @@
 
 ## Idea
 
-A zipper is two rows of identical teeth and one slider. The slider pushes the teeth together at an angle so each one nests into the next, and once they are locked a sideways pull can't separate them.
+A zipper is two rows of identical teeth and one slider. Each tooth has a recess on one side and a projection on the other, so the teeth of one row nest into the teeth of the other. The slider is a sliding cam: moved one way it meshes the teeth, moved the other way it separates them.
 
 ## Hook
 
@@ -12,20 +12,21 @@ Tiny teeth, no glue: so how does a zipper hold?
 
 Every tooth has the same shape: a bump on top and a hollow underneath.
 
-The two rows are offset by half a tooth, so each tooth on one side lines up with a gap on the other.
+The teeth on one side alternate with the teeth on the other, offset by half a tooth, so each tooth lines up with a gap opposite.
 
-The slider is a Y-shaped channel. As you pull it up, it guides the two rows together at an angle and presses each tooth's bump into the hollow of the tooth beside it.
+The slider is a Y-shaped channel. As you pull it up, it brings the two rows together and nests each tooth's bump in the hollow of the tooth beside it.
 
-Once the teeth are interlocked, pulling the two sides apart spreads the force along the row of locked teeth, and the hooks stay put.
+Once the teeth are locked, each one sits nested in the next, and the row stays shut.
 
-To open it, the wedge inside the slider pushes the teeth apart one at a time, at the one angle where they come loose.
+To open it, slide it back: the same channel separates the teeth, one at a time.
 
-The modern design was patented in 1917 as a 'separable fastener'.
+The design was patented in 1917 as a 'separable fastener'.
 
 ## Facts
 
-- Each zipper tooth has a hook or bump on one side and a hollow or pocket on the other, and they nest into the teeth beside them. (source: Explain that Stuff, "How do zippers work?", https://www.explainthatstuff.com/zippers.html)
-- The two rows of teeth are offset so the teeth of one side fit between the teeth of the other. (source: Explain that Stuff, "How do zippers work?", https://www.explainthatstuff.com/zippers.html)
-- The slider has a Y-shaped channel that brings the two rows together at an angle and meshes the teeth; moving it the other way, a wedge separates them. (source: Encyclopaedia Britannica, "zipper", https://www.britannica.com/technology/zipper)
-- Interlocked teeth resist being pulled apart sideways; they can only be separated at an angle, which the slider provides. (source: Explain that Stuff, "How do zippers work?", https://www.explainthatstuff.com/zippers.html)
-- The modern zipper was patented in the US in 1917 as a 'Separable Fastener'. (source: Encyclopaedia Britannica, "zipper", https://www.britannica.com/technology/zipper)
+- Each tooth has a hollow on one side and a bump on the other. Quoted: "a rounded recess on one side and a corresponding projection on the opposite side" (source: Gideon Sundback, US Patent 1,219,881 "Separable fastener", granted 20 March 1917, https://patents.google.com/patent/US1219881)
+- Locked teeth nest inside each other. Quoted: "the outside of one member nests within the recess of an adjoining member when in locked relation" (source: Gideon Sundback, US Patent 1,219,881 "Separable fastener", granted 20 March 1917, https://patents.google.com/patent/US1219881)
+- The two rows alternate. Quoted: "The members on one stringer alternate with those on the other". Shown as an offset of half a tooth: with evenly spaced teeth, alternating means each tooth faces the gap opposite, half a pitch along; that is our reading, not a quote. (source: Gideon Sundback, US Patent 1,219,881 "Separable fastener", granted 20 March 1917, https://patents.google.com/patent/US1219881)
+- The slider locks or unlocks depending on which way it moves. Quoted: "a sliding cam operating device" that locks and unlocks "according to its direction of movement" (source: Gideon Sundback, US Patent 1,219,881 "Separable fastener", granted 20 March 1917, https://patents.google.com/patent/US1219881)
+- The slider's channel is Y-shaped. Quoted: "The slider, usually operated by hand, contains a Y-shaped channel that, by moving along the rows of teeth, meshes or separates them, depending on the direction of the slider's movement." Read from the search snippet; the page itself could not be loaded. (source: Encyclopaedia Britannica, "zipper", https://www.britannica.com/technology/zipper, snippet seen 31 October 2026)
+- Patented in 1917 as a 'separable fastener'. Title on the patent: "Separable fastener", granted 20 March 1917. (source: Gideon Sundback, US Patent 1,219,881, https://patents.google.com/patent/US1219881)

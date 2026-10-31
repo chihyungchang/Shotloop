@@ -1,6 +1,6 @@
 // 02-the-coffee-belt: the globe from shot 1 unrolls into the flat map, the tropic
 // lines draw on, the belt glows gold and the growers light green west to east
-// while a counter ticks to 70+.
+// while a counter ticks to 40+.
 // Shot-local time: t = 0 is this shot's first frame.
 import { coffeeMap, mapAt } from '../../world/parts.js'
 
@@ -11,7 +11,7 @@ export default function render(t, { window, start }) {
 
   kit.frame({
     kicker: 'The coffee belt',
-    head: 'Grown in *70+* countries between the tropics',
+    head: 'Grown in *40+* countries between the tropics',
     typed: rise(t, 0.1, 0.6),
     progress: (start + t) / 32.5
   })
@@ -38,7 +38,7 @@ export default function render(t, { window, start }) {
   if (cp > 0) {
     const [bx, by] = mapAt(kit, view, 82, -23.44)
     const [cx, cy] = mapAt(kit, view, 82, -41)
-    const n = Math.round(70 * grow), plus = pop(t, 4.4, 0.4)
+    const n = Math.round(40 * grow), plus = pop(t, 4.4, 0.4)
     const land = 1 + 0.12 * Math.sin(Math.PI * clamp((t - 4.4) / 0.3))
     svg += '<g opacity="' + cp.toFixed(3) + '">' +
       '<line x1="' + bx.toFixed(1) + '" y1="' + by.toFixed(1) + '" x2="' + bx.toFixed(1) + '" y2="' + (cy - 46).toFixed(1) +
@@ -63,7 +63,7 @@ export default function render(t, { window, start }) {
 
   // Source line
   svg += '<text x="40" y="1008" font-size="15" fill="' + C.muted + '" opacity="0.85" font-family="' + font +
-    '">Source: National Coffee Association USA, ‘Where Coffee Grows’</text>'
+    '">Source: National Coffee Association USA, aboutcoffee.org (2026)</text>'
 
   kit.stage(svg)
 }

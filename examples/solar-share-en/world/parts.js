@@ -10,14 +10,15 @@
 //   ENERGY.other   slate: 'other' sources
 //   ENERGY.slate   the dim slate fill of the world bar
 //
-// SHARES: world electricity 2024 by source (Ember, Global Electricity Review
-//   2025), ordered from the far end of the bar to the solar end:
-//   coal 34, gas 22, other 6.1, hydro 14, nuclear 9, wind 8, solar 6.9
+// SHARES: world electricity 2025 by source (Ember, Global Electricity Review
+//   2026), ordered from the far end of the bar to the solar end:
+//   coal 33, gas 21.8, other 5.1 (the remainder), hydro 14, nuclear 8.9,
+//   wind 8.5, solar 8.7
 //   (each { id, name, pct, kind: 'fossil' | 'clean' | 'other' | 'solar' }).
-//   Source line for them: "Ember, Global Electricity Review 2025".
+//   Source line for them: "Ember, Global Electricity Review 2026".
 //
 // worldBar(kit, opts) → SVG markup. One long bar = 100% of world electricity
-//   in 2024: rounded ends, dim slate fill, label 'WORLD ELECTRICITY · 2024'.
+//   in 2025: rounded ends, dim slate fill, label 'WORLD ELECTRICITY · 2025'.
 //   Solar's gold segment is always at the solar end: the LEFT end when
 //   horizontal, the BOTTOM when vertical.
 //   opts:
@@ -25,21 +26,22 @@
 //     length      along the bar, px (default 580 horizontal, 760 vertical)
 //     thick       across the bar, px (default 30 horizontal, 120 vertical)
 //     vertical    false: lies left→right; true: stands, solar at the bottom
-//     solar       solar's share drawn, % (default 6.9; shot 6 may push it
+//     solar       solar's share drawn, % (default 8.7; shot 6 may push it
 //                 wider, the other segments then shrink to fit)
 //     solarP      0→1 wipes the gold segment in from the solar end
 //     split       0→1 the other segments appear in turn from the far end
 //                 (coal first), sliding in; 0 = just the dim slate rest
 //     labels      true: name and rolling % for each segment that is in
 //                 (vertical: to the right of the bar; horizontal: under it,
-//                 only segments wide enough). Solar's label shows 6.9%.
+//                 only segments wide enough). Solar's label shows 8.7%;
+//                 whole shares show as integers, others with one decimal.
 //     outline     segment id to outline (e.g. 'coal'), outlineP 0→1 draws it
 //     glow        0→1 warm glow around the gold segment
-//     title       true: 'WORLD ELECTRICITY · 2024' above the bar (+ '100%'
+//     title       true: 'WORLD ELECTRICITY · 2025' above the bar (+ '100%'
 //                 at the far end when horizontal)
 //     titleP      0→1 fades the title in
 //     tag         text under the gold segment (horizontal) or to its left
-//                 (vertical), e.g. 'SOLAR 6.9%'; pass the rolling number
+//                 (vertical), e.g. 'SOLAR 8.7%'; pass the rolling number
 //     tagP        0→1 fades the tag in
 //     p           0→1 the whole bar fades and rises in
 //     t           seconds, for the shimmer on the gold edge
@@ -68,13 +70,13 @@ export const ENERGY = {
 }
 
 export const SHARES = [
-  { id: 'coal', name: 'Coal', pct: 34, kind: 'fossil' },
-  { id: 'gas', name: 'Gas', pct: 22, kind: 'fossil' },
-  { id: 'other', name: 'Other', pct: 6.1, kind: 'other' },
+  { id: 'coal', name: 'Coal', pct: 33, kind: 'fossil' },
+  { id: 'gas', name: 'Gas', pct: 21.8, kind: 'fossil' },
+  { id: 'other', name: 'Other', pct: 5.1, kind: 'other' },
   { id: 'hydro', name: 'Hydro', pct: 14, kind: 'clean' },
-  { id: 'nuclear', name: 'Nuclear', pct: 9, kind: 'clean' },
-  { id: 'wind', name: 'Wind', pct: 8, kind: 'clean' },
-  { id: 'solar', name: 'Solar', pct: 6.9, kind: 'solar' }
+  { id: 'nuclear', name: 'Nuclear', pct: 8.9, kind: 'clean' },
+  { id: 'wind', name: 'Wind', pct: 8.5, kind: 'clean' },
+  { id: 'solar', name: 'Solar', pct: 8.7, kind: 'solar' }
 ]
 
 const kindColor = kind => ENERGY[kind] || ENERGY.other
@@ -83,7 +85,7 @@ const f1 = n => Number(n).toFixed(2)
 
 export function worldBar(kit, {
   x = kit.PAD, y = 800, length, thick, vertical = false,
-  solar = 6.9, solarP = 1, split = 0, labels = false,
+  solar = 8.7, solarP = 1, split = 0, labels = false,
   outline = null, outlineP = 1, glow = 0,
   title = true, titleP = 1, tag = '', tagP = 1, p = 1, t = 0, id = 'wb'
 } = {}) {
@@ -100,7 +102,7 @@ export function worldBar(kit, {
 
   // Segment spans from the solar end; the rest shrinks to fit a wider solar
   const rest = SHARES.slice(0, -1)
-  const scale = (100 - solar) / (100 - 6.9)
+  const scale = (100 - solar) / (100 - 8.7)
   let a = solar
   const spans = {}
   for (let i = rest.length - 1; i >= 0; i--) {
@@ -120,7 +122,7 @@ export function worldBar(kit, {
   // Title above the bar
   if (title) {
     out += '<g opacity="' + f1(clamp(titleP)) + '" font-family="' + F + '">' +
-      '<text x="' + x + '" y="' + (y - 14) + '" font-size="17" font-weight="600" letter-spacing="2.6" fill="' + C.muted + '">WORLD ELECTRICITY · 2024</text>' +
+      '<text x="' + x + '" y="' + (y - 14) + '" font-size="17" font-weight="600" letter-spacing="2.6" fill="' + C.muted + '">WORLD ELECTRICITY · 2025</text>' +
       (vertical ? '' : '<text x="' + (x + L) + '" y="' + (y - 14) + '" text-anchor="end" font-size="17" font-weight="600" letter-spacing="1.5" fill="' + C.muted + '">100%</text>') +
       '</g>'
   }
@@ -174,14 +176,14 @@ export function worldBar(kit, {
       if (k <= 0) return
       const [sa, sb] = spans[s.id]
       const r = span(sa, sb)
-      const val = s.id === 'solar' ? (solar * k).toFixed(1) : String(Math.round(s.pct * k))
+      const val = s.id === 'solar' ? (solar * k).toFixed(1) : (Number.isInteger(s.pct) ? String(Math.round(s.pct * k)) : (s.pct * k).toFixed(1))
       const col = kindColor(s.kind)
       if (vertical) {
         const ly = r.y + r.h / 2 + 8
         out += '<text x="' + (x + T + 18) + '" y="' + f1(ly) + '" font-family="' + F + '" opacity="' + f1(k) + '">' +
           '<tspan font-size="28" font-weight="800" fill="' + (s.kind === 'other' ? C.muted : col) + '" style="font-variant-numeric: tabular-nums">' + val + '%</tspan>' +
           '<tspan dx="10" font-size="20" font-weight="600" fill="' + C.muted + '">' + s.name + '</tspan></text>'
-      } else if (s.id !== 'solar' && r.w >= 44) {
+      } else if (s.id !== 'solar' && r.w >= (val.includes('.') ? 60 : 44)) {
         const lx = r.x + r.w / 2
         out += '<g font-family="' + F + '" text-anchor="middle" opacity="' + f1(k) + '">' +
           '<text x="' + f1(lx) + '" y="' + (y + T + 26) + '" font-size="20" font-weight="800" fill="' + (s.kind === 'other' ? C.muted : col) + '">' + val + '%</text>' +

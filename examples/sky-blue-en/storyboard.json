@@ -5,16 +5,17 @@
   "styleAlt": "3d",
   "look": "midnight",
   "copy": {
-    "idea": "The sky is blue and sunsets are red for the same reason: air molecules scatter short blue wavelengths far more than long red ones (Rayleigh scattering), and at sunset light crosses so much air that the blue is scattered away before it reaches us.",
+    "idea": "The sky is blue and sunsets are red for the same reason: the molecules of the air scatter short blue wavelengths far more than long red ones (Rayleigh scattering), and at sunset light crosses so much more air that even more of the blue is scattered away before it reaches us.",
     "hook": "Same Sun, same air. So why is the sky blue at noon and red at sunset?",
-    "body": "Sunlight looks white, but it carries every colour, from short blue waves to long red ones.\n\nWhen it hits the atmosphere, tiny nitrogen and oxygen molecules scatter it. Short wavelengths scatter far more: blue light about six times more than red. That scattered blue comes at you from every direction, so the whole sky glows blue.\n\nAt sunset the Sun is low, and its light crosses dozens of times more air to reach you. Along that long path most of the blue is scattered out sideways. What is left is orange and red.\n\nSame air, different path: blue by day, red at dusk.",
+    "body": "Sunlight looks white, but it carries every colour, from short blue waves to long red ones.\n\nWhen it hits the atmosphere, the tiny molecules of the air scatter it. Short wavelengths scatter far more: blue light about five times more than red. That scattered blue comes at you from every direction, so the whole sky glows blue.\n\nAt sunset the Sun is low, and its light crosses dozens of times more air to reach you. Along that long path even more of the blue is scattered away. What gets through is orange and red.\n\nSame air, different path: blue by day, red at dusk.",
     "facts": [
-      { "text": "Sunlight contains all visible colours (wavelengths), from about 400 nm violet/blue to about 700 nm red.", "source": "NASA SciJinks, 'Why Is the Sky Blue?', https://scijinks.gov/blue-sky/" },
-      { "text": "Air molecules scatter light with an intensity proportional to 1/wavelength⁴ (Rayleigh scattering), so shorter blue wavelengths scatter much more than red.", "source": "HyperPhysics (Georgia State University), 'Blue Sky', http://hyperphysics.phy-astr.gsu.edu/hbase/atmos/blusky.html" },
-      { "text": "Blue light (≈450 nm) is scattered about 6 times more than red light (≈700 nm): (700/450)⁴ ≈ 5.9.", "source": "Arithmetic from the Rayleigh 1/λ⁴ law, HyperPhysics 'Blue Sky', http://hyperphysics.phy-astr.gsu.edu/hbase/atmos/blusky.html" },
-      { "text": "The scattered blue light reaches us from all directions, which is why the whole sky looks blue.", "source": "NASA SciJinks, 'Why Is the Sky Blue?', https://scijinks.gov/blue-sky/" },
-      { "text": "Sunlight at the horizon passes through about 38 times as much air as when the Sun is directly overhead.", "source": "Kasten & Young (1989), 'Revised optical air mass tables and approximation formula', Applied Optics 28(22); see Wikipedia 'Air mass (astronomy)'" },
-      { "text": "At sunset, the long path scatters most blue out of the beam, leaving mainly orange and red to reach the eye.", "source": "NOAA SciJinks, 'Why Are Sunsets Red?' / NASA SciJinks 'Why Is the Sky Blue?', https://scijinks.gov/blue-sky/" }
+      { "text": "Sunlight carries every colour. Quoted: \"The white light coming from the Sun is really made up of all the colors of the rainbow.\"", "source": "NOAA NESDIS SciJinks, \"Why Is the Sky Blue?\", 31 August 2025, https://www.nesdis.noaa.gov/about/k-12-education/atmosphere/why-the-sky-blue" },
+      { "text": "Short wavelengths scatter more, and this is called Rayleigh scattering. Quoted: \"This scattering, called Rayleigh scattering, is more effective at short wavelengths (the blue end of the visible spectrum).\" The page gives Rayleigh's scattered intensity as a formula, I ∝ 1/λ⁴; the formula is an image on the page, not text.", "source": "HyperPhysics, Georgia State University, \"Blue Sky and Rayleigh Scattering\", https://hyperphysics.gsu.edu/hbase/atmos/blusky.html" },
+      { "text": "Blue light is about 470 nm and red about 700 nm. Quoted: a \"Wavelengths for ROYGBIV\" table lists Blue as \"470nm\", which HyperPhysics calls \"a general guide and not a precise statement about color\"; NASA: \"red has the longest wavelength, at around 700 nanometers.\"", "source": "HyperPhysics, Georgia State University, \"Color\", https://hyperphysics.gsu.edu/hbase/vision/specol.html; NASA Science, \"Visible Light\", https://science.nasa.gov/ems/09_visiblelight/" },
+      { "text": "Blue is scattered about 5 times more than red. Our arithmetic from the 1/λ⁴ law, not a quote: (700/470)⁴ = 4.92, shown as \"≈5×\".", "source": "arithmetic on HyperPhysics' 1/λ⁴ law, https://hyperphysics.gsu.edu/hbase/atmos/blusky.html" },
+      { "text": "Scattered blue reaches us from all directions, so the whole sky looks blue. Quoted: \"Blue light is scattered in all directions by the tiny molecules of air in Earth's atmosphere.\"", "source": "NASA Space Place, \"Why Is the Sky Blue?\", updated 29 August 2022, https://spaceplace.nasa.gov/blue-sky/en/" },
+      { "text": "At the horizon, sunlight crosses about 38 times as much air as straight overhead. Quoted: \"reaching a value of approximately 38 at the horizon.\" The air mass is 1 at the zenith by definition.", "source": "F. Kasten and A. T. Young, \"Revised optical air mass tables and approximation formula\", Applied Optics 28:22, 4735–4738, 1989, quoted via the Wikipedia article on astronomical air mass, https://en.wikipedia.org/wiki/Air_mass_%28astronomy%29" },
+      { "text": "At sunset, even more blue is scattered away and red gets through. Quoted: \"As the Sun gets lower in the sky, its light is passing through more of the atmosphere to reach you. Even more of the blue light is scattered, allowing the reds and yellows to pass straight through to your eyes.\"", "source": "NASA Space Place, \"Why Is the Sky Blue?\", updated 29 August 2022, https://spaceplace.nasa.gov/blue-sky/en/" }
     ]
   },
   "shots": [
@@ -29,18 +30,18 @@
     {
       "title": "White light, every colour",
       "duration": 4,
-      "show": "The sunlight beam (recurring): a white beam leaves the blooming Sun at upper left and travels across space; midway it fans apart into its colour strands — blue on top, then green, yellow, orange, red at the bottom — each a glowing wave line, blue waves visibly short and tight, red waves long and lazy. Small labels at the strand ends: '≈450 nm' on blue, '≈700 nm' on red.",
+      "show": "The sunlight beam (recurring): a white beam leaves the blooming Sun at upper left and travels across space; midway it fans apart into its colour strands — blue on top, then green, yellow, orange, red at the bottom — each a glowing wave line, blue waves visibly short and tight, red waves long and lazy. Small labels at the strand ends: '≈470 nm' on blue, '≈700 nm' on red.",
       "text": "Sunlight carries every colour",
       "motion": "Beam pulse travels left to right; at the midpoint it splits into strands that ripple as waves; nm labels count up as they land; stars drift with parallax behind.",
-      "source": "NASA SciJinks, 'Why Is the Sky Blue?'"
+      "source": "NOAA NESDIS SciJinks, 'Why Is the Sky Blue?'"
     },
     {
       "title": "Air scatters blue",
       "duration": 5.5,
-      "show": "The colour strands of the sunlight beam enter the atmosphere: a field of tiny glowing air molecules (recurring, small white-teal dots labelled 'N₂' and 'O₂' once). Each time a blue photon meets a molecule it ricochets off in a random direction as a short blue streak; red photons sail straight through. A big glowing counter at the top rolls 1 → ≈6× with a bounce, beside a small blue dot and red dot.",
-      "text": "Air scatters blue ≈6× more than red",
-      "motion": "Photons stream in from the left; blue streaks bounce and multiply into a spray, red continues in a clean line; the ≈6× counter rolls up and lands; the camera pushes slowly into the molecule field.",
-      "source": "Rayleigh scattering ∝ 1/λ⁴: (700 nm / 450 nm)⁴ ≈ 5.9 · HyperPhysics, GSU"
+      "show": "The colour strands of the sunlight beam enter the atmosphere: a field of tiny glowing air molecules (recurring, small white-teal dots labelled 'air molecule' once). Each time a blue photon meets a molecule it ricochets off in a random direction as a short blue streak; red photons sail straight through. A big glowing counter at the top rolls 1 → ≈5× with a bounce, beside a small blue dot and red dot.",
+      "text": "Air scatters blue ≈5× more than red",
+      "motion": "Photons stream in from the left; blue streaks bounce and multiply into a spray, red continues in a clean line; the ≈5× counter rolls up and lands; the camera pushes slowly into the molecule field.",
+      "source": "Rayleigh scattering ∝ 1/λ⁴ · HyperPhysics, GSU, 'Blue Sky and Rayleigh Scattering'; our arithmetic: (700 nm / 470 nm)⁴ ≈ 4.9"
     },
     {
       "title": "Blue from everywhere",
@@ -48,7 +49,7 @@
       "show": "The camera pulls back and tilts down to a small figure standing on the hill under the noon Sun. From every part of the sky, the scattered blue streaks from the molecule field rain toward the figure's eye from all directions, and as they arrive the empty dark sky fills with glowing blue, patch by patch. The direct beam from the Sun stays white-yellow.",
       "text": "Blue arrives from every direction: the sky",
       "motion": "Camera pull-back and tilt; blue streaks converge on the viewer from all angles; sky fills blue in soft waves until the whole upper frame glows.",
-      "source": "NASA SciJinks, 'Why Is the Sky Blue?'"
+      "source": "NASA Space Place, 'Why Is the Sky Blue?'"
     },
     {
       "title": "The long sunset path",
@@ -64,7 +65,7 @@
       "show": "Zoom along the long sunset path of the Earth cross-section: the colour strands of the sunlight beam run through the air molecules. One by one the blue, then green strands peel off sideways and fade out (draining stock), leaving empty gaps in the beam; only orange and red reach the figure. As they arrive the sky behind the figure blooms orange-red and the Sun turns a deep red disc on the horizon.",
       "text": "Blue scatters away; red gets through",
       "motion": "Strands peel off in sequence from the top, the beam thinning and warming in colour; the remaining red strands reach the eye with a soft flash; sky gradient warms to sunset.",
-      "source": "NOAA/NASA SciJinks, 'Why Is the Sky Blue?'"
+      "source": "NASA Space Place, 'Why Is the Sky Blue?'"
     },
     {
       "title": "Same air, different path",
@@ -78,12 +79,12 @@
   "recurring": [
     {
       "name": "Sunlight beam with colour strands",
-      "design": "Sun blooms at upper left; a white beam runs left to right; when split it fans into five glowing wave strands stacked top to bottom: blue (short tight waves), green, yellow, orange, red (long waves). Blue always means scattered light, orange-red always means light that gets through. Labels '≈450 nm' (blue) and '≈700 nm' (red) at the right ends.",
+      "design": "Sun blooms at upper left; a white beam runs left to right; when split it fans into five glowing wave strands stacked top to bottom: blue (short tight waves), green, yellow, orange, red (long waves). Blue always means scattered light, orange-red always means light that gets through. Labels '≈470 nm' (blue) and '≈700 nm' (red) at the right ends.",
       "shots": [2, 3, 6]
     },
     {
       "name": "Air molecules",
-      "design": "Small soft-glowing white-teal dots with faint halos, scattered with parallax depth; labelled 'N₂' and 'O₂' once in shot 3; blue photons bounce off them as short blue streaks, red passes straight.",
+      "design": "Small soft-glowing white-teal dots with faint halos, scattered with parallax depth; labelled 'air molecule' once in shot 3; blue photons bounce off them as short blue streaks, red passes straight.",
       "shots": [3, 4, 6]
     },
     {

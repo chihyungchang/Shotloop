@@ -25,7 +25,7 @@
 //   strands  0…1 visibility of each strand; number or array of 5 (blue…red)
 //   peel     0…1 per strand (number or array of 5): the strand bends away sideways and
 //            fades out (blue/green/yellow peel upward, orange/red downward); shot 6
-//   labels   0…1 the '≈450 nm' (above blue end) and '≈700 nm' (below red end) labels;
+//   labels   0…1 the '≈470 nm' (above blue end) and '≈700 nm' (below red end) labels;
 //            they fade in and count up to their value
 //   flow     brightness of photons flowing along the white beam
 //   x1 < splitX runs the strands right to left; blue stays on top, labels at the left end.
@@ -36,7 +36,7 @@
 //   turning and jiggling) with faint halos, at parallax depths far…near in the box.
 //   Molecules 0 and 1 sit on the subject plane at (30%, 32%) and (68%, 62%) of the box.
 //   p        0…1 the field fades in (staggered)
-//   labels   0…1 'N₂' on molecule 0 and 'O₂' on molecule 1 (show once, in shot 3)
+//   labels   0…1 'air molecule' on molecule 0 (show once, in shot 3)
 //   Returns [{ i, d, x, y, sx, sy, wx, wy }]: (x, y) in its depth layer d, (sx, sy) on
 //   screen, (wx, wy) the subject-plane world point over it: aim photons there to hit it.
 //
@@ -70,7 +70,7 @@
 //   The small dark standing figure, feet at (x, y), with a thin rim of light.
 
 export const STRANDS = [
-  { name: 'blue', nm: 450, rgb: '80, 150, 255', lambda: 15 },
+  { name: 'blue', nm: 470, rgb: '80, 150, 255', lambda: 15 },
   { name: 'green', nm: 530, rgb: '90, 225, 140', lambda: 21 },
   { name: 'yellow', nm: 580, rgb: '245, 225, 70', lambda: 26 },
   { name: 'orange', nm: 620, rgb: '255, 110, 20', lambda: 32 },
@@ -218,10 +218,10 @@ export function airMolecules(kit, o = {}) {
     Object.assign(m, { sx, sy, wx: (sx - ox) / z, wy: (sy - oy) / z })
   }
   if (labels > 0) {
-    for (const [i, name] of [[0, 'N₂'], [1, 'O₂']]) {
+    for (const [i, name] of [[0, 'air molecule']]) {
       const m = list[i]
       kit.block({
-        x: m.sx + 14, y: m.sy - 40, w: 80, p: clamp(labels), dy: 8,
+        x: m.sx + 14, y: m.sy - 40, w: 200, p: clamp(labels), dy: 8,
         style: 'font:600 26px/1 ' + kit.FONT + ';color:rgb(200, 250, 242);text-shadow:0 0 14px rgba(' + AIR + ', 0.9)',
         html: name
       })

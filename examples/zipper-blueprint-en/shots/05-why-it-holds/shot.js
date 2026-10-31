@@ -1,6 +1,6 @@
 // 05-why-it-holds: Why it holds. The closed zipper column beside a cut-open strip of locked
-// teeth. Red pull arrows grow and tremble on both; the force runs along the tapes and splits
-// into a small arrow on every tooth, while the teal locks pulse and nothing moves.
+// teeth, each nested in the next. Red pull arrows grow and tremble on both and run along the
+// tapes to every tooth, while the teal locks pulse and nothing moves.
 // Shot-local time: t = 0 is this shot's first frame.
 import { zipperColumn, zipperGeom, toothShape } from '../../world/parts.js'
 
@@ -12,7 +12,7 @@ export default function render(t, { window, start }) {
   const kit = window.kit
   const { C, clamp, ease, rise } = kit
   const F = kit.FONT.replace(/"/g, '')
-  kit.frame({ kicker: 'Why it holds', head: ['Pull sideways:', 'every locked tooth', '*shares the load*'], typed: clamp(0.3 + t / 0.6), progress: (start + t) / 32 })
+  kit.frame({ kicker: 'Why it holds', head: ['Locked, each tooth', 'sits *nested*', 'in the next'], typed: clamp(0.3 + t / 0.6), progress: (start + t) / 32 })
 
   // Force rises, with a tremble once it is strong
   const f = ease(clamp((t - 0.9) / 2.8))
@@ -97,7 +97,7 @@ export default function render(t, { window, start }) {
 
   // Source, small under the picture
   s += '<text x="' + kit.PAD + '" y="1012" font-size="15" fill="' + C.muted + '" font-family="' + F +
-    '" opacity="' + rise(t, 1.2, 0.6).toFixed(3) + '">Source: Explain that Stuff, “How do zippers work?”</text>'
+    '" opacity="' + rise(t, 1.2, 0.6).toFixed(3) + '">Source: US Patent 1,219,881 (1917)</text>'
 
   kit.stage(s)
   // Slow push in on the pair

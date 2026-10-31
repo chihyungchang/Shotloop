@@ -55,11 +55,11 @@
                           wedgeGlow = 0, id = 's' })
     The slider cut open, large: a Y-shaped channel, two arms at the top (left arm takes the
     blue row, right arm the amber row) running down into one throat that exits at the
-    bottom; the wedge between the arms; hatched walls. (x, y) is its centre; at scale 1 it
+    bottom; the divider between the arms (drawn as a wedge); hatched walls. (x, y) is its centre; at scale 1 it
     covers x−240…x+240, y−270…y+270. p 0→1 traces it on; labels 0→1 the 'Y-channel' and
-    'wedge' callouts; arc 0→1 the angle arc at the meeting point (with its two guide
-    lines), drawn from the left arm towards the right. wedgeGlow 0→1 warms the wedge
-    (amber) when it is doing the work.
+    'divider' callouts; arc 0→1 the angle arc at the meeting point (with its two guide
+    lines), drawn from the left arm towards the right. wedgeGlow 0→1 warms the divider
+    (amber) when it is parting the teeth.
 
   ── sliderGeom(kit, { x, y, scale }) → { u (tooth size to use inside it), pitch, half (deg,
       each arm's tilt from vertical), meet, wedgeTip, entryL, entryR, exit (points),
@@ -323,7 +323,7 @@ export function sliderCutaway(kit, o = {}) {
     out += '<circle cx="' + r1(m.x) + '" cy="' + r1(m.y) + '" r="3.5" fill="' + C.text + '"/>'
   }
   if (labels > 0) {
-    out += tag(kit, x - 4 * s, y - 200 * s, 'wedge', { dx: -130 * s, dy: -20 * s, p: cl(labels * 1.3) })
+    out += tag(kit, x - 4 * s, y - 200 * s, 'divider', { dx: -130 * s, dy: -20 * s, p: cl(labels * 1.3) })
     out += tag(kit, x, y + 190 * s, 'Y-channel', { dx: 100 * s, dy: 30 * s, p: cl(labels * 1.3 - 0.3) })
   }
   return out

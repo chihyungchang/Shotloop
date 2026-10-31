@@ -6,7 +6,7 @@ Four-word stack: KETCHUP, TYCOON, TYPHOON, KOWTOW slam in one by one, huge, whit
 
 ## On screen
 
-4 English words born in Chinese
+4 English words shaped by Chinese
 
 ## Motion
 
@@ -14,3 +14,4 @@ Each word drops in from above with a short squash bounce (one every 0.5 s), the 
 
 ## Review history
 - 2026-10-31: planned in the storyboard.
+- 2026-10-31: facts checked against Merriam-Webster and etymonline; on-screen text updated to match.

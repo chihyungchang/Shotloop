@@ -95,7 +95,7 @@ export default function render(t, { window, start }) {
 
   // Source line under the picture
   s += '<text x="40" y="986" font-size="15" fill="' + C.muted + '" font-family="' + FONT.replace(/"/g, '') + '" opacity="' + (0.85 * rise(t, 0.4, 0.6)).toFixed(3) +
-    '">Source: Explain that Stuff, “How do zippers work?”</text>'
+    '">Source: US Patent 1,219,881 (1917)</text>'
 
   kit.stage(s)
   // Zoom about the frame's centre so the picture keeps its place in the safe area

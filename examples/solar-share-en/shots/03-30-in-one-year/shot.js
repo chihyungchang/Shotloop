@@ -1,9 +1,10 @@
-// 03-29-in-one-year: +29% in one year. Two gold bars, 2023 and 2024; the
-// added slice fills with rising particles while +29% and +474 TWh roll.
+// 03-30-in-one-year: +30% in one year. Two gold bars, 2024 and 2025; the
+// added slice fills with rising particles while +30% and +636 TWh roll.
+// 2025 = 2,778 TWh, +636 TWh (Ember); 2024 = 2,778 − 636 = 2,142 TWh (arithmetic).
 // Shot-local time: t = 0 is this shot's first frame.
 import { ENERGY, sunDisc } from '../../world/parts.js'
 
-const V23 = 1657, V24 = 2131, ADD = 474
+const V23 = 2142, V24 = 2778, ADD = 636
 const BASE = 900, SCALE = 440 / V24 // px per TWh
 const B23 = { x: 80, w: 130 }, B24 = { x: 250, w: 130 }
 
@@ -38,15 +39,15 @@ export default function render(t, { window, start }) {
   // Small sun beside the big number
   s += sunDisc(kit, { x: 572, y: 196, r: 30, t, p: rise(t, -0.4, 0.8), glow: 0.6 + 0.4 * pNum, id: 'sun3' })
 
-  // Big rolling +29%
+  // Big rolling +30%
   const sc = 1 + 0.06 * Math.sin(Math.PI * clamp((t - 2.7) / 0.5))
   s += '<g transform="translate(40 290) scale(' + sc.toFixed(3) + ')">' +
-    '<text x="0" y="0" font-family="' + HF + '" font-size="156" font-weight="800" letter-spacing="-4" fill="' + ENERGY.solar + '" style="font-variant-numeric: tabular-nums">+' + count(pNum, 0, 29) + '%</text></g>'
+    '<text x="0" y="0" font-family="' + HF + '" font-size="156" font-weight="800" letter-spacing="-4" fill="' + ENERGY.solar + '" style="font-variant-numeric: tabular-nums">+' + count(pNum, 0, 30) + '%</text></g>'
 
   // Chart: faint gridlines every 500 TWh, axis label
   const chartIn = 1
   s += '<g opacity="' + chartIn.toFixed(3) + '">'
-  for (let v = 500; v <= 2000; v += 500) {
+  for (let v = 500; v <= 2500; v += 500) {
     const y = BASE - v * SCALE
     s += '<line x1="60" y1="' + y + '" x2="600" y2="' + y + '" stroke="' + C.line + '" stroke-width="1" stroke-dasharray="2 6" opacity="0.7"/>'
   }
@@ -67,13 +68,13 @@ export default function render(t, { window, start }) {
     s += '<text x="' + (B23.x + B23.w / 2) + '" y="' + (BASE - h23 - 14) + '" text-anchor="middle" font-family="' + F + '" font-size="24" font-weight="800" fill="' + C.text + '" opacity="' + rise(t, 0.4, 0.4).toFixed(3) + '" style="font-variant-numeric: tabular-nums">≈' + fmt(V23 * p23) + '</text>'
   }
 
-  // Previous level carried across to the 2024 bar
+  // Previous level carried across to the 2025 bar
   const lvl = rise(t, 1.1, 0.5)
   if (lvl > 0) {
     s += '<line x1="' + (B23.x + B23.w) + '" y1="' + top23 + '" x2="' + lerp(B23.x + B23.w, B24.x + B24.w + 14, lvl) + '" y2="' + top23 + '" stroke="' + C.text + '" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="6 5"/>'
   }
 
-  // 2024 bar, the new slice bright on top
+  // 2025 bar, the new slice bright on top
   if (h24 > 0) {
     if (slice > 0) s += '<rect x="' + B24.x + '" y="' + top24 + '" width="' + B24.w + '" height="' + slice + '" rx="8" fill="' + ENERGY.solar + '" opacity="' + (0.55 * pAdd).toFixed(3) + '" filter="url(#blur)"/>'
     s += '<g clip-path="url(#col24)">'
@@ -97,7 +98,7 @@ export default function render(t, { window, start }) {
     s += '<text x="' + (B24.x + B24.w / 2) + '" y="' + (top24 - 14) + '" text-anchor="middle" font-family="' + F + '" font-size="24" font-weight="800" fill="' + C.text + '" opacity="' + rise(t, 1.0, 0.4).toFixed(3) + '" style="font-variant-numeric: tabular-nums">' + fmt(v24) + '</text>'
   }
 
-  // Bracket and rolling +474 TWh beside the slice
+  // Bracket and rolling +636 TWh beside the slice
   if (pAdd > 0) {
     const bx = B24.x + B24.w + 22, y0 = BASE - V24 * SCALE, y1 = top23
     const fy = float(t, 3, 2.4)
@@ -110,11 +111,11 @@ export default function render(t, { window, start }) {
 
   // Year labels
   s += '<g font-family="' + F + '" font-size="26" font-weight="800" text-anchor="middle">' +
-    '<text x="' + (B23.x + B23.w / 2) + '" y="' + (BASE + 52) + '" fill="' + C.muted + '" >2023</text>' +
-    '<text x="' + (B24.x + B24.w / 2) + '" y="' + (BASE + 52) + '" fill="' + ENERGY.solar + '" opacity="' + rise(t, 0.8, 0.4).toFixed(3) + '">2024</text></g>'
+    '<text x="' + (B23.x + B23.w / 2) + '" y="' + (BASE + 52) + '" fill="' + C.muted + '" >2024</text>' +
+    '<text x="' + (B24.x + B24.w / 2) + '" y="' + (BASE + 52) + '" fill="' + ENERGY.solar + '" opacity="' + rise(t, 0.8, 0.4).toFixed(3) + '">2025</text></g>'
 
   // Source line
-  s += '<text x="40" y="1004" font-family="' + F + '" font-size="15" fill="' + C.muted + '" opacity="' + (0.85 * rise(t, -0.2, 0.5)).toFixed(3) + '">Ember, Global Electricity Review 2025 · 2023 ≈ 2,131 − 474 TWh</text>'
+  s += '<text x="40" y="1004" font-family="' + F + '" font-size="15" fill="' + C.muted + '" opacity="' + (0.85 * rise(t, -0.2, 0.5)).toFixed(3) + '">Ember, Global Electricity Review 2026 · 2024 ≈ 2,778 − 636 TWh</text>'
 
   kit.stage(s)
   kit.frame({ kicker: '03 / 06', head: 'in a single year', typed: rise(t, -0.25, 0.7), top: 304, progress: (start + t) / 23.5 })

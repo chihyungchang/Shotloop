@@ -1,11 +1,12 @@
 // 06-end-card: End card. The four-word stack from shot 1 returns; each word's
-// amber root pops in down the stack, a FROM CHINESE stamp slams with a short
+// amber root pops in down the stack (typhoon's with a '?': Chinese may
+// only have shaped it), a SHAPED BY CHINESE stamp slams with a short
 // shake, and a slow drift zoom settles on shot 1's framing.
 // Shot-local time: t = 0 is this shot's first frame.
 import { wordStack, embers, sourceLine } from '../../world/parts.js'
 
 const DUR = 3
-const ROOTS = ['fish sauce', 'great lord', 'big wind', 'knock head']
+const ROOTS = ['fish sauce', 'great lord', 'great wind?', 'knock head']
 const ROOT_AT = [0.3, 0.55, 0.8, 1.05]
 const STAMP_AT = 1.45
 
@@ -29,8 +30,8 @@ export default function render(t, { window, start }) {
     wordStack(kit, { t, mark: 1, roots: ROOTS, rootP: ROOT_AT.map(a => rise(t, a, 0.3)), shake }) +
     // The stamp alone (no words land), a little smaller and right so the roots stay clear
     '<g transform="translate(390 650) scale(0.9) translate(-330 -650)">' +
-    wordStack(kit, { t, land: [99, 99, 99, 99], stamp, stampText: 'FROM CHINESE', shake }) + '</g>' +
-    sourceLine(kit, { text: 'Source: Online Etymology Dictionary', p: rise(t, 1.9, 0.5) })
+    wordStack(kit, { t, land: [99, 99, 99, 99], stamp, stampText: 'SHAPED BY CHINESE', shake }) + '</g>' +
+    sourceLine(kit, { text: 'Sources: Online Etymology Dictionary; Merriam-Webster', p: rise(t, 1.9, 0.5) })
   )
 
   // Slow drift zoom: from slightly wide into shot 1's exact framing

@@ -3,7 +3,7 @@
 ## Must show
 
 - The mainboard filling the lower half: processor package with lid, memory and storage chips, shield cans, gold connectors, passives, screw pads.
-- “02 · MAINBOARD / Mainboard and chips / Processor, memory and storage chips, all soldered to this one board”, over dark background only.
+- “02 · MAINBOARD / Mainboard and chips / Processor, memory and storage chips, all on this one board”, over dark background only.
 
 ## Motion
 

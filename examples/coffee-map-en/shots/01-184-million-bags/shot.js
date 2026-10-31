@@ -1,5 +1,5 @@
-// 01-170-million-bags: the globe turns while coffee-bean pins pop up along the
-// equator and a gold counter rolls to ≈170,000,000 bags a year.
+// 01-184-million-bags: the globe turns while coffee-bean pins pop up along the
+// equator and a gold counter rolls to ≈184,000,000 bags (2025/26).
 // Shot-local time: t = 0 is this shot's first frame.
 import { coffeeMap, beanPin, mapAt } from '../../world/parts.js'
 
@@ -11,7 +11,7 @@ const SPOTS = [
   [76, 12.3], [104, -4], [107.8, 13], [145, -6]
 ].sort((a, b) => a[0] - b[0])
 
-const TOTAL = 170000000
+const TOTAL = 184000000
 
 // An odometer: each digit rolls on as the one below it wraps
 function odometer(kit, v, { x, y, size, color }) {
@@ -59,7 +59,7 @@ export default function render(t, { window, start }) {
     svg += beanPin(kit, { x, y, p: rise(t, a, 0.45), t: t - a, vis, size: 0.95 })
   })
 
-  // The counter rolls from 0 and lands on 170,000,000 with a bounce
+  // The counter rolls from 0 and lands on 184,000,000 with a bounce
   const roll = clamp((t - 0.1) / 1.0)
   const v = TOTAL * (1 - Math.pow(1 - roll, 3))
   const bounce = 1 + 0.07 * Math.sin(Math.PI * clamp((t - 1.1) / 0.32))
@@ -75,7 +75,7 @@ export default function render(t, { window, start }) {
     '" font-family="' + font + '">From <tspan fill="' + C.accent + '">where?</tspan></text>'
 
   // Source line
-  svg += '<text x="40" y="1012" font-size="15" fill="' + C.muted + '" opacity="0.85" font-family="' + font + '">Source: ICO Coffee Market Report, 2023/24 (60-kg bags)</text>'
+  svg += '<text x="40" y="1012" font-size="15" fill="' + C.muted + '" opacity="0.85" font-family="' + font + '">Source: ICO Coffee Market Report, Aug 2026 (2025/26 estimate)</text>'
 
   kit.stage(svg)
 }

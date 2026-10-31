@@ -14,3 +14,4 @@ Arcs draw on one after another; destination fills fade in blue; bean dots stream
 
 ## Review history
 - 2026-10-31: planned in the storyboard.
+- 2026-10-31: facts updated to verified 2026 sources (ICO Aug 2026, USDA FAS Jul 2026, NCA aboutcoffee.org).

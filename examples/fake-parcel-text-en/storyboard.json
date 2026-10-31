@@ -6,24 +6,43 @@
   "look": "graphite",
   "copy": {
     "idea": "A fake 'delivery problem' text sends you to a copycat page that asks for a small fee and takes your card details. The video walks through each step on a phone and shows the signs that give it away.",
-    "hook": "Text scams cost Americans $330 million in 2022, and a fake parcel text is one of the most common.",
-    "body": "A text arrives: your parcel is on hold, pay a small redelivery fee. It comes from an unknown number, it pushes you to hurry, and the link looks odd.\n\nTap it and a page opens that looks just like a courier's site, but the address in the bar isn't theirs.\n\nIt asks for a tiny fee, so you type in your card number, expiry date and security code, then press Pay.\n\nThose details go straight to the scammers, who can use the card themselves.\n\nHow to beat it: don't tap. Check your parcel in the courier's own app or website, forward the text to 7726, then delete it.",
+    "hook": "Americans reported $470 million lost to text scams in 2024, and fake package-delivery texts were the most reported text scam that year.",
+    "body": "A text arrives: your parcel is on hold, pay a small redelivery fee. It comes from an unknown number, it pushes you to hurry, and the link looks odd.\n\nTap it and a page opens that looks just like a courier's site, but the address in the bar isn't theirs.\n\nIt asks for a tiny fee, so you type in your card number, expiry date and security code, then press Pay.\n\nThose details go straight to the scammers, who can use the card themselves.\n\nHow to beat it: don't tap. Check with the company using a website or number you know is real, not the one in the text. Forward the text to 7726, then delete it.",
     "facts": [
-      { "text": "Reported losses to text message scams in the US reached $330 million in 2022.", "source": "FTC Consumer Protection Data Spotlight, 'IYKYK: The top text scams of 2022', June 2023 — https://www.ftc.gov/news-events/data-visualizations/data-spotlight/2023/06/iykyk-top-text-scams-2022" },
-      { "text": "Fake package delivery problem texts were among the most reported text scams of 2022.", "source": "FTC Consumer Protection Data Spotlight, 'IYKYK: The top text scams of 2022', June 2023" },
-      { "text": "Scam texts often claim a problem with a delivery and include a link; you shouldn't click links in unexpected texts.", "source": "FTC, 'How To Recognize and Report Spam Text Messages' — https://consumer.ftc.gov/articles/how-recognize-and-report-spam-text-messages" },
-      { "text": "You can report spam texts by forwarding them to 7726 (SPAM).", "source": "FTC, 'How To Recognize and Report Spam Text Messages' — https://consumer.ftc.gov/articles/how-recognize-and-report-spam-text-messages" },
-      { "text": "Check a delivery by going to the shipper's official website or app yourself, not through the link in the text.", "source": "FTC, 'How To Recognize and Report Spam Text Messages'" }
+      {
+        "text": "“In 2024, people reported $470 million in losses to these scams, more than five times the 2020 number.”",
+        "source": "FTC Data Spotlight, 'Top text scams of 2024', 14 Apr 2025 — https://www.ftc.gov/news-events/data-visualizations/data-spotlight/2025/04/top-text-scams-2024"
+      },
+      {
+        "text": "“Messages about package deliveries, usually from someone pretending to be from the U.S. Postal Service, were the most reported text scam last year.” (last year = 2024)",
+        "source": "FTC Data Spotlight, 'Top text scams of 2024', 14 Apr 2025 — https://www.ftc.gov/news-events/data-visualizations/data-spotlight/2025/04/top-text-scams-2024"
+      },
+      {
+        "text": "Scam texts often claim a problem with a delivery and include a link; you shouldn't click links in unexpected texts.",
+        "source": "FTC Consumer Advice, 'How To Recognize and Report Spam Text Messages' — https://consumer.ftc.gov/articles/how-recognize-and-report-spam-text-messages"
+      },
+      {
+        "text": "“Copy the message and forward it to 7726 (SPAM). This helps your wireless provider spot and block similar messages in the future.”",
+        "source": "FTC Consumer Advice, 'How To Recognize and Report Spam Text Messages' — https://consumer.ftc.gov/articles/how-recognize-and-report-spam-text-messages"
+      },
+      {
+        "text": "“If you think the message might be real, contact the company using a phone number or website you know is real. Not the information in the text message.”",
+        "source": "FTC Consumer Advice, 'How To Recognize and Report Spam Text Messages' — https://consumer.ftc.gov/articles/how-recognize-and-report-spam-text-messages"
+      },
+      {
+        "text": "Illustrative, not sourced: the $1.99 fee, the sender number, the parcel-redeliver.info address, the pay page, the card and the charges are made up for the video; no real courier brand or logo is shown.",
+        "source": "Illustrative example"
+      }
     ]
   },
   "shots": [
     {
       "title": "Hook: the text lands",
       "duration": 4,
-      "show": "The phone (recurring) fills the frame on a dark lock screen. A notification drops from the top: 'Your parcel is on hold'. Above the phone, a big red counter rolls up to $330M and lands with a bounce; behind it, faint copies of the same notification stack up and pile across the screen (illustrative), filling the frame.",
-      "text": "$330M lost to text scams in one year",
-      "motion": "Notification slides down with a buzz shake; the counter rolls from 0 to $330M and bounces; ghost notifications keep stacking in the background until the cut.",
-      "source": "FTC Data Spotlight, 2023 (US, 2022 reports)"
+      "show": "The phone (recurring) fills the frame on a dark lock screen. A notification drops from the top: 'Your parcel is on hold'. Above the phone, a big red counter rolls up to $470M and lands with a bounce, under the line 'lost to text scams in 2024'; the kicker reads 'US 2024 · #1 reported: parcel texts'; behind it, faint copies of the same notification stack up and pile across the screen (illustrative), filling the frame.",
+      "text": "$470M lost to text scams in 2024",
+      "motion": "Notification slides down with a buzz shake; the counter rolls from 0 to $470M and bounces; ghost notifications keep stacking in the background until the cut.",
+      "source": "FTC Data Spotlight, 'Top text scams of 2024', 14 Apr 2025 (US, 2024 reports)"
     },
     {
       "title": "Red flags in the text",
@@ -60,8 +79,8 @@
     {
       "title": "How to beat it",
       "duration": 6,
-      "show": "Back to the phone with the fake text bubble (recurring). The link is crossed out in red ('Don't tap'). Then two green steps: the courier's own app icon opens with a tracking screen ('Check in the official app'), and the text is forwarded to 7726 with a green check, then swiped away as deleted.",
-      "text": "Don't tap. Check the app. Forward to 7726.",
+      "show": "Back to the phone with the fake text bubble (recurring). The link is crossed out in red ('Don't tap'). Then two green steps: a saved courier site the viewer already knows (not the text's link) opens on a tracking screen ('Use a site you know is real'), and the text is forwarded to 7726 with a green check, then swiped away as deleted.",
+      "text": "Don't tap. Use a known site. Forward to 7726.",
       "motion": "The red line strikes through the link; a green card slides in for each step with a tick; the message bubble flies off left in the delete swipe.",
       "source": "FTC, 'How To Recognize and Report Spam Text Messages'"
     },
@@ -78,17 +97,35 @@
     {
       "name": "phone",
       "design": "A large modern phone, centred, filling about 70% of the frame height, graphite body with thin bezels; the caption sits above it, the source line small below it. Red marks scam elements, green marks safe actions, blue marks the active field or tap.",
-      "shots": [1, 2, 3, 4, 5, 6, 7]
+      "shots": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
     },
     {
       "name": "fake delivery text",
       "design": "A grey incoming SMS bubble on the left of the messages app, from an unknown number at the top; text: 'Your parcel is on hold. Pay a $1.99 redelivery fee within 24h: parcel-redeliver.info/xyz', with the link in blue underline. The same notification line 'Your parcel is on hold' is used for the lock-screen alert.",
-      "shots": [1, 2, 3, 6, 7]
+      "shots": [
+        1,
+        2,
+        3,
+        6,
+        7
+      ]
     },
     {
       "name": "fake pay page",
       "design": "A browser page with the address bar at the top reading 'parcel-redeliver.info', a yellow courier-style header with a generic parcel icon (no real brand), 'Delivery fee: $1.99', and below it a card form: card number, expiry, security code, and a wide 'Pay $1.99' button.",
-      "shots": [3, 4, 5]
+      "shots": [
+        3,
+        4,
+        5
+      ]
     }
   ]
 }

@@ -1,5 +1,5 @@
-// 06-only-the-wedge-opens: Only the wedge opens it. The cut-open slider of shot 4 glides down the
-// closed column; locked teeth rise up its throat, the wedge splits them one at a time: each tilts
+// 06-only-the-wedge-opens: Slide it back to open. The cut-open slider of shot 4 glides down the
+// closed column; locked teeth rise up its throat, the channel splits them one at a time: each tilts
 // along the angle arc (with a small spring), its teal lock goes out, and it leaves up its arm.
 // Shot-local time: t = 0 is this shot's first frame.
 import { sliderCutaway, sliderGeom, toothShape, tag } from '../../world/parts.js'
@@ -9,7 +9,7 @@ const V = 58 // teeth flow through the slider, px/s
 export default function render(t, { window, start }) {
   const kit = window.kit
   const { C, clamp, ease, rise } = kit
-  kit.frame({ kicker: 'Opening it', head: ['The *wedge* peels', 'them apart'], typed: clamp(0.3 + t / 0.6), progress: (start + t) / 32 })
+  kit.frame({ kicker: 'Opening it', head: ['Slide it back: it', '*separates* them'], typed: clamp(0.3 + t / 0.6), progress: (start + t) / 32 })
 
   // The slider glides down the frame
   const S = { x: 330, y: 590 + 110 * ease(t / 5), scale: 1 }
@@ -35,7 +35,7 @@ export default function render(t, { window, start }) {
     } else {
       pos = g.throat(d / T)
       angle = sx * tilt * spring(1 - d / D) * (d < D ? 1 : 0)
-      // The lock glows while meshed and goes out as the wedge parts it
+      // The lock glows while meshed and goes out as the channel parts it
       glow = 0.55 * Math.pow(clamp(d / D), 2)
     }
     // How much this tooth is being parted now (drives the arc and the wedge)
@@ -69,7 +69,7 @@ export default function render(t, { window, start }) {
 
   // Source, small under the picture
   s += '<text x="' + kit.PAD + '" y="1018" font-size="15" fill="' + C.muted + '" font-family="' + kit.FONT.replace(/"/g, '') +
-    '" opacity="' + rise(t, 1.2, 0.6).toFixed(3) + '">Source: Encyclopaedia Britannica, “zipper”; Explain that Stuff</text>'
+    '" opacity="' + rise(t, 1.2, 0.6).toFixed(3) + '">Source: US Patent 1,219,881 (1917); Britannica</text>'
 
   kit.stage(s)
 }

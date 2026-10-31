@@ -2,11 +2,11 @@
 
 ## Must show
 
-The closed zipper column, side by side with a cross-section strip of locked teeth. Red force arrows pull the left and right tapes outward; small red arrows split off and spread along every tooth in the row while each bump-in-hollow lock glows teal and does not move. A 'pull' label with growing arrow lengths shows the force rising; the column stays shut.
+The closed zipper column, side by side with a cross-section strip of locked teeth, each bump nested in the next tooth's hollow. Red force arrows pull the left and right tapes outward and run along the row while each bump-in-hollow lock glows teal and does not move. A 'pull' label with growing arrow lengths shows the force rising; the column stays shut.
 
 ## On screen
 
-Pull sideways: every locked tooth shares the load
+Locked, each tooth sits nested in the next
 
 ## Motion
 

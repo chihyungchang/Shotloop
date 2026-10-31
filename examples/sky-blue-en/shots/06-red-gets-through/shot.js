@@ -92,5 +92,5 @@ export default function render(t, { window }) {
   kit.depth(1.4, () => kit.particles(t, { n: 10, seed: 15, x: 0, y: 380, w: 720, h: 600, size: 1.8, color: C.rgb.light, vx: 18, vy: -4, life: 5 }))
 
   kit.caption({ head: ['Blue scatters away;', '*red* gets through'], size: 58, p: rise(t, 0.1, 0.6) })
-  kit.source("NOAA SciJinks, 'Why Are Sunsets Red?' · paths not to scale", rise(t, 0.6, 0.6))
+  kit.source("Source: NASA Space Place, 'Why Is the Sky Blue?' · not to scale", rise(t, 0.6, 0.6))
 }

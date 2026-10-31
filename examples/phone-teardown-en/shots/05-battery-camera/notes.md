@@ -3,7 +3,7 @@
 ## Must show
 
 - First half: the battery, the largest part, out of the stack with its flex cable and connector; “03 · BATTERY / It takes up a large share of the body”.
-- Second half: the camera module turned round, three lenses and the flash facing us; “04 · CAMERA / Camera module / Several lenses, each covering a different focal length”.
+- Second half: the camera module turned round, three lenses and the flash facing us; “04 · CAMERA / Camera module / Each rear camera has its own lens and sensor”.
 
 ## Motion
 

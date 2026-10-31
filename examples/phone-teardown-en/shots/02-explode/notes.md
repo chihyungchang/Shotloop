@@ -3,7 +3,7 @@
 ## Must show
 
 - Seven layers separating into a rising diagonal stack: cover glass (black ink border), display, frame, mainboard, battery, camera module, back glass.
-- “EXPLODED VIEW / Layer on layer / The whole phone is usually under 1 cm thick” in the top third, clear of the stack.
+- “EXPLODED VIEW / Layer on layer / Most phones are under 1 cm thick” in the top third, clear of the stack.
 
 ## Motion
 

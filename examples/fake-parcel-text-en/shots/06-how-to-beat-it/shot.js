@@ -1,7 +1,8 @@
 // 06-how-to-beat-it: How to beat it.
 // Back on the fake text: the link is struck through in red. Then two green
-// steps: the courier's own app opens on a tracking screen, and the text is
-// forwarded to 7726 and delivered; finally the bubble is swiped away.
+// steps: a courier site you know is real (not the link) opens on a tracking
+// screen, and the text is forwarded to 7726 and delivered; finally the
+// bubble is swiped away.
 // Shot-local time: t = 0 is this shot's first frame.
 import { phone, phoneBox, messagesScreen, anchors, flagLabel, finger, ripple, textWidth } from '../../world/parts.js'
 
@@ -14,8 +15,8 @@ export default function render(t, { window, start }) {
   const red = C.hue.red, green = C.hue.green, blue = C.hue.blue
 
   // headline: each line types in as its step begins
-  const typed = (10 + 14 * rise(t, 1.1, 0.3) + 16 * rise(t, 2.0, 0.35)) / 40
-  kit.frame({ head: ["Don't tap.", 'Check the app.', 'Forward to *7726*.'], typed, top: 140, progress: (start + t) / 33 })
+  const typed = (10 + 17 * rise(t, 1.1, 0.3) + 16 * rise(t, 2.0, 0.35)) / 43
+  kit.frame({ head: ["Don't tap.", 'Use a known site.', 'Forward to *7726*.'], typed, top: 140, progress: (start + t) / 33 })
 
   const b = phoneBox(PH), k = b.k
   const toF = (sx, sy) => [b.left + (9 + sx) * k, b.top + (9 + sy) * k]
@@ -46,7 +47,7 @@ export default function render(t, { window, start }) {
     scr += '<g opacity="' + gone + '" transform="translate(0 ' + (1 - gone) * 12 + ')"><path d="' + rr(155 - w / 2, 222, w, 36, 18) + '" fill="#2c2c2e"/>' +
       tx(155, 245, 'Message deleted', { size: 14, weight: 600, fill: '#fff', anchor: 'middle' }) + '</g>'
   }
-  // the courier's app: icon pops, then grows into its tracking screen
+  // a saved courier site you know (not the text's link): icon pops, then grows into its tracking screen
   if (iconP > 0 && collapse < 1) {
     const dim = 0.45 * rise(t, 1.1, 0.3)
     const x = lerp(123, 0, grow), y = lerp(372, 0, grow), w = lerp(64, 310, grow), h = lerp(64, 654, grow)
@@ -117,7 +118,7 @@ export default function render(t, { window, start }) {
   const lX = a.link.x + 4, lY = a.bubble.y + a.bubble.h + 46 + float(t, 2, 2.8)
   const conn = rise(t, 0.8, 0.35) * (1 - rise(t, 1.4, 0.3))
 
-  // fingers: tap the app, tap send, swipe the bubble
+  // fingers: tap the saved site, tap send, swipe the bubble
   const [ix, iy] = toF(155, 404)
   const f1 = rise(t, 1.0, 0.35) * (1 - rise(t, 1.65, 0.3))
   const p1 = clamp(1 - Math.abs(t - 1.45) / 0.12)
@@ -146,7 +147,7 @@ export default function render(t, { window, start }) {
     ripple(kit, { x: sx, y: sy, p: clamp((t - 3.97) / 0.6) }) +
     finger(kit, { x: sx, y: sy, p: f2, press: p2 }) +
     finger(kit, { x: wx, y: wy, p: f3, press: clamp((t - 4.75) / 0.1) }) +
-    stepCard(kit, c1y + float(t, 1.5, 2.6), 'Check in the official app', c1, rise(t, 2.15, 0.35)) +
+    stepCard(kit, c1y + float(t, 1.5, 2.6), 'Use a site you know is real', c1, rise(t, 2.15, 0.35)) +
     stepCard(kit, 938 + float(t, 1.5, 2.6, 0.4), 'Forwarded to 7726', c2, rise(t, 4.3, 0.35)) +
     '<text x="360" y="1016" text-anchor="middle" font-family="' + FONT + '" font-size="12.5" fill="' + C.muted + '" opacity=".85">' +
     'Source: FTC, “How To Recognize and Report Spam Text Messages” · illustration</text>'
@@ -158,7 +159,7 @@ export default function render(t, { window, start }) {
       '" fill="' + fill + '" text-anchor="' + anchor + '" ' + extra + '>' + String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</text>'
   }
 
-  // The courier's tracking screen (illustrative)
+  // The courier's tracking screen, reached from a site you know (illustrative)
   function tracking(p) {
     const steps = ['Shipped', 'In transit', 'Out for delivery']
     let s = '<rect width="310" height="654" fill="#f3f5f4"/>' +
@@ -166,7 +167,7 @@ export default function render(t, { window, start }) {
       tx(42, 32, '9:41', { size: 15, weight: 700, fill: '#0b2414', anchor: 'middle' }) +
       '<path d="' + rr(20, 62, 46, 46, 12) + '" fill="#fff"/><g transform="translate(43 85) scale(1.1)">' + parcel(green) + '</g>' +
       tx(80, 82, 'Courier', { size: 21, weight: 800, fill: '#0b2414' }) +
-      tx(80, 101, 'Official app · Track', { size: 12, weight: 600, fill: '#14532d' }) +
+      tx(80, 101, 'Site you know is real · Track', { size: 12, weight: 600, fill: '#14532d' }) +
       '<path d="' + rr(14, 152, 282, 214, 16) + '" fill="#fff" stroke="#e1e5e2"/>' +
       tx(30, 180, 'TRACKING', { size: 11, weight: 700, fill: '#7a817c', extra: 'letter-spacing="0.8"' }) +
       tx(30, 204, 'Your parcel', { size: 19, weight: 800, fill: '#111' }) +
@@ -194,7 +195,7 @@ const parcel = c => '<path d="M-11 -6 L0 -11 L11 -6 L0 -1 Z M-11 -6 V6 L0 11 V-1
 // A green step card with a tick, sliding in from the right
 function stepCard(kit, y, text, p, tick) {
   if (p <= 0) return ''
-  const g = kit.C.hue.green, w = textWidth('Check in the official app', 21) + 96, e = 1 - Math.pow(1 - Math.min(1, p), 3)
+  const g = kit.C.hue.green, w = textWidth('Use a site you know is real', 21) + 96, e = 1 - Math.pow(1 - Math.min(1, p), 3)
   const x0 = 360 - w / 2 + (1 - e) * 90
   return '<g opacity="' + Math.min(1, p * 2) + '"><path d="' + rr(x0, y - 28, w, 56, 18) + '" fill="#10261a" fill-opacity=".97" stroke="' + g + '" stroke-width="2"/>' +
     '<circle cx="' + (x0 + 34) + '" cy="' + y + '" r="15" fill="' + g + '"/>' +

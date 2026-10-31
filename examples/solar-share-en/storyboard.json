@@ -1,81 +1,107 @@
 {
   "target": 23.5,
   "style": "infographic",
-  "styleWhy": "The story is a share and a growth rate (percentages, terawatt-hours, a doubling), so clean animated charts show the comparison better than any scene of a solar panel could.",
+  "styleWhy": "The story is a share and a growth rate (percentages, terawatt-hours, a share of new demand), so clean animated charts show the comparison better than any scene of a solar panel could.",
   "styleAlt": "scene",
   "look": "midnight",
   "copy": {
-    "idea": "Solar still makes only a small slice of the world's electricity, but it is growing faster than any other source: up 29% in a single year and doubled in three.",
+    "idea": "Solar still makes only a small slice of the world's electricity, but it is growing more than any other source: up 30% in 2025, and it alone met three quarters of the rise in demand.",
     "hook": "How much of the world's electricity comes from the Sun?",
-    "body": "In 2024, solar made 6.9% of all the electricity the world generated: about 1 unit in every 15.\n\nThat is still small. Coal alone made about a third, and gas more than a fifth.\n\nBut solar is the speed story. Its output grew 29% in one year, adding 474 TWh, and it has doubled in just three years since 2021.\n\nFor the third year in a row, solar was the world's largest source of new electricity. Small slice, fastest growth.",
+    "body": "In 2025, solar made 8.7% of all the electricity the world generated: about 1 unit in every 11.\n\nThat is still small. Coal alone made a third, and gas more than a fifth.\n\nBut solar is the growth story. Its output rose 30% in one year, a record 636 TWh, to 2,778 TWh. Solar alone met 75% of the rise in the world's electricity demand.\n\nFor the fourth year running, solar grew more than any other source. Small slice, biggest growth.",
     "facts": [
-      { "text": "Solar generated 6.9% of global electricity in 2024 (2,131 TWh).", "source": "Ember, Global Electricity Review 2025 — https://ember-energy.org/latest-insights/global-electricity-review-2025/" },
-      { "text": "Shares of global electricity in 2024: coal ≈34%, gas ≈22%, hydro ≈14%, nuclear ≈9%, wind ≈8%, solar ≈7%.", "source": "Ember, Global Electricity Review 2025 — https://ember-energy.org/latest-insights/global-electricity-review-2025/" },
-      { "text": "Solar generation grew 29% in 2024, adding 474 TWh.", "source": "Ember, Global Electricity Review 2025 — https://ember-energy.org/latest-insights/global-electricity-review-2025/" },
-      { "text": "Global solar generation doubled in the three years since 2021.", "source": "Ember, Global Electricity Review 2025 — https://ember-energy.org/latest-insights/global-electricity-review-2025/" },
-      { "text": "Solar was the largest source of new electricity generation worldwide for the third year in a row in 2024.", "source": "Ember, Global Electricity Review 2025 — https://ember-energy.org/latest-insights/global-electricity-review-2025/" }
+      {
+        "text": "Solar generated 8.7% of global electricity in 2025, almost level with nuclear. Quote: \"Solar reached 8.7% of global generation in 2025, almost matching nuclear's share (8.9%)\". (About 1 in 11 is our arithmetic: 100 ÷ 8.7 ≈ 11.5.)",
+        "source": "Ember, World electricity data page (Global Electricity Review 2026 data) — https://ember-energy.org/countries-and-regions/world/"
+      },
+      {
+        "text": "Shares of global electricity in 2025: coal 33% (\"Coal fell to 33%, dropping below one-third for the first time\"), gas 21.8%, hydro 14% (\"Hydro remains the largest individual source of low-carbon electricity at 14%\"), nuclear 8.9%, wind 8.5% (\"wind rose to 8.5%\"), solar 8.7%. 'Other' (5.1%) is the remainder, our arithmetic.",
+        "source": "Ember, World electricity data page (Global Electricity Review 2026 data) — https://ember-energy.org/countries-and-regions/world/"
+      },
+      {
+        "text": "Solar generation grew 30% in 2025, adding a record 636 TWh. Quote: \"Solar power increased by a record 636 TWh to reach 2,778 TWh in 2025, a 30% increase\". (2024 ≈ 2,778 − 636 = 2,142 TWh is our arithmetic.)",
+        "source": "Ember, Global Electricity Review 2026, published 21 April 2026 — https://ember-energy.org/latest-insights/global-electricity-review-2026/"
+      },
+      {
+        "text": "Solar met three quarters of the growth in electricity demand in 2025. Quote: \"Solar power alone met 75% of the net increase in electricity demand\".",
+        "source": "Ember, Global Electricity Review 2026, published 21 April 2026 — https://ember-energy.org/latest-insights/global-electricity-review-2026/"
+      },
+      {
+        "text": "Solar had the largest absolute growth of any source for the fourth year in a row. Quote: \"For the fourth year running, solar recorded the largest absolute growth of any electricity source.\"",
+        "source": "Ember, Global Electricity Review 2026, published 21 April 2026 — https://ember-energy.org/latest-insights/global-electricity-review-2026/"
+      }
     ]
   },
   "shots": [
     {
       "title": "Hook: how much is solar?",
       "duration": 3.5,
-      "show": "Rolling counter: a huge gold '0.0%' fills the middle of the navy frame and rolls up to 6.9%, landing with a bounce. Behind it a soft gold sun disc pulses; beneath it a thin full-width bar (the 'world electricity' bar of shot 2) fills just its first 6.9% in gold, the rest dim slate. Small label above: 'SHARE OF WORLD ELECTRICITY · 2024'.",
-      "text": "Solar's share of world power: 6.9%",
-      "motion": "Counter rolls 0→6.9 in 1.6 s and bounces; the gold sliver wipes in with it; sun disc breathes; light rays rotate slowly behind the number.",
-      "source": "Ember, Global Electricity Review 2025"
+      "show": "Rolling counter: a huge gold '0.0%' fills the middle of the navy frame and rolls up to 8.7%, landing with a bounce. Behind it a soft gold sun disc pulses; beneath it a thin full-width bar (the 'world electricity' bar of shot 2) fills just its first 8.7% in gold, the rest dim slate. Small label above: 'SHARE OF WORLD ELECTRICITY · 2025'. A row of 11 bolts, the first gold: ≈ 1 unit in every 11 (labelled arithmetic).",
+      "text": "Solar's share of world power: 8.7%",
+      "motion": "Counter rolls 0→8.7 in 1.6 s and bounces; the gold sliver wipes in with it; sun disc breathes; light rays rotate slowly behind the number.",
+      "source": "Ember, Global Electricity Review 2026 (8.7% of 2025 generation; 100 ÷ 8.7 ≈ 11.5 → ≈ 1 in 11, arithmetic)"
     },
     {
       "title": "Still a small slice",
       "duration": 4.5,
-      "show": "Split bar: the same world-electricity bar from shot 1, now tall and vertical down the frame, splits into labelled segments stacking from the top: coal 34%, gas 22%, hydro 14%, nuclear 9%, wind 8%, solar 7% (gold) at the bottom, plus a thin 'other'. Fossil segments in muted slate-red, clean sources in teal, solar in gold. Each segment's % counter rolls as it appears; the coal block is outlined so its size beside solar is obvious.",
-      "text": "Small next to coal's 34%",
-      "motion": "Segments slide in one after another from the top with rolling percentages; at the end the gold solar segment glows and a bracket compares it with the coal block.",
-      "source": "Ember, Global Electricity Review 2025 (shares of 2024 generation, rounded)"
+      "show": "Split bar: the same world-electricity bar from shot 1, now tall and vertical down the frame, splits into labelled segments stacking from the top: coal 33%, gas 21.8%, hydro 14%, nuclear 8.9%, wind 8.5%, solar 8.7% (gold) at the bottom, plus a thin 'other' (5.1%, the remainder). Fossil segments in muted slate-red, clean sources in teal, solar in gold. Each segment's % counter rolls as it appears; the coal block is outlined so its size beside solar is obvious.",
+      "text": "Small next to coal's 33%",
+      "motion": "Segments slide in one after another from the top with rolling percentages; at the end the gold solar segment glows and ≈3.8 copies of it stack up beside the coal block.",
+      "source": "Ember, Global Electricity Review 2026 (shares of 2025 generation; coal 33% ÷ solar 8.7% ≈ 3.8)"
     },
     {
-      "title": "+29% in one year",
+      "title": "+30% in one year",
       "duration": 4.0,
-      "show": "Two gold vertical bars side by side: 2023 (≈1,657 TWh) and 2024 (2,131 TWh). The 2024 bar grows past the 2023 bar; the extra slice on top is highlighted bright gold with a rolling '+474 TWh' label. A big '+29%' counter rolls at the top. Ground dots stream upward into the new slice like particles of energy.",
-      "text": "+29% in a single year",
-      "motion": "2023 bar rises first, then the 2024 bar grows and overshoots; the added slice fills with flowing particles while +29% and +474 TWh roll up.",
-      "source": "Ember, Global Electricity Review 2025 (2023 ≈ 2,131 − 474 = 1,657 TWh)"
+      "show": "Two gold vertical bars side by side: 2024 (≈2,142 TWh) and 2025 (2,778 TWh). The 2025 bar grows past the 2024 bar; the extra slice on top is highlighted bright gold with a rolling '+636 TWh' label. A big '+30%' counter rolls at the top. Ground dots stream upward into the new slice like particles of energy.",
+      "text": "+30% in a single year",
+      "motion": "2024 bar rises first, then the 2025 bar grows and overshoots; the added slice fills with flowing particles while +30% and +636 TWh roll up.",
+      "source": "Ember, Global Electricity Review 2026 (2024 ≈ 2,778 − 636 = 2,142 TWh, arithmetic)"
     },
     {
-      "title": "Doubled in three years",
+      "title": "Three-quarters of new demand",
       "duration": 4.0,
-      "show": "Shared timeline: a horizontal axis 2021 → 2024 with a cursor running along it. A gold block for 2021 output sits at the left; as the cursor moves, a copy of the block clones and stacks on top, ending as exactly two equal blocks at 2024 with a big '×2' landing beside them.",
-      "text": "Doubled in just three years",
-      "motion": "Cursor sweeps 2021→2024 in 2.5 s; the block grows continuously, splits into two equal halves with a snap; '×2' drops in with a bounce.",
-      "source": "Ember, Global Electricity Review 2025"
+      "show": "The net rise in world electricity demand in 2025 stands as a column of four equal blocks labelled 'NET RISE IN DEMAND · 2025'. The bottom three fill gold one after another, each marked 25%; the top one stays dim slate, 'the rest'. Beside them a big gold '75%' rolls up over a soft sun disc, 'MET BY SOLAR ALONE' beneath it.",
+      "text": "Solar met 75% of new demand",
+      "motion": "Empty blocks are set out from the first frame; gold drops into three of them in turn with a flash while bolts rise off the newest; the 75% counter rolls with the fills and lands with a bounce; a bracket draws along the gold blocks.",
+      "source": "Ember, Global Electricity Review 2026 (\"Solar power alone met 75% of the net increase in electricity demand\")"
     },
     {
-      "title": "Biggest source of new power",
+      "title": "Biggest growth, 4 years running",
       "duration": 4.5,
-      "show": "Bar race: horizontal bars labelled 'New electricity added' for 2022, 2023, 2024, one row per year; in each row solar's gold bar races other sources (teal wind, slate others) and finishes first, a gold '#1' badge stamping on it. Three badges stack in a column on the right, then a '3 years running' tag.",
-      "text": "#1 source of new power, 3 years running",
-      "motion": "Rows race in turn, each about 0.9 s; gold bar overtakes and the #1 badge stamps; the three badges glow together at the end.",
-      "source": "Ember, Global Electricity Review 2025 (bar lengths illustrative; ranking from source)"
+      "show": "Bar race: horizontal bars labelled 'Growth in generation' for 2022, 2023, 2024, 2025, one row per year; in each row solar's gold bar races other sources (teal wind, slate others) and finishes first, a gold '#1' badge stamping on it. Four badges stack in a column on the right, then a '4 years running' tag.",
+      "text": "Biggest growth of any source, 4 years running",
+      "motion": "Rows race in turn, each about 0.75 s; gold bar overtakes and the #1 badge stamps; the four badges glow together at the end.",
+      "source": "Ember, Global Electricity Review 2026 (bar lengths illustrative; ranking from source)"
     },
     {
       "title": "End card",
       "duration": 3.0,
-      "show": "The world-electricity bar from shot 1 returns, gold sliver at 6.9%, and an upward gold arrow labelled '+29%/yr' pushes the sliver wider as the title sets above: 'Small slice. Fastest growth.' Source line at the foot.",
-      "text": "Small slice. Fastest growth.",
+      "show": "The world-electricity bar from shot 1 returns, gold sliver at 8.7%, and an upward gold arrow labelled '+30%' (solar output, 2025) pushes the sliver wider as the title sets above: 'Small slice. Biggest growth.' Source line at the foot.",
+      "text": "Small slice. Biggest growth.",
       "motion": "Gold sliver creeps wider under the arrow; title types in; sun disc glows softly behind.",
-      "source": "Data: Ember, Global Electricity Review 2025"
+      "source": "Data: Ember, Global Electricity Review 2026"
     }
   ],
   "recurring": [
     {
       "name": "World electricity bar",
-      "design": "One long bar standing for 100% of world electricity in 2024, rounded ends, dim slate fill; solar's 6.9% always gold and always at the same end (left when horizontal, bottom segment when the bar stands vertical in shot 2); clean sources teal, fossil sources muted slate-red; label 'WORLD ELECTRICITY · 2024' in small caps.",
-      "shots": [1, 2, 6]
+      "design": "One long bar standing for 100% of world electricity in 2025, rounded ends, dim slate fill; solar's 8.7% always gold and always at the same end (left when horizontal, bottom segment when the bar stands vertical in shot 2); clean sources teal, fossil sources muted slate-red; label 'WORLD ELECTRICITY · 2025' in small caps.",
+      "shots": [
+        1,
+        2,
+        6
+      ]
     },
     {
       "name": "Solar gold",
       "design": "Solar is always warm gold (bars, counters, badges, sun disc); other clean sources teal; fossil fuels muted slate-red; never swapped.",
-      "shots": [1, 2, 3, 4, 5, 6]
+      "shots": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
     }
   ]
 }

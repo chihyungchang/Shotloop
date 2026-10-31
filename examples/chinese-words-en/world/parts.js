@@ -1,4 +1,4 @@
-// world/parts.js: the recurring pictures of "Everyday English words that came from Chinese".
+// world/parts.js: the recurring pictures of "English words shaped by Chinese".
 // Every function is pure: the same options draw the same frame. Each returns SVG
 // markup for kit.stage() (concatenate several, then call kit.stage(markup) once).
 // Coordinates are the page's 720×1280 stage; the defaults sit in the safe area.
@@ -30,11 +30,11 @@
 //   land = [-9, -9, -9, -9],  time each word lands; it falls from above in the 0.32 s
 //                     before and squashes/bounces after. Default: all already there.
 //   mark = 0,         0→1 sweeps the orange marker under the words, top to bottom
-//   roots = null,     e.g. ['fish sauce', 'great lord', 'big wind', 'knock head']: small
+//   roots = null,     e.g. ['fish sauce', 'great lord', 'great wind?', 'knock head']: small
 //                     amber line under each word (shot 6)
 //   rootP = [1,1,1,1],  0→1 per root, pops it in
 //   stamp = 0,        0→1 slams the fire-orange stamp across the stack
-//   stampText = 'FROM CHINESE',
+//   stampText = 'SHAPED BY CHINESE',
 //   shake = 0 })      0…1 shake amplitude of the whole stack (needs t)
 // counterRoll(kit, { x = 40, y, value = 1, size = 210, p = 1, pulse = 0 })
 //   Big fire-orange digit rolling up like a slot reel: value 2.4 is between 2 and 3.
@@ -133,7 +133,7 @@ export function stackLayout(kit, { cy = 650 } = {}) {
 }
 
 export function wordStack(kit, { cy = 650, t = 0, land = [-9, -9, -9, -9], mark = 0, roots = null, rootP = [1, 1, 1, 1],
-  stamp = 0, stampText = 'FROM CHINESE', shake = 0 } = {}) {
+  stamp = 0, stampText = 'SHAPED BY CHINESE', shake = 0 } = {}) {
   const { C, clamp, hash } = kit
   const L = stackLayout(kit, { cy })
   const fr = Math.floor(t * 30)

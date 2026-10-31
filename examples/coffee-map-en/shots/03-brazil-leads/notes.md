@@ -2,11 +2,11 @@
 
 ## Must show
 
-Camera flies from the world into South America. Brazil fills a brighter leaf green and grows a gold pin with rank badge '1'. Beside it a big counter rolls to ≈1/3, and a split bar at the bottom (the world's coffee) splits: Brazil's third in green, the rest in dim slate.
+Camera flies from the world into South America. Brazil fills a brighter leaf green and grows a gold pin with rank badge '1'. Beside it a big counter rolls to 40% under the word 'nearly', and a split bar at the bottom (the world's coffee) splits: Brazil's nearly 40% in green, the rest in dim slate.
 
 ## On screen
 
-Brazil grows about 1 in 3 bags
+Brazil grows nearly 40% of it
 
 ## Motion
 
@@ -14,3 +14,4 @@ Zoom and pan into Brazil; the fill pulses brighter; pin drops; counter rolls; sp
 
 ## Review history
 - 2026-10-31: planned in the storyboard.
+- 2026-10-31: facts updated to verified 2026 sources (ICO Aug 2026, USDA FAS Jul 2026, NCA aboutcoffee.org).

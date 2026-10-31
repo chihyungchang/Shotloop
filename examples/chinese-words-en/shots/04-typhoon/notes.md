@@ -2,11 +2,11 @@
 
 ## Must show
 
-Word card, same layout: two roots slide in from left and right: 大風 'big wind' (amber, Chinese) and 'Typhon, Greek storm monster' (cooler grey). They collide in the middle and fuse into TYPHOON, huge and white. Wind streaks whip across the frame behind the type and the letters wobble in the gusts. Orange marker sweeps under 'big wind'.
+Word card, same layout: the word's main roots slide in from left and right: 'tufan' (Arabic) and 'Typhon' (Greek, 'storm monster'), both cooler grey. They collide in the middle and fuse into TYPHOON, huge and white. Wind streaks whip across the frame behind the type and the letters wobble in the gusts. Then the Chinese part, as a maybe, in the lower third: 大風 in amber, tagged 'Cantonese · may have shaped it', with 'tai fung, 'a great wind'' under it and an orange marker sweep; a small wind icon beside it.
 
 ## On screen
 
-Typhoon: Chinese 'big wind', plus a Greek monster
+Typhoon: Arabic, Greek, and maybe Chinese
 
 ## Motion
 
@@ -14,3 +14,4 @@ Roots slide in from opposite sides, merge with a flash, TYPHOON spins in a quart
 
 ## Review history
 - 2026-10-31: planned in the storyboard.
+- 2026-10-31: facts checked against Merriam-Webster and etymonline; on-screen text updated to match.

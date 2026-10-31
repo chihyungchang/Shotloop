@@ -1,12 +1,12 @@
 // 03-air-scatters-blue: Air scatters blue. The colour strands enter a field of
 // air molecules; blue photons ricochet off them in a growing spray, red ones
-// sail straight through, and the ≈6× counter rolls up and lands.
+// sail straight through, and the ≈5× counter rolls up and lands.
 // Shot-local time: t = 0 is this shot's first frame.
 import { sunBeam, airMolecules, scatter, STRANDS } from '../../world/parts.js'
 
 const BLUE = STRANDS[0].rgb, RED = STRANDS[4].rgb
 const SPLIT = [290, 625]
-const N = 30 // photons of each colour (illustrative: 6 in 7 blue scatter, 1 in 7 red)
+const N = 30 // photons of each colour (illustrative: 5 in 6 blue scatter, 1 in 6 red)
 const SPEED = 420
 
 export default function render(t, { window }) {
@@ -48,8 +48,8 @@ export default function render(t, { window }) {
     else if (hits) scatter(kit, { x: tx, y: ty, p: (t - t0 - dur) / 0.9, n: 6, seed: k * 7 + ph, len: 80, rgb })
   }
   for (let k = 0; k < N; k++) {
-    photon(k, BLUE, k % 7 !== 3, 472, 0) // blue: 6 in 7 scatter
-    photon(k, RED, k % 7 === 5, 888, 1) // red: 1 in 7 scatters
+    photon(k, BLUE, k % 6 !== 3, 472, 0) // blue: 5 in 6 scatter
+    photon(k, RED, k % 6 === 5, 888, 1) // red: 1 in 6 scatters
   }
 
   kit.depth(1.4, () => kit.particles(t, { n: 10, seed: 9, x: 0, y: 380, w: 720, h: 640, size: 2.2, color: C.rgb.light, vx: 26, vy: -6, life: 5 }))
@@ -57,7 +57,7 @@ export default function render(t, { window }) {
   // Caption: one line around the rolling counter
   const cp = rise(t, 0.1, 0.7)
   const roll = ease(clamp((t - 0.9) / 1.7))
-  const v = 1 + 5 * roll
+  const v = 1 + 4 * roll
   const bump = Math.sin(Math.PI * clamp((t - 2.5) / 0.45))
   const dot = (rgb, r, g) => '<span style="display:inline-block;width:' + r + 'px;height:' + r + 'px;border-radius:50%;margin-left:16px;vertical-align:middle;' +
     'background:radial-gradient(circle at 35% 35%, #fff, rgb(' + rgb + ') 60%);box-shadow:0 0 ' + g + 'px ' + g / 3 + 'px rgba(' + rgb + ', 0.75)"></span>'
@@ -73,6 +73,6 @@ export default function render(t, { window }) {
   // Source, two short lines above the safe bottom
   kit.block({
     y: 962, p: rise(t, 2.6, 0.6), dy: 8, cls: 'source',
-    html: "Source: HyperPhysics, 'Blue Sky': scattering ∝ 1/λ⁴;<br>(700 nm / 450 nm)⁴ ≈ 5.9 · photons illustrative"
+    html: "Source: HyperPhysics (GSU): Rayleigh scattering ∝ 1/λ⁴;<br>blue ≈470 nm (HyperPhysics 'Color');<br>our arithmetic: (700 nm / 470 nm)⁴ ≈ 4.9 · photons illustrative"
   })
 }

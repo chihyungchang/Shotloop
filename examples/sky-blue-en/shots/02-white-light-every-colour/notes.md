@@ -2,7 +2,7 @@
 
 ## Must show
 
-The sunlight beam (recurring): a white beam leaves the blooming Sun at upper left and travels across space; midway it fans apart into its colour strands — blue on top, then green, yellow, orange, red at the bottom — each a glowing wave line, blue waves visibly short and tight, red waves long and lazy. Small labels at the strand ends: '≈450 nm' on blue, '≈700 nm' on red.
+The sunlight beam (recurring): a white beam leaves the blooming Sun at upper left and travels across space; midway it fans apart into its colour strands — blue on top, then green, yellow, orange, red at the bottom — each a glowing wave line, blue waves visibly short and tight, red waves long and lazy. Small labels at the strand ends: '≈470 nm' on blue, '≈700 nm' on red.
 
 ## On screen
 

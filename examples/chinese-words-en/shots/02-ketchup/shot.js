@@ -1,8 +1,9 @@
-// 02-ketchup: KETCHUP's word card; 'tomato' is struck and rolls into 'fermented fish'.
+// 02-ketchup: KETCHUP's word card; 'tomato' is struck and rolls into 'pickled fish'
+// (Merriam-Webster: Southern Min kê-chiap, 'salted or pickled fish' + 'juice').
 // Shot-local time: t = 0 is this shot's first frame.
 import { embers, sourceLine, cardRoot, cardWord, cardLine, cardIcon, measure, CARD } from '../../world/parts.js'
 
-const LINE = { before: 'Started as', wrong: 'tomato', right: 'fermented fish', after: 'sauce', size: 44 }
+const LINE = { before: 'Started as', wrong: 'tomato', right: 'pickled fish', after: 'sauce', size: 44 }
 const TYPE_AT = [1.5, 1.72, 1.94, 2.16] // Started, as, tomato, sauce
 
 // Clip that reveals the line word by word (same wrap rule as cardLine)
@@ -31,7 +32,7 @@ export default function render(t, { window, start }) {
   // Caption: typed in early, then still for the rest of the shot
   kit.frame({
     kicker: '02 / 06 · ketchup',
-    head: ['*Ketchup* began as a', 'fermented fish sauce'],
+    head: ['*Ketchup* began as a', 'fish sauce'],
     typed: rise(t, -0.15, 0.75),
     progress: (start + t) / 29.5
   })
@@ -52,7 +53,7 @@ export default function render(t, { window, start }) {
 
   const markup =
     embers(kit, { t, n: 26 }) +
-    cardRoot(kit, { text: 'kê-tsiap', tag: 'Hokkien', meaning: 'fish sauce', p: rise(t, 0.75, 0.5), mp: rise(t, 1.1, 0.4) }) +
+    cardRoot(kit, { text: 'kê-chiap', tag: 'Southern Min (Hokkien)', meaning: 'fish sauce', p: rise(t, 0.75, 0.5), mp: rise(t, 1.1, 0.4) }) +
     cardWord(kit, { word: 'KETCHUP', p: pop(t, 0.05, 0.55) }) +
     typeClip(kit, t) +
     '<g clip-path="' + (t < 2.6 ? 'url(#typeclip)' : 'none') + '">' +
@@ -60,8 +61,8 @@ export default function render(t, { window, start }) {
     '</g>' +
     bubbles +
     cardIcon(kit, { name: 'fish', x: fx, y: fy, size: 130, p: pop(t, 1.0, 0.5), t }) +
-    cardIcon(kit, { name: 'tomato', x: 548, y: 896, size: 76, p: rise(t, 4.7, 0.6), label: 'later' }) +
-    sourceLine(kit, { text: "Online Etymology Dictionary, 'ketchup'; Merriam-Webster, 'ketchup'", p: rise(t, 1.2, 0.5) })
+    cardIcon(kit, { name: 'tomato', x: 548, y: 896, size: 76, p: rise(t, 4.7, 0.6), label: 'today' }) +
+    sourceLine(kit, { text: "Source: Merriam-Webster, 'ketchup'", p: rise(t, 1.2, 0.5) })
 
   kit.stage(markup)
 }

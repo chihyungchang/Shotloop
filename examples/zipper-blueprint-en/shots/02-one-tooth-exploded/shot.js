@@ -84,7 +84,7 @@ export default function render(t, { window, start }) {
     '" font-family="' + font + '" opacity="' + ti.toFixed(3) + '">ONE TOOTH · SECTION VIEW</text>'
   s += '<line x1="' + r1(TX - 120 * ti) + '" y1="' + (TY + 244) + '" x2="' + r1(TX + 120 * ti) + '" y2="' + (TY + 244) + '" stroke="' + C.muted + '" stroke-width="1.2" opacity="0.6"/>'
   s += '<text x="40" y="1010" font-size="15" fill="' + C.muted + '" font-family="' + font + '" opacity="' + (0.85 * rise(t, 0.4, 0.6)).toFixed(3) +
-    '">Source: Explain that Stuff, “How do zippers work?”</text>'
+    '">Source: US Patent 1,219,881 (1917)</text>'
 
   kit.stage(s)
   // The camera eases out of shot 01's last framing to the whole frame

@@ -97,5 +97,5 @@ export default function render(t, { window }) {
   const blue = 'color:rgb(150, 195, 255);text-shadow:0 0 24px rgba(' + BLUE + ', 0.9)'
   kit.block({ y: 154, p: rise(t, 0.1, 0.6), cls: 'head', style: 'font-size:56px',
     html: 'Blue arrives from<br>every direction:<br><span style="' + blue + '">the sky</span>' })
-  kit.source("Source: NASA SciJinks, 'Why Is the Sky Blue?' · illustration", rise(t, 1.2, 0.6))
+  kit.source("Source: NASA Space Place, 'Why Is the Sky Blue?' · illustration", rise(t, 1.2, 0.6))
 }

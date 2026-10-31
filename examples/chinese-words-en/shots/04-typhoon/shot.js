@@ -1,6 +1,8 @@
-// 04-typhoon: Typhoon. Two roots fly in from opposite sides (大風 amber, Typhon grey),
-// collide in a flash and recoil; TYPHOON spins in beneath them and wobbles in the gusts
-// while wind streaks pour left to right across the whole frame.
+// 04-typhoon: Typhoon. The word's main roots fly in from opposite sides (Arabic tufan,
+// Greek Typhon, both grey), collide in a flash and recoil; TYPHOON spins in beneath them
+// and wobbles in the gusts. Then the Chinese part, framed as a maybe: Cantonese 大風
+// 'tai fung', 'a great wind', may have shaped it (etymonline). Wind streaks pour left to
+// right across the whole frame.
 // Shot-local time: t = 0 is this shot's first frame.
 import { cardRoot, cardWord, cardIcon, embers, measure, sourceLine, CARD } from '../../world/parts.js'
 
@@ -31,7 +33,7 @@ export default function render(t, { window, start }) {
   const gust = 0.5 + 0.5 * Math.sin(t * 2.3) * Math.sin(t * 0.9 + 1)
 
   // Roots: fly in to touch at CX, then recoil to the card's sides
-  const lw = measure(kit, '大風', 80, 800, kit.FONT), rw = measure(kit, 'Typhon', 80, 800, kit.FONT)
+  const lw = measure(kit, 'tufan', 80, 800, kit.FONT), rw = measure(kit, 'Typhon', 80, 800, kit.FONT)
   const fly = ease((t + 0.45) / (HIT + 0.45)), back = pop(t, HIT, 0.7)
   const lx = lerp(lerp(-lw - 40, CX - lw - 6, fly), CARD.x, back)
   const rx = lerp(lerp(kit.W + rw + 40, CX + rw + 6, fly), kit.SAFE_RIGHT, back)
@@ -57,17 +59,20 @@ export default function render(t, { window, start }) {
 
   const q = kit.stage(
     embers(kit, { t, opacity: 0.7 }) + streaks(kit, t, gust) + flash +
-    cardRoot(kit, { text: '大風', meaning: 'big wind', x: lx, p: rp, mp, mark: ease((t - 2.6) / 0.7) }) +
-    cardRoot(kit, { text: 'Typhon', meaning: 'Greek storm monster', x: rx, align: 'end', color: C.hue.gray, p: rp, mp: rise(t, 1.6, 0.45) }) +
+    cardRoot(kit, { text: 'tufan', tag: 'Arabic', x: lx, color: C.hue.gray, p: rp }) +
+    cardRoot(kit, { text: 'Typhon', tag: 'Greek', meaning: 'storm monster', x: rx, align: 'end', color: C.hue.gray, p: rp, mp }) +
     plus + fuse +
     cardWord(kit, { word: 'TYPHOON', p: wp, spin, wobble, t, ground: rise(t, 1.7, 0.8) }) +
-    cardIcon(kit, { name: 'wind', x: 330 + kit.float(t, 6, 2), p: pop(t, 2.2, 0.5), t }) +
-    sourceLine(kit, { text: "Source: Online Etymology Dictionary, 'typhoon'", p: rise(t, 2.0, 0.5) })
+    // Lower third: the Chinese part, as a maybe
+    cardRoot(kit, { text: '大風', tag: 'Cantonese · may have shaped it', meaning: "tai fung, 'a great wind'", y: 915, size: 64,
+      p: rise(t, 2.1, 0.45), mp: rise(t, 2.45, 0.45), mark: ease((t - 3.1) / 0.7) }) +
+    cardIcon(kit, { name: 'wind', x: 560 + kit.float(t, 6, 2), y: 885, size: 110, p: pop(t, 2.2, 0.5), t }) +
+    sourceLine(kit, { text: "Sources: Online Etymology Dictionary, 'typhoon'; Hesiod, Theogony (Typhon)", p: rise(t, 2.0, 0.5) })
   )
   drawOn(q('#fl'), rise(t, 1.5, 0.5))
   drawOn(q('#fr'), rise(t, 1.65, 0.5))
 
   // The caption, word by word at the top (y 150…320), clear of the card
-  kit.say({ text: "Typhoon: Chinese 'big wind', plus a Greek monster", t, at: -0.3, each: 0.07, y: 150, size: 50,
-    hl: ["'big", "wind'"], hlColor: C.accent })
+  kit.say({ text: 'Typhoon: Arabic, Greek, and maybe Chinese', t, at: -0.3, each: 0.07, y: 150, size: 50,
+    hl: ['Chinese'], hlColor: C.accent })
 }

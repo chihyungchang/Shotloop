@@ -5,15 +5,16 @@
   "styleAlt": "infographic",
   "look": "midnight",
   "copy": {
-    "idea": "A zipper is two rows of identical teeth and one slider. The slider pushes the teeth together at an angle so each one nests into the next, and once they are locked a sideways pull can't separate them.",
+    "idea": "A zipper is two rows of identical teeth and one slider. Each tooth has a recess on one side and a projection on the other, so the teeth of one row nest into the teeth of the other. The slider is a sliding cam: moved one way it meshes the teeth, moved the other way it separates them.",
     "hook": "Tiny teeth, no glue: so how does a zipper hold?",
-    "body": "Every tooth has the same shape: a bump on top and a hollow underneath.\n\nThe two rows are offset by half a tooth, so each tooth on one side lines up with a gap on the other.\n\nThe slider is a Y-shaped channel. As you pull it up, it guides the two rows together at an angle and presses each tooth's bump into the hollow of the tooth beside it.\n\nOnce the teeth are interlocked, pulling the two sides apart spreads the force along the row of locked teeth, and the hooks stay put.\n\nTo open it, the wedge inside the slider pushes the teeth apart one at a time, at the one angle where they come loose.\n\nThe modern design was patented in 1917 as a 'separable fastener'.",
+    "body": "Every tooth has the same shape: a bump on top and a hollow underneath.\n\nThe teeth on one side alternate with the teeth on the other, offset by half a tooth, so each tooth lines up with a gap opposite.\n\nThe slider is a Y-shaped channel. As you pull it up, it brings the two rows together and nests each tooth's bump in the hollow of the tooth beside it.\n\nOnce the teeth are locked, each one sits nested in the next, and the row stays shut.\n\nTo open it, slide it back: the same channel separates the teeth, one at a time.\n\nThe design was patented in 1917 as a 'separable fastener'.",
     "facts": [
-      { "text": "Each zipper tooth has a hook or bump on one side and a hollow or pocket on the other, and they nest into the teeth beside them.", "source": "Explain that Stuff, \"How do zippers work?\", https://www.explainthatstuff.com/zippers.html" },
-      { "text": "The two rows of teeth are offset so the teeth of one side fit between the teeth of the other.", "source": "Explain that Stuff, \"How do zippers work?\", https://www.explainthatstuff.com/zippers.html" },
-      { "text": "The slider has a Y-shaped channel that brings the two rows together at an angle and meshes the teeth; moving it the other way, a wedge separates them.", "source": "Encyclopaedia Britannica, \"zipper\", https://www.britannica.com/technology/zipper" },
-      { "text": "Interlocked teeth resist being pulled apart sideways; they can only be separated at an angle, which the slider provides.", "source": "Explain that Stuff, \"How do zippers work?\", https://www.explainthatstuff.com/zippers.html" },
-      { "text": "The modern zipper was patented in the US in 1917 as a 'Separable Fastener'.", "source": "Encyclopaedia Britannica, \"zipper\", https://www.britannica.com/technology/zipper" }
+      { "text": "Each tooth has a hollow on one side and a bump on the other. Quoted: \"a rounded recess on one side and a corresponding projection on the opposite side\"", "source": "Gideon Sundback, US Patent 1,219,881 \"Separable fastener\", granted 20 March 1917, https://patents.google.com/patent/US1219881" },
+      { "text": "Locked teeth nest inside each other. Quoted: \"the outside of one member nests within the recess of an adjoining member when in locked relation\"", "source": "Gideon Sundback, US Patent 1,219,881 \"Separable fastener\", granted 20 March 1917, https://patents.google.com/patent/US1219881" },
+      { "text": "The two rows alternate. Quoted: \"The members on one stringer alternate with those on the other\". Shown as an offset of half a tooth: with evenly spaced teeth, alternating means each tooth faces the gap opposite, half a pitch along; that is our reading, not a quote.", "source": "Gideon Sundback, US Patent 1,219,881 \"Separable fastener\", granted 20 March 1917, https://patents.google.com/patent/US1219881" },
+      { "text": "The slider locks or unlocks depending on which way it moves. Quoted: \"a sliding cam operating device\" that locks and unlocks \"according to its direction of movement\"", "source": "Gideon Sundback, US Patent 1,219,881 \"Separable fastener\", granted 20 March 1917, https://patents.google.com/patent/US1219881" },
+      { "text": "The slider's channel is Y-shaped. Quoted: \"The slider, usually operated by hand, contains a Y-shaped channel that, by moving along the rows of teeth, meshes or separates them, depending on the direction of the slider's movement.\" Read from the search snippet; the page itself could not be loaded.", "source": "Encyclopaedia Britannica, \"zipper\", https://www.britannica.com/technology/zipper, snippet seen 31 October 2026" },
+      { "text": "Patented in 1917 as a 'separable fastener'. Title on the patent: \"Separable fastener\", granted 20 March 1917.", "source": "Gideon Sundback, US Patent 1,219,881, https://patents.google.com/patent/US1219881" }
     ]
   },
   "shots": [
@@ -31,39 +32,39 @@
       "show": "Close-up of the zipper column; one blue tooth lifts out and slides into an exploded view at full size in the centre, rotating to a 3/4 section view and cut open. Callouts draw on: 'bump' pointing to the raised top, 'hollow' to the pocket underneath, with a dimension line across its width. A ghost of the next tooth slides under it to show the bump will sit in that hollow.",
       "text": "Every tooth: bump above, hollow below",
       "motion": "Tooth lifts and slides apart from the row, section hatching fills in, callout lines extend and labels type on, the ghost tooth glides into place.",
-      "source": "Explain that Stuff, \"How do zippers work?\""
+      "source": "Gideon Sundback, US Patent 1,219,881 \"Separable fastener\", 1917"
     },
     {
       "title": "Two rows, offset",
       "duration": 4.5,
-      "show": "Top view of the two rows of teeth on their tapes, left row blue, right row amber, facing each other across a gap. A dimension marker measures one tooth pitch, then a half-pitch marker shows the right row shifted down by half a tooth. Dashed guide lines from each blue tooth point into a gap on the amber side; the rows slide together and mesh like fingers.",
+      "show": "Top view of the two rows of teeth on their tapes, left row blue, right row amber, facing each other across a gap. A dimension marker measures one tooth pitch, then a half-pitch marker shows the right row shifted down by half a tooth. Dashed guide lines from each blue tooth point into a gap on the amber side; the rows slide together and alternate, tooth by tooth.",
       "text": "Two rows, offset by half a tooth",
       "motion": "Dimension lines draw on, the amber row shifts half a pitch, dashed guides flash, then both rows slide inward and interleave.",
-      "source": "Explain that Stuff, \"How do zippers work?\""
+      "source": "Gideon Sundback, US Patent 1,219,881 \"Separable fastener\", 1917"
     },
     {
       "title": "Inside the slider",
       "duration": 5.5,
-      "show": "The slider is cut open into a Y-shaped channel, drawn large and centred: two upper arms, one lower throat, labelled 'Y-channel' and 'wedge'. Blue teeth stream in through the left arm, amber through the right; as they meet in the throat each tooth tilts on an angle marker (an arc showing the tilt), its bump drops into the next tooth's hollow, and the meshed column exits at the bottom. Each tooth pulses teal as it locks.",
-      "text": "The slider tilts each tooth into the next",
+      "show": "The slider is cut open into a Y-shaped channel, drawn large and centred: two upper arms, one lower throat, labelled 'Y-channel' and 'divider'. Blue teeth stream in through the left arm, amber through the right; as the arms bring them together in the throat each tooth turns flat (an arc marks the turn), its bump nests in the next tooth's hollow, and the meshed column exits at the bottom. Each tooth pulses teal as it locks.",
+      "text": "The slider nests tooth into tooth",
       "motion": "Teeth flow continuously through the channel, angle arcs open and close at the meeting point, teal lock pulses run down the exiting column.",
-      "source": "Encyclopaedia Britannica, \"zipper\""
+      "source": "Gideon Sundback, US Patent 1,219,881 \"Separable fastener\", 1917; Encyclopaedia Britannica, \"zipper\""
     },
     {
       "title": "Why it holds",
       "duration": 5,
-      "show": "The closed zipper column, side by side with a cross-section strip of locked teeth. Red force arrows pull the left and right tapes outward; small red arrows split off and spread along every tooth in the row while each bump-in-hollow lock glows teal and does not move. A 'pull' label with growing arrow lengths shows the force rising; the column stays shut.",
-      "text": "Pull sideways: every locked tooth shares the load",
+      "show": "The closed zipper column, side by side with a cross-section strip of locked teeth, each bump nested in the next tooth's hollow. Red force arrows pull the left and right tapes outward and run along the row while each bump-in-hollow lock glows teal and does not move. A 'pull' label with growing arrow lengths shows the force rising; the column stays shut.",
+      "text": "Locked, each tooth sits nested in the next",
       "motion": "Red arrows grow outward and tremble, the force fans out tooth by tooth down the column, teal locks pulse steadily, the teeth stay put.",
-      "source": "Explain that Stuff, \"How do zippers work?\""
+      "source": "Gideon Sundback, US Patent 1,219,881 \"Separable fastener\", 1917"
     },
     {
-      "title": "Only the wedge opens it",
+      "title": "Slide it back to open",
       "duration": 5,
-      "show": "The same cut-open slider Y-channel as shot 4, now moving down the closed column. The central wedge (outlined amber-white) pries the meshed teeth apart; each tooth tilts along the same angle arc and unhooks, blue going out the left arm, amber the right. A counter-arrow and a callout read 'one tooth at a time'.",
-      "text": "The wedge peels them apart",
+      "show": "The same cut-open slider Y-channel as shot 4, now moving down the closed column: the same slider, moving the other way. The divider between the arms (outlined amber-white) parts the meshed teeth; each tooth turns along the same arc and unnests, blue going out the left arm, amber the right. A counter-arrow and a callout read 'one tooth at a time'.",
+      "text": "Slide it back: it separates them",
       "motion": "Slider glides down, teeth unhook in sequence with a small tilt and spring apart into the arms, teal lock glows switching off as each tooth leaves.",
-      "source": "Encyclopaedia Britannica, \"zipper\""
+      "source": "Gideon Sundback, US Patent 1,219,881 \"Separable fastener\", 1917; Encyclopaedia Britannica, \"zipper\""
     },
     {
       "title": "End card",
@@ -71,7 +72,7 @@
       "show": "The full zipper from shot 1 zips shut one last time, its slider reaching the top. Beside it a patent-style title block draws on, like a drawing's corner stamp: 'SEPARABLE FASTENER', with the year rolling up to 1917.",
       "text": "Patented in 1917",
       "motion": "Slider races up, title-block border traces on, year counter rolls and lands with a bounce.",
-      "source": "Encyclopaedia Britannica, \"zipper\""
+      "source": "Gideon Sundback, US Patent 1,219,881 \"Separable fastener\", 1917"
     }
   ],
   "recurring": [
@@ -87,7 +88,7 @@
     },
     {
       "name": "Slider cutaway",
-      "design": "Large cut-open slider centred: Y-shaped channel with two arms at the top (left arm takes blue teeth, right arm amber) and the throat at the bottom, a central wedge between the arms, labels 'Y-channel' and 'wedge', and an angle arc at the meeting point.",
+      "design": "Large cut-open slider centred: Y-shaped channel with two arms at the top (left arm takes blue teeth, right arm amber) and the throat at the bottom, a divider between the arms, labels 'Y-channel' and 'divider', and an angle arc at the meeting point.",
       "shots": [4, 6]
     }
   ]

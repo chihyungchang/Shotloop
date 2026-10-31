@@ -1,7 +1,7 @@
 {
   "version": 1,
   "title": "How does a zipper work?",
-  "description": "Teeth, a slider and a wedge: the zipper drawn as a blueprint, part by part.",
+  "description": "Teeth and a slider: the zipper drawn as a blueprint, part by part.",
   "lang": "en",
   "slug": "zipper-blueprint-en",
   "track": "2d",
@@ -38,7 +38,7 @@
     },
     {
       "id": "06-only-the-wedge-opens",
-      "title": "Only the wedge opens it",
+      "title": "Slide it back to open",
       "duration": 5
     },
     {

@@ -1,6 +1,6 @@
-// 05-where-arabica-began: the camera flies from the belt into the Horn of Africa;
-// Ethiopia's highlands glow gold, its rank-5 pin stays, a coffee plant sprouts
-// on the southwest highlands ('arabica') and ripples spread out from it.
+// 05-where-coffee-began: the camera flies from the belt into the Horn of Africa;
+// Ethiopia's highlands glow gold, its rank-4 pin stays, a coffee plant sprouts
+// on the southwest highlands ('coffee forests') and ripples spread out from it.
 // Shot-local time: t = 0 is this shot's first frame.
 import { coffeeMap, rankPins, mapAt } from '../../world/parts.js'
 
@@ -98,25 +98,25 @@ export default function render(t, { window, start }) {
     '<rect x="0" y="0" width="720" height="460" fill="url(#a5-top)"/>' +
     '<rect x="0" y="900" width="720" height="380" fill="url(#a5-foot)"/>'
 
-  // The rank pins (all dropped; Ethiopia's 5 stays in view)
+  // The rank pins (all dropped; Ethiopia's 4 stays in view)
   svg += rankPins(kit, { view, drop: 1, notes: { 2: 'robusta' }, scale: lerp(1.25, 1.5, fly) })
 
   // The plant and its label
   svg += plant(kit, px, py + float(t, 1.2, 2.5), t, 1.15)
   const lab = rise(t, 2.6, 0.4)
   if (lab > 0) svg += '<text x="' + (px - 40).toFixed(1) + '" y="' + (py - 34 + (1 - lab) * 10).toFixed(1) + '" text-anchor="end" font-size="28" font-weight="800" font-style="italic" fill="' + C.hue.yellow +
-    '" opacity="' + lab.toFixed(3) + '" stroke="' + INK + '" stroke-width="5" paint-order="stroke" font-family="' + font + '">arabica</text>'
+    '" opacity="' + lab.toFixed(3) + '" stroke="' + INK + '" stroke-width="5" paint-order="stroke" font-family="' + font + '">coffee forests</text>'
 
   // Source line
   const src = rise(t, 0.6, 0.6)
-  svg += '<rect x="30" y="982" width="320" height="32" rx="8" fill="' + INK + '" opacity="' + (0.8 * src).toFixed(3) + '"/>' +
-    '<text x="40" y="1004" font-size="15" fill="' + C.muted + '" opacity="' + src.toFixed(3) + '" font-family="' + font + '">Source: Encyclopaedia Britannica, \'Coffee\'</text>'
+  svg += '<rect x="30" y="982" width="440" height="32" rx="8" fill="' + INK + '" opacity="' + (0.8 * src).toFixed(3) + '"/>' +
+    '<text x="40" y="1004" font-size="15" fill="' + C.muted + '" opacity="' + src.toFixed(3) + '" font-family="' + font + '">Source: National Coffee Association USA, aboutcoffee.org</text>'
 
   kit.stage(svg)
 
   kit.frame({
     kicker: 'The origin',
-    head: ['Ethiopia: where', '*arabica* coffee', 'began'],
+    head: ['Coffee’s story', 'begins in', '*Ethiopia*'],
     typed: rise(t, 0.05, 0.8),
     progress: (start + t) / 32.5
   })

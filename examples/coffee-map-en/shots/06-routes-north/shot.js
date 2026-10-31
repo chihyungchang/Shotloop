@@ -63,7 +63,7 @@ export default function render(t, { window, start }) {
   // Source line, small, under the picture
   svg += '<g font-family="' + font + '" font-size="15" fill="' + C.muted + '" opacity="' + (0.85 * rise(t, 0.6, 0.6)).toFixed(3) + '">' +
     '<text x="40" y="984">Source: USDA Foreign Agricultural Service,</text>' +
-    '<text x="40" y="1004">Coffee: World Markets and Trade (2024) · routes illustrative</text></g>'
+    '<text x="40" y="1004">Coffee: World Markets and Trade (July 2026) · routes illustrative</text></g>'
 
   kit.stage(svg)
 

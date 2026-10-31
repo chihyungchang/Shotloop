@@ -10,7 +10,7 @@ const V = 74 // flow speed along the path, px/s
 export default function render(t, { window, start }) {
   const kit = window.kit
   const { C, clamp, ease, rise } = kit
-  kit.frame({ kicker: 'Inside the slider', head: ['The slider *tilts* each', 'tooth into the next'], typed: clamp(0.3 + t / 0.6), progress: (start + t) / 32 })
+  kit.frame({ kicker: 'Inside the slider', head: ['The slider *nests*', 'tooth into tooth'], typed: clamp(0.3 + t / 0.6), progress: (start + t) / 32 })
 
   const g = sliderGeom(kit, S)
   const half = g.u + 2 * g.s                       // one tooth to the next in the locked column
@@ -64,7 +64,7 @@ export default function render(t, { window, start }) {
 
   // Source, small under the picture
   s += '<text x="' + kit.PAD + '" y="1012" font-size="15" fill="' + C.muted + '" font-family="' + kit.FONT.replace(/"/g, '') +
-    '" opacity="' + rise(t, 1.2, 0.6).toFixed(3) + '">Source: Encyclopaedia Britannica, “zipper”</text>'
+    '" opacity="' + rise(t, 1.2, 0.6).toFixed(3) + '">Source: US Patent 1,219,881 (1917); Britannica</text>'
 
   kit.stage(s)
   // Slow push in towards the meeting point

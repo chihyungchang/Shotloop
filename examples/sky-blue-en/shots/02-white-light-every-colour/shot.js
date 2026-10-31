@@ -26,5 +26,5 @@ export default function render(t, { window }) {
   kit.depth(1.4, () => kit.particles(t, { n: 10, seed: 9, x: 0, y: 380, w: 720, h: 640, size: 2.2, color: C.rgb.light, vx: 26, vy: -6, life: 5 }))
 
   kit.caption({ head: ['Sunlight carries', '*every colour*'], p: rise(t, 0.15, 0.7) })
-  kit.source("Source: NASA SciJinks, 'Why Is the Sky Blue?' · waves not to scale", rise(t, 2.2, 0.6))
+  kit.source("Source: NOAA SciJinks, 'Why Is the Sky Blue?' · waves not to scale", rise(t, 2.2, 0.6))
 }

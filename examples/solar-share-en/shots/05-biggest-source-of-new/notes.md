@@ -1,16 +1,17 @@
-# 05-biggest-source-of-new · Biggest source of new power
+# 05-biggest-source-of-new · Biggest growth, 4 years running
 
 ## Must show
 
-Bar race: horizontal bars labelled 'New electricity added' for 2022, 2023, 2024, one row per year; in each row solar's gold bar races other sources (teal wind, slate others) and finishes first, a gold '#1' badge stamping on it. Three badges stack in a column on the right, then a '3 years running' tag.
+Bar race: horizontal bars labelled 'Growth in generation' for 2022, 2023, 2024, 2025, one row per year; in each row solar's gold bar races other sources (teal wind, slate others) and finishes first, a gold '#1' badge stamping on it. Four badges stack in a column on the right, then a '4 years running' tag.
 
 ## On screen
 
-#1 source of new power, 3 years running
+Biggest growth of any source, 4 years running
 
 ## Motion
 
-Rows race in turn, each about 0.9 s; gold bar overtakes and the #1 badge stamps; the three badges glow together at the end.
+Rows race in turn, each about 0.75 s; gold bar overtakes and the #1 badge stamps; the four badges glow together at the end.
 
 ## Review history
 - 2026-10-31: planned in the storyboard.
+- 2026-10-31: facts updated to Ember Global Electricity Review 2026 (2025 data).
