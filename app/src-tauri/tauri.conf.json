@@ -15,8 +15,8 @@
         "title": "Shotloop",
         "width": 1440,
         "height": 900,
-        "minWidth": 1024,
-        "minHeight": 680,
+        "minWidth": 1120,
+        "minHeight": 700,
         "titleBarStyle": "Overlay",
         "hiddenTitle": true,
         "trafficLightPosition": {

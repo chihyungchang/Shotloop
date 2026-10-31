@@ -19,3 +19,6 @@ app/src-tauri/bundle-resources/
 
 # Local Claude Code rules and settings
 .claude/
+
+# Personal editor settings
+.vscode/

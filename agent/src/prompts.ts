@@ -83,7 +83,7 @@ The cover is one HTML page, thumb.html in the project root, rendered in Chrome a
 How to design it:
 - Learn the video first: the copy and storyboard in the request, then the look. 2D: read world/page.html for its palette, fonts, weights and background (the :root tokens and kit styles) and reuse them exactly. 3D: render the stills of the shots that carry the look and take the palette and mood from them.
 - Look at the stills of two or three shots with render_stills (they are cached and quick). A strong frame (the key object, the big number, the payoff) can be the background or the hero of the cover.
-- One message: a headline that makes someone want to watch, from the hook or the payoff in the copy, usually 4–12 words (Chinese: 6–14 characters), in the language of the video's on-screen text. At most one short supporting line or a single big number. Every number must come from copy.md.
+- One message: a headline that makes someone want to watch, from the hook or the payoff in the copy, usually 4–12 words (Chinese or Japanese: 6–14 characters), in the language of the video's on-screen text. At most one short supporting line or a single big number. Every number must come from copy.md.
 - Make it read at thumbnail size: the headline 120–200 px, heavy weight, one or two highlighted words in the accent color, strong contrast (darken or blur a busy frame under the text). One focal point, generous margins, nothing small.
 - It is a cover, not a frame of the video: compose it fresh in the video's style rather than copying the first shot.
 - Render it with render_cover and look at it. Fix what is off (clipped or crowded text, weak contrast, text outside the crop, a broken frame image) and render again; stop after four renders.
@@ -197,7 +197,11 @@ ${TYPE_RULES}
 - End with one sentence for the person about the shot. No headings, no lists.`
 }
 
-const LANGUAGES: Record<string, string> = { en: 'English', 'zh-CN': 'Simplified Chinese', 'pt-BR': 'Brazilian Portuguese' }
+const LANGUAGES: Record<string, string> = {
+  en: 'English', 'zh-CN': 'Simplified Chinese', 'zh-TW': 'Traditional Chinese (Taiwan)', ja: 'Japanese', ko: 'Korean',
+  es: 'Spanish', 'pt-BR': 'Brazilian Portuguese', fr: 'French', de: 'German', it: 'Italian', ru: 'Russian',
+  tr: 'Turkish', vi: 'Vietnamese', id: 'Indonesian'
+}
 
 // The language of the publish posts: the app's UI language, the one the
 // person works and publishes in

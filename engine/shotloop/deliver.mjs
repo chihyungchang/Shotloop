@@ -14,7 +14,18 @@ import path from 'node:path'
 const WORDS = {
   en: { '9:16': 'vertical', '16:9': 'horizontal', cover: 'cover', copy: 'publish copy' },
   'zh-CN': { '9:16': '竖屏', '16:9': '横屏', cover: '封面', copy: '发布文案' },
-  'pt-BR': { '9:16': 'vertical', '16:9': 'horizontal', cover: 'capa', copy: 'texto de publicação' }
+  'pt-BR': { '9:16': 'vertical', '16:9': 'horizontal', cover: 'capa', copy: 'texto de publicação' },
+  'zh-TW': { '9:16': '直式', '16:9': '橫式', cover: '封面', copy: '發布文案' },
+  ja: { '9:16': '縦', '16:9': '横', cover: 'カバー', copy: '投稿用テキスト' },
+  ko: { '9:16': '세로', '16:9': '가로', cover: '커버', copy: '게시용 문안' },
+  es: { '9:16': 'vertical', '16:9': 'horizontal', cover: 'portada', copy: 'texto de publicación' },
+  fr: { '9:16': 'vertical', '16:9': 'horizontal', cover: 'couverture', copy: 'texte de publication' },
+  de: { '9:16': 'Hochformat', '16:9': 'Querformat', cover: 'Cover', copy: 'Beitragstext' },
+  it: { '9:16': 'verticale', '16:9': 'orizzontale', cover: 'copertina', copy: 'testi di pubblicazione' },
+  ru: { '9:16': 'вертикальное', '16:9': 'горизонтальное', cover: 'обложка', copy: 'текст для публикации' },
+  tr: { '9:16': 'dikey', '16:9': 'yatay', cover: 'kapak', copy: 'yayın metni' },
+  vi: { '9:16': 'dọc', '16:9': 'ngang', cover: 'ảnh bìa', copy: 'nội dung đăng' },
+  id: { '9:16': 'vertikal', '16:9': 'horizontal', cover: 'sampul', copy: 'teks publikasi' }
 }
 const words = lang => WORDS[lang] ?? WORDS.en
 
