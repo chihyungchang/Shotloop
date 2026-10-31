@@ -29,9 +29,9 @@ An idea becomes copy, a storyboard and a film made of shots. Each shot has its o
 
 ## What is Shotloop
 
-Shotloop is a desktop app for short videos that are drawn with code: product promos, science explainers, data stories and slide-style animation, made in 2D (web pages rendered frame by frame) or 3D (Blender scenes).
+Shotloop is a desktop app for short videos that are drawn with code: product promos, science explainers, data stories and slide-style animation, made in 2D (web pages rendered frame by frame) or 3D (Blender scenes), in seven visual styles.
 
-You start with one sentence. The AI writes the hook, the script and the facts with their sources, then splits them into a storyboard. You edit the storyboard, and the AI builds every shot. In the Studio you look at each shot and say what is wrong in plain words, such as "the text is too small" or "it's too still: add some motion". The AI changes that shot, renders it, checks it against the notes and shows you a before/after. When the film reads right, Export joins the shots and adds music, and the AI writes the post for each platform.
+You start with one sentence. The AI picks how to show it (a cinematic scene, an infographic, a map, an interface demo, a blueprint, kinetic type or 3D) and a theme, unless you choose them. It writes the hook, the script and the facts with their sources, then splits them into a storyboard. You edit the storyboard, and the AI builds every shot. In the Studio you look at each shot and say what is wrong in plain words, such as "the text is too small" or "it's too still: add some motion". The AI changes that shot, renders it, checks it against the notes and shows you a before/after. When the film reads right, Export joins the shots and adds music, the AI designs a cover in the film's look (or fills your series' template) and writes the post for each platform, all into a folder of its own.
 
 The AI is the one you already use: Claude Code or another coding agent you're signed in to, a model API with your own key, or a local model.
 
@@ -47,13 +47,33 @@ Every frame below was rendered by Shotloop from the [examples](examples/) it shi
 </tr>
 </table>
 
+## Seven ways to show an idea
+
+The AI picks the style that fits the subject and tells you why; you can switch on the plan, or choose one on Home. Each picture is a frame of the example it links to.
+
+<table>
+<tr>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="Cinematic scene" /></a><br/><sub><b>Cinematic scene</b>: light, depth and a moving camera, for things you could film: space, nature, physics.</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="Infographic" /></a><br/><sub><b>Infographic</b>: charts and moving numbers, for statistics, comparisons, money.</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="Map" /></a><br/><sub><b>Map</b>: the world map, routes and countries lighting up, for places and how things spread.</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="Interface demo" /></a><br/><sub><b>Interface demo</b>: a phone or a browser, step by step, for apps, settings and scams.</sub></td>
+</tr>
+<tr>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Blueprint" /></a><br/><sub><b>Blueprint</b>: line art on a grid, exploded views and callouts, for how a machine works.</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Kinetic type" /></a><br/><sub><b>Kinetic type</b>: huge type that moves, for quotes, words and myths.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: Blender scenes with real light and a camera through space.</sub></td>
+</tr>
+</table>
+
+2D videos follow a fixed set of principles: visual first, one condensed caption per shot, every line up long enough to read, every number moving, honest about what it shows, sources small on screen. They are in [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md) and in every 2D prompt.
+
 ## Product tour
 
 <table>
 <tr>
 <td width="50%" valign="top">
 <a href="docs/screenshots/home.jpg"><img src="docs/screenshots/home.jpg" alt="Home: an idea composer with 2D/3D, aspect and length, and the examples" /></a><br/>
-<sub><b>Home</b>: one sentence, 2D or 3D, 9:16 or 16:9, a length. Or open an example.</sub>
+<sub><b>Home</b>: one sentence. 2D or 3D, the length, the style and the theme can stay on Auto. Or start from an example in the gallery.</sub>
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/plan.jpg"><img src="docs/screenshots/plan.jpg" alt="Planning page: copy, hook, script and sourced facts on the left, the storyboard on the right" /></a><br/>
@@ -73,7 +93,7 @@ Every frame below was rendered by Shotloop from the [examples](examples/) it shi
 <tr>
 <td width="50%" valign="top">
 <a href="docs/screenshots/export.jpg"><img src="docs/screenshots/export.jpg" alt="Export drawer: aspects, music with a listen button, and publish copy" /></a><br/>
-<sub><b>Export</b>: vertical and horizontal cuts, original music you can listen to first, and the publish copy for each platform.</sub>
+<sub><b>Export</b>: tick the video (vertical, horizontal), the cover and the publish copy; edit the cover and the copy first. Every export goes into its own folder.</sub>
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/settings.jpg"><img src="docs/screenshots/settings.jpg" alt="Settings: models and providers, with Claude Code detected" /></a><br/>
@@ -95,7 +115,11 @@ flowchart LR
 
 - **Shots, not one long render.** A film is a list of shots. Each shot is a small program: `shot.js` for a 2D page, `shot.py` for a Blender camera move. Each one is cached by a hash of its inputs, so a fix re-renders one shot in seconds (2D) or a minute (3D), and Export only joins clips.
 - **Plain-language fixes.** The AI only touches the shot you're on, unless the fix needs the shared world. It renders stills, checks them against a checklist (readable, nothing covered, out of the caption zone and so on) and reports what it changed.
+- **Seven visual styles.** A cinematic scene, an infographic, a map, an interface demo, a blueprint, kinetic type or 3D, each with its own kit and reference stills the AI looks at before it chooses and builds ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). A theme sets only the ground and the type; pictures and data keep the colors their subject needs.
+- **Rules a plan is measured against.** Captions are checked for length and for the time they stay up before anything is built. A picture that recurs across shots is drawn once and shared, so it looks the same in each.
 - **Facts with sources.** The copy keeps each fact next to its source, and the publish copy may only use facts from the copy.
+- **Covers.** The AI designs a cover in the film's look and checks its own renders. Save one as a template to keep a series consistent, or upload a cover you like and the AI follows its design.
+- **Music that fits the cut.** The synthesized bed is tuned so the cuts land on its beats, runs to the last frame and fades out.
 - **Fast while editing, full quality on export.** 3D shows quick previews while you edit and renders full-quality frames only when you export. 2D works in full quality throughout.
 - **Asset library for 3D.** Search CC0 models on [Poly Pizza](https://poly.pizza) and [Smithsonian Open Access](https://www.si.edu/openaccess) with your own key. Each model is downloaded once and can be added to any 3D project.
 
@@ -139,7 +163,10 @@ pnpm shotloop status   fixtures/hello-3d
 pnpm shotloop render   fixtures/hello-3d --shot 02-close --stills   # start/middle/end
 pnpm shotloop render   fixtures/hello-3d --shot 02-close            # a clip, in the editor's quality
 pnpm shotloop export   fixtures/hello-3d                            # only changed shots render
-pnpm shotloop new      my-short --idea "Why does your phone battery age?" --track 2d --duration 30
+pnpm shotloop new      my-short --idea "Why does your phone battery age?" --track auto --duration auto
+pnpm shotloop new      coffee --idea "Where does coffee come from?" --track 2d --style map --duration 30
+pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # into a new folder there
+pnpm shotloop covers   list                                         # cover templates
 pnpm shotloop doctor
 ```
 
@@ -158,9 +185,10 @@ pnpm test                                                             # every ba
 
 ```
 my-video/
-  shotloop.json        title, track (2d|3d), size, fps, shots [{ id, title, duration }]
+  shotloop.json        title, track (2d|3d), style, size, fps, shots [{ id, title, duration }]
   storyboard.json      the plan: copy (hook, script, facts with sources) and shots
-  world/               3D: world.py (+ screen.html); 2D: page.html
+  world/               3D: world.py (+ screen.html); 2D: page.html (the style's kit), parts.js (pictures
+                       that recur, drawn once), geo.data.js (the map style's countries)
   shots/<id>/          shot.py | shot.js, notes.md (must show, on screen, motion)
   assets/<id>/         3D models from the asset library
   copy.md  script.md  captions.html  music.json  thumb.html  publish.json
@@ -182,7 +210,7 @@ my-video/
 | [`app/`](app/) | The desktop app: a Tauri 2 (Rust) shell with the render queue, updater and process supervision, and the React + TypeScript UI. |
 | [`engine/shotloop/`](engine/shotloop/) | The shot engine: project format, per-shot render cache, 2D (Chrome) and 3D (Blender) renders, film assembly, MP4 export, music, asset library. A CLI that the app calls. |
 | [`agent/`](agent/) | The agent: planning, building, plain-language fixes, checks against the checklist, publish copy. It supports API, CLI (through MCP) and local models. |
-| [`examples/`](examples/) | The examples Home offers, in Chinese and English (2D and 3D, 9:16 and 16:9). |
+| [`examples/`](examples/) | The examples Home offers, in English: at least one for every visual style (2D and 3D, 9:16 and 16:9). |
 | [`fixtures/`](fixtures/) | Projects for the tests and terminal walkthroughs. |
 
 </details>

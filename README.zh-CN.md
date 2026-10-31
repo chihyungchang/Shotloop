@@ -29,9 +29,9 @@
 
 ## Shotloop 是什么
 
-Shotloop 是一个桌面应用，用代码"画"短视频，适合做产品宣传、科普视频、数据可视化和 PPT 式动画。有两种做法：2D 是逐帧渲染的网页，3D 是 Blender 场景。
+Shotloop 是一个桌面应用，用代码"画"短视频，适合做产品宣传、科普视频、数据可视化和 PPT 式动画。有两种做法：2D 是逐帧渲染的网页，3D 是 Blender 场景；画面方式共有七种。
 
-你只需要写一句话。AI 先写好开头钩子、文案和带来源的事实，再拆成分镜。你改好分镜后，AI 生成每个镜头。在工作室里逐个看镜头，有问题就用大白话说出来，比如"字太小了""太静了，加点动效"。AI 只改这一个镜头，渲染后对照说明检查，再给你看改动前后的对比。整片满意后点导出：镜头拼接成片，配上音乐，AI 还会为各个平台写好发布文案。
+你只需要写一句话。AI 会根据题目选择画面方式（电影感场景、信息图、地图、界面演示、剖面图纸、动态排版或 3D）和主题色，你也可以自己选。接着它写好开头钩子、文案和带来源的事实，再拆成分镜。你改好分镜后，AI 生成每个镜头。在工作室里逐个看镜头，有问题就用大白话说出来，比如"字太小了""太静了，加点动效"。AI 只改这一个镜头，渲染后对照说明检查，再给你看改动前后的对比。整片满意后点导出：镜头拼接成片，配上音乐；AI 按视频的风格设计封面（也可以套用你的系列模版），并为各个平台写好发布文案，全部放进一个单独的文件夹。
 
 驱动它的 AI 就用你已有的：已登录的 Claude Code 等命令行工具、自带 key 的模型 API，或者本地模型。
 
@@ -47,13 +47,33 @@ Shotloop 是一个桌面应用，用代码"画"短视频，适合做产品宣传
 </tr>
 </table>
 
+## 七种画面方式
+
+AI 会按题目挑选最合适的画面方式并说明理由；你可以在策划页切换，也可以在首页直接指定。每张图都来自它链接的示例。
+
+<table>
+<tr>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="电影感场景" /></a><br/><sub><b>电影感场景</b>： 有光、有纵深、镜头在动，适合能“拍到”的东西：宇宙、自然、物理。</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="信息图" /></a><br/><sub><b>信息图</b>： 图表和会动的数字，适合统计、对比、金钱。</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="地图" /></a><br/><sub><b>地图</b>： 世界地图、航线、国家被点亮，适合地点、路线、传播与分布。</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="界面演示" /></a><br/><sub><b>界面演示</b>： 手机或浏览器上一步步演示，适合 App 技巧、设置、诈骗手法。</sub></td>
+</tr>
+<tr>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="剖面图纸" /></a><br/><sub><b>剖面图纸</b>： 网格上的线稿、拆解、标注，适合讲机器和装置怎么运作。</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="动态排版" /></a><br/><sub><b>动态排版</b>： 会动的大字，适合名言、词语、辟谣。</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>： Blender 场景，真实的光影，镜头在空间里移动。</sub></td>
+</tr>
+</table>
+
+2D 视频遵循一套固定原则：画面优先；每个镜头一句概括字幕；每句字幕都停留到读得完；每个数字都会动；如实呈现；来源以小字放在画面上。完整规则见 [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md)，每个 2D 提示词里也都带着。
+
 ## 功能一览
 
 <table>
 <tr>
 <td width="50%" valign="top">
 <a href="docs/screenshots/home-zh.jpg"><img src="docs/screenshots/home-zh.jpg" alt="首页：输入想法，选择 2D/3D、画幅和时长，下面是示例" /></a><br/>
-<sub><b>首页</b>：一句话，选 2D 或 3D、竖屏或横屏、时长，或者从示例开始。</sub>
+<sub><b>首页</b>：一句话。2D/3D、时长、画面方式和主题色都可以交给“自动”，也可以从示例画廊开始。</sub>
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/plan-zh.jpg"><img src="docs/screenshots/plan-zh.jpg" alt="策划页：左边是文案、钩子和带来源的事实，右边是分镜" /></a><br/>
@@ -73,7 +93,7 @@ Shotloop 是一个桌面应用，用代码"画"短视频，适合做产品宣传
 <tr>
 <td width="50%" valign="top">
 <a href="docs/screenshots/export.jpg"><img src="docs/screenshots/export.jpg" alt="导出：画幅、可试听的配乐和发布文案" /></a><br/>
-<sub><b>导出</b>：竖屏、横屏两种画幅，原创配乐可以先试听，并为各平台生成发布文案。</sub>
+<sub><b>导出</b>：勾选要导出的视频（竖屏、横屏）、封面和发布文案，导出前可以先编辑封面和文案。每次导出都放进一个单独的文件夹。</sub>
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/settings.jpg"><img src="docs/screenshots/settings.jpg" alt="设置：模型与服务商，已检测到 Claude Code" /></a><br/>
@@ -95,7 +115,11 @@ flowchart LR
 
 - **按镜头做，不是一次渲染整片。** 一部片子由多个镜头组成，每个镜头都是一小段程序：2D 是 `shot.js`，3D 是 Blender 里的 `shot.py` 运镜。每个镜头按输入内容缓存，修一个镜头只需几秒（2D）到一分钟（3D），导出时只是把片段拼起来。
 - **用大白话修改。** AI 只改你当前选中的镜头，除非修改必须动到共享场景。改完会渲染静帧，按检查清单逐条检查（文字能否看清、有没有被遮挡、有没有压到字幕区等），再告诉你改了什么。
+- **七种画面方式。** 电影感场景、信息图、地图、界面演示、剖面图纸、动态排版和 3D，各有一套工具和样片，AI 选择和生成之前都会先看样片（[`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)）。主题色只管背景和文字，画面里的物体和数据按含义取色。
+- **策划会按规则检查。** 生成之前，先检查每句字幕的长度和停留时间。在多个镜头里反复出现的画面只画一次、各镜头共用，保证每次长得一样。
 - **事实都有来源。** 文案里每条事实都附带来源，发布文案也只能使用文案里的事实。
+- **封面。** AI 按视频的风格设计封面，并自己检查渲染效果。可以存为模版让同一系列统一，也可以上传一张喜欢的封面，让 AI 照它的版式设计。
+- **配乐贴合剪辑。** 合成的配乐会调整节拍，让剪切点落在拍子上；音乐一直响到最后一帧，再平滑淡出。
 - **编辑时快，导出时好。** 3D 编辑时用快速预览，导出时才按完整画质渲染；2D 全程都是高清。
 - **3D 素材库。** 用你自己的 key 在 [Poly Pizza](https://poly.pizza) 和 [Smithsonian 开放资源](https://www.si.edu/openaccess)中搜索免费模型。每个模型只下载一次，任何 3D 项目都能用。
 
@@ -139,7 +163,10 @@ pnpm shotloop status   fixtures/hello-3d
 pnpm shotloop render   fixtures/hello-3d --shot 02-close --stills   # 开头/中间/结尾三帧
 pnpm shotloop render   fixtures/hello-3d --shot 02-close            # 按编辑画质渲染片段
 pnpm shotloop export   fixtures/hello-3d                            # 只渲染改过的镜头
-pnpm shotloop new      my-short --idea "手机电池为什么会老化？" --track 2d --duration 30
+pnpm shotloop new      my-short --idea "手机电池为什么会老化？" --track auto --duration auto
+pnpm shotloop new      coffee --idea "咖啡从哪里来？" --track 2d --style map --duration 30
+pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # 导出到那里的新文件夹
+pnpm shotloop covers   list                                         # 封面模版
 pnpm shotloop doctor
 ```
 
@@ -158,9 +185,10 @@ pnpm test                                                             # 用脚�
 
 ```
 my-video/
-  shotloop.json        标题、2d|3d、尺寸、帧率、镜头列表 [{ id, title, duration }]
+  shotloop.json        标题、2d|3d、画面方式、尺寸、帧率、镜头列表 [{ id, title, duration }]
   storyboard.json      策划：文案（钩子、文案、带来源的事实）和镜头
-  world/               3D：world.py（+ screen.html）；2D：page.html
+  world/               3D：world.py（+ screen.html）；2D：page.html（画面方式的工具包）、parts.js（反复出现的画面，
+                       只画一次）、geo.data.js（地图方式的国家数据）
   shots/<id>/          shot.py | shot.js、notes.md（必须呈现、屏幕文字、动作）
   assets/<id>/         从素材库加入的 3D 模型
   copy.md  script.md  captions.html  music.json  thumb.html  publish.json
@@ -178,7 +206,7 @@ my-video/
 | [`app/`](app/) | 桌面应用：Tauri 2（Rust）外壳，负责渲染队列、自动更新和进程管理；React + TypeScript 界面。 |
 | [`engine/shotloop/`](engine/shotloop/) | 镜头引擎：项目格式、按镜头缓存、2D（Chrome）和 3D（Blender）渲染、成片拼接、MP4 导出、配乐、素材库。app 通过它的命令行调用。 |
 | [`agent/`](agent/) | AI 助手：策划、生成、按要求修改、按检查清单检查、发布文案。支持 API、命令行工具（通过 MCP）和本地模型。 |
-| [`examples/`](examples/) | 首页提供的示例，中英文各一套（2D 和 3D，竖屏和横屏）。 |
+| [`examples/`](examples/) | 首页提供的示例，统一为英文，每种画面方式至少一个（2D 和 3D，竖屏和横屏）。 |
 | [`fixtures/`](fixtures/) | 测试和终端演示用的项目。 |
 
 </details>
