@@ -29,6 +29,12 @@ export interface ProjectStatus {
   duration: number
   files: { captions: string | null; music: string | null; cover: string | null; publish: string | null }
   shots: ShotStatus[]
+  // 2D: the look; the visual style (engine/shotloop/styles.mjs); what the
+  // planner still decides (2D or 3D, the length)
+  look?: string | null
+  style?: string | null
+  trackAuto?: boolean
+  lengthAuto?: boolean
 }
 
 export interface RenderResult {

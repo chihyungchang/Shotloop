@@ -99,8 +99,11 @@ ${FORMAT}${principles(track)}
 
 storyboard.json, exactly this shape (JSON, no comments):
 {
-  "target": <the requested length in seconds>,
-  "look": "<2D: the id of one look from the list in the request; 3D: leave it out>",
+  "target": <the length in seconds: the requested one, or yours when the request says auto>,
+  "style": "<the id of the visual style you pick from the list in the request; leave it out when there is no list>",
+  "styleWhy": "<one sentence for the person: why this style fits this subject>",
+  "styleAlt": "<the second-best style id from the list, or empty>",
+  "look": "<2D: the id of one look from the list in the request, one the style can use; 3D: leave it out>",
   "copy": {
     "idea": "<the idea in one or two sentences>",
     "hook": "<the opening line: a question or a surprising fact, under 20 words>",
@@ -123,7 +126,9 @@ storyboard.json, exactly this shape (JSON, no comments):
 
 How to plan:
 - 4 to 8 shots, one idea each. The first shot is the hook (3–4 s), the last an end card (2–3 s). The durations add up to the target within half a second.
-- Write for the track. 2D: animated typography, numbers, charts, diagrams, icons drawn in HTML/SVG. 3D: objects and places in a Blender scene, one camera move per shot.
+- Pick the visual style first, from what the subject IS: a real thing or process you could film (the explanation happens to it) is a cinematic scene; numbers and their relations with no object to show are an infographic; real geometry or a camera moving through space is 3D (when it is offered). Look at the reference stills of each candidate (view_style) before deciding, and plan every shot in the style you picked: a scene shows the event in one lit world with a moving camera, its data drawn as light; an infographic uses the toolbox devices at full size.
+- Write for the track. 2D: animated typography, numbers, charts, diagrams, icons, lit scenes drawn in HTML, SVG and canvas. 3D: objects and places in a Blender scene, one camera move per shot.
+- Length "auto": as long as the content needs at the principles' reading pace, no padding: usually 20 to 45 s, never under 15 or over 60.
 - On-screen text is short: a headline or a number, never a paragraph. Write it, and the copy, in the language of the idea.
 - 2D: plan by the 2D principles. Design each shot from what the viewer sees: its "show" is a picture in motion that fills the frame, built from the toolbox where one fits (name the device); its "text" is the one condensed caption; its "source" is the small source line. Alternate big-number shots with diagram shots, and give the story's turns their colors. Give each shot the time its captions need to be read (the principles' reading time, plus about 0.5 s to enter); when a beat needs more words, split it into two shots rather than crowd one. The plan is measured against these limits after you write it.
 - Every number and claim in the video is in copy.facts with a source you are confident of. Prefer English-language sources; use a source in the language of the idea only when no good English one exists, and name it as it is published. Never invent statistics; when unsure, say it qualitatively and leave the number out.
@@ -167,7 +172,7 @@ ${PRINCIPLES_2D}
 ${CODE_2D}
 
 How to build the parts:
-- Write world/parts.js, an ES module. Each recurring picture is one exported function that returns SVG markup for the kit's stage, for example batteryCutaway(kit, { x, y, scale, t, ions, trapped }): position, size and the states the shots need (what is lit, how far a fill goes, how many items) are options; the design itself (layout, colors, labels, proportions) is fixed inside.
+- Write world/parts.js, an ES module. Each recurring picture is one exported function, for example batteryCutaway(kit, { x, y, scale, t, ions, trapped }): position, size and the states the shots need (what is lit, how far a fill goes, how many items) are options; the design itself (layout, colors, labels, proportions) is fixed inside. On an infographic page (an SVG stage) it returns SVG markup for kit.stage(); on a scene page (a canvas world, see the top of world/page.html) it draws on kit.c with the kit's light helpers (light, sphere, halo, beam, trail, particles) at the camera, and returns nothing. Document every function and its options in a comment at the top: the shot agents read only that.
 - Pure functions of their options; colors from kit.C; text from kit.FONT; layout inside the kit's safe area when drawn at the default position.
 - A shot imports them: import { batteryCutaway } from '../../world/parts.js'.
 - Then build the shot you are given with them (it is your proof that the parts draw), by the shot's notes and the principles: render its stills, look, fix, render again; stop after three renders. Call report_checks for it after its last render.
@@ -185,7 +190,7 @@ How to build the shot:
 - You may write only this shot's folder. The world is fixed: use its helpers (2D: window.kit, documented at the top of world/page.html), and draw anything only this shot needs in the shot itself.
 - The shot does what its notes say; its on-screen text is exactly the "On screen" text.
 - 2D: a recurring picture listed for the shot is drawn with its function from world/parts.js (documented at its top), never redrawn by hand, so it matches the other shots.
-- 2D: make the frame as rich to watch as the principles allow: the picture carries the point, fills the frame and keeps changing (the toolbox device the notes name, staggered reveals, a camera move on the stage, rolling numbers, lines drawing on, gentle idle motion), while the caption stays still and readable for its reading time (the kit's readTime and hold). Draw pictures in SVG on the stage; the caption goes through frame(); the notes' source line sits small under the picture.
+- 2D: make the frame as rich to watch as the principles allow: the picture carries the point, fills the frame and keeps changing (the toolbox device the notes name, staggered reveals, a camera move on the stage, rolling numbers, lines drawing on, gentle idle motion), while the caption stays still and readable for its reading time (the kit's readTime and hold). Draw with the kit documented at the top of world/page.html: on an infographic page, pictures in SVG on the stage and the caption through frame(); on a scene page, a lit canvas world (stage(t, { camera }) first, then light, sphere, beam, trail, particles; labels placed with screen()) and the caption through caption(). The notes' source line sits small under the picture (source() on a scene page).
 ${TYPE_RULES}
 - After writing the shot, render its stills and look at all three. Fix what is off (overlaps, clipped text, nothing moving, poor contrast) and render again; stop after three renders.
 - Call report_checks for the shot after its last render, with a result for every checklist rule.

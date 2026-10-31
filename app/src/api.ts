@@ -88,6 +88,10 @@ export interface Project {
   // The cover's background frame, and how the AI last made the cover
   coverFrame?: { shot: string; time: number } | null
   coverMade?: { how: 'default' | 'free' | 'template' | 'reference'; template?: string } | null
+  // The visual style; what the planner still decides (2D or 3D, the length)
+  style?: string | null
+  trackAuto?: boolean
+  lengthAuto?: boolean
   title: string
   slug: string
   track: '2d' | '3d'
@@ -156,6 +160,11 @@ export interface StoryShot {
 }
 export interface Storyboard {
   target?: number
+  // The visual style the planner picked (engine/shotloop/styles.mjs), why,
+  // and its second choice
+  style?: string | null
+  styleWhy?: string
+  styleAlt?: string
   look?: string | null
   copy: { idea?: string; hook: string; body: string; facts: { text: string; source: string }[] }
   shots: StoryShot[]
@@ -303,9 +312,11 @@ export interface NewProject {
   dir: string
   idea: string
   title: string
-  track: '2d' | '3d'
+  // 'auto': the planner picks 2D or 3D through the visual style
+  track: '2d' | '3d' | 'auto'
   aspect: '9:16' | '16:9'
-  duration: number
+  // Seconds as text, or 'auto' for the planner to choose 15–60 s
+  duration: string
   // 2D look id; '' lets the planner pick
   look: string
 }

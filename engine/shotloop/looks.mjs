@@ -3,6 +3,8 @@
 // The planner picks a look, the person can change it on the plan, and the
 // build starts from it, so the AI writes shots instead of a design system.
 
+import { scenePage } from './scene.mjs'
+
 export const LOOKS = [
   {
     id: 'midnight',
@@ -11,7 +13,10 @@ export const LOOKS = [
     bg: 'radial-gradient(120% 80% at 50% 0%, #1b2d63 0%, #0d1736 55%, #080e24 100%)',
     text: '#f4f7ff', muted: '#9fb0d6', accent: '#ffb340', accent2: '#4fd1c5', accent3: '#ff6b8b',
     line: 'rgba(255, 255, 255, 0.16)', panel: 'rgba(255, 255, 255, 0.07)',
-    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 2px 18px rgba(6, 12, 34, 0.45)'
+    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 2px 18px rgba(6, 12, 34, 0.45)',
+    // The cinematic scene style (scene.mjs): deep space blue, warm gold light
+    scene: { sky: ['#040714', '#060b1d', '#03050c'], clouds: [[0.83, 0.2, 0.72, '40, 70, 160', 0.16], [0.11, 0.84, 0.78, '90, 40, 120', 0.1]],
+      specks: ['220, 232, 255', '255, 226, 190'], light: '255, 200, 120', cool: '120, 180, 255' }
   },
   {
     id: 'paper',
@@ -29,7 +34,9 @@ export const LOOKS = [
     bg: 'radial-gradient(90% 60% at 15% 10%, rgba(255, 61, 154, 0.28), transparent 60%), radial-gradient(90% 60% at 90% 85%, rgba(46, 230, 255, 0.22), transparent 60%), #07070c',
     text: '#ffffff', muted: '#a7a7c7', accent: '#ff3d9a', accent2: '#2ee6ff', accent3: '#c4ff3d',
     line: 'rgba(255, 255, 255, 0.18)', panel: 'rgba(255, 255, 255, 0.06)',
-    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 0 24px rgba(255, 61, 154, 0.45)'
+    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 0 24px rgba(255, 61, 154, 0.45)',
+    scene: { sky: ['#0a0612', '#07060f', '#030308'], clouds: [[0.15, 0.12, 0.7, '255, 61, 154', 0.16], [0.9, 0.85, 0.75, '46, 230, 255', 0.13]],
+      specks: ['200, 240, 255', '255, 190, 230'], light: '255, 120, 200', cool: '46, 230, 255' }
   },
   {
     id: 'pastel',
@@ -54,9 +61,11 @@ export const LOOKS = [
 export const DEFAULT_LOOK = 'midnight'
 export const lookById = id => LOOKS.find(l => l.id === id) ?? null
 
-// The page for a look at the project's size. Its first comment documents
-// the kit: the AI reads it before writing shots
-export function lookPage(id, { width, height }) {
+// The page for a look at the project's size, in a style (styles.mjs): the
+// infographic page below, or the cinematic scene (scene.mjs) for a look
+// that has scene colors. Its first comment documents the kit: the AI
+// reads it before writing shots
+export function lookPage(id, { width, height }, style = 'infographic') {
   const L = lookById(id) ?? lookById(DEFAULT_LOOK)
   const w = Math.round(width / 1.5)
   const h = Math.round(height / 1.5)
@@ -71,6 +80,7 @@ export function lookPage(id, { width, height }) {
   // The kicker sits 44 px above the headline, on the safe area's top edge
   const headTop = safeTop + 44
   const headWidth = Math.round(tall ? safeRight - pad : w * 0.62)
+  if (style === 'scene' && L.scene) return scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop })
   return `<!doctype html>
 <!--
   shotloop-look: ${L.id}
@@ -301,9 +311,13 @@ export function lookPage(id, { width, height }) {
 `
 }
 
-// A world page the AI hasn't changed: still exactly a look's template (or
-// the old starter), so a new look may replace it
+// A world page the AI hasn't changed: still exactly a look's template in
+// its style (or the old starter), so a new look or style may replace it
 export function untouchedLook(text, size) {
   const id = text.match(/shotloop-look: ([a-z0-9-]+)/)?.[1]
-  return !!id && text === lookPage(id, size)
+  const style = text.match(/shotloop-style: ([a-z0-9-]+)/)?.[1] ?? 'infographic'
+  return !!id && text === lookPage(id, size, style)
 }
+
+// Looks that can draw a style
+export const looksFor = style => LOOKS.filter(l => style !== 'scene' || l.scene)

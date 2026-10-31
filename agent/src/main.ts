@@ -134,6 +134,15 @@ function recurringBrief(project: ProjectStatus, shot: ShotStatus) {
   return `\n\nRecurring pictures in this shot (draw them with their functions in world/parts.js when it has them; keep their design exactly):\n${mine.map(r => `- ${r.name}: ${r.design}`).join('\n')}`
 }
 
+// 2D: the project's visual style, what its frames are made of and the
+// reference that sets the bar
+let stylesCache: Style[] | null = null
+function styleBrief(project: ProjectStatus) {
+  const s = project.track === '2d' && project.style ? stylesCache?.find(x => x.id === project.style) : null
+  if (!s) return ''
+  return `\n\nVisual style: ${s.id} (${s.name.en}). ${s.frames} Reference: ${s.why} Look at its reference stills (view_style "${s.id}") before you build, and reach that quality.`
+}
+
 function shotBrief(project: ProjectStatus, shot: ShotStatus) {
   const rel = (f: string) => path.relative(project.root, f)
   const others = project.shots.map(s => `${s.id} (${s.start}–${s.start + s.duration} s)${s.id === shot.id ? ' ← this shot' : ''}`)
@@ -146,7 +155,7 @@ ${rel(shot.notes)}:
 ${read(shot.notes)}
 
 ${rel(shot.code)}:
-${read(shot.code)}${recurringBrief(project, shot)}${assetsBrief(project)}`
+${read(shot.code)}${styleBrief(project)}${recurringBrief(project, shot)}${assetsBrief(project)}`
 }
 
 // Copies stills into the fix record, so before/after survive later renders
@@ -258,7 +267,7 @@ async function planTask() {
 
 Idea: ${ideaOf(project)}
 Title: ${project.title}
-Track: ${project.track.toUpperCase()} · frame ${size} · target length ${project.duration} s${await looksBrief(project)}`,
+${await trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 'auto (choose it from the content, 15 to 60 s, then make the shots add up to it)' : `${project.duration} s`}${await stylesBrief(project)}${await looksBrief(project)}`,
     ctx
   })
   // The page reads it: it has to be valid
@@ -289,13 +298,39 @@ Track: ${project.track.toUpperCase()} · frame ${size} · target length ${projec
   return { task: 'plan', summary: final, shots: sb.shots.length, warnings: issues }
 }
 
+interface Style { id: string; track: string; name: { en: string }; when: string; avoid: string; frames: string; why: string; looks: string[] }
+const loadStyles = async () =>
+  (await import(new URL('../../engine/shotloop/styles.mjs', import.meta.url).href) as { STYLES: Style[] }).STYLES
+
+// 3D is a choice only for a project made with "auto" and a Mac with Blender
+async function threeDPossible(project: ProjectStatus) {
+  if (!project.trackAuto) return false
+  const doctor = await engine<{ blender: unknown }>(['doctor']).catch(() => ({ blender: null }))
+  return !!doctor.blender
+}
+
+async function trackBrief(project: ProjectStatus) {
+  if (project.trackAuto) return `Track: chosen by you through the style (${(await threeDPossible(project)) ? '2D or 3D' : '2D; Blender is not installed, so no 3D'})`
+  return `Track: ${project.track.toUpperCase()} (chosen by the person)`
+}
+
+// The visual styles the plan picks from (engine/shotloop/styles.mjs)
+async function stylesBrief(project: ProjectStatus) {
+  const all = await loadStyles()
+  const threeD = await threeDPossible(project)
+  const open = all.filter(s => (s.track === project.track && project.track === '2d') || (s.track === '3d' && threeD))
+  if (project.track === '3d' || !open.length) return ''
+  return `\n\nVisual styles (pick one for "style"; look at each candidate's reference stills with view_style before you decide):\n${open.map(s =>
+    `- ${s.id} (${s.name.en}): use when ${s.when} Avoid when: ${s.avoid} Frames: ${s.frames} Reference: ${s.why}${s.looks.length ? ` Looks: ${s.looks.join(', ')}.` : ''}`).join('\n')}`
+}
+
 // The looks a 2D plan picks from, or the one the person chose
 async function looksBrief(project: ProjectStatus) {
   if (project.track !== '2d') return ''
-  const { LOOKS } = await import(new URL('../../engine/shotloop/looks.mjs', import.meta.url).href) as { LOOKS: { id: string; about: string }[] }
+  const { LOOKS } = await import(new URL('../../engine/shotloop/looks.mjs', import.meta.url).href) as { LOOKS: { id: string; about: string; scene?: unknown }[] }
   const chosen = (JSON.parse(read(path.join(project.root, 'shotloop.json'))) as { look?: string }).look
-  if (chosen) return `\nLook: "${chosen}" (chosen by the person; keep it).`
-  return `\nLooks (pick one for "look"):\n${LOOKS.map(l => `- ${l.id}: ${l.about}`).join('\n')}`
+  if (chosen) return `\nLook: "${chosen}" (chosen by the person; keep it unless the style you pick cannot use it).`
+  return `\nLooks (pick one for "look", one the style can use):\n${LOOKS.map(l => `- ${l.id}: ${l.about}${l.scene ? '' : ' (infographic only)'}`).join('\n')}`
 }
 
 // At most n at a time, in order
@@ -491,6 +526,7 @@ async function coverTask() {
 }
 
 try {
+  stylesCache = await loadStyles()
   let value: unknown
   if (task === 'detect') value = await detect()
   else if (task === 'test') value = await smokeTest()

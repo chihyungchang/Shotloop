@@ -134,10 +134,10 @@ async fn create_project(
     title: String,
     track: String,
     aspect: String,
-    duration: u32,
+    // Seconds, or "auto" for the planner to choose
+    duration: String,
     look: Option<String>,
 ) -> Result<Value, String> {
-    let duration = duration.to_string();
     blocking(move || {
         let mut args = vec!["new", &dir, "--idea", &idea, "--title", &title, "--track", &track, "--aspect", &aspect, "--duration", &duration];
         let look = look.unwrap_or_default();

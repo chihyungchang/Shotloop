@@ -6,6 +6,7 @@ import { agentNow, buildStepList, buildSteps, formatSeconds, planSteps, type Ste
 import { Icon } from '../Icon'
 import { LookPreview } from '../LookPicker'
 import { LOOKS, lookAbout, lookName } from '../../looks'
+import { lookFits, STYLES, styleName } from '../../styles'
 import { Title } from '../studio/Studio'
 import { AutoText, ShotSketch } from './ShotSketch'
 
@@ -266,14 +267,36 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
                   <h3>{t('plan.board')}</h3>
                   <span className={`small ${Math.abs(total - target) > 0.5 ? 'warn-note' : 'muted'}`}>{t('plan.total', { n: sb.shots.length, s: total, target })}</span>
                 </div>
-                {project.track === '2d' && (
+                {sb.style && (project.track === '2d' || project.trackAuto) && (
+                  // The style the AI picked and why; another one re-plans the pictures for it
+                  <div className="style-row">
+                    <div className="look-row" role="radiogroup" aria-label={t('style.label')}>
+                      <span className="small muted">{t('style.label')}</span>
+                      {STYLES.filter(s => s.track === '2d' || project.trackAuto).map(s => {
+                        const on = sb.style === s.id
+                        return (
+                          <button key={s.id} role="radio" aria-checked={on} className={`look-card style-card${on ? ' on' : ''}`} disabled={planning}
+                            onClick={() => !on && revise(t('style.switchAsk', { name: styleName(s.id), id: s.id }))}>
+                            {styleName(s.id)}{!on && s.id === sb.styleAlt && <span className="tag">{t('style.alt')}</span>}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {sb.styleWhy && <p className="small muted style-why"><Icon name="spark" size={12} /> {sb.styleWhy}</p>}
+                  </div>
+                )}
+                {project.track === '2d' && sb.style !== '3d' && (
                   <div className="look-row" role="radiogroup" aria-label={t('look.label')}>
                     <span className="small muted">{t('look.label')}</span>
-                    {LOOKS.map(l => (
-                      <button key={l.id} role="radio" aria-checked={sb.look === l.id} className={`look-card${sb.look === l.id ? ' on' : ''}`} onClick={() => edit({ ...sb, look: l.id })} title={lookAbout(l.id)}>
-                        <LookPreview id={l.id} /> <span>{lookName(l.id)}</span>
-                      </button>
-                    ))}
+                    {LOOKS.map(l => {
+                      const fits = lookFits(sb.style, l.id)
+                      return (
+                        <button key={l.id} role="radio" aria-checked={sb.look === l.id} className={`look-card${sb.look === l.id ? ' on' : ''}`} disabled={!fits}
+                          onClick={() => edit({ ...sb, look: l.id })} title={fits ? lookAbout(l.id) : t('style.lookNo', { name: styleName(sb.style ?? '') })}>
+                          <LookPreview id={l.id} /> <span>{lookName(l.id)}</span>
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
                 <div className="timeline" aria-hidden>

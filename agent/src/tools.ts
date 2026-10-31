@@ -89,6 +89,12 @@ export const TOOLS: Tool[] = [
     input_schema: object({ shot: { type: 'string', description: 'Shot id, e.g. "01-room".' } }, ['shot'])
   },
   {
+    name: 'view_style',
+    description: 'Look at the reference stills of a visual style (from the example videos that define it): "scene", "infographic" or "3d". Look before you choose a style, and before you build in one, to see the quality to reach.',
+    strict: true,
+    input_schema: object({ style: { type: 'string', description: 'Style id: scene, infographic or 3d.' } }, ['style'])
+  },
+  {
     name: 'view_image',
     description: 'Look at a PNG or JPEG image of the project, e.g. "cover-reference.png". Returns it as an image.',
     strict: true,
@@ -198,6 +204,21 @@ export async function runTool(ctx: ToolContext, name: string, input: Record<stri
       if (!r.stills) throw new Error('the render produced no stills')
       ctx.renders.set(shot, r.stills)
       return stillBlocks(r.stills)
+    }
+    case 'view_style': {
+      const id = str('style')
+      const { styleById, styleStills } = await import(new URL('../../engine/shotloop/styles.mjs', import.meta.url).href) as {
+        styleById: (id: string) => { why: string } | null
+        styleStills: (id: string) => string[]
+      }
+      const style = styleById(id)
+      if (!style) throw new Error(`no style ${id} (scene, infographic, 3d)`)
+      emit({ type: 'tool', name, summary: id })
+      const blocks: Exclude<ToolResult, string | undefined> = [{ type: 'text', text: style.why }]
+      for (const f of styleStills(id)) {
+        blocks.push({ type: 'image', source: { type: 'base64', media_type: /\.png$/i.test(f) ? 'image/png' : 'image/jpeg', data: fs.readFileSync(f).toString('base64') } })
+      }
+      return blocks
     }
     case 'view_image': {
       const { abs, rel } = resolve(ctx, str('path'))

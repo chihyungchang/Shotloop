@@ -104,7 +104,7 @@ test('fix: reads, edits only the shot, renders, reports checks, keeps before/aft
     const first = api.requests[0]
     assert.equal(first.model, 'claude-opus-5-5')
     assert.deepEqual(first.tools.map((t: any) => t.name),
-      ['list_files', 'read_file', 'write_file', 'edit_file', 'render_stills', 'view_image', 'render_cover', 'read_checklist', 'report_checks'])
+      ['list_files', 'read_file', 'write_file', 'edit_file', 'render_stills', 'view_style', 'view_image', 'render_cover', 'read_checklist', 'report_checks'])
     assert.equal(first.fallbacks, 'default')
 
     // Refusals came back as tool errors, and nothing outside the shot changed

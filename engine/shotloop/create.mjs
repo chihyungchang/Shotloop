@@ -109,7 +109,7 @@ export default function render(t, { window, start, duration }) {
 `
 }
 
-const WORLD_3D = `"""World of a 3D Shotloop project: what every shot shares. Starter
+export const WORLD_3D = `"""World of a 3D Shotloop project: what every shot shares. Starter
 stage: a floor, a plinth and an amber subject that turns over the film.
 Blender: metres, +Z up. Film time in seconds; see shotloop.json."""
 
@@ -214,11 +214,19 @@ function thumb(title) {
 `
 }
 
+// track 'auto': made as 2D, and the planner may turn it into 3D
+// (applyStoryboard); duration 'auto': the planner picks 15–60 s from the
+// content, the starter shots fill 30 s until then
 export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16', duration = 30, look = '' }) {
   const root = path.resolve(dir)
   if (fs.existsSync(root) && fs.readdirSync(root).length) throw new Error(`${root} exists and is not empty`)
-  if (!['2d', '3d'].includes(track)) throw new Error('track must be 2d or 3d')
-  if (!(duration >= 6 && duration <= 180)) throw new Error('duration must be 6–180 s')
+  if (!['2d', '3d', 'auto'].includes(track)) throw new Error('track must be 2d, 3d or auto')
+  const trackAuto = track === 'auto'
+  if (trackAuto) track = '2d'
+  const lengthAuto = duration === 'auto'
+  if (lengthAuto) duration = 30
+  duration = Number(duration)
+  if (!(duration >= 6 && duration <= 180)) throw new Error('duration must be 6–180 s or auto')
   // A look the person chose; none: the planner picks one
   if (look && !lookById(look)) throw new Error(`no look "${look}" (${LOOKS.map(l => l.id).join(', ')})`)
   const size = aspect === '16:9' ? SIZES.landscape : SIZES.portrait
@@ -263,7 +271,9 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
     music: 'music.json',
     cover: 'thumb.html',
     publish: 'publish.md',
-    ...(track === '2d' && look ? { look } : {})
+    ...(track === '2d' && look ? { look } : {}),
+    ...(trackAuto ? { trackAuto: true } : {}),
+    ...(lengthAuto ? { lengthAuto: true } : {})
   })
   return { root, title, track, shots: shots.length }
 }

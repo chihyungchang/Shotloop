@@ -10,16 +10,18 @@ import { LookPicker } from './LookPicker'
 import type { Key } from '../i18n/en'
 import { lang, t, tSplit } from '../i18n'
 
-type Track = '2d' | '3d'
+type Track = 'auto' | '2d' | '3d'
 type Aspect = '9:16' | '16:9'
 
 // word: the headline's highlight; chip: the option (what the frame is);
 // hint: what it suits
 const TRACKS: Record<Track, { word: Key; chip: Key; hint: Key; idea: Key }> = {
+  auto: { word: 'home.track.2d', chip: 'home.chip.auto', hint: 'home.hint.auto', idea: 'home.idea.2d' },
   '2d': { word: 'home.track.2d', chip: 'home.chip.2d', hint: 'home.hint.2d', idea: 'home.idea.2d' },
   '3d': { word: 'home.track.3d', chip: 'home.chip.3d', hint: 'home.hint.3d', idea: 'home.idea.3d' }
 }
-const LENGTHS = [15, 30, 45, 60]
+// 'auto': the planner sets the length from the content
+const LENGTHS = ['auto', '15', '30', '45', '60']
 
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 6).join('-') || 'untitled'
@@ -30,9 +32,9 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
   const settings = useSettings()
   const ai = settings && aiSummary(settings)
   const [idea, setIdea] = useState('')
-  const [track, setTrack] = useState<Track>('2d')
+  const [track, setTrack] = useState<Track>('auto')
   const [aspect, setAspect] = useState<Aspect>('9:16')
-  const [length, setLength] = useState(30)
+  const [length, setLength] = useState('auto')
   // 2D: a look, or '' for the AI to pick one that fits the idea
   const [look, setLook] = useState('')
   const [folder, setFolder] = useState(projectsFolder())
@@ -88,7 +90,7 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
         track,
         aspect,
         duration: length,
-        look: track === '2d' ? look : ''
+        look: track === '3d' ? '' : look
       })
       // A new project starts on its planning page: copy and storyboard first
       open(r.root, true)
@@ -119,7 +121,9 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
   return (
     <div className="home">
       <h1 className="hero">
-        {before}<mark>{t(TRACKS[track].word)}</mark>{after}
+        {before}{track === 'auto'
+          ? <Rotating words={[t('home.track.2d'), t('home.track.3d')]} />
+          : <mark>{t(TRACKS[track].word)}</mark>}{after}
       </h1>
       <p className="hero-sub muted">{t('home.sub')}</p>
 
@@ -137,7 +141,7 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
         <div className="composer-bar">
           <div className="chips">
             <div className="chip-group" role="radiogroup" aria-label={t('home.aria.track')}>
-              {(['2d', '3d'] as Track[]).map(tr => (
+              {(['auto', '2d', '3d'] as Track[]).map(tr => (
                 <button key={tr} role="radio" aria-checked={track === tr} className={`chip${track === tr ? ' on' : ''}`}
                   onClick={() => setTrack(tr)} title={t(TRACKS[tr].hint)}>
                   {track === tr && <Icon name="spark" size={12} />}{t(TRACKS[tr].chip)}
@@ -154,11 +158,11 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
             {/* Length as one chip with a menu: four buttons would wrap the row */}
             <label className="chip-select" title={t('home.aria.length')}>
               <Icon name="clock" size={13} />
-              <select value={length} onChange={e => setLength(Number(e.target.value))} aria-label={t('home.aria.length')}>
-                {LENGTHS.map(l => <option key={l} value={l}>{t('unit.s', { n: l })}</option>)}
+              <select value={length} onChange={e => setLength(e.target.value)} aria-label={t('home.aria.length')}>
+                {LENGTHS.map(l => <option key={l} value={l}>{l === 'auto' ? t('home.lengthAuto') : t('unit.s', { n: l })}</option>)}
               </select>
             </label>
-            {track === '2d' && <LookPicker value={look} onChange={setLook} />}
+            {track !== '3d' && <LookPicker value={look} onChange={setLook} />}
           </div>
           {ai && (
             // Just the AI's mark: its name and model are in the tooltip
@@ -252,4 +256,14 @@ function ProjectCard({ p, onClick }: { p: ProjectSummary; onClick: () => void })
       <span className="example-go"><Icon name="arrow" size={14} /></span>
     </button>
   )
+}
+
+// The headline's word while the AI picks 2D or 3D: the two take turns
+function Rotating({ words }: { words: string[] }) {
+  const [i, setI] = useState(0)
+  useEffect(() => {
+    const id = window.setInterval(() => setI(n => (n + 1) % words.length), 2200)
+    return () => window.clearInterval(id)
+  }, [words.length])
+  return <mark className="rotating" aria-label={words.join(' / ')}><span key={i} className="rotating-word" aria-hidden>{words[i]}</span></mark>
 }
