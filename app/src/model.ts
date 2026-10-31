@@ -179,7 +179,8 @@ export function agentNow(job: Job): string | null {
 
 // Where a build stands, shot by shot: the shots the AI works on now (five
 // at a time, each with what it is doing), the shots whose code it has
-// written, the phase (world first when there is no look, then the shots).
+// written, the phase (world first when there is no look, then 2D's
+// recurring pictures with their first shot, then the shots).
 // Builds before parallel shots had no markers: then the last shot touched
 // is the one in work
 export type ShotAction = 'write' | 'stills' | 'check'
@@ -187,12 +188,13 @@ export function buildSteps(job: Job | null) {
   const written = new Set<string>()
   const finished = new Set<string>()
   const active = new Map<string, ShotAction>()
-  let phase: 'read' | 'world' | 'shots' = 'read'
+  let phase: 'read' | 'world' | 'parts' | 'shots' = 'read'
   let world = false
   let marked = false
   for (const l of job?.log ?? []) {
     let m: RegExpMatchArray | null
     if (l === 'phase world') phase = 'world'
+    else if (l === 'phase parts') phase = 'parts'
     else if (l === 'phase shots') phase = 'shots'
     else if ((m = l.match(/^shot_start (\S+)/))) {
       marked = true
@@ -242,7 +244,8 @@ export function planSteps(job: Job): Step[] {
 }
 
 // A build's steps: read the plan, the shared look (a built-in look, or
-// designed by the AI), then the shots, five at a time
+// designed by the AI), the recurring pictures (2D, when the plan has
+// them), then the shots, five at a time
 export function buildStepList(job: Job, shots: { id: string }[], look: string | null): Step[] {
   const { active, written, finished, world, phase } = buildSteps(job)
   const done = job.state === 'done'
@@ -253,7 +256,7 @@ export function buildStepList(job: Job, shots: { id: string }[], look: string | 
   const words: Record<ShotAction, 'build.writing' | 'build.rendering' | 'build.checking'> = { write: 'build.writing', stills: 'build.rendering', check: 'build.checking' }
   const now = [...active].map(([id, a]) => t('build.shotDoing', { n: n(id), what: t(words[a]) })).join(' · ')
   const count = new Set([...written, ...finished]).size
-  return [
+  const steps: Step[] = [
     { label: t('buildStep.read'), state: s[0] },
     look
       ? { label: t('buildStep.lookUsed', { name: lookName(look) }), state: s[0] === 'done' ? 'done' : 'todo' }
@@ -263,6 +266,13 @@ export function buildStepList(job: Job, shots: { id: string }[], look: string | 
       detail: s[2] === 'active' ? (now || (thinking ? t('build.thinking') : undefined)) : undefined
     }
   ]
+  // The recurring pictures, before the shots
+  if (job.log.includes('phase parts')) {
+    const drawing = phase === 'parts' && !done
+    steps.splice(2, 0, { label: t('buildStep.parts'), state: drawing ? 'active' : 'done', detail: drawing ? t('buildStep.partsDetail') : undefined })
+    if (drawing) steps[3] = { ...steps[3], state: 'todo', detail: undefined }
+  }
+  return steps
 }
 
 // A render's stage, in words

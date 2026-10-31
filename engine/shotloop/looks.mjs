@@ -62,9 +62,15 @@ export function lookPage(id, { width, height }) {
   const h = Math.round(height / 1.5)
   const tall = h > w
   const pad = Math.round(w * (tall ? 0.056 : 0.045))
+  // The safe area (engine/shotloop/checklist.md, safe-area): on a tall
+  // frame the right edge and the bottom 20% carry the platforms' buttons
+  const safeTop = Math.round(h * (tall ? 0.086 : 0.06))
+  const safeRight = tall ? Math.round(w * 0.861) : w - pad
+  const safeBottom = Math.round(h * (tall ? 0.8 : 0.85))
   const headSize = Math.round(tall ? w * 0.085 : h * 0.085)
-  const headTop = Math.round(h * (tall ? 0.1 : 0.1))
-  const headWidth = Math.round(tall ? w - 2 * pad : w * 0.62)
+  // The kicker sits 44 px above the headline, on the safe area's top edge
+  const headTop = safeTop + 44
+  const headWidth = Math.round(tall ? safeRight - pad : w * 0.62)
   return `<!doctype html>
 <!--
   shotloop-look: ${L.id}
@@ -74,11 +80,12 @@ export function lookPage(id, { width, height }) {
 
   Layout: kicker and headline at the top (y ${headTop}…), the stage (an SVG
   covering the frame, viewBox 0 0 ${w} ${h}) for diagrams, numbers and icons.
-  Keep content inside x ${pad}…${w - pad} and above y ${Math.round(h * 0.82)} (the bottom 18% is
-  for platform UI).
+  Keep text and the subject inside x ${pad}…${safeRight}, y ${safeTop}…${safeBottom} (the
+  platforms' buttons cover the rest); backgrounds may fill the whole frame.
 
   kit:
-    W, H, PAD, SAFE_BOTTOM          frame size and the safe area
+    W, H                            frame size
+    PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM   the safe area (x PAD…SAFE_RIGHT)
     C                               palette: bg-independent colors text, muted,
                                     accent, accent2, accent3, line, panel,
                                     series (list for charts)
@@ -95,6 +102,16 @@ export function lookPage(id, { width, height }) {
     set(el, { attr: value, style: { … } })
     drawOn(el, p)                   draws a stroked path/line/circle on, p 0→1
     count(p, from, to, digits = 0)  a number for counters
+    stagger(t, i, a, step = 0.12, d = 0.4)   item i of a group revealed in turn
+    hold(t, a, b, d = 0.3)          0→1→0: on screen from a to b, fading d
+    float(t, amp = 4, period = 3, phase = 0)  gentle idle motion (px) for things at rest
+    view({ x, y, s })               the stage's camera: zoom s around (x, y),
+                                    after stage(); s = 1 is the whole frame
+    readTime(text)                  seconds a caption must stay fully on screen
+    hash(a, b = 0)                  seeded random 0…1, the same every frame
+                                    (never Math.random)
+    waffle({ x, y, w, n, cols, lit, color, p, litP })  SVG markup: n squares,
+                                    revealed with p, the first lit lighting with litP
     arrow(x1, y1, x2, y2, { color, width })      SVG markup
     bars({ x, y, w, h, values, labels, colors, p }) SVG markup, bars grow with p
     card(t, { kicker, title, body, progress })  the starter title card
@@ -130,7 +147,7 @@ export function lookPage(id, { width, height }) {
     <div id="sub"></div>
     <script>
       const $ = id => document.getElementById(id)
-      const W = ${w}, H = ${h}, PAD = ${pad}, SAFE_BOTTOM = ${Math.round(h * 0.82)}
+      const W = ${w}, H = ${h}, PAD = ${pad}, SAFE_TOP = ${safeTop}, SAFE_RIGHT = ${safeRight}, SAFE_BOTTOM = ${safeBottom}
       const C = {
         text: '${L.text}', muted: '${L.muted}', accent: '${L.accent}', accent2: '${L.accent2}', accent3: '${L.accent3}',
         line: '${L.line}', panel: '${L.panel}', series: ['${L.accent}', '${L.accent2}', '${L.accent3}', '${L.muted}']
@@ -145,6 +162,28 @@ export function lookPage(id, { width, height }) {
       const pop = (t, a, d = 0.5) => {
         const p = clamp((t - a) / d), c = 1.7
         return p <= 0 ? 0 : 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2)
+      }
+      // Item i of a group, revealed step seconds after the one before
+      const stagger = (t, i, a, step = 0.12, d = 0.4) => rise(t, a + i * step, d)
+      // 0 → 1 → 0: on screen from a to b, fading in and out over d
+      const hold = (t, a, b, d = 0.3) => Math.min(rise(t, a, d), 1 - rise(t, b - d, d))
+      // Gentle idle motion (px) for things at rest
+      const float = (t, amp = 4, period = 3, phase = 0) => amp * Math.sin((t / period + phase) * Math.PI * 2)
+      // Seconds a caption must stay fully on screen: 1 s, plus 0.3 s per
+      // word, 0.15 s per Chinese character (agent/src/principles.ts)
+      function readTime(text) {
+        const cjk = /[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}]/gu
+        const chars = (String(text).match(cjk) || []).length
+        const words = String(text).replace(cjk, ' ').split(/\\s+/).filter(w => /[\\p{L}\\p{N}]/u.test(w)).length
+        return chars + words ? 1 + 0.3 * words + 0.15 * chars : 0
+      }
+      // A seeded random number in [0, 1): the same for the same a and b
+      function hash(a, b = 0) {
+        let h = Math.imul(Math.round(a * 1000) ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(Math.round(b * 1000), 0xc2b2ae35)
+        h ^= h >>> 13
+        h = Math.imul(h, 0x27d4eb2f)
+        h ^= h >>> 16
+        return (h >>> 0) / 4294967296
       }
       const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
 
@@ -184,6 +223,8 @@ export function lookPage(id, { width, height }) {
       function stage(markup) {
         const svg = $('stage')
         svg.innerHTML = markup
+        // Every frame starts from the whole frame; view() moves in
+        svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H)
         return sel => svg.querySelector(sel)
       }
       function set(el, props) {
@@ -204,6 +245,11 @@ export function lookPage(id, { width, height }) {
         return el
       }
       const count = (p, from, to, digits = 0) => lerp(from, to, clamp(p)).toFixed(digits)
+      // The stage's camera: zoom s around (x, y)
+      function view({ x = W / 2, y = H / 2, s = 1 } = {}) {
+        const vw = W / s, vh = H / s
+        $('stage').setAttribute('viewBox', (x - vw / 2) + ' ' + (y - vh / 2) + ' ' + vw + ' ' + vh)
+      }
 
       function arrow(x1, y1, x2, y2, { color = C.accent, width = 5 } = {}) {
         const a = Math.atan2(y2 - y1, x2 - x1), hl = width * 3.2
@@ -214,7 +260,7 @@ export function lookPage(id, { width, height }) {
       }
 
       // A bar chart that grows with p (each bar a little after the last)
-      function bars({ x = PAD, y = H * 0.72, w = W - 2 * PAD, h = H * 0.3, values = [], labels = [], colors = C.series, p = 1 } = {}) {
+      function bars({ x = PAD, y = H * 0.72, w = SAFE_RIGHT - PAD, h = H * 0.3, values = [], labels = [], colors = C.series, p = 1 } = {}) {
         const max = Math.max(...values, 1), n = values.length, gap = w * 0.06, bw = (w - gap * (n - 1)) / n
         return values.map((v, i) => {
           const k = rise(p * (n * 0.25 + 1), i * 0.25, 1), bh = (v / max) * h * k, bx = x + i * (bw + gap)
@@ -225,13 +271,29 @@ export function lookPage(id, { width, height }) {
         }).join('')
       }
 
+      // A waffle: n squares in rows of cols, revealed in order with p; the
+      // first lit of them light up in order with litP
+      function waffle({ x = PAD, y = H * 0.45, w = SAFE_RIGHT - PAD, n = 100, cols = 10, lit = 0, color = C.accent, p = 1, litP = 1 } = {}) {
+        const step = w / cols, size = step * 0.84
+        const on = Math.round(lit * clamp(litP))
+        let out = ''
+        for (let k = 0; k < n; k++) {
+          const show = clamp(p * n - k)
+          if (show <= 0) break
+          out += '<rect x="' + (x + (k % cols) * step) + '" y="' + (y + Math.floor(k / cols) * step) + '" width="' + size + '" height="' + size +
+            '" rx="' + size * 0.18 + '" fill="' + (k < on ? color : C.panel) + '" stroke="' + C.line + '" opacity="' + show + '"/>'
+        }
+        return out
+      }
+
       // The starter title card, until a shot gets its own design
       function card(t, { kicker, title, body, progress }) {
         stage('')
         frame({ kicker, head: title.replace(/<\\/?b>/g, '*'), typed: rise(t, 0.1, 0.6), sub: body, subIn: rise(t, 0.6), progress })
       }
 
-      window.kit = { $, W, H, PAD, SAFE_BOTTOM, C, FONT, HEAD_FONT, clamp, lerp, ease, rise, pop, frame, stage, set, drawOn, count, arrow, bars, card }
+      window.kit = { $, W, H, PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM, C, FONT, HEAD_FONT, clamp, lerp, ease, rise, pop, stagger, hold, float, readTime, hash, waffle,
+        frame, stage, view, set, drawOn, count, arrow, bars, card }
       window.ready = document.fonts.ready
     </script>
   </body>

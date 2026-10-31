@@ -26,7 +26,8 @@ import { parseArgs } from 'node:util'
 import { engine, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
 import { emit, setJson } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
-import { buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, planSystem, postLanguage, publishSystem, replyLanguage } from './prompts.ts'
+import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, planSystem, postLanguage, publishSystem, replyLanguage } from './prompts.ts'
+import { lintPlan } from './principles.ts'
 import type { ToolContext } from './tools.ts'
 
 const OPTIONS = {
@@ -110,6 +111,29 @@ function assetsBrief(project: ProjectStatus) {
 // A project in one line, for prompts
 const head = (p: ProjectStatus) => `"${p.title}" (${p.track.toUpperCase()}, ${p.size.width}×${p.size.height}, ${p.duration} s, ${p.shots.length} shots)`
 
+// The plan's pictures that appear in more than one shot (storyboard.json
+// "recurring"), each with its fixed design and the 1-based shots it is in
+interface Recurring { name: string; design: string; shots: number[] }
+function recurring(project: ProjectStatus): Recurring[] {
+  try {
+    const sb = JSON.parse(fs.readFileSync(path.join(project.root, 'storyboard.json'), 'utf8'))
+    return (Array.isArray(sb.recurring) ? sb.recurring : [])
+      .filter((r: Recurring) => r && String(r.name ?? '').trim() && Array.isArray(r.shots) && r.shots.length)
+      .map((r: Recurring) => ({ name: String(r.name), design: String(r.design ?? ''), shots: r.shots.map(Number) }))
+  } catch {
+    return []
+  }
+}
+
+// 2D: the recurring pictures a shot shows, to draw from world/parts.js
+function recurringBrief(project: ProjectStatus, shot: ShotStatus) {
+  if (project.track !== '2d') return ''
+  const n = project.shots.findIndex(s => s.id === shot.id) + 1
+  const mine = recurring(project).filter(r => r.shots.includes(n))
+  if (!mine.length) return ''
+  return `\n\nRecurring pictures in this shot (draw them with their functions in world/parts.js when it has them; keep their design exactly):\n${mine.map(r => `- ${r.name}: ${r.design}`).join('\n')}`
+}
+
 function shotBrief(project: ProjectStatus, shot: ShotStatus) {
   const rel = (f: string) => path.relative(project.root, f)
   const others = project.shots.map(s => `${s.id} (${s.start}–${s.start + s.duration} s)${s.id === shot.id ? ' ← this shot' : ''}`)
@@ -122,7 +146,7 @@ ${rel(shot.notes)}:
 ${read(shot.notes)}
 
 ${rel(shot.code)}:
-${read(shot.code)}${assetsBrief(project)}`
+${read(shot.code)}${recurringBrief(project, shot)}${assetsBrief(project)}`
 }
 
 // Copies stills into the fix record, so before/after survive later renders
@@ -174,7 +198,7 @@ async function shotTask(kind: 'fix' | 'check') {
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent(kind === 'fix' ? 'code' : 'routine', {
     effort: kind === 'fix' ? 'high' : 'medium',
-    system: (kind === 'fix' ? fixSystem() : checkSystem()) + replyLanguage(values.lang),
+    system: (kind === 'fix' ? fixSystem(project.track) : checkSystem(project.track)) + replyLanguage(values.lang),
     prompt: `${ask}\n\n${shotBrief(project, shot)}`,
     ctx
   })
@@ -229,7 +253,7 @@ async function planTask() {
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent('copy', {
     effort: 'medium',
-    system: planSystem() + replyLanguage(values.lang),
+    system: planSystem(project.track) + replyLanguage(values.lang),
     prompt: `${ask}
 
 Idea: ${ideaOf(project)}
@@ -238,9 +262,31 @@ Track: ${project.track.toUpperCase()} · frame ${size} · target length ${projec
     ctx
   })
   // The page reads it: it has to be valid
-  const sb = JSON.parse(fs.readFileSync(file, 'utf8'))
-  if (!Array.isArray(sb.shots) || !sb.shots.length) throw new Error('the plan has no shots; try again')
-  return { task: 'plan', summary, shots: sb.shots.length }
+  const load = () => {
+    const sb = JSON.parse(fs.readFileSync(file, 'utf8'))
+    if (!Array.isArray(sb.shots) || !sb.shots.length) throw new Error('the plan has no shots; try again')
+    return sb as { shots: { title?: string; duration: number; text?: string }[] }
+  }
+  let sb = load()
+  // 2D: measured against the principles; what breaks them goes back once
+  // A bar of the music: no caption is up for less (the bed may be tuned
+  // up to 12% faster to land the cuts, engine/shotloop/bed.mjs)
+  const bpm = Number(JSON.parse(read(path.join(project.root, 'music.json')).replace(/^\(missing\)$/, '{}')).bpm) || 0
+  const bar = bpm ? 240 / (bpm * 1.12) : 0
+  let issues = project.track === '2d' ? lintPlan(sb.shots, bar) : []
+  let final = summary
+  if (issues.length) {
+    emit({ type: 'log', message: `plan breaks ${issues.length} reading rule(s); revising` })
+    final = await runAgent('copy', {
+      effort: 'medium',
+      system: planSystem(project.track) + replyLanguage(values.lang),
+      prompt: `storyboard.json breaks the 2D principles where they can be measured:\n${issues.map(i => `- ${i}`).join('\n')}\n\nFix it: sum captions up shorter, move words into the picture, split a crowded beat into two shots, or give a shot more time while the total stays ${project.duration} s. Keep everything else.\n\nstoryboard.json:\n${fs.readFileSync(file, 'utf8')}`,
+      ctx
+    })
+    sb = load()
+    issues = lintPlan(sb.shots, bar)
+  }
+  return { task: 'plan', summary: final, shots: sb.shots.length, warnings: issues }
 }
 
 // The looks a 2D plan picks from, or the one the person chose
@@ -286,7 +332,7 @@ async function buildTask() {
     const ctx = context(project.root, ['world/', 'captions.html'])
     await runAgent('code', {
       effort: 'high',
-      system: buildWorldSystem() + replyLanguage(values.lang),
+      system: buildWorldSystem(project.track) + replyLanguage(values.lang),
       prompt: `Design the world of ${head(project)} from its plan.\n\ncopy.md:\n${copy}\n\n${worldFiles()}\n\n${project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')}`,
       ctx
     })
@@ -294,17 +340,45 @@ async function buildTask() {
     project = await status(dir)
   }
 
-  emit({ type: 'log', message: 'phase shots' })
-  const world = worldFiles()
   const done: string[] = []
   const failed: string[] = []
-  await pool(project.shots, PARALLEL, async shot => {
+  // 2D: the recurring pictures drawn once (world/parts.js), built into the
+  // first shot that shows them as their proof; failing that, every shot
+  // draws its own
+  const parts = project.track === '2d' ? recurring(project) : []
+  const first = Math.min(...parts.flatMap(r => r.shots).filter(n => n >= 1 && n <= project.shots.length))
+  let lead: ShotStatus | undefined = Number.isFinite(first) ? project.shots[first - 1] : undefined
+  if (lead) {
+    emit({ type: 'log', message: 'phase parts' })
+    emit({ type: 'log', message: `shot_start ${lead.id}` })
+    const ctx = context(project.root, ['world/parts.js', `shots/${lead.id}/`])
+    try {
+      const summary = await runAgent('code', {
+        effort: 'high',
+        system: buildPartsSystem() + replyLanguage(values.lang),
+        prompt: `Draw the recurring pictures of ${head(project)} in world/parts.js, then build shot ${lead.id} with them.\n\nRecurring pictures:\n${parts.map(r => `- ${r.name} (shots ${r.shots.join(', ')}): ${r.design}`).join('\n')}\n\ncopy.md:\n${copy}\n\n${worldFiles()}\n\n${shotBrief(project, lead)}`,
+        ctx,
+        maxTurns: 40
+      })
+      done.push(`${lead.id}: ${summary}`)
+    } catch (err) {
+      emit({ type: 'log', message: `parts failed: ${err instanceof Error ? err.message : String(err)}` })
+      lead = undefined
+    }
+    ctx.touched.forEach(f => touched.add(f))
+    saveChecks(project, ctx)
+    if (lead) emit({ type: 'log', message: `shot_done ${lead.id}` })
+  }
+
+  emit({ type: 'log', message: 'phase shots' })
+  const world = worldFiles()
+  await pool(project.shots.filter(s => s.id !== lead?.id), PARALLEL, async shot => {
     emit({ type: 'log', message: `shot_start ${shot.id}` })
     const ctx = context(project.root, [`shots/${shot.id}/`])
     try {
       const summary = await runAgent('code', {
         effort: 'medium',
-        system: buildShotSystem() + replyLanguage(values.lang),
+        system: buildShotSystem(project.track) + replyLanguage(values.lang),
         prompt: `Build shot ${shot.id} of ${head(project)} from its plan.\n\ncopy.md:\n${copy}\n\n${world}\n\n${shotBrief(project, shot)}`,
         ctx,
         maxTurns: 30

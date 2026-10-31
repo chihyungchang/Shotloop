@@ -514,6 +514,8 @@ export const ptBR: Record<Key, string> = {
   'buildStep.read': 'Ler o storyboard',
   'buildStep.look': 'Criar o visual comum',
   'buildStep.lookDetail': 'Fundo, cores e tipografia de todos os planos. Leva alguns minutos.',
+  'buildStep.parts': 'Desenhar as imagens que se repetem',
+  'buildStep.partsDetail': 'Desenhadas uma vez e compartilhadas, iguais em todas as cenas',
   'buildStep.shots': 'Escrever e conferir os planos ({done} de {total})',
   'build.thinking': 'pensando',
   'build.reading': 'Lendo o roteiro e os arquivos do projeto…',

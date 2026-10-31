@@ -58,7 +58,7 @@ ${shot.text?.trim() || '(no text)'}
 ## Motion
 
 ${shot.motion?.trim() || '(the move)'}
-`
+${shot.source?.trim() ? `\n## Source line\n\n${shot.source.trim()}\n` : ''}`
 }
 
 // The 2D starter page of projects made before looks
@@ -182,7 +182,8 @@ export function deriveStoryboard(project) {
     const notes = read(s.notes)
     return {
       id: s.id, title: s.title ?? s.id, duration: s.duration,
-      show: section(notes, 'Must show'), text: section(notes, 'On screen'), motion: section(notes, 'Motion')
+      show: section(notes, 'Must show'), text: section(notes, 'On screen'), motion: section(notes, 'Motion'),
+      ...(section(notes, 'Source line') ? { source: section(notes, 'Source line') } : {})
     }
   })
   const starter = project.shots.every(s => !fs.existsSync(s.code) || isStarter(s.code)) && shots.every(s => placeholder(s.show))

@@ -514,6 +514,8 @@ export const zhCN: Record<Key, string> = {
   'buildStep.read': '读分镜',
   'buildStep.look': '设计共用风格',
   'buildStep.lookDetail': '所有镜头共用的背景、配色和字体，需要几分钟。',
+  'buildStep.parts': '画好反复出现的画面',
+  'buildStep.partsDetail': '只画一次、所有镜头共用，保证每个镜头里长得一样',
   'buildStep.shots': '逐个编写并检查镜头（{done}/{total}）',
   'build.thinking': '思考中',
   'build.reading': '正在读分镜和项目文件…',

@@ -515,6 +515,8 @@ export const en = {
   'buildStep.read': 'Read the storyboard',
   'buildStep.look': 'Design the shared look',
   'buildStep.lookDetail': 'Background, colors and type every shot uses. Takes a few minutes.',
+  'buildStep.parts': 'Draw the pictures that recur',
+  'buildStep.partsDetail': 'Drawn once and shared, so they look the same in every shot',
   'buildStep.shots': 'Write and check the shots ({done} of {total})',
   'build.thinking': 'thinking',
   'build.reading': 'Reading the plan and the project files…',
