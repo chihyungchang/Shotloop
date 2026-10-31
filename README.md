@@ -72,7 +72,7 @@ The AI picks the style that fits the subject and tells you why; you can switch o
 <table>
 <tr>
 <td width="50%" valign="top">
-<a href="docs/screenshots/home.jpg"><img src="docs/screenshots/home.jpg" alt="Home: an idea composer with 2D/3D, aspect and length, and the examples" /></a><br/>
+<a href="docs/screenshots/home.jpg"><img src="docs/screenshots/home.jpg" alt="Home: an idea composer with 2D/3D, aspect, length, style and theme, and the example gallery filtered by style" /></a><br/>
 <sub><b>Home</b>: one sentence. 2D or 3D, the length, the style and the theme can stay on Auto. Or start from an example in the gallery.</sub>
 </td>
 <td width="50%" valign="top">
@@ -92,7 +92,7 @@ The AI picks the style that fits the subject and tells you why; you can switch o
 </tr>
 <tr>
 <td width="50%" valign="top">
-<a href="docs/screenshots/export.jpg"><img src="docs/screenshots/export.jpg" alt="Export drawer: aspects, music with a listen button, and publish copy" /></a><br/>
+<a href="docs/screenshots/export.jpg"><img src="docs/screenshots/export.jpg" alt="Export dialog: the cover, the name and folder, the video with aspects and music, and the publish copy" /></a><br/>
 <sub><b>Export</b>: tick the video (vertical, horizontal), the cover and the publish copy; edit the cover and the copy first. Every export goes into its own folder.</sub>
 </td>
 <td width="50%" valign="top">

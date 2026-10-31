@@ -72,7 +72,7 @@ AI 会按题目挑选最合适的画面方式并说明理由；你可以在策�
 <table>
 <tr>
 <td width="50%" valign="top">
-<a href="docs/screenshots/home-zh.jpg"><img src="docs/screenshots/home-zh.jpg" alt="首页：输入想法，选择 2D/3D、画幅和时长，下面是示例" /></a><br/>
+<a href="docs/screenshots/home-zh.jpg"><img src="docs/screenshots/home-zh.jpg" alt="首页：输入想法，选择 2D/3D、画幅、时长、画面方式和主题色，下面是可按画面方式筛选的示例画廊" /></a><br/>
 <sub><b>首页</b>：一句话。2D/3D、时长、画面方式和主题色都可以交给“自动”，也可以从示例画廊开始。</sub>
 </td>
 <td width="50%" valign="top">
@@ -92,7 +92,7 @@ AI 会按题目挑选最合适的画面方式并说明理由；你可以在策�
 </tr>
 <tr>
 <td width="50%" valign="top">
-<a href="docs/screenshots/export.jpg"><img src="docs/screenshots/export.jpg" alt="导出：画幅、可试听的配乐和发布文案" /></a><br/>
+<a href="docs/screenshots/export.jpg"><img src="docs/screenshots/export.jpg" alt="导出对话框：封面、名称和导出位置、视频画幅与配乐，以及发布文案" /></a><br/>
 <sub><b>导出</b>：勾选要导出的视频（竖屏、横屏）、封面和发布文案，导出前可以先编辑封面和文案。每次导出都放进一个单独的文件夹。</sub>
 </td>
 <td width="50%" valign="top">
