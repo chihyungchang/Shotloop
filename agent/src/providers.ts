@@ -109,6 +109,15 @@ export function runAgent(task: Task, opts: Omit<AgentOptions, 'model'>): Promise
   }
 }
 
+// The local model servers looked for, at their default ports. The one
+// list: the app takes it from detect's result
+const LOCAL_SERVERS = [
+  { id: 'ollama', name: 'Ollama', url: 'http://localhost:11434/v1' },
+  { id: 'lmstudio', name: 'LM Studio', url: 'http://localhost:1234/v1' },
+  { id: 'vllm', name: 'vLLM', url: 'http://localhost:8000/v1' },
+  { id: 'llamacpp', name: 'llama.cpp', url: 'http://localhost:8080/v1' }
+]
+
 // What is available on this machine: CLI agents and local model servers
 export async function detect() {
   const { execFileSync } = await import('node:child_process')
@@ -119,20 +128,17 @@ export async function detect() {
       try {
         version = execFileSync(bin, ['--version'], { encoding: 'utf8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'] }).trim().split('\n')[0]
       } catch {
+        // Installed but no answer to --version: listed without one
         version = null
       }
     }
     return { ...c, path: bin, version }
   })
-  const servers = await Promise.all([
-    { id: 'ollama', name: 'Ollama', url: 'http://localhost:11434/v1' },
-    { id: 'lmstudio', name: 'LM Studio', url: 'http://localhost:1234/v1' },
-    { id: 'vllm', name: 'vLLM', url: 'http://localhost:8000/v1' },
-    { id: 'llamacpp', name: 'llama.cpp', url: 'http://localhost:8080/v1' }
-  ].map(async s => {
+  const servers = await Promise.all(LOCAL_SERVERS.map(async s => {
     try {
       return { ...s, running: true, models: await listOpenAiModels(s.url) }
     } catch {
+      // Nothing answering there: the server isn't running
       return { ...s, running: false, models: [] as string[] }
     }
   }))

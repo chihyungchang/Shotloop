@@ -138,6 +138,7 @@ export async function runCli(cli: CliId, { model, system, prompt, ctx, effort, m
         try {
           ev = JSON.parse(line)
         } catch {
+          // not an event line
           return
         }
         if (ev.type === 'assistant') {

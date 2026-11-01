@@ -1,6 +1,6 @@
 // The principles of a 2D Shotloop video, set by Oliver with a viewer who
-// watches a lot of English short video (31 Oct 2026; the same as
-// engine/video/explainers/2d/README.md). They are fixed: every planning,
+// watches a lot of English short video (31 Oct 2026). This file is their
+// one source; other docs link here. They are fixed: every planning,
 // building, fixing and checking prompt carries them, and a plan is
 // measured against them before anything is built (lintPlan). Within them,
 // the AI makes each frame as rich to watch as it can.
@@ -43,13 +43,20 @@ const { SUBTITLE_BAND } = await import(new URL('../../engine/shotloop/cues.mjs',
   { SUBTITLE_BAND: Record<'portrait' | 'landscape', [number, number]> }
 const band = (k: 'portrait' | 'landscape') => `${SUBTITLE_BAND[k].map(x => Math.round(x * 100)).join('–')}%`
 
+// How fast a line is spoken, for planning (words, or Chinese and Japanese
+// characters, a second), and the silence its shot gets around it: the
+// same as engine/shotloop/voice.mjs LEAD+TAIL
+const WORDS_PER_S = 2.7
+const CJK_PER_S = 4.5
+const VOICE_PAD = 0.65
+
 // With a voice-over (on for a new film, engine/shotloop/voice.mjs) the
 // voice carries the explanation: these rules change principles 2 and 3,
 // and the rest stand
 export const PRINCIPLES_VOICE = `The voice-over (this film has one; it changes principles 2 and 3, the rest stand):
 - The voice explains, the picture shows, the screen sums up. Each shot has a spoken line ("say"): one or two short sentences, plain and conversational, about 8 to 25 words (Chinese or Japanese: 15 to 45 characters). The first shot's line hooks in its first words; the last can be a short sign-off or empty.
 - The voice's words are subtitled automatically, in a band near the bottom (portrait: ${band('portrait')} of the frame height; landscape: ${band('landscape')}). The shot keeps its own text and anything important out of that band, and never repeats the spoken sentence on screen: its on-screen text shrinks to the big number or a label of 1 to 4 words.
-- Time follows the voice: after planning, every line is spoken and its shot gets the line's length plus a breath. Plan durations at about 2.7 words a second (Chinese or Japanese: 4.5 characters a second) plus 0.6 s.
+- Time follows the voice: after planning, every line is spoken and its shot gets the line's length plus a breath. Plan durations at about ${WORDS_PER_S} words a second (Chinese or Japanese: ${CJK_PER_S} characters a second) plus ${VOICE_PAD} s.
 - The picture lands on the words: a number rolls in, an object appears or a chart turns as the voice says it (the shot's code gets each sentence's start and end).
 - Lines are written to be heard: short words, no lists, no parentheses, no abbreviations a voice can't say (respell an unusual name the way it sounds). Numbers as they are said: digits are fine in English and Chinese; in other languages write numbers in words. Where the screen shows ≈ the voice says "about".`
 
@@ -83,7 +90,7 @@ function units(text: string) {
 // (slower than subtitle standards, since nobody should have to pause), a
 // number read like a word. The same formula as the 2D kit's readTime
 // (engine/shotloop/looks.mjs)
-export function readingTime(text: string) {
+function readingTime(text: string) {
   const { cjk, words, numbers } = units(text)
   return cjk + words + numbers ? 1 + 0.3 * (words + numbers) + 0.15 * cjk : 0
 }
@@ -108,7 +115,7 @@ export function lintVoice(shots: { title?: string; duration: number; text?: stri
     }
     const { cjk, words, numbers } = units(say)
     if (words + numbers > 30 || cjk > 55) issues.push(`${name}: the spoken line is too long (${cjk ? `${cjk} characters` : `${words + numbers} words`}); split the beat into two shots or cut it to about 25 words (45 characters)`)
-    const need = (words + numbers) / 2.7 + cjk / 4.5 + 0.6
+    const need = (words + numbers) / WORDS_PER_S + cjk / CJK_PER_S + VOICE_PAD
     if (s.duration + 1.5 < need) issues.push(`${name}: ${s.duration} s is short for its line (about ${need.toFixed(1)} s spoken); give it the time or cut the line`)
     for (const c of captions(s.text ?? '')) {
       const u = units(c)
