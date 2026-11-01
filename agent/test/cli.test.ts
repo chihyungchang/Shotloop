@@ -7,7 +7,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { test } from 'node:test'
 import { runCli } from '../src/cli.ts'
-import type { ToolContext } from '../src/tools.ts'
+import { newContext } from '../src/tools.ts'
 
 // A fake claude that records its arguments, prints `stderr` and exits with `code`
 function fakeClaude(stderr: string, code: number) {
@@ -28,7 +28,7 @@ async function withPath<T>(dir: string, f: () => Promise<T>) {
   }
 }
 
-const ctx = (): ToolContext => ({ root: os.tmpdir(), checklist: '', writable: [], touched: new Set(), renders: new Map(), checks: [] })
+const ctx = () => newContext(os.tmpdir(), '', [])
 
 test('cli: a failed run with no stderr says how it exited, and the turn limit reaches Claude Code', async () => {
   const fake = fakeClaude('', 3)

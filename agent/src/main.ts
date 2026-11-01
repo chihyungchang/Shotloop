@@ -28,7 +28,7 @@ import { emit, exit, setJson } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
 import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, planSystem, postLanguage, publishSystem, replyLanguage } from './prompts.ts'
 import { lintPlan, lintVoice } from './principles.ts'
-import type { ToolContext } from './tools.ts'
+import { newContext, writeAtomic, type ToolContext } from './tools.ts'
 
 const OPTIONS = {
     shot: { type: 'string' },
@@ -77,9 +77,7 @@ function checklistPath(root: string) {
   return fileURLToPath(new URL('../../engine/shotloop/checklist.md', import.meta.url))
 }
 
-function context(root: string, writable: string[]): ToolContext {
-  return { root, checklist: checklistPath(root), writable, touched: new Set(), renders: new Map(), checks: [] }
-}
+const context = (root: string, writable: string[]) => newContext(root, checklistPath(root), writable)
 
 const read = (f: string) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '(missing)')
 
@@ -183,7 +181,7 @@ function saveChecks(project: ProjectStatus, ctx: ToolContext) {
   for (const c of ctx.checks) {
     const file = path.join(project.root, '.shotloop', 'shots', c.shot, 'checks.json')
     fs.mkdirSync(path.dirname(file), { recursive: true })
-    fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), ...c }, null, 2) + '\n')
+    writeAtomic(file, JSON.stringify({ at: new Date().toISOString(), ...c }, null, 2) + '\n')
   }
 }
 

@@ -21,7 +21,7 @@ import path from 'node:path'
 import { CLIS, findBin, runCli, type CliId } from './cli.ts'
 import { listModels as listOpenAiModels, runLocal } from './local.ts'
 import { MODELS, runAgent as runAnthropic, type AgentOptions } from './loop.ts'
-import type { ToolContext } from './tools.ts'
+import { newContext } from './tools.ts'
 import { MAX_TURNS } from './turns.ts'
 
 export type Provider = 'api' | 'cli' | 'local'
@@ -158,7 +158,7 @@ export async function listModels(url: string, key?: string, protocol: Protocol =
 export async function smokeTest() {
   preflight()
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-test-'))
-  const ctx: ToolContext = { root, checklist: path.join(root, 'checklist.md'), writable: [], touched: new Set(), renders: new Map(), checks: [] }
+  const ctx = newContext(root, path.join(root, 'checklist.md'), [])
   fs.writeFileSync(ctx.checklist, '')
   const started = Date.now()
   try {

@@ -14,7 +14,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
 import { toStderr } from './events.ts'
-import { runTool, saveSession, TOOLS, type ToolContext } from './tools.ts'
+import { newContext, runTool, saveSession, TOOLS } from './tools.ts'
 
 const env = (k: string) => {
   const v = process.env[k]
@@ -22,14 +22,7 @@ const env = (k: string) => {
   return v
 }
 
-const ctx: ToolContext = {
-  root: env('SHOTLOOP_ROOT'),
-  checklist: env('SHOTLOOP_CHECKLIST'),
-  writable: (process.env.SHOTLOOP_WRITABLE ?? '').split(',').filter(Boolean),
-  touched: new Set(),
-  renders: new Map(),
-  checks: []
-}
+const ctx = newContext(env('SHOTLOOP_ROOT'), env('SHOTLOOP_CHECKLIST'), (process.env.SHOTLOOP_WRITABLE ?? '').split(',').filter(Boolean))
 const session = env('SHOTLOOP_SESSION')
 
 // stdout carries the MCP protocol: nothing else may be printed there

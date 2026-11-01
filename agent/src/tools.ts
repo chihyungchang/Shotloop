@@ -7,7 +7,8 @@ import type Anthropic from '@anthropic-ai/sdk'
 import fs from 'node:fs'
 import path from 'node:path'
 import { renderCover, renderStills } from './engine.ts'
-import { emit, reason } from './events.ts'
+import { emit, reason, warn } from './events.ts'
+import { STYLES, styleById, styleStills } from './styles.ts'
 
 type Tool = Anthropic.Beta.BetaTool
 
@@ -43,17 +44,65 @@ export interface ToolContext {
   checks: { shot: string; results: CheckResult[]; summary: string }[]
 }
 
-const HIDDEN = /^(\.shotloop|out|\.git|node_modules)(\/|$)/
+export function newContext(root: string, checklist: string, writable: string[]): ToolContext {
+  return { root, checklist, writable, touched: new Set(), renders: new Map(), checks: [] }
+}
+
+// Case-insensitive: macOS file systems are, so .Shotloop is .shotloop
+const HIDDEN = /^(\.shotloop|out|\.git|node_modules)(\/|$)/i
 const MAX_READ = 256 * 1024
 
-// Resolves a model-supplied path, refusing anything outside the project
-// or in the cache and output folders
+const posix = (root: string, abs: string) => path.relative(root, abs).split(path.sep).join('/')
+
+// The project-relative path of abs, refusing anything outside the root or
+// in the cache and output folders (p: what the model asked for)
+function within(root: string, abs: string, p: string) {
+  const rel = posix(root, abs)
+  if (rel === '..' || rel.startsWith('../') || path.isAbsolute(rel)) throw new Error(`${p} is outside the project`)
+  if (HIDDEN.test(rel)) throw new Error(`${p} is managed by Shotloop and cannot be accessed`)
+  return rel
+}
+
+// Where abs really is, symlinks followed: the real path of its nearest
+// part that exists (the file, or the folder it would be created in)
+function realPath(abs: string, p: string) {
+  let probe = abs
+  while (!fs.existsSync(probe) && path.dirname(probe) !== probe) {
+    // A link whose target is missing would be written through
+    if (isLink(probe)) throw new Error(`${p} is a broken link`)
+    probe = path.dirname(probe)
+  }
+  return path.join(fs.realpathSync(probe), path.relative(probe, abs))
+}
+const isLink = (f: string) => {
+  try {
+    return fs.lstatSync(f).isSymbolicLink()
+  } catch {
+    // nothing there
+    return false
+  }
+}
+
+// Resolves a model-supplied path: inside the project both as written and
+// with symlinks followed, so a link can't lead out of it
 function resolve(ctx: ToolContext, p: string) {
   const abs = path.resolve(ctx.root, p)
-  const rel = path.relative(ctx.root, abs).split(path.sep).join('/')
-  if (rel.startsWith('..') || path.isAbsolute(rel)) throw new Error(`${p} is outside the project`)
-  if (HIDDEN.test(rel)) throw new Error(`${p} is managed by Shotloop and cannot be accessed`)
+  const rel = within(ctx.root, abs, p)
+  within(fs.realpathSync(ctx.root), realPath(abs, p), p)
   return { abs, rel }
+}
+
+// Writes under a temporary name and renames, so a reader never sees half
+// a file (the engine may read a shot while its agent writes it)
+export function writeAtomic(file: string, content: string) {
+  const tmp = path.join(path.dirname(file), `.${path.basename(file)}.${process.pid}-${Math.random().toString(36).slice(2)}.tmp`)
+  fs.writeFileSync(tmp, content)
+  try {
+    fs.renameSync(tmp, file)
+  } catch (err) {
+    fs.rmSync(tmp, { force: true })
+    throw err
+  }
 }
 
 // The shot whose code a project path is (shots/<id>/shot.js or shot.py)
@@ -69,6 +118,8 @@ const object = (properties: Record<string, unknown>, required: string[]) => ({
   required,
   additionalProperties: false
 })
+
+const STYLE_IDS = STYLES.map(s => s.id)
 
 export const TOOLS: Tool[] = [
   {
@@ -107,9 +158,9 @@ export const TOOLS: Tool[] = [
   },
   {
     name: 'view_style',
-    description: 'Look at the reference stills of a visual style (from the example videos that define it): scene, infographic, map, ui, blueprint, kinetic, news or 3d. Look before you choose a style, and before you build in one, to see the quality to reach.',
+    description: `Look at the reference stills of a visual style (from the example videos that define it): ${STYLE_IDS.join(', ')}. Look before you choose a style, and before you build in one, to see the quality to reach.`,
     strict: true,
-    input_schema: object({ style: { type: 'string', description: 'Style id: scene, infographic, map, ui, blueprint, kinetic, news or 3d.' } }, ['style'])
+    input_schema: object({ style: { type: 'string', enum: STYLE_IDS, description: 'Style id.' } }, ['style'])
   },
   {
     name: 'view_image',
@@ -222,7 +273,7 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
         content = before.replace(old, () => str('new_string'))
       }
       fs.mkdirSync(path.dirname(abs), { recursive: true })
-      fs.writeFileSync(abs, content)
+      writeAtomic(abs, content)
       ctx.touched.add(rel)
       emit({ type: 'tool', name, summary: rel, path: rel })
       const shot = codeOf(rel)
@@ -245,12 +296,8 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
     }
     case 'view_style': {
       const id = str('style')
-      const { styleById, styleStills } = await import(new URL('../../engine/shotloop/styles.mjs', import.meta.url).href) as {
-        styleById: (id: string) => { why: string } | null
-        styleStills: (id: string) => string[]
-      }
       const style = styleById(id)
-      if (!style) throw new Error(`no style ${id} (scene, infographic, map, ui, blueprint, kinetic, news, 3d)`)
+      if (!style) throw new Error(`no style ${id} (${STYLE_IDS.join(', ')})`)
       emit({ type: 'tool', name, summary: id })
       return { text: [style.why], images: styleStills(id).map((f, i) => image(f, `${id} reference ${i + 1}`)) }
     }
@@ -287,7 +334,7 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
       }
       const results = raw.map(r => ({ rule: r.rule, pass: r.pass, note: String(r.note ?? '') })) as CheckResult[]
       const summary = str('summary')
-      ctx.checks.push({ shot, results, summary })
+      recordCheck(ctx, { shot, results, summary })
       const failed = results.filter(r => !r.pass).map(r => r.rule)
       emit({ type: 'tool', name, summary: `${shot}: ${failed.length ? `failed ${failed.join(', ')}` : 'all passed'}`, shot })
       return 'recorded'
@@ -295,6 +342,14 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
     default:
       throw new Error(`unknown tool ${name}`)
   }
+}
+
+// A shot's latest review replaces an earlier one, so the checks saved and
+// the notes' history agree
+function recordCheck(ctx: ToolContext, check: ToolContext['checks'][number]) {
+  const i = ctx.checks.findIndex(c => c.shot === check.shot)
+  if (i >= 0) ctx.checks[i] = check
+  else ctx.checks.push(check)
 }
 
 // ---------------------------------------------------------------- session
@@ -310,13 +365,21 @@ interface Session {
 
 export function saveSession(ctx: ToolContext, file: string) {
   const s: Session = { touched: [...ctx.touched], renders: [...ctx.renders], checks: ctx.checks }
-  fs.writeFileSync(file, JSON.stringify(s))
+  writeAtomic(file, JSON.stringify(s))
 }
 
 export function loadSession(ctx: ToolContext, file: string) {
   if (!fs.existsSync(file)) return
-  const s = JSON.parse(fs.readFileSync(file, 'utf8')) as Session
+  let s: Session
+  try {
+    s = JSON.parse(fs.readFileSync(file, 'utf8'))
+  } catch (err) {
+    // The files the agent wrote are on disk all the same; only the record
+    // of them is lost, so the task goes on and says so
+    warn(`the record of what the CLI agent changed is unreadable (${reason(err)}); its changes and checks are not listed`)
+    return
+  }
   for (const f of s.touched) ctx.touched.add(f)
   for (const [shot, stills] of s.renders) ctx.renders.set(shot, stills)
-  ctx.checks.push(...s.checks)
+  for (const c of s.checks) recordCheck(ctx, c)
 }
