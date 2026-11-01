@@ -8,8 +8,9 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { download } from './fetch.mjs'
+import { download, du } from './fetch.mjs'
 import * as cosyvoice from './cosyvoice.mjs'
+import { tryLock } from './lock.mjs'
 
 export const VOICES_DIR = process.env.SHOTLOOP_VOICES ?? path.join(os.homedir(), '.shotloop', 'voices')
 
@@ -53,8 +54,16 @@ export const MODELS = {
 export const modelDir = id => path.join(VOICES_DIR, id)
 export const installed = id => fs.existsSync(path.join(modelDir(id), '.complete'))
 
-// The model's folder, downloaded first if needed. onProgress(done, total)
-// in bytes
+// Where a download of the model is being filled: CosyVoice installs in
+// its folder itself, the others in a temporary folder beside it
+function partial(id) {
+  if (MODELS[id].kind === 'cosyvoice') return [modelDir(id)]
+  return fs.readdirSync(VOICES_DIR).filter(f => f.startsWith(`.${id}-`)).map(f => path.join(VOICES_DIR, f))
+}
+
+// The model's folder, downloaded first if needed. onProgress(done, total,
+// { waiting }) in bytes: waiting is true while another process downloads
+// it, done then measured from that download's folder (approximate)
 export async function ensureModel(id, onProgress = () => {}) {
   const m = MODELS[id]
   if (!m) throw new Error(`no speech model "${id}"`)
@@ -64,43 +73,36 @@ export async function ensureModel(id, onProgress = () => {}) {
   // One download per model: another process fetching it (the app's
   // download while a build needs the voice) is waited for, not repeated
   const lock = path.join(VOICES_DIR, `.${id}.lock`)
-  while (!tryLock(lock)) {
-    await new Promise(r => setTimeout(r, 1000))
+  let release
+  while (!(release = tryLock(lock))) {
+    const got = partial(id).reduce((n, d) => n + du(d), 0)
+    onProgress(Math.min(got, m.bytes - 1), m.bytes, { waiting: true })
+    await new Promise(r => setTimeout(r, 2000))
     if (installed(id)) return dir
   }
   try {
-    return await fetchModel(id, m, dir, onProgress)
-  } finally {
-    fs.rmSync(lock, { force: true })
-  }
-}
-
-// Takes the lock file, or false while a live process holds it (a lock
-// left by a process that died is taken over)
-function tryLock(lock) {
-  try {
-    fs.writeFileSync(lock, String(process.pid), { flag: 'wx' })
-    return true
-  } catch {
-    const pid = Number(fs.readFileSync(lock, 'utf8'))
-    try {
-      process.kill(pid, 0)
-      return false
-    } catch {
-      fs.rmSync(lock, { force: true })
-      return tryLock(lock)
+    // The other process may have finished just before we took the lock
+    if (installed(id)) return dir
+    if (m.kind === 'cosyvoice') {
+      await cosyvoice.install(dir, onProgress)
+      markComplete(dir)
+    } else {
+      await fetchFiles(id, m, dir, onProgress)
     }
+  } finally {
+    release()
   }
+  onProgress(m.bytes, m.bytes)
+  return dir
 }
 
-async function fetchModel(id, m, dir, onProgress) {
-  if (m.kind === 'cosyvoice') {
-    await cosyvoice.install(dir, onProgress)
-    onProgress(m.bytes, m.bytes)
-    return dir
-  }
+const markComplete = dir => fs.writeFileSync(path.join(dir, '.complete'), new Date().toISOString() + '\n')
+
+// A sherpa archive or a list of files, into a temporary folder moved into
+// place once complete
+async function fetchFiles(id, m, dir, onProgress) {
   // Folders left by a download that was killed (we hold the lock now)
-  for (const f of fs.readdirSync(VOICES_DIR)) if (f.startsWith(`.${id}-`)) fs.rmSync(path.join(VOICES_DIR, f), { recursive: true, force: true })
+  for (const d of partial(id)) fs.rmSync(d, { recursive: true, force: true })
   const tmp = fs.mkdtempSync(path.join(VOICES_DIR, `.${id}-`))
   let done = 0
   const tick = n => onProgress((done += n), m.bytes)
@@ -118,12 +120,10 @@ async function fetchModel(id, m, dir, onProgress) {
         await download(`${SUPERTONIC}/${rel}`, file, sha256, tick)
       }
     }
-    fs.writeFileSync(path.join(tmp, 'model', '.complete'), new Date().toISOString() + '\n')
+    markComplete(path.join(tmp, 'model'))
     fs.rmSync(dir, { recursive: true, force: true })
     fs.renameSync(path.join(tmp, 'model'), dir)
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true })
   }
-  onProgress(m.bytes, m.bytes)
-  return dir
 }

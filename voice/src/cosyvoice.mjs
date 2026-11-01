@@ -6,23 +6,51 @@
 // when nothing answers; it quits after ten idle minutes.
 
 import { execFile, execFileSync, spawn } from 'node:child_process'
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import fs from 'node:fs'
 import net from 'node:net'
 import os from 'node:os'
 import path from 'node:path'
 import { promisify } from 'node:util'
 import { fileURLToPath } from 'node:url'
-import { download } from './fetch.mjs'
+import { download, du } from './fetch.mjs'
+import { tryLock } from './lock.mjs'
 
 const PY = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'py')
 const SERVER = path.join(PY, 'cosyvoice_server.py')
 // How long a cold start may take: the model loads in about 15 s
 const START = 180_000
+// How long one sentence may take, waiting for other processes' sentences
+// included: two minutes, and a second per character (it speaks about four
+// a second, at a fraction of real time on this Mac's CPU)
+const sentenceTimeout = text => 120_000 + 1000 * [...text].length
 
 // The socket lives in the temp folder (Unix socket paths are short), one
 // per install: named by a hash of its folder
 const socketFor = dir => path.join(os.tmpdir(), `shotloop-cosyvoice-${createHash('sha256').update(path.resolve(dir)).digest('hex').slice(0, 12)}.sock`)
+const logFile = dir => path.join(dir, 'server.log')
+
+// The end of the server's log, to say why it failed
+function logTail(dir) {
+  let fd
+  try {
+    fd = fs.openSync(logFile(dir), 'r')
+  } catch {
+    // No log yet (it never ran): nothing to add
+    return ''
+  }
+  try {
+    const size = fs.fstatSync(fd).size
+    const buf = Buffer.alloc(Math.min(size, 4096))
+    fs.readSync(fd, buf, 0, buf.length, size - buf.length)
+    const lines = buf.toString('utf8').trimEnd().split('\n').slice(-6).join('\n')
+    return lines ? `:\n${lines}` : ''
+  } finally {
+    fs.closeSync(fd)
+  }
+}
+
+const failure = (dir, why) => new Error(`the Chinese voice ${why}; see ${logFile(dir)}${logTail(dir)}`)
 
 function connect(sock) {
   return new Promise((resolve, reject) => {
@@ -37,48 +65,84 @@ const sleep = ms => new Promise(r => setTimeout(r, ms))
 // Starts the server (one process starts it, the others wait for it) and
 // resolves once its socket answers
 async function start(dir, sock) {
-  const lock = `${sock}.starting`
-  let mine = false
-  try {
-    fs.writeFileSync(lock, String(process.pid), { flag: 'wx' })
-    mine = true
-  } catch {
-    // Someone else is starting it
-  }
-  if (mine) {
-    const log = fs.openSync(path.join(dir, 'server.log'), 'a')
-    const p = spawn(path.join(dir, 'venv', 'bin', 'python'), [SERVER, dir, sock], { detached: true, stdio: ['ignore', log, log] })
-    p.unref()
-  }
   const t0 = Date.now()
-  try {
-    while (Date.now() - t0 < START) {
+  while (Date.now() - t0 < START) {
+    const release = tryLock(`${sock}.starting`)
+    if (release) {
       try {
-        return await connect(sock)
-      } catch {
-        await sleep(500)
+        // Another process may have started it since our connect failed
+        return await connect(sock).catch(() => launch(dir, sock))
+      } finally {
+        release()
       }
     }
-  } finally {
-    if (mine) fs.rmSync(lock, { force: true })
+    try {
+      return await connect(sock)
+    } catch {
+      await sleep(500)
+    }
   }
-  throw new Error(`the Chinese voice didn't start; see ${path.join(dir, 'server.log')}`)
+  throw failure(dir, `didn't start in ${START / 1000} s`)
 }
 
-// One request, one reply line
-function ask(c, req) {
+// Spawns the server and waits for its socket; fails as soon as it exits
+async function launch(dir, sock) {
+  const log = fs.openSync(logFile(dir), 'a')
+  const p = spawn(path.join(dir, 'venv', 'bin', 'python'), [SERVER, dir, sock], { detached: true, stdio: ['ignore', log, log] })
+  fs.closeSync(log)
+  p.unref()
+  let died = null
+  p.once('error', err => (died = `couldn't run (${err.message})`))
+  p.once('exit', (code, signal) => (died = `stopped while starting (${signal ?? `exit code ${code}`})`))
+  const t0 = Date.now()
+  while (!died && Date.now() - t0 < START) {
+    try {
+      return await connect(sock)
+    } catch {
+      await sleep(500)
+    }
+  }
+  // Given up: it is stopped, so the next try starts afresh
+  if (!died) {
+    p.kill()
+    died = `didn't start in ${START / 1000} s`
+  }
+  throw failure(dir, died)
+}
+
+// One request, one reply line. Fails when the server closes the
+// connection first (it died), answers something that isn't a reply, or
+// takes longer than timeout
+export function ask(c, req, { timeout, dir }) {
   return new Promise((resolve, reject) => {
     let buf = ''
+    const settle = () => {
+      clearTimeout(timer)
+      c.off('data', onData).off('error', onError).off('close', onClose)
+    }
+    const fail = why => {
+      settle()
+      c.destroy()
+      reject(failure(dir, why))
+    }
     const onData = d => {
       buf += d
       const nl = buf.indexOf('\n')
       if (nl < 0) return
-      c.off('data', onData)
-      const reply = JSON.parse(buf.slice(0, nl))
-      reply.ok ? resolve(reply) : reject(new Error(reply.error))
+      let reply
+      try {
+        reply = JSON.parse(buf.slice(0, nl))
+      } catch {
+        return fail(`answered something unreadable (${buf.slice(0, 120)})`)
+      }
+      settle()
+      reply.ok ? resolve(reply) : reject(new Error(`the Chinese voice failed: ${reply.error}`))
     }
-    c.on('data', onData)
-    c.once('error', reject)
+    const onError = err => fail(`couldn't be reached (${err.message})`)
+    const onClose = () => fail('stopped before it answered')
+    const timer = setTimeout(() => fail(`took over ${Math.round(timeout / 1000)} s on one sentence`), timeout)
+    c.setEncoding('utf8')
+    c.on('data', onData).on('error', onError).on('close', onClose)
     c.write(JSON.stringify(req) + '\n')
   })
 }
@@ -87,9 +151,9 @@ function ask(c, req) {
 export async function speak(dir, text, { voice, speed = 1 }) {
   const sock = socketFor(dir)
   const c = await connect(sock).catch(() => start(dir, sock))
-  const out = path.join(os.tmpdir(), `shotloop-cosyvoice-${process.pid}-${Date.now()}.f32`)
+  const out = path.join(os.tmpdir(), `shotloop-cosyvoice-${randomUUID()}.f32`)
   try {
-    const reply = await ask(c, { text, voice, speed, out })
+    const reply = await ask(c, { text, voice, speed, out }, { timeout: sentenceTimeout(text), dir })
     const buf = fs.readFileSync(out)
     return { samples: new Float32Array(buf.buffer, buf.byteOffset, reply.samples), sampleRate: reply.rate }
   } finally {
@@ -188,20 +252,10 @@ async function fromAny(urls, file, sha256, tick) {
 }
 
 const run = promisify(execFile)
-// A folder's size; files come and go while uv installs, and du still
-// prints its total when one vanishes under it
-function du(dir) {
-  let out
-  try {
-    out = execFileSync('du', ['-sk', dir], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
-  } catch (err) {
-    out = err.stdout ?? ''
-  }
-  return (Number(out.split('\t')[0]) || 0) * 1024
-}
 
 // Builds the install in dir itself (a Python environment can't be moved
-// once made); any failure removes it, so it is retried whole
+// once made; models.mjs marks it complete); any failure removes it, so it
+// is retried whole
 export async function install(dir, onProgress) {
   fs.rmSync(dir, { recursive: true, force: true })
   fs.mkdirSync(dir, { recursive: true })
@@ -261,7 +315,6 @@ export async function install(dir, onProgress) {
       fs.writeFileSync(path.join(dir, 'voices', `${id}.txt`), v.words)
     }
     fs.rmSync(tmp, { recursive: true, force: true })
-    fs.writeFileSync(path.join(dir, '.complete'), new Date().toISOString() + '\n')
   } catch (err) {
     fs.rmSync(dir, { recursive: true, force: true })
     throw err
