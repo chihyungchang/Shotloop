@@ -22,6 +22,7 @@ import { CLIS, findBin, runCli, type CliId } from './cli.ts'
 import { listModels as listOpenAiModels, runLocal } from './local.ts'
 import { MODELS, runAgent as runAnthropic, type AgentOptions } from './loop.ts'
 import type { ToolContext } from './tools.ts'
+import { MAX_TURNS } from './turns.ts'
 
 export type Provider = 'api' | 'cli' | 'local'
 export type Protocol = 'anthropic' | 'openai'
@@ -85,21 +86,15 @@ export function preflight() {
   }
 }
 
-// Claude Code's model per task when the person hasn't chosen one: its
-// default (the strongest) for everything
-const CLAUDE_CLI: Record<Task, string | undefined> = { code: undefined, routine: undefined, copy: undefined }
-
 export type Task = 'code' | 'routine' | 'copy'
 
 // task: "code" for scenes and fixes (the stronger model), "routine" for
 // checks, "copy" for the plan's writing
 export function runAgent(task: Task, opts: Omit<AgentOptions, 'model'>): Promise<string> {
   switch (provider()) {
-    case 'cli': {
-      const cli = process.env.SHOTLOOP_CLI as CliId
-      const model = process.env.SHOTLOOP_MODEL || (cli === 'claude' ? CLAUDE_CLI[task] : undefined)
-      return runCli(cli, model, opts.system, opts.prompt, opts.ctx, opts.effort)
-    }
+    case 'cli':
+      // The CLI's own default model (its strongest) unless one is chosen
+      return runCli(process.env.SHOTLOOP_CLI as CliId, { ...opts, model: process.env.SHOTLOOP_MODEL || undefined, maxTurns: opts.maxTurns ?? MAX_TURNS })
     case 'local':
       return runLocal({
         url: process.env.SHOTLOOP_LOCAL_URL!,

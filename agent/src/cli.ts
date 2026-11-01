@@ -1,16 +1,22 @@
 // Local CLI agents (Claude Code, Codex, Gemini CLI) as the agent's brain.
-// The CLI runs headless in an empty temporary folder with its own tools
-// switched off or sandboxed read-only; the only way it can touch the
-// project is the Shotloop MCP server (mcp.ts), which offers exactly the
-// narrow tools of tools.ts (docs/PRD.md §9). What those tools did comes
-// back through the session file.
+// The CLI runs headless in an empty temporary folder; it works on the
+// project only through the Shotloop MCP server (mcp.ts), which offers
+// exactly the narrow tools of tools.ts (docs/PRD.md §9). What those tools
+// did comes back through the session file. How far each CLI's own tools
+// are shut:
+// - Claude Code: none of its built-in tools, only the Shotloop server.
+// - Gemini CLI: an empty core tool list (tools.core) and the Shotloop
+//   server trusted, so no --yolo is needed and nothing else runs.
+// - Codex: its shell tool switched off (features.shell_tool) inside a
+//   read-only sandbox. A Codex version without that switch keeps its
+//   shell, which can then read (never write) the disk outside the project.
 
-import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { emit } from './events.ts'
+import { failure, spawnLines, type Run } from './spawn.ts'
 import { codeOf, loadSession, type ToolContext } from './tools.ts'
 
 export type CliId = 'claude' | 'codex' | 'gemini'
@@ -47,28 +53,17 @@ export function findBin(bin: string): string | null {
   return null
 }
 
-function run(bin: string, args: string[], cwd: string, onLine: (line: string) => void): Promise<{ code: number; stderr: string }> {
-  return new Promise((resolve, reject) => {
-    const p = spawn(bin, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, PATH: searchDirs().join(':') } })
-    let buf = ''
-    let stderr = ''
-    p.stdout.on('data', d => {
-      buf += d
-      let nl: number
-      while ((nl = buf.indexOf('\n')) >= 0) {
-        onLine(buf.slice(0, nl))
-        buf = buf.slice(nl + 1)
-      }
-    })
-    p.stderr.on('data', d => {
-      stderr = (stderr + d).slice(-4000)
-    })
-    p.on('error', reject)
-    p.on('close', code => {
-      if (buf) onLine(buf)
-      resolve({ code: code ?? 1, stderr })
-    })
-  })
+// A run longer than this is stopped: a CLI stuck in a loop or waiting on
+// something never ends otherwise. Generous: a 3D world renders for minutes
+const CLI_TIMEOUT_MIN = 45
+
+const run = (bin: string, args: string[], cwd: string, onLine: (line: string) => void) =>
+  spawnLines(bin, args, { cwd, env: { ...process.env, PATH: searchDirs().join(':') }, timeoutMs: CLI_TIMEOUT_MIN * 60_000 }, onLine)
+
+// What a failed run says: its own error, else its stderr's last line
+function check(name: string, r: Run, error?: string | null) {
+  if (r.timedOut) throw new Error(`${name} ran longer than ${CLI_TIMEOUT_MIN} minutes and was stopped (CLI_TIMEOUT_MIN in agent/src/cli.ts)`)
+  if (error || r.code) throw new Error(`${name}: ${error || failure(r)}`)
 }
 
 // One line of tool input for the activity log (Codex may send it as JSON text)
@@ -96,7 +91,16 @@ function toolCalled(name: string, input: unknown) {
   if (shot) emit({ type: 'shot', id: shot, state: 'written' })
 }
 
-export async function runCli(cli: CliId, model: string | undefined, system: string, prompt: string, ctx: ToolContext, effort?: string): Promise<string> {
+export interface CliOptions {
+  model?: string
+  system: string
+  prompt: string
+  ctx: ToolContext
+  effort?: string
+  maxTurns: number
+}
+
+export async function runCli(cli: CliId, { model, system, prompt, ctx, effort, maxTurns }: CliOptions): Promise<string> {
   const def = CLIS.find(c => c.id === cli)!
   const bin = findBin(def.bin)
   if (!bin) throw new Error(`${def.name} is not installed (${def.bin} not found)`)
@@ -124,7 +128,7 @@ export async function runCli(cli: CliId, model: string | undefined, system: stri
       const args = ['-p', prompt, '--output-format', 'stream-json', '--verbose',
         '--mcp-config', config, '--strict-mcp-config', '--tools', '',
         '--allowedTools', 'mcp__shotloop', '--permission-mode', 'dontAsk',
-        '--append-system-prompt', system, ...(model ? ['--model', model] : []), ...(effort ? ['--effort', effort] : [])]
+        '--max-turns', String(maxTurns), '--append-system-prompt', system, ...(model ? ['--model', model] : []), ...(effort ? ['--effort', effort] : [])]
       // Assigned in the line callback, so TypeScript can't narrow them
       let result = null as string | null
       let failed = null as string | null
@@ -149,14 +153,16 @@ export async function runCli(cli: CliId, model: string | undefined, system: stri
           else result = ev.result ?? null
         }
       })
-      if (failed || r.code) throw new Error(`Claude Code: ${failed ?? r.stderr.trim().split('\n').at(-1) ?? `exited ${r.code}`}`)
+      check(def.name, r, failed)
       last = result?.trim() || last
     } else if (cli === 'codex') {
-      // Read-only sandbox; writes go through the MCP tools only
+      // No shell, a read-only sandbox; writes go through the MCP tools only.
+      // Codex has no turn limit: the timeout bounds it
       const toml = (v: unknown) => JSON.stringify(v)
       const lastFile = path.join(work, 'last.txt')
       const envToml = `{${Object.entries(server.env).map(([k, v]) => `${k}=${toml(v)}`).join(',')}}`
       const args = ['exec', '--json', '--skip-git-repo-check', '--sandbox', 'read-only', '-C', work,
+        '-c', 'features.shell_tool=false',
         '-c', `mcp_servers.shotloop.command=${toml(server.command)}`,
         '-c', `mcp_servers.shotloop.args=${toml(server.args)}`,
         '-c', `mcp_servers.shotloop.env=${envToml}`,
@@ -174,22 +180,26 @@ export async function runCli(cli: CliId, model: string | undefined, system: stri
           // not an event line
         }
       })
-      if (r.code) throw new Error(`Codex: ${r.stderr.trim().split('\n').at(-1) ?? `exited ${r.code}`}`)
+      check(def.name, r)
       if (fs.existsSync(lastFile)) last = fs.readFileSync(lastFile, 'utf8').trim() || last
     } else {
-      // Gemini CLI reads MCP servers from .gemini/settings.json in its
-      // working folder; its own file and shell tools are excluded
+      // Gemini CLI reads its settings from .gemini/settings.json in its
+      // working folder: an allowlist, not a denylist. No core tools at all
+      // (an empty tools.core enables none); the Shotloop server trusted, so
+      // its calls need no confirmation and the run needs no --yolo (which
+      // would also approve anything else)
       fs.mkdirSync(path.join(work, '.gemini'))
       fs.writeFileSync(path.join(work, '.gemini', 'settings.json'), JSON.stringify({
-        mcpServers: { shotloop: server },
-        excludeTools: ['run_shell_command', 'write_file', 'replace', 'read_file', 'read_many_files', 'glob', 'search_file_content', 'list_directory', 'web_fetch', 'google_web_search', 'save_memory']
+        mcpServers: { shotloop: { ...server, trust: true } },
+        tools: { core: [] },
+        model: { maxSessionTurns: maxTurns }
       }))
       const out: string[] = []
-      const r = await run(bin, ['-p', `${system}\n\n${prompt}`, '--yolo', '--allowed-mcp-server-names', 'shotloop', ...(model ? ['-m', model] : [])], work, line => {
+      const r = await run(bin, ['-p', `${system}\n\n${prompt}`, '--allowed-mcp-server-names', 'shotloop', ...(model ? ['-m', model] : [])], work, line => {
         out.push(line)
         if (line.trim()) emit({ type: 'log', message: line.trim().slice(0, 200) })
       })
-      if (r.code) throw new Error(`Gemini CLI: ${r.stderr.trim().split('\n').at(-1) ?? `exited ${r.code}`}`)
+      check(def.name, r)
       last = out.join('\n').trim()
     }
     loadSession(ctx, session)
