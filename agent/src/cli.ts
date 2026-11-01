@@ -11,7 +11,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { emit } from './events.ts'
-import { loadSession, type ToolContext } from './tools.ts'
+import { codeOf, loadSession, type ToolContext } from './tools.ts'
 
 export type CliId = 'claude' | 'codex' | 'gemini'
 
@@ -71,12 +71,30 @@ function run(bin: string, args: string[], cwd: string, onLine: (line: string) =>
   })
 }
 
-// One line of tool input for the activity log
+// One line of tool input for the activity log (Codex may send it as JSON text)
 const brief = (input: unknown) => {
-  const o = (input ?? {}) as Record<string, unknown>
+  let o = (input ?? {}) as Record<string, unknown>
+  if (typeof input === 'string') {
+    try {
+      o = JSON.parse(input)
+    } catch {
+      // free text: nothing to show
+      o = {}
+    }
+  }
   return String(o.path ?? o.shot ?? o.dir ?? '')
 }
 const shortTool = (name: string) => name.replace(/^mcp__shotloop__/, '')
+
+// A tool call the CLI reports. The tools run in the MCP server, whose
+// events don't reach the app, so a shot's code being written is told
+// from the call
+function toolCalled(name: string, input: unknown) {
+  const tool = shortTool(name)
+  emit({ type: 'tool', name: tool, summary: brief(input) })
+  const shot = /^(write|edit)_file$/.test(tool) && codeOf(brief(input))
+  if (shot) emit({ type: 'shot', id: shot, state: 'written' })
+}
 
 export async function runCli(cli: CliId, model: string | undefined, system: string, prompt: string, ctx: ToolContext, effort?: string): Promise<string> {
   const def = CLIS.find(c => c.id === cli)!
@@ -120,7 +138,7 @@ export async function runCli(cli: CliId, model: string | undefined, system: stri
         if (ev.type === 'assistant') {
           for (const b of ev.message?.content ?? []) {
             if (b.type === 'text' && b.text.trim()) emit({ type: 'text', text: (last = b.text.trim()) })
-            if (b.type === 'tool_use') emit({ type: 'tool', name: shortTool(b.name), summary: brief(b.input) })
+            if (b.type === 'tool_use') toolCalled(b.name, b.input)
           }
         } else if (ev.type === 'rate_limit_event') {
           // The subscription's limits (5-hour and weekly windows), for the app
@@ -150,8 +168,8 @@ export async function runCli(cli: CliId, model: string | undefined, system: stri
           const ev = JSON.parse(line)
           const text = ev.msg?.message ?? ev.item?.text
           if (typeof text === 'string' && text.trim()) emit({ type: 'text', text: (last = text.trim()) })
-          const tool = ev.msg?.invocation?.tool ?? ev.item?.tool
-          if (tool) emit({ type: 'tool', name: String(tool) })
+          const call = ev.msg?.invocation ?? ev.item
+          if (call?.tool) toolCalled(String(call.tool), call.arguments)
         } catch {
           // not an event line
         }

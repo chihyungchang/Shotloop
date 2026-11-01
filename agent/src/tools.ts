@@ -42,6 +42,9 @@ function resolve(ctx: ToolContext, p: string) {
   return { abs, rel }
 }
 
+// The shot whose code a project path is (shots/<id>/shot.js or shot.py)
+export const codeOf = (rel: string) => rel.match(/^shots\/([^/]+)\/shot\.(js|py)$/)?.[1] ?? null
+
 function canWrite(ctx: ToolContext, rel: string) {
   return ctx.writable.some(w => (w.endsWith('/') ? rel.startsWith(w) : rel === w))
 }
@@ -201,6 +204,8 @@ export async function runTool(ctx: ToolContext, name: string, input: Record<stri
       fs.writeFileSync(abs, content)
       ctx.touched.add(rel)
       emit({ type: 'tool', name, summary: rel, path: rel })
+      const shot = codeOf(rel)
+      if (shot) emit({ type: 'shot', id: shot, state: 'written' })
       return `${rel} saved`
     }
     case 'render_stills': {

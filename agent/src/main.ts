@@ -24,7 +24,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { engine, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
-import { emit, setJson } from './events.ts'
+import { emit, exit, setJson } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
 import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, planSystem, postLanguage, publishSystem, replyLanguage } from './prompts.ts'
 import { lintPlan, lintVoice } from './principles.ts'
@@ -46,7 +46,7 @@ const OPTIONS = {
 
 // A request that starts with "-" ("-make it slower") must not read as an
 // option: string values are joined to their flag before parsing
-function parse(argv: string[]) {
+async function parse(argv: string[]) {
   const joined: string[] = []
   for (let i = 0; i < argv.length; i++) {
     const name = argv[i].startsWith('--') && !argv[i].includes('=') ? argv[i].slice(2) : null
@@ -57,10 +57,10 @@ function parse(argv: string[]) {
     return parseArgs({ args: joined, allowPositionals: true, options: OPTIONS })
   } catch (err) {
     console.log(JSON.stringify({ type: 'error', message: (err as Error).message }))
-    process.exit(1)
+    return exit(1)
   }
 }
-const { values, positionals } = parse(process.argv.slice(2))
+const { values, positionals } = await parse(process.argv.slice(2))
 setJson(!!values.json)
 // --model picks the model of the chosen backend (see providers.ts)
 if (values.model) process.env.SHOTLOOP_MODEL = values.model
@@ -389,7 +389,7 @@ async function buildTask() {
 
   const look = project.track === '2d' && /shotloop-look: /.test(read(path.join(worldDir, 'page.html')))
   if (!look) {
-    emit({ type: 'log', message: 'phase world' })
+    emit({ type: 'phase', phase: 'world' })
     const ctx = context(project.root, ['world/', 'captions.html'])
     await runAgent('code', {
       effort: 'high',
@@ -410,8 +410,8 @@ async function buildTask() {
   const first = Math.min(...parts.flatMap(r => r.shots).filter(n => n >= 1 && n <= project.shots.length))
   let lead: ShotStatus | undefined = Number.isFinite(first) ? project.shots[first - 1] : undefined
   if (lead) {
-    emit({ type: 'log', message: 'phase parts' })
-    emit({ type: 'log', message: `shot_start ${lead.id}` })
+    emit({ type: 'phase', phase: 'parts' })
+    emit({ type: 'shot', id: lead.id, state: 'start' })
     const ctx = context(project.root, ['world/parts.js', `shots/${lead.id}/`])
     try {
       const summary = await runAgent('code', {
@@ -428,13 +428,13 @@ async function buildTask() {
     }
     ctx.touched.forEach(f => touched.add(f))
     saveChecks(project, ctx)
-    if (lead) emit({ type: 'log', message: `shot_done ${lead.id}` })
+    if (lead) emit({ type: 'shot', id: lead.id, state: 'done' })
   }
 
-  emit({ type: 'log', message: 'phase shots' })
+  emit({ type: 'phase', phase: 'shots' })
   const world = worldFiles()
   await pool(project.shots.filter(s => s.id !== lead?.id), PARALLEL, async shot => {
-    emit({ type: 'log', message: `shot_start ${shot.id}` })
+    emit({ type: 'shot', id: shot.id, state: 'start' })
     const ctx = context(project.root, [`shots/${shot.id}/`])
     try {
       const summary = await runAgent('code', {
@@ -450,7 +450,7 @@ async function buildTask() {
     }
     ctx.touched.forEach(f => touched.add(f))
     saveChecks(project, ctx)
-    emit({ type: 'log', message: `shot_done ${shot.id}` })
+    emit({ type: 'shot', id: shot.id, state: 'done' })
   })
   if (!done.length) throw new Error(failed[0] ?? 'no shot was built')
 
@@ -563,7 +563,7 @@ try {
   } else {
     if (!dir || !['fix', 'check', 'publish', 'cover', 'plan', 'build'].includes(task)) {
       console.error('usage: shotloop-agent fix|check|publish|cover|plan|build <project> [--shot <id>] [--request "…"] [--json] | detect | models --url <…>')
-      process.exit(1)
+      await exit(1)
     }
     preflight()
     value = task === 'publish' ? await publishTask() : task === 'cover' ? await coverTask() : task === 'plan' ? await planTask() : task === 'build' ? await buildTask() : await shotTask(task as 'fix' | 'check')
@@ -571,5 +571,5 @@ try {
   emit({ type: 'result', value })
 } catch (err) {
   emit({ type: 'error', message: err instanceof Error ? err.message : String(err) })
-  process.exit(1)
+  await exit(1)
 }
