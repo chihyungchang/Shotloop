@@ -8,8 +8,9 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import { MODES, shotKey } from '../../engine/shotloop/cache.mjs'
+import { MODES, prune, shotKey } from '../../engine/shotloop/cache.mjs'
 import { loadProject } from '../../engine/shotloop/project.mjs'
+import { pruneVoice } from '../../engine/shotloop/voice.mjs'
 import { arch, TAURI } from './build-info.mjs'
 
 const REPO = path.resolve(import.meta.dirname, '..', '..')
@@ -31,6 +32,17 @@ fs.rmSync(OUT, { recursive: true, force: true })
 fs.mkdirSync(OUT, { recursive: true })
 
 for (const rel of ENGINE) copy(path.join(REPO, rel), path.join(OUT, rel))
+// The examples' caches pruned where they are first, as `shotloop prune`
+// does: renders and voice-over files (dressed clips, mixes, lines) no
+// current film uses. In the copy that can't be told, as copying makes
+// every file new and prune spares the last ten minutes' files
+for (const name of fs.readdirSync(path.join(REPO, 'examples'))) {
+  const root = path.join(REPO, 'examples', name)
+  if (!fs.existsSync(path.join(root, 'shotloop.json'))) continue
+  const project = loadProject(root)
+  prune(project)
+  await pruneVoice(project)
+}
 copy(path.join(REPO, 'examples'), path.join(OUT, 'examples'))
 
 // The examples ship with their current frames only, so they play at once:
