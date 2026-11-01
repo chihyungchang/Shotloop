@@ -387,6 +387,7 @@ export const de: Record<Key, string> = {
   'telemetry.ask': 'Hilf, Shotloop zu verbessern',
   'telemetry.short': 'Shotloop sendet anonyme Nutzungszahlen, etwa wie viele Filme du exportierst. Nie deine Projekte oder etwas Persönliches.',
   'telemetry.details': 'Details',
+  'telemetry.privacy': 'Datenschutzhinweis',
   'telemetry.note': 'Einmal am Tag sendet Shotloop anonyme Zahlen an den Entwickler: Version, Chip, Sprache und wie viele Filme du geplant, gebaut, korrigiert und exportiert hast (nach Stil), mit einer zufälligen Installations-ID. Nie deine Projekte, ihre Namen oder Texte, deine Dateien oder API-Schlüssel.',
   'telemetry.send': 'Anonyme Nutzung senden',
   'telemetry.ok': 'OK',

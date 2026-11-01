@@ -387,6 +387,7 @@ export const tr: Record<Key, string> = {
   'telemetry.ask': 'Shotloop\'u geliştirmeye yardım edin',
   'telemetry.short': 'Shotloop, kaç film dışa aktardığınız gibi anonim kullanım sayıları gönderir. Projeleriniz veya kişisel bilgileriniz asla gönderilmez.',
   'telemetry.details': 'Ayrıntılar',
+  'telemetry.privacy': 'Gizlilik bildirimi',
   'telemetry.note': 'Shotloop günde en fazla bir kez geliştiricisine anonim sayılar gönderir: sürüm, çip, dil ve kaç film planladığınız, oluşturduğunuz, düzelttiğiniz ve dışa aktardığınız (stile göre), rastgele bir kurulum kimliğiyle. Projeleriniz, adları veya metinleri, dosyalarınız ya da API anahtarlarınız asla gönderilmez.',
   'telemetry.send': 'Anonim kullanımı gönder',
   'telemetry.ok': 'Tamam',

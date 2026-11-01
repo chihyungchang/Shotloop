@@ -237,7 +237,7 @@ Einstellungen → Über listet jede Komponente mit Version und Lizenz, und [NOTI
 
 ## Datenschutz
 
-Einmal am Tag sendet Shotloop anonyme Zahlen an den Entwickler: Version, Chip, Sprache der Oberfläche und wie viele Filme geplant, gebaut, korrigiert und exportiert wurden (Exporte nach visuellem Stil), mit einer zufälligen Installations-ID. Nie deine Projekte, ihre Namen oder Texte, deine Dateien oder API-Schlüssel, und keine IP-Adresse wird gespeichert. Der erste Start weist darauf hin; ausschalten unter **Einstellungen → Allgemein**. Aus dem Quellcode gebaute Versionen senden nie ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)).
+Einmal am Tag sendet Shotloop anonyme Zahlen an den Entwickler: Version, Chip, Sprache der Oberfläche und wie viele Filme geplant, gebaut, korrigiert und exportiert wurden (Exporte nach visuellem Stil), mit einer zufälligen Installations-ID. Nie deine Projekte, ihre Namen oder Texte, deine Dateien oder API-Schlüssel, und keine IP-Adresse wird gespeichert. Der erste Start weist darauf hin; ausschalten unter **Einstellungen → Allgemein**. Aus dem Quellcode gebaute Versionen senden nie ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)). Der vollständige [Datenschutzhinweis](https://oliverz.dev/de/products/shotloop/privacy) listet alles, was Shotloop speichert und sendet.
 
 ## Lizenz
 

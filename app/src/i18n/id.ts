@@ -387,6 +387,7 @@ export const id: Record<Key, string> = {
   'telemetry.ask': 'Bantu tingkatkan Shotloop',
   'telemetry.short': 'Shotloop mengirim hitungan penggunaan anonim, seperti berapa film yang kamu ekspor. Tidak pernah proyekmu atau data pribadi apa pun.',
   'telemetry.details': 'Detail',
+  'telemetry.privacy': 'Pemberitahuan privasi',
   'telemetry.note': 'Sekali sehari, Shotloop mengirim hitungan anonim ke pembuatnya: versi, chip, bahasa, dan berapa film yang kamu rencanakan, buat, perbaiki, dan ekspor (per gaya), dengan ID instalasi acak. Tidak pernah proyekmu, nama atau teksnya, file, atau kunci API-mu.',
   'telemetry.send': 'Kirim penggunaan anonim',
   'telemetry.ok': 'OK',

@@ -237,7 +237,7 @@ Pengaturan → Tentang mendaftar setiap komponen beserta versi dan lisensinya, d
 
 ## Privasi
 
-Sekali sehari, Shotloop mengirim hitungan anonim ke pembuatnya: versi, chip, bahasa antarmuka, dan berapa film yang direncanakan, dibuat, diperbaiki, dan diekspor (ekspor per gaya visual), dengan ID instalasi acak. Tidak pernah proyekmu, nama atau teksnya, file, atau kunci API-mu, dan tidak ada alamat IP yang disimpan. Peluncuran pertama memberi tahu; matikan di **Pengaturan → Umum**. Build dari kode sumber tidak pernah mengirim ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)).
+Sekali sehari, Shotloop mengirim hitungan anonim ke pembuatnya: versi, chip, bahasa antarmuka, dan berapa film yang direncanakan, dibuat, diperbaiki, dan diekspor (ekspor per gaya visual), dengan ID instalasi acak. Tidak pernah proyekmu, nama atau teksnya, file, atau kunci API-mu, dan tidak ada alamat IP yang disimpan. Peluncuran pertama memberi tahu; matikan di **Pengaturan → Umum**. Build dari kode sumber tidak pernah mengirim ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)). [Pemberitahuan privasi](https://oliverz.dev/products/shotloop/privacy) lengkap (bahasa Inggris) mencantumkan semua yang disimpan dan dikirim Shotloop.
 
 ## Lisensi
 

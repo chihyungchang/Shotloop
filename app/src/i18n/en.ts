@@ -388,6 +388,7 @@ export const en = {
   'telemetry.ask': 'Help improve Shotloop',
   'telemetry.short': 'Shotloop sends anonymous usage counts, such as how many films you export. Never your projects or anything personal.',
   'telemetry.details': 'Details',
+  'telemetry.privacy': 'Privacy notice',
   'telemetry.note': 'Once a day Shotloop sends anonymous counts to its maker: the version, the chip, the language and how many films you planned, built, fixed and exported (by style), with a random install ID. Never your projects, their names or text, your files or API keys.',
   'telemetry.send': 'Send anonymous usage',
   'telemetry.ok': 'OK',

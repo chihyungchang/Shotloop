@@ -237,7 +237,7 @@ Réglages → À propos liste chaque composant avec sa version et sa licence, et
 
 ## Confidentialité
 
-Une fois par jour, Shotloop envoie à son auteur des comptes anonymes : la version, la puce, la langue de l’interface et le nombre de films planifiés, construits, corrigés et exportés (les exports par style visuel), avec un identifiant d’installation aléatoire. Jamais vos projets, leurs noms ou leurs textes, vos fichiers ni vos clés d’API, et aucune adresse IP n’est conservée. Le premier lancement le signale ; désactivez-le dans **Réglages → Général**. Les versions compilées depuis les sources n’envoient jamais rien ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)).
+Une fois par jour, Shotloop envoie à son auteur des comptes anonymes : la version, la puce, la langue de l’interface et le nombre de films planifiés, construits, corrigés et exportés (les exports par style visuel), avec un identifiant d’installation aléatoire. Jamais vos projets, leurs noms ou leurs textes, vos fichiers ni vos clés d’API, et aucune adresse IP n’est conservée. Le premier lancement le signale ; désactivez-le dans **Réglages → Général**. Les versions compilées depuis les sources n’envoient jamais rien ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)). La [note de confidentialité](https://oliverz.dev/fr/products/shotloop/privacy) complète liste tout ce que Shotloop conserve et envoie.
 
 ## Licence
 

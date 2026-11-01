@@ -1,14 +1,16 @@
 import { useState } from 'react'
+import { api } from '../api'
 import { useErrorLine } from '../hooks'
 import { t } from '../i18n'
 import { patchSettings, useSettings } from '../settings'
+import { privacyUrl } from '../telemetry'
 
 // The first-launch notice about the anonymous usage counts (src/telemetry.ts):
-// what they are for in one line, the full list one click away (Settings →
-// General, `details`), one click turns them off. Shown until the answer is
+// what they are for in one line, the full privacy notice one click away
+// (the product site), one click turns them off. Shown until the answer is
 // saved; nothing is sent before that. Settings that can't be read show
 // nothing here (the app's banner speaks for them)
-export function TelemetryNotice({ details }: { details: () => void }) {
+export function TelemetryNotice() {
   const { settings } = useSettings()
   const [busy, setBusy] = useState(false)
   const { error, guard } = useErrorLine()
@@ -22,7 +24,7 @@ export function TelemetryNotice({ details }: { details: () => void }) {
   return (
     <div className="dialog telemetry-notice" role="dialog" aria-label={t('telemetry.ask')}>
       <strong>{t('telemetry.ask')}</strong>
-      <p className="hint">{t('telemetry.short')} <button className="link" onClick={details}>{t('telemetry.details')}</button></p>
+      <p className="hint">{t('telemetry.short')} <button className="link" onClick={() => guard(api.openUrl(privacyUrl()))}>{t('telemetry.details')}</button></p>
       {error && <p className="small error">{error}</p>}
       <div className="dialog-actions">
         <button className="ghost" onClick={() => answer(true)} disabled={busy}>{t('telemetry.turnOff')}</button>

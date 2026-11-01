@@ -237,7 +237,7 @@ Settings → About lists every component with its version and license, and [NOTI
 
 ## Privacy
 
-Once a day Shotloop sends anonymous counts to its maker: the version, the chip, the interface language and how many films were planned, built, fixed and exported (exports by visual style), with a random install ID. Never your projects, their names or text, your files or your API keys, and no IP address is stored. The first launch says so; turn it off in **Settings → General**. Builds from source never send ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)).
+Once a day Shotloop sends anonymous counts to its maker: the version, the chip, the interface language and how many films were planned, built, fixed and exported (exports by visual style), with a random install ID. Never your projects, their names or text, your files or your API keys, and no IP address is stored. The first launch says so; turn it off in **Settings → General**. Builds from source never send ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)). The full [privacy notice](https://oliverz.dev/products/shotloop/privacy) lists everything Shotloop stores and sends.
 
 ## License
 

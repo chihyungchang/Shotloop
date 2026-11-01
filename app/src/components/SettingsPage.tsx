@@ -6,6 +6,7 @@ import type { Key } from '../i18n/en'
 import { formatMB, isActive } from '../model'
 import { patchSettings, useSettings } from '../settings'
 import { useErrorLine } from '../hooks'
+import { privacyUrl } from '../telemetry'
 import type { useTheme } from '../theme/theme'
 import { AiSettings } from './AiSettings'
 import { Icon } from './Icon'
@@ -99,6 +100,7 @@ function General({ settings, savePref, theme, language }: {
   language: ReturnType<typeof useLanguage>
 }) {
   const { error, guard } = useErrorLine()
+  const privacy = useErrorLine()
   const toggle = (key: 'notifySound' | 'notifyDesktop', label: Key) => (
     <div className="pref-row">
       <span>{t(label)}</span>
@@ -143,6 +145,8 @@ function General({ settings, savePref, theme, language }: {
             <button role="radio" aria-checked={settings.telemetryOff} className={settings.telemetryOff ? 'on' : ''} onClick={() => savePref({ telemetryOff: true, telemetryTold: true })}>{t('settings.off')}</button>
           </div>
         </div>
+        <button className="link try" onClick={() => privacy.guard(api.openUrl(privacyUrl()))}>{t('telemetry.privacy')} →</button>
+        {privacy.error && <p className="error small">{privacy.error}</p>}
       </section>
     </>
   )

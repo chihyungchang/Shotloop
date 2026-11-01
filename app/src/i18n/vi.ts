@@ -387,6 +387,7 @@ export const vi: Record<Key, string> = {
   'telemetry.ask': 'Giúp cải thiện Shotloop',
   'telemetry.short': 'Shotloop gửi số liệu sử dụng ẩn danh, như số video bạn đã xuất. Không bao giờ gửi dự án hay thông tin cá nhân của bạn.',
   'telemetry.details': 'Chi tiết',
+  'telemetry.privacy': 'Thông báo quyền riêng tư',
   'telemetry.note': 'Mỗi ngày tối đa một lần, Shotloop gửi cho tác giả các số đếm ẩn danh: phiên bản, chip, ngôn ngữ và số video bạn đã lên kế hoạch, tạo, sửa và xuất (theo phong cách), kèm một ID cài đặt ngẫu nhiên. Không bao giờ gửi dự án, tên hay chữ trong đó, tệp hoặc khóa API của bạn.',
   'telemetry.send': 'Gửi thống kê ẩn danh',
   'telemetry.ok': 'OK',

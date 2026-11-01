@@ -238,7 +238,7 @@ export default function App() {
     <div className="workspace-shell" key={language.lang}>
       {dialogs}
       <Sidebar page={page} setPage={setPage} open={open} jobs={jobs} theme={theme} openSettings={openSettings} />
-      <TelemetryNotice details={() => openSettings('general', page)} />
+      <TelemetryNotice />
       <main className="workspace-main">
         {error && <p className="error banner">{error}</p>}
         {copying && <p className="banner copying"><span className="spinner small" /> {t('example.copying')}</p>}

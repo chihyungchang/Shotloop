@@ -387,6 +387,7 @@ export const ko: Record<Key, string> = {
   'telemetry.ask': 'Shotloop 개선에 참여해 주세요',
   'telemetry.short': 'Shotloop은 내보낸 영상 수 같은 익명 사용 횟수를 보냅니다. 프로젝트나 개인 정보는 보내지 않습니다.',
   'telemetry.details': '자세히',
+  'telemetry.privacy': '개인정보 안내',
   'telemetry.note': 'Shotloop은 하루 한 번까지 개발자에게 익명 집계를 보냅니다: 버전, 칩, 화면 언어, 기획·제작·수정·내보낸 영상 수(스타일별)와 무작위 설치 ID. 프로젝트 내용, 이름, 텍스트, 파일, API 키는 절대 보내지 않습니다.',
   'telemetry.send': '익명 통계 보내기',
   'telemetry.ok': '확인',

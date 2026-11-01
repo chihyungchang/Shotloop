@@ -237,7 +237,7 @@ Impostazioni → Info elenca ogni componente con la sua versione e licenza, e [N
 
 ## Privacy
 
-Una volta al giorno Shotloop invia all’autore conteggi anonimi: la versione, il chip, la lingua dell’interfaccia e quanti video sono stati pianificati, creati, corretti ed esportati (le esportazioni per stile visivo), con un ID di installazione casuale. Mai i tuoi progetti, i loro nomi o testi, i tuoi file o le chiavi API, e nessun indirizzo IP viene conservato. Il primo avvio lo segnala; si disattiva in **Impostazioni → Generali**. Le build dal codice sorgente non inviano mai nulla ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)).
+Una volta al giorno Shotloop invia all’autore conteggi anonimi: la versione, il chip, la lingua dell’interfaccia e quanti video sono stati pianificati, creati, corretti ed esportati (le esportazioni per stile visivo), con un ID di installazione casuale. Mai i tuoi progetti, i loro nomi o testi, i tuoi file o le chiavi API, e nessun indirizzo IP viene conservato. Il primo avvio lo segnala; si disattiva in **Impostazioni → Generali**. Le build dal codice sorgente non inviano mai nulla ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)). L’[informativa sulla privacy](https://oliverz.dev/products/shotloop/privacy) completa (in inglese) elenca tutto ciò che Shotloop conserva e invia.
 
 ## Licenza
 

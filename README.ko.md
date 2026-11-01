@@ -237,7 +237,7 @@ Shotloop은 오픈 소스의 성과 위에 서 있습니다. 다음 프로젝트
 
 ## 개인정보
 
-Shotloop은 하루 한 번까지 개발자에게 익명 집계를 보냅니다: 버전, 칩, 화면 언어, 기획·제작·수정·내보낸 영상 수(내보내기는 스타일별)와 무작위 설치 ID. 프로젝트 내용, 이름, 텍스트, 파일, API 키는 절대 보내지 않으며 IP 주소도 저장하지 않습니다. 처음 실행할 때 알려 드리며, **설정 → 일반**에서 끌 수 있습니다. 소스에서 빌드한 버전은 보내지 않습니다([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)).
+Shotloop은 하루 한 번까지 개발자에게 익명 집계를 보냅니다: 버전, 칩, 화면 언어, 기획·제작·수정·내보낸 영상 수(내보내기는 스타일별)와 무작위 설치 ID. 프로젝트 내용, 이름, 텍스트, 파일, API 키는 절대 보내지 않으며 IP 주소도 저장하지 않습니다. 처음 실행할 때 알려 드리며, **설정 → 일반**에서 끌 수 있습니다. 소스에서 빌드한 버전은 보내지 않습니다([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)). Shotloop이 저장하고 보내는 모든 내용은 [개인정보 안내](https://oliverz.dev/ko/products/shotloop/privacy)에 있습니다.
 
 ## 라이선스
 

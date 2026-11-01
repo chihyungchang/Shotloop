@@ -237,7 +237,7 @@ Shotloop 建立在開源成果之上。感謝以下專案背後的人：
 
 ## 隱私
 
-Shotloop 每天最多一次向開發者傳送匿名計數：版本、晶片架構、介面語言，以及規劃、建構、修改和匯出了多少部影片（匯出依視覺風格統計），附一個隨機的安裝編號。絕不包含你的專案內容、名稱、文字、檔案或 API 金鑰，也不保存 IP 位址。第一次開啟時會告訴你；在 **設定 → 一般** 裡可以關閉。從原始碼建構的版本永遠不會傳送（[`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)）。
+Shotloop 每天最多一次向開發者傳送匿名計數：版本、晶片架構、介面語言，以及規劃、建構、修改和匯出了多少部影片（匯出依視覺風格統計），附一個隨機的安裝編號。絕不包含你的專案內容、名稱、文字、檔案或 API 金鑰，也不保存 IP 位址。第一次開啟時會告訴你；在 **設定 → 一般** 裡可以關閉。從原始碼建構的版本永遠不會傳送（[`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)）。完整的[隱私說明](https://oliverz.dev/zh-hant/products/shotloop/privacy)列出了 Shotloop 儲存和傳送的全部內容。
 
 ## 授權
 

@@ -383,6 +383,7 @@ export const zhCN: Record<Key, string> = {
   'telemetry.ask': '帮助改进 Shotloop',
   'telemetry.short': 'Shotloop 会发送匿名的使用次数，比如导出了几部片子；不包含你的项目或任何个人信息。',
   'telemetry.details': '了解详情',
+  'telemetry.privacy': '隐私说明',
   'telemetry.note': 'Shotloop 每天最多一次向开发者发送匿名计数：版本、芯片架构、界面语言，以及你规划、生成、修改和导出了多少部片子（按画面方式），附一个随机的安装编号。绝不包含你的项目内容、名称、文字、文件或 API 密钥。',
   'telemetry.send': '发送匿名统计',
   'telemetry.ok': '好的',

@@ -237,7 +237,7 @@ Cài đặt → Giới thiệu liệt kê mọi thành phần cùng phiên bản
 
 ## Quyền riêng tư
 
-Mỗi ngày tối đa một lần, Shotloop gửi cho tác giả các số đếm ẩn danh: phiên bản, chip, ngôn ngữ giao diện và số video đã được lên kế hoạch, tạo, sửa và xuất (lượt xuất theo phong cách hình ảnh), kèm một ID cài đặt ngẫu nhiên. Không bao giờ gửi dự án, tên hay chữ trong đó, tệp hoặc khóa API của bạn, và không lưu địa chỉ IP. Lần mở đầu tiên sẽ báo cho bạn; tắt trong **Cài đặt → Chung**. Bản dựng từ mã nguồn không bao giờ gửi ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)).
+Mỗi ngày tối đa một lần, Shotloop gửi cho tác giả các số đếm ẩn danh: phiên bản, chip, ngôn ngữ giao diện và số video đã được lên kế hoạch, tạo, sửa và xuất (lượt xuất theo phong cách hình ảnh), kèm một ID cài đặt ngẫu nhiên. Không bao giờ gửi dự án, tên hay chữ trong đó, tệp hoặc khóa API của bạn, và không lưu địa chỉ IP. Lần mở đầu tiên sẽ báo cho bạn; tắt trong **Cài đặt → Chung**. Bản dựng từ mã nguồn không bao giờ gửi ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)). [Thông báo quyền riêng tư](https://oliverz.dev/products/shotloop/privacy) đầy đủ (tiếng Anh) liệt kê mọi thứ Shotloop lưu và gửi.
 
 ## Giấy phép
 

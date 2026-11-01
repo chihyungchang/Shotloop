@@ -387,6 +387,7 @@ export const zhTW: Record<Key, string> = {
   'telemetry.ask': '協助改善 Shotloop',
   'telemetry.short': 'Shotloop 會傳送匿名的使用次數，例如匯出了幾部影片；不包含你的專案或任何個人資訊。',
   'telemetry.details': '了解詳情',
+  'telemetry.privacy': '隱私說明',
   'telemetry.note': 'Shotloop 每天最多一次向開發者傳送匿名計數：版本、晶片架構、介面語言，以及你規劃、建構、修改和匯出了多少部影片（依視覺風格），附一個隨機的安裝編號。絕不包含你的專案內容、名稱、文字、檔案或 API 金鑰。',
   'telemetry.send': '傳送匿名統計',
   'telemetry.ok': '好',

@@ -10,6 +10,16 @@ import { api } from './api'
 import { lang } from './i18n'
 
 const ENDPOINT = 'https://oliverz.dev/api/shotloop/ping'
+
+// The privacy notice on the product site, in the UI language where the
+// site has it (its ten locales), else in English
+const SITE_LOCALES: Partial<Record<ReturnType<typeof lang>, string>> = {
+  'zh-CN': 'zh', 'zh-TW': 'zh-hant', ja: 'ja', ko: 'ko', es: 'es', fr: 'fr', de: 'de', 'pt-BR': 'pt-br', ru: 'ru'
+}
+export function privacyUrl() {
+  const locale = SITE_LOCALES[lang()]
+  return `https://oliverz.dev${locale ? `/${locale}` : ''}/products/shotloop/privacy`
+}
 const EVERY = 3600 * 1000
 
 async function report() {

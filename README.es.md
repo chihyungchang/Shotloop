@@ -237,7 +237,7 @@ Ajustes → Acerca de enumera cada componente con su versión y su licencia, y [
 
 ## Privacidad
 
-Una vez al día, Shotloop envía a su autor recuentos anónimos: la versión, el chip, el idioma de la interfaz y cuántos vídeos se planificaron, crearon, corrigieron y exportaron (las exportaciones por estilo visual), con un ID de instalación aleatorio. Nunca tus proyectos, sus nombres o textos, tus archivos ni tus claves de API, y no se guarda ninguna dirección IP. El primer arranque lo avisa; se desactiva en **Ajustes → General**. Las compilaciones desde el código fuente nunca envían nada ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)).
+Una vez al día, Shotloop envía a su autor recuentos anónimos: la versión, el chip, el idioma de la interfaz y cuántos vídeos se planificaron, crearon, corrigieron y exportaron (las exportaciones por estilo visual), con un ID de instalación aleatorio. Nunca tus proyectos, sus nombres o textos, tus archivos ni tus claves de API, y no se guarda ninguna dirección IP. El primer arranque lo avisa; se desactiva en **Ajustes → General**. Las compilaciones desde el código fuente nunca envían nada ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)). El [aviso de privacidad](https://oliverz.dev/es/products/shotloop/privacy) completo detalla todo lo que Shotloop guarda y envía.
 
 ## Licencia
 
