@@ -69,33 +69,36 @@ fn load(dir: &Path) -> Usage {
     u
 }
 
-// Written under a temporary name and renamed, so a crash never leaves half a file
+// A lost count is harmless, so a write that fails is only logged
 fn save(dir: &Path, u: &Usage) {
-    let tmp = dir.join(format!("{FILE}.tmp"));
-    let ok = std::fs::create_dir_all(dir).is_ok()
-        && serde_json::to_vec_pretty(u).ok().is_some_and(|json| std::fs::write(&tmp, json).is_ok());
-    if ok {
-        let _ = std::fs::rename(&tmp, dir.join(FILE));
+    let written = std::fs::create_dir_all(dir)
+        .and_then(|_| serde_json::to_vec_pretty(u).map_err(std::io::Error::other))
+        .and_then(|json| crate::files::write_atomic(&dir.join(FILE), &json, false));
+    if let Err(e) = written {
+        eprintln!("shotloop: could not save the usage counts: {e}");
     }
 }
 
-/// The style a project's film is made in, from its shotloop.json. The
-/// site takes only lowercase letters and digits (up to 20) and refuses
-/// the whole report otherwise, which would keep this install's counts
-/// from ever being sent; any other name is counted as "other"
-fn style_of(project: &Path) -> String {
-    let config: serde_json::Value = std::fs::read_to_string(project.join("shotloop.json")).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default();
-    if config["track"] == "3d" {
-        return "3d".into();
-    }
-    let style = config["style"].as_str().unwrap_or("infographic");
+/// The style an exported film is made in: as the export reported it, else
+/// (an engine from before it did) from the project's shotloop.json. The
+/// site takes only lowercase letters and digits (up to 20) and refuses the
+/// whole report otherwise, which would keep this install's counts from
+/// ever being sent; any other name is counted as "other"
+fn style_of(reported: Option<&str>, project: &Path) -> String {
+    let style = match reported {
+        Some(style) => style.to_string(),
+        None => {
+            let config: serde_json::Value = std::fs::read_to_string(project.join("shotloop.json")).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default();
+            if config["track"] == "3d" { "3d".into() } else { config["style"].as_str().unwrap_or("infographic").into() }
+        }
+    };
     let ok = (1..=20).contains(&style.len()) && style.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit());
-    if ok { style } else { "other" }.into()
+    if ok { style } else { "other".into() }
 }
 
 /// A finished job: counted when the counts are on and it is one of
-/// COUNTED (a lost count is harmless, so a write that fails is let go)
-pub fn count(dir: &Path, on: bool, kind: &str, project: &Path) {
+/// COUNTED; `style` is what an export reported its film's style as
+pub fn count(dir: &Path, on: bool, kind: &str, project: &Path, style: Option<&str>) {
     if !on || !COUNTED.contains(&kind) {
         return;
     }
@@ -103,7 +106,7 @@ pub fn count(dir: &Path, on: bool, kind: &str, project: &Path) {
     let mut u = load(dir);
     *u.counts.jobs.entry(kind.into()).or_default() += 1;
     if kind == "export" {
-        *u.counts.styles.entry(style_of(project)).or_default() += 1;
+        *u.counts.styles.entry(style_of(style, project)).or_default() += 1;
     }
     save(dir, &u);
 }
@@ -160,12 +163,12 @@ mod tests {
         let project = dir.join("film");
         std::fs::create_dir_all(&project).unwrap();
         std::fs::write(project.join("shotloop.json"), r#"{"track":"2d","style":"news"}"#).unwrap();
-        count(&dir, true, "render", &project);
-        count(&dir, true, "export", &project);
-        count(&dir, true, "export", &project);
-        count(&dir, true, "plan", &project);
+        count(&dir, true, "render", &project, None);
+        count(&dir, true, "export", &project, None);
+        count(&dir, true, "export", &project, None);
+        count(&dir, true, "plan", &project, None);
         // Off: nothing is counted
-        count(&dir, false, "export", &project);
+        count(&dir, false, "export", &project, Some("news"));
         let u = load(&dir);
         assert_eq!(u.counts.jobs.get("export"), Some(&2));
         assert_eq!(u.counts.jobs.get("render"), None);
@@ -200,8 +203,11 @@ mod tests {
             (r#"{"track":"2d","style":"averyveryverylongstylename"}"#, "other"),
         ] {
             std::fs::write(project.join("shotloop.json"), config).unwrap();
-            assert_eq!(style_of(&project), want, "{config}");
+            assert_eq!(style_of(None, &project), want, "{config}");
         }
+        // What the export reported comes first, checked the same way
+        assert_eq!(style_of(Some("news"), &project), "news");
+        assert_eq!(style_of(Some("a style name far too long to be one"), &project), "other");
         std::fs::remove_dir_all(dir).ok();
     }
 

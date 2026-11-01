@@ -3,8 +3,10 @@
 //! keys are the user's own and are passed only to the agent sidecar.
 
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::BTreeMap;
 use std::path::Path;
+use std::sync::Mutex;
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(rename_all = "camelCase", default)]
@@ -77,12 +79,49 @@ pub fn machine() -> Machine {
     Machine { cores, memory_gb, auto_parallel }
 }
 
-pub fn load(dir: &Path) -> Settings {
-    let Some(text) = std::fs::read_to_string(dir.join("settings.json")).ok() else {
-        return first_run();
+const FILE: &str = "settings.json";
+const BAD: &str = "settings.json.bad";
+
+// Several parts of the app change the settings: each change is read,
+// merged and written under this lock, so none undoes another's
+static LOCK: Mutex<()> = Mutex::new(());
+
+/// The saved settings; first-run ones when there are none yet. A file that
+/// can't be parsed is kept as settings.json.bad and reported until the
+/// settings are saved again, never replaced by defaults in silence
+pub fn load(dir: &Path) -> Result<Settings, String> {
+    let file = dir.join(FILE);
+    let text = match std::fs::read_to_string(&file) {
+        Ok(text) => text,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            if dir.join(BAD).exists() {
+                return Err(unreadable(dir, "set aside earlier"));
+            }
+            return Ok(first_run());
+        }
+        Err(e) => return Err(format!("{} could not be read: {e}", file.display())),
     };
-    let mut s: Settings = serde_json::from_str(&text).unwrap_or_default();
-    // Older settings: "anthropic" with one key is the Anthropic preset
+    let mut s: Settings = match serde_json::from_str(&text) {
+        Ok(s) => s,
+        Err(e) => {
+            std::fs::rename(&file, dir.join(BAD)).map_err(|r| format!("{} is damaged ({e}) and could not be set aside: {r}", file.display()))?;
+            eprintln!("shotloop: {} is damaged ({e}); kept as {BAD}", file.display());
+            return Err(unreadable(dir, &e.to_string()));
+        }
+    };
+    normalize(&mut s);
+    Ok(s)
+}
+
+fn unreadable(dir: &Path, why: &str) -> String {
+    format!(
+        "Your settings could not be read ({why}). They were kept as {} and Shotloop uses its defaults until the settings are saved again.",
+        dir.join(BAD).display()
+    )
+}
+
+/// Older settings: "anthropic" with one key is the Anthropic preset
+fn normalize(s: &mut Settings) {
     if s.provider.is_empty() || s.provider == "anthropic" {
         s.provider = "api".into();
     }
@@ -93,30 +132,46 @@ pub fn load(dir: &Path) -> Settings {
     if !s.api_key.is_empty() {
         s.api_keys.entry("anthropic".into()).or_insert(std::mem::take(&mut s.api_key));
     }
-    s
 }
 
+/// The settings saved whole (Settings' form)
 pub fn save(dir: &Path, settings: &Settings) -> Result<(), String> {
+    let _guard = LOCK.lock().unwrap();
+    write(dir, settings)
+}
+
+/// Some fields changed on the settings as saved now (the top-level fields
+/// of `patch`, by their JSON names); returns the settings saved
+pub fn update(dir: &Path, patch: &Value) -> Result<Settings, String> {
+    let patch = patch.as_object().ok_or("a settings change is an object of fields")?;
+    let _guard = LOCK.lock().unwrap();
+    // Damaged settings were set aside and reported by load: the change goes
+    // onto the defaults, and saving makes those the settings
+    let saved = load(dir).unwrap_or_else(|_| first_run());
+    let mut merged = serde_json::to_value(&saved).map_err(|e| e.to_string())?;
+    let fields = merged.as_object_mut().ok_or("settings are not an object")?;
+    for (k, v) in patch {
+        if !fields.contains_key(k) {
+            return Err(format!("unknown setting {k}"));
+        }
+        fields.insert(k.clone(), v.clone());
+    }
+    let mut s: Settings = serde_json::from_value(merged).map_err(|e| format!("bad settings change: {e}"))?;
+    normalize(&mut s);
+    write(dir, &s)?;
+    Ok(s)
+}
+
+fn write(dir: &Path, settings: &Settings) -> Result<(), String> {
     std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
-    let file = dir.join("settings.json");
     let json = serde_json::to_string_pretty(settings).map_err(|e| e.to_string())?;
     // The file holds API keys: readable by the user only, from the start
-    #[cfg(unix)]
-    {
-        use std::io::Write;
-        use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
-        let mut f = std::fs::OpenOptions::new().write(true).create(true).truncate(true).mode(0o600).open(&file).map_err(|e| e.to_string())?;
-        let _ = std::fs::set_permissions(&file, std::fs::Permissions::from_mode(0o600));
-        f.write_all(json.as_bytes()).map_err(|e| e.to_string())?;
-    }
-    #[cfg(not(unix))]
-    std::fs::write(&file, json).map_err(|e| e.to_string())?;
-    Ok(())
+    crate::files::write_atomic(&dir.join(FILE), json.as_bytes(), true).map_err(|e| format!("could not save the settings: {e}"))
 }
 
 /// No settings yet: Claude Code if this Mac has it (it works without a
 /// key), else the Anthropic preset waiting for one
-fn first_run() -> Settings {
+pub fn first_run() -> Settings {
     if crate::env::find_tool("claude").is_some() {
         return Settings { provider: "cli".into(), cli: "claude".into(), ..Default::default() };
     }
@@ -180,15 +235,57 @@ mod tests {
 
     fn temp() -> std::path::PathBuf {
         let dir = std::env::temp_dir().join(format!("shotloop-settings-{}-{:?}", std::process::id(), std::thread::current().id()));
+        let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         dir
+    }
+
+    #[test]
+    fn damaged_settings_are_set_aside_and_reported_until_saved() {
+        let dir = temp();
+        let damaged = r#"{"provider": "cli", oops"#;
+        std::fs::write(dir.join("settings.json"), damaged).unwrap();
+        let err = load(&dir).err().unwrap();
+        assert!(err.contains("settings.json.bad"), "{err}");
+        assert_eq!(std::fs::read_to_string(dir.join("settings.json.bad")).unwrap(), damaged);
+        // Still reported on the next read, not defaulted in silence
+        assert!(load(&dir).is_err());
+        // Saving makes them settings again; the damaged file stays for the person
+        assert!(update(&dir, &serde_json::json!({ "notifySound": true })).unwrap().notify_sound);
+        assert!(load(&dir).unwrap().notify_sound);
+        assert!(dir.join("settings.json.bad").exists());
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(std::fs::metadata(dir.join("settings.json")).unwrap().permissions().mode() & 0o777, 0o600);
+        }
+        std::fs::remove_dir_all(dir).ok();
+    }
+
+    #[test]
+    fn a_change_merges_into_the_saved_settings() {
+        let dir = temp();
+        let mut s = Settings { provider: "api".into(), api_preset: "openai".into(), api_protocol: "openai".into(), parallel: 3, ..Default::default() };
+        s.api_keys.insert("openai".into(), "sk-1".into());
+        save(&dir, &s).unwrap();
+        let after = update(&dir, &serde_json::json!({ "telemetryTold": true, "notifyDesktop": true })).unwrap();
+        assert!(after.telemetry_told && after.notify_desktop);
+        // What the change didn't name stays as saved
+        assert_eq!(after.api_key(), "sk-1");
+        assert_eq!(after.parallel, 3);
+        assert!(load(&dir).unwrap().telemetry_told);
+        assert!(update(&dir, &serde_json::json!({ "nope": 1 })).is_err());
+        assert!(update(&dir, &serde_json::json!({ "parallel": "many" })).is_err());
+        assert!(update(&dir, &serde_json::json!([1])).is_err());
+        assert_eq!(load(&dir).unwrap().parallel, 3);
+        std::fs::remove_dir_all(dir).ok();
     }
 
     #[test]
     fn older_anthropic_settings_become_the_anthropic_preset() {
         let dir = temp();
         std::fs::write(dir.join("settings.json"), r#"{"provider":"anthropic","apiKey":"sk-ant-1"}"#).unwrap();
-        let s = load(&dir);
+        let s = load(&dir).unwrap();
         assert_eq!(s.provider, "api");
         assert_eq!(s.api_preset, "anthropic");
         assert_eq!(s.api_key(), "sk-ant-1");
