@@ -3,8 +3,8 @@
 
 // A build's progress (main.ts build): the phase it is in, and each shot
 // as its agent starts, writes the shot's code and finishes
-export type BuildPhase = 'world' | 'parts' | 'shots'
-export type ShotState = 'start' | 'written' | 'done'
+type BuildPhase = 'world' | 'parts' | 'shots'
+type ShotState = 'start' | 'written' | 'done'
 
 export type AgentEvent =
   | { type: 'phase'; phase: BuildPhase }

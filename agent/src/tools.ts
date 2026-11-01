@@ -15,7 +15,7 @@ type Tool = Anthropic.Beta.BetaTool
 // What a tool call returns, in no backend's format: each backend (loop.ts,
 // local.ts, mcp.ts) maps it to its own. An image's label says what it is
 // ("start frame"); a failure is its message, with isError
-export interface ToolImage {
+interface ToolImage {
   mediaType: 'image/png' | 'image/jpeg'
   data: string
   label?: string
