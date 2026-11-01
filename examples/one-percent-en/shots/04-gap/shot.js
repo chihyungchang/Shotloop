@@ -1,16 +1,19 @@
 // 04-gap: both curves on one log-scale chart, where they are straight
 // lines pulling apart, and the gap at day 365:
 // 1.01^365 / 0.99^365 = (1.01 / 0.99)^365 = 1,480.66 ≈ 1,481.
-// Shot-local time: t = 0 is this shot's first frame.
+// Shot-local time: t = 0 is this shot's first frame. Timed to the
+// voice-over: the lines draw through "both become straight lines", the
+// bracket opens on "after a year", the multiple lands on "1,481". The
+// chart ends above the subtitle band (y 518).
 
 const UP = d => Math.pow(1.01, d)
 const DOWN = d => Math.pow(0.99, d)
 const GAP = Math.pow(1.01 / 0.99, 365)
 
-export default function render(t, { window, start }) {
+export default function render(t, { window, start, voice = [] }) {
   const { kit } = window
   kit.frame(t, { index: 4, start, foot: 'Log scale: ×10 per gridline', footR: '(1.01 ÷ 0.99)³⁶⁵ ≈ 1,481' })
-  const c = kit.chart({ x: 150, y: 150, w: 590, h: 430, y0: 0.01, y1: 100, log: true })
+  const c = kit.chart({ x: 150, y: 140, w: 590, h: 318, y0: 0.01, y1: 100, log: true })
   const s = kit.scene('gap', `
     <div class="abs mono" id="kick" style="left:80px; top:100px">Side by side · log scale</div>
     <svg class="plot" viewBox="0 0 1280 720">
@@ -22,7 +25,7 @@ export default function render(t, { window, start }) {
       <g id="ends"></g>
       <g id="bracket"></g>
     </svg>
-    <div class="abs" id="panel" style="left:900px; top:178px; width:300px">
+    <div class="abs" id="panel" style="left:900px; top:150px; width:300px">
       <div class="mono">The gap after a year</div>
       <div style="display:flex; align-items:baseline; gap:10px; margin-top:10px">
         <span class="num" id="gap" style="font-size:104px; font-weight:700; line-height:1"></span>
@@ -41,7 +44,9 @@ export default function render(t, { window, start }) {
   kit.wipe($('#grid'), kit.rise(t, -0.3, 1, kit.ease.out))
 
   // Both lines draw together, then the gap opens at day 365
-  const day = 365 * kit.ease.inOut((t - 0.3) / 2.2)
+  const s2 = voice[1] ?? { at: 2.73, end: 6.51 }
+  const w = k => s2.at + (s2.end - s2.at) * k
+  const day = 365 * kit.ease.inOut((t - 0.3) / 2.4)
   $('#up').setAttribute('d', day > 0.5 ? c.path(UP, day, 60) : '')
   $('#down').setAttribute('d', day > 0.5 ? c.path(DOWN, day, 60) : '')
   const X = c.sx(day)
@@ -50,7 +55,7 @@ export default function render(t, { window, start }) {
     <circle cx="${X}" cy="${c.sy(f(day))}" r="5.5" fill="var(--${col})" stroke="var(--paper)" stroke-width="2" opacity="${on}" />
     <text x="${X + 14}" y="${c.sy(f(day)) + 6}" style="fill:var(--${col}); font-family:var(--num); font-size:18px; font-weight:700; letter-spacing:0" opacity="${on}">${kit.fmt(f(day), dp)}</text>`).join('')
 
-  const bp = kit.rise(t, 2.5, 0.7, kit.ease.out)
+  const bp = kit.rise(t, s2.at, 0.9, kit.ease.out)
   const bx = c.sx(365) + 92, y1 = c.sy(UP(365)), y2 = c.sy(DOWN(365))
   const ym = (y1 + y2) / 2, half = ((y2 - y1) / 2) * bp
   $('#bracket').innerHTML = bp <= 0 ? '' : `
@@ -59,9 +64,9 @@ export default function render(t, { window, start }) {
 
   kit.lift($('#panel'), kit.rise(t, 0.1, 0.7), 20)
   // The multiple counts up geometrically so each digit gets its moment
-  const g = Math.pow(GAP, kit.ease.inOut((t - 2.6) / 1.3))
+  const g = Math.pow(GAP, kit.ease.inOut((t - (s2.at + 0.3)) / (w(0.65) - s2.at - 0.3)))
   $('#gap').textContent = kit.fmt(g, 0)
-  $('#gap').style.color = t > 2.6 ? 'var(--ink)' : 'var(--faint)'
-  kit.lift($('#eq'), kit.rise(t, 2.8, 0.6), 10)
-  kit.lift($('#why'), kit.rise(t, 3.4, 0.6), 10)
+  $('#gap').style.color = t > s2.at + 0.3 ? 'var(--ink)' : 'var(--faint)'
+  kit.lift($('#eq'), kit.rise(t, w(0.65), 0.6), 10)
+  kit.lift($('#why'), kit.rise(t, w(0.8), 0.6), 10)
 }

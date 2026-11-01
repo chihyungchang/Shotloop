@@ -40,6 +40,9 @@ const PATHS = {
   pause: 'M8 5v14M16 5v14',
   volume: 'M4 9h4l5-4v14l-5-4H4zM16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12',
   muted: 'M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6',
+  // The voice-over (a voice, not the music)
+  mic: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7',
+  micOff: 'M15 10.5V6a3 3 0 0 0-5.7-1.3M9 9v3a3 3 0 0 0 4.9 2.3M17.8 14A6.5 6.5 0 0 0 18.5 11M5.5 11a6.5 6.5 0 0 0 10.4 5.2M12 17.5V21M8.5 21h7M4 4l16 16',
   more: 'M5 12h.01M12 12h.01M19 12h.01',
   info: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 7.5h.01'
 } as const

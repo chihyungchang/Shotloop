@@ -5,13 +5,13 @@
 // Shot-local time: t = 0 is this shot's first frame.
 import { worldBar, ENERGY } from '../../world/parts.js'
 
-export default function render(t, { window, start }) {
+export default function render(t, { window, start, voice = [] }) {
   const k = window.kit
   const { C, clamp, ease, rise, pop, hash } = k
   const F = k.FONT.replace(/"/g, '')
 
   // The standing bar
-  const BX = 250, BY = 350, L = 610, T = 120
+  const BX = 250, BY = 337, L = 528, T = 120 // ends at y 865, above the subtitle band
   const coalTop = BY, coalBot = BY + 0.33 * L
   const solarH = 0.087 * L, solarMid = BY + L - solarH / 2
 
@@ -19,18 +19,21 @@ export default function render(t, { window, start }) {
   let specks = ''
   for (let i = 0; i < 22; i++) {
     const sx = 30 + hash(i, 11) * 640
-    const sy = 1020 - ((t * (12 + 20 * hash(i, 12)) + hash(i, 13) * 700) % 700)
+    const sy = 960 - ((t * (12 + 20 * hash(i, 12)) + hash(i, 13) * 640) % 640)
     specks += '<circle cx="' + sx.toFixed(1) + '" cy="' + sy.toFixed(1) + '" r="' + (1.2 + 1.8 * hash(i, 14)).toFixed(1) +
       '" fill="' + ENERGY.solar + '" opacity="' + (0.08 + 0.16 * hash(i, 15)).toFixed(2) + '"/>'
   }
 
-  // Timeline
-  // Solar's slice is already there from shot 1; the rest splits in
+  // Timeline, on the voice: 'That is still small.' while the rest splits in,
+  // coal outlined as 'Coal alone made a third' is said, then the comparison
   const solarP = ease(clamp((t + 0.5) / 0.6))
-  const split = clamp((t - 0.1) / 2.3)
-  const outlineP = ease(clamp((t - 2.4) / 0.6))
-  const glow = rise(t, 2.7, 0.5)
-  const linkP = ease(clamp((t - 2.85) / 0.5))
+  const split = clamp((t - 0.1) / 2.6)
+  const s2 = voice[1] || { at: 1.53, end: 4.75 }
+  const coalAt = s2.at + 0.1 * (s2.end - s2.at)
+  const outlineP = ease(clamp((t - coalAt) / 0.6))
+  const glow = rise(t, coalAt + 0.8, 0.5)
+  const stackAt = coalAt + 1.2
+  const linkP = ease(clamp((t - (stackAt - 0.4)) / 0.5))
 
   // A gold path from the solar slice round to the stack beside coal
   const SX = 166, stackX = BX - 24 - T
@@ -42,7 +45,7 @@ export default function render(t, { window, start }) {
   let stack = ''
   let filled = 0
   for (let j = 0; j < Math.ceil(ratio); j++) {
-    const s = pop(t, 3.25 + j * 0.16, 0.4)
+    const s = pop(t, stackAt + j * 0.22, 0.4)
     if (s <= 0) continue
     const part = Math.min(1, ratio - j)
     filled += part * clamp(s)
@@ -53,11 +56,11 @@ export default function render(t, { window, start }) {
       '<rect x="' + (stackX + 1.5) + '" y="' + (y + 1.5).toFixed(1) + '" width="' + (T - 3) + '" height="' + (h - 3).toFixed(1) + '" rx="5" fill="' + ENERGY.solar +
       '" fill-opacity="0.5" stroke="' + ENERGY.solarHi + '" stroke-width="2"/></g>'
   }
-  const times = rise(t, 3.2, 0.3)
+  const times = rise(t, stackAt - 0.05, 0.3)
   const timesVal = (filled || 0).toFixed(1)
 
   // Height marks tying the stack to the coal block
-  const tick = rise(t, 3.9, 0.3)
+  const tick = rise(t, stackAt + 0.9, 0.3)
   const marks = '<g opacity="' + (0.7 * tick).toFixed(2) + '" stroke="' + C.text + '" stroke-width="1.5" stroke-dasharray="4 5">' +
     '<line x1="' + stackX + '" y1="' + coalTop + '" x2="' + BX + '" y2="' + coalTop + '"/>' +
     '<line x1="' + stackX + '" y1="' + coalBot.toFixed(1) + '" x2="' + BX + '" y2="' + coalBot.toFixed(1) + '"/></g>'
@@ -77,8 +80,7 @@ export default function render(t, { window, start }) {
     stack + marks + label +
     // Source line
     '<g font-family="' + F + '" font-size="13" fill="' + C.muted + '" opacity="' + (0.75 * rise(t, 0.6, 0.4)).toFixed(2) + '">' +
-      '<text x="40" y="996">Source: Ember, Global Electricity Review 2026</text>' +
-      '<text x="40" y="1014">Shares of 2025 generation · coal 33% ÷ solar 8.7% ≈ 3.8</text></g>'
+      '<text x="40" y="1022">Source: Ember, Global Electricity Review 2026 · shares of 2025 generation · 33 ÷ 8.7 ≈ 3.8</text></g>'
   )
   // The dotted path draws on: dots up to the drawn length, then one long gap
   const path = q('#link')
@@ -94,6 +96,6 @@ export default function render(t, { window, start }) {
     kicker: 'Still a small slice',
     head: ['*Small* next to', "coal's 33%"],
     typed: rise(t, -0.15, 0.7),
-    progress: (start + t) / 23.5
+    progress: (start + t) / 31.1
   })
 }

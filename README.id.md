@@ -31,7 +31,7 @@ Sebuah ide menjadi teks, storyboard, lalu film yang tersusun dari adegan. Setiap
 
 Shotloop adalah aplikasi desktop untuk video pendek yang digambar dengan kode: promo produk, penjelasan sains, cerita data, dan animasi ala slide. Bisa 2D (halaman web yang dirender bingkai demi bingkai) atau 3D (adegan Blender), dalam tujuh gaya visual.
 
-Anda mulai dengan satu kalimat. AI memilih cara menampilkannya (adegan sinematik, infografik, peta, demo antarmuka, cetak biru, tipografi kinetik, atau 3D) beserta temanya, kecuali Anda memilihnya sendiri. AI menulis hook, naskah, dan fakta beserta sumbernya, lalu membaginya menjadi storyboard. Anda menyunting storyboard, dan AI membangun setiap adegan. Di Studio Anda melihat tiap adegan dan menyebutkan apa yang salah dengan bahasa sehari-hari, misalnya "teksnya terlalu kecil" atau "terlalu diam: tambahkan gerakan". AI mengubah adegan itu, merendernya, memeriksanya terhadap catatan, dan menampilkan perbandingan sebelum/sesudah. Saat film sudah pas, Ekspor menggabungkan adegan dan menambahkan musik; AI mendesain sampul sesuai tampilan film (atau mengisi template seri Anda) dan menulis teks unggahan untuk tiap platform. Semuanya masuk ke foldernya sendiri.
+Anda mulai dengan satu kalimat. AI memilih cara menampilkannya (adegan sinematik, infografik, peta, demo antarmuka, cetak biru, tipografi kinetik, atau 3D) beserta temanya, kecuali Anda memilihnya sendiri. AI menulis hook, naskah, dan fakta beserta sumbernya, lalu membaginya menjadi storyboard, lengkap dengan kalimat yang diucapkan sulih suara di atas tiap adegan. Anda menyunting storyboard, dan AI membangun setiap adegan. Di Studio Anda melihat tiap adegan dan menyebutkan apa yang salah dengan bahasa sehari-hari, misalnya "teksnya terlalu kecil" atau "terlalu diam: tambahkan gerakan". AI mengubah adegan itu, merendernya, memeriksanya terhadap catatan, dan menampilkan perbandingan sebelum/sesudah. Saat film sudah pas, Ekspor menggabungkan adegan, memasang sulih suara beserta subtitelnya dan musik di bawahnya; AI mendesain sampul sesuai tampilan film (atau mengisi template seri Anda) dan menulis teks unggahan untuk tiap platform. Semuanya masuk ke foldernya sendiri.
 
 AI-nya adalah yang sudah Anda pakai: Claude Code atau agen coding lain yang sudah Anda masuki, API model dengan kunci Anda sendiri, atau model lokal.
 
@@ -112,7 +112,7 @@ flowchart LR
   B --> C[Bangun setiap adegan]
   C --> D{Tinjau adegan}
   D -- "sebutkan yang salah" --> E[AI memperbaiki adegan itu] --> F[Render + periksa] --> D
-  D -- sudah pas --> G[Ekspor: gabung, musik, teks unggahan]
+  D -- sudah pas --> G[Ekspor: gabung, sulih suara, musik, teks unggahan]
 ```
 
 - **Adegan, bukan satu render panjang.** Film adalah daftar adegan. Setiap adegan adalah program kecil: `shot.js` untuk halaman 2D, `shot.py` untuk gerakan kamera Blender. Masing-masing di-cache menurut hash inputnya, sehingga perbaikan merender ulang satu adegan dalam hitungan detik (2D) atau satu menit (3D), dan Ekspor hanya menggabungkan klip.
@@ -121,7 +121,8 @@ flowchart LR
 - **Aturan untuk mengukur rencana.** Panjang teks dan lamanya tampil di layar diperiksa sebelum apa pun dibangun. Gambar yang muncul di beberapa adegan digambar sekali lalu dipakai bersama, jadi tampak sama di setiap adegan.
 - **Fakta dengan sumber.** Teks menyimpan setiap fakta di samping sumbernya, dan teks unggahan hanya boleh memakai fakta dari teks itu.
 - **Sampul.** AI mendesain sampul sesuai tampilan film dan memeriksa hasil rendernya sendiri. Simpan satu sebagai template agar seri tetap konsisten, atau unggah sampul yang Anda suka dan AI mengikuti desainnya.
-- **Musik yang pas dengan potongan.** Musik latar sintetis disetel agar potongan jatuh tepat di ketukannya, berjalan sampai bingkai terakhir, lalu memudar.
+- **Sulih suara, diucapkan di Mac Anda.** Tiap adegan punya satu kalimat, dan suara memimpin potongan: adegan berlangsung selama kalimatnya, dan gambar jatuh tepat pada kata-katanya. Kokoro berbicara bahasa Inggris dan Mandarin, Supertonic bahasa lainnya, semuanya offline. Subtitel dari kata yang diucapkan ditambahkan otomatis, dan sebuah pemeriksaan mendaftar apa pun yang akan tertutup olehnya (teks dan subjek yang ditandai), jadi film yang tertutup tidak pernah diekspor. Matikan sulih suara untuk film yang hanya memakai teks layar.
+- **Musik yang pas dengan potongan.** Musik latar sintetis disetel agar potongan jatuh tepat di ketukannya, berjalan sampai bingkai terakhir, lalu memudar. Di bawah sulih suara, musik lebih pelan dan meredup saat sebuah kalimat diucapkan.
 - **Cepat saat menyunting, kualitas penuh saat ekspor.** 3D menampilkan pratinjau cepat saat Anda menyunting dan merender bingkai kualitas penuh hanya saat ekspor. 2D selalu bekerja dalam kualitas penuh.
 - **Pustaka aset untuk 3D.** Cari model CC0 di [Poly Pizza](https://poly.pizza) dan [Smithsonian Open Access](https://www.si.edu/openaccess) dengan kunci Anda sendiri. Setiap model diunduh sekali dan bisa ditambahkan ke proyek 3D mana pun.
 
@@ -143,7 +144,7 @@ Modelnya harus mendukung pemanggilan alat (tool calling), dan untuk pemeriksaan 
 
 > **Pembukaan pertama:** Shotloop belum dinotarisasi oleh Apple, jadi macOS menyatakan tidak dapat memverifikasi pengembangnya. Buka sekali lewat **Pengaturan Sistem → Privasi & Keamanan → Tetap Buka**, atau jalankan `xattr -dr com.apple.quarantine /Applications/Shotloop.app` di Terminal. Setelah itu aplikasi terbuka seperti biasa, dan pembaruan terpasang tanpa bertanya lagi.
 
-Node.js dan ffmpeg sudah ada di dalam aplikasi. Shotloop memeriksa pembaruan di GitHub dan memasangnya di tempat. Berjalan di Mac dengan Apple silicon (M1 dan yang lebih baru).
+Node.js, ffmpeg, dan mesin ucapan untuk sulih suara sudah ada di dalam aplikasi. Model suaranya belum: masing-masing diunduh saat pertama kali sebuah film berbicara dalam bahasanya (Kokoro Inggris 132 MB, Kokoro Mandarin 147 MB, Supertonic untuk bahasa lainnya 400 MB), dengan bilah progres, atau lebih dulu di Pengaturan → Dependensi. Pengaturan → Tentang mendaftar setiap komponen pihak ketiga beserta lisensinya. Shotloop memeriksa pembaruan di GitHub dan memasangnya di tempat. Berjalan di Mac dengan Apple silicon (M1 dan yang lebih baru).
 
 ## Build dari kode sumber
 
@@ -169,6 +170,9 @@ pnpm shotloop new      my-short --idea "Kenapa baterai ponsel menua?" --track au
 pnpm shotloop new      coffee --idea "Dari mana kopi berasal?" --track 2d --style map --duration 30
 pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # ke folder baru di sana
 pnpm shotloop covers   list                                         # template sampul
+pnpm shotloop voice    my-short --on --voice af_heart --fit        # sulih suara: ucapkan kalimatnya, sesuaikan adegannya
+pnpm shotloop check-subtitles my-short                              # apa yang akan tertutup subtitel (gagal jika ada)
+pnpm shotloop voice-models --download kokoro-en                     # model ucapan, diunduh lebih dulu
 pnpm shotloop doctor
 ```
 
@@ -187,19 +191,20 @@ pnpm test                                                             # setiap b
 
 ```
 my-video/
-  shotloop.json        judul, track (2d|3d), gaya, ukuran, fps, adegan [{ id, title, duration }]
+  shotloop.json        judul, track (2d|3d), gaya, ukuran, fps, bahasa, suara { on, voice, speed },
+                       adegan [{ id, title, duration, say (kalimat yang diucapkan), cues (waktu kalimat-kalimatnya) }]
   storyboard.json      rencana: teks (hook, naskah, fakta bersumber) dan adegan
   world/               3D: world.py (+ screen.html); 2D: page.html (kit gaya), parts.js (gambar
                        yang berulang, digambar sekali), geo.data.js (negara untuk gaya peta)
   shots/<id>/          shot.py | shot.js, notes.md (wajib tampil, teks layar, gerakan)
   assets/<id>/         model 3D dari pustaka aset
   copy.md  script.md  captions.html  music.json  thumb.html  publish.json
-  .shotloop/           cache: per adegan dan hash input; take, pemeriksaan, perbaikan
+  .shotloop/           cache: per adegan dan hash input; take, pemeriksaan, perbaikan; voice/: kalimat yang diucapkan, subtitel
   out/                 ekspor engine (bercap waktu); aplikasi menyalin tiap ekspor ke folder baru di tempat pilihan Anda
 ```
 
 - **3D**: `world.py` membangun dunia bersama dengan `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` berjalan di namespace dunia dan membuat satu kamera; `at(t)` memetakan detik lokal adegan ke waktu film.
-- **2D**: `shot.js` mengekspor default `render(t, ctx)`, yang menggambar `world/page.html` pada waktu lokal adegan `t`.
+- **2D**: `shot.js` mengekspor default `render(t, ctx)`, yang menggambar `world/page.html` pada waktu lokal adegan `t`. `ctx.voice` berisi kalimat yang diucapkan dalam adegan beserta waktunya, agar gambar bisa jatuh tepat pada kata-katanya; tandai subjek dengan `data-keep` (atau `subtitles.keep()` pada canvas) agar pemeriksaan subtitel menjaganya tetap terlihat.
 - **Cache**: kunci sebuah adegan adalah hash dari dunia, kodenya, teks, aset, renderer, dan pengaturan. Adegan yang tidak berubah dipakai ulang.
 
 </details>
@@ -210,7 +215,8 @@ my-video/
 | Path | Isi |
 | --- | --- |
 | [`app/`](app/) | Aplikasi desktop: shell Tauri 2 (Rust) dengan antrean render, updater, dan pengawasan proses, serta UI React + TypeScript. |
-| [`engine/shotloop/`](engine/shotloop/) | Engine adegan: format proyek, cache render per adegan, render 2D (Chrome) dan 3D (Blender), perakitan film, ekspor MP4, musik, pustaka aset. CLI yang dipanggil aplikasi. |
+| [`engine/shotloop/`](engine/shotloop/) | Engine adegan: format proyek, cache render per adegan, render 2D (Chrome) dan 3D (Blender), perakitan film, ekspor MP4, pengaturan waktu sulih suara, subtitel dan pemeriksaannya, musik, pustaka aset. CLI yang dipanggil aplikasi. |
+| [`voice/`](voice/) | Teks-ke-ucapan untuk sulih suara, di Mac ini: Kokoro lewat sherpa-onnx dan Supertonic di ONNX Runtime, beserta unduhan modelnya. |
 | [`agent/`](agent/) | Agen: perencanaan, pembangunan, perbaikan dengan bahasa sehari-hari, pemeriksaan terhadap daftar periksa, teks unggahan. Mendukung API, CLI (lewat MCP), dan model lokal. |
 | [`examples/`](examples/) | Contoh yang ditawarkan Beranda, dalam bahasa Inggris: minimal satu untuk setiap gaya visual (2D dan 3D, 9:16 dan 16:9). |
 | [`fixtures/`](fixtures/) | Proyek untuk pengujian dan panduan terminal. |
@@ -219,4 +225,4 @@ my-video/
 
 ## Lisensi
 
-[Apache License 2.0](LICENSE); lihat [NOTICE](NOTICE). Model dari pustaka aset tetap memakai lisensinya sendiri (CC0 atau CC-BY, dengan kredit dicatat di proyek).
+[Apache License 2.0](LICENSE); lihat [NOTICE](NOTICE). Model dari pustaka aset tetap memakai lisensinya sendiri (CC0 atau CC-BY, dengan kredit dicatat di proyek), begitu pula model suara (Kokoro: Apache-2.0; Supertonic: OpenRAIL-M).

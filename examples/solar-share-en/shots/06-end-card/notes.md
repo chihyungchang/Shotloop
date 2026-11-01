@@ -4,6 +4,10 @@
 
 The world-electricity bar from shot 1 returns, gold sliver at 8.7%, and an upward gold arrow labelled '+30%' (solar output, 2025) pushes the sliver wider as the title sets above: 'Small slice. Biggest growth.' Source line at the foot.
 
+## Voice-over
+
+A small slice of world power, with the biggest growth.
+
 ## On screen
 
 Small slice. Biggest growth.
@@ -15,3 +19,4 @@ Gold sliver creeps wider under the arrow; title types in; sun disc glows softly 
 ## Review history
 - 2026-10-31: planned in the storyboard.
 - 2026-10-31: facts updated to Ember Global Electricity Review 2026 (2025 data).
+- 2026-11-01: voice-over added; timed to the line, subtitle band kept clear.

@@ -131,12 +131,22 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
   const make = async () => {
     setConfirm(null)
     if (await apply()) {
+      // A voice not on this Mac yet downloads first, as its own job with a
+      // bar; the build waits for it when it needs the voice
+      if (project.voice?.on) {
+        const v = await api.voice(project.root).catch(() => null)
+        if (v?.model && !v.model.installed) api.enqueue({ kind: 'voiceModel', model: v.model.id })
+      }
       api.enqueue({ kind: 'build', project: project.root })
       setPhase('build')
     }
   }
   const skip = async () => {
-    if (await apply()) toStudio()
+    if (!(await apply())) return
+    // Lines edited without a build: spoken and fitted as a queue job, with
+    // its progress and any error (a build does this itself first)
+    if (project.voice?.on) api.enqueue({ kind: 'voiceFit', project: project.root })
+    toStudio()
   }
 
   const total = round1(sb?.shots.reduce((t, s) => t + (Number(s.duration) || 0), 0) ?? 0)
@@ -332,6 +342,14 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
                             <button className="icon-button" disabled={sb.shots.length < 2} onClick={() => edit({ ...sb, shots: sb.shots.filter((_, k) => k !== i) })} aria-label={t('plan.remove')} title={t('plan.remove')}><Icon name="x" size={14} /></button>
                           </div>
                         </div>
+                        {/* With the voice-over: what the voice says over the shot,
+                            first; it sets the shot's length when the film is built */}
+                        {project.voice?.on && (
+                          <label className="shot-field onscreen say">
+                            <span><Icon name="mic" size={12} /> {t('plan.say')}</span>
+                            <AutoText value={s.say ?? ''} onChange={v => setShot(i, { say: v })} />
+                          </label>
+                        )}
                         <label className="shot-field onscreen">
                           <span>{t('plan.text')}</span>
                           <AutoText value={s.text} onChange={v => setShot(i, { text: v })} />

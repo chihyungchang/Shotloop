@@ -1,5 +1,6 @@
-// The film from its shots: concatenates the cached clip of every shot,
-// lays the music bed under it and exports MP4 (H.264 + AAC) at 9:16 and
+// The film from its shots: concatenates the cached clip of every shot
+// (with the voice-over's subtitles), lays the sound under it (the music
+// bed, ducked under the voice-over) and exports MP4 (H.264 + AAC) at 9:16 and
 // 16:9, plus the publish kit (cover PNG and per-platform post).
 //
 // Every output carries its mode and a timestamp in its name, and
@@ -12,10 +13,12 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { openPage } from '../lib/chrome.mjs'
 import { entry, takes, writeJson } from './cache.mjs'
-import { musicBed as musicWav } from './bed.mjs'
+import { musicBed } from './bed.mjs'
 import { emit, ffmpeg, pixelSize } from './compose.mjs'
 import { findShot, loadProject, saveConfig } from './project.mjs'
 import { renderShot, stillFrames } from './render.mjs'
+import { withVoice } from './voice.mjs'
+import { assertSubtitlesClear } from './check.mjs'
 import { deliver } from './deliver.mjs'
 
 export const ASPECTS = { '9:16': [9, 16], '16:9': [16, 9] }
@@ -60,17 +63,16 @@ export async function assemble(project, { mode = 'draft', aspects = ['9:16', '16
   const at = stamp()
 
   try {
-    // All shot clips share codec and settings, so they join without
-    // re-encoding
+    // All shot clips (dressed with subtitles or not) share codec and
+    // settings, so they join without re-encoding. An export never leaves
+    // the voice-over out silently (strict)
+    const { clips, audio: music } = await withVoice(project, mode, project.shots.map(s => entry(project, s, mode).clip), musicBed(project), { strict: true })
     const list = path.join(work, 'list.txt')
-    fs.writeFileSync(list, project.shots
-      .map(s => `file '${entry(project, s, mode).clip.replaceAll("'", "'\\''")}'`)
-      .join('\n') + '\n')
+    fs.writeFileSync(list, clips.map(c => `file '${c.replaceAll("'", "'\\''")}'`).join('\n') + '\n')
     const film = path.join(work, 'film.mp4')
     emit({ type: 'log', message: `joining ${project.shots.length} shots` })
     await ffmpeg(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', film])
 
-    const music = musicWav(project)
     const src = pixelSize(project, mode)
     const files = []
     for (const [i, aspect] of aspects.entries()) {
@@ -113,8 +115,8 @@ export async function preview(project, { mode = 'draft' } = {}) {
   if (missing.length) {
     throw new Error(`not rendered (${mode}): ${missing.map(s => s.id).join(', ')}; render them first`)
   }
-  const music = musicWav(project)
-  const key = createHash('sha256').update(JSON.stringify([clips, music, project.duration])).digest('hex').slice(0, 16)
+  const { clips: dressed, audio: music } = await withVoice(project, mode, clips, musicBed(project))
+  const key = createHash('sha256').update(JSON.stringify([dressed, music, project.duration])).digest('hex').slice(0, 16)
   const dir = path.join(project.state, 'film')
   const file = path.join(dir, `${mode}-${key}.mp4`)
   if (fs.existsSync(file)) return { mode, file, cached: true, stale }
@@ -124,7 +126,7 @@ export async function preview(project, { mode = 'draft' } = {}) {
   // gets its name only when complete, so a cut-short one is never "cached"
   const list = path.join(dir, `.${mode}-list.${process.pid}.txt`)
   const part = path.join(dir, `.${mode}-${key}.${process.pid}.mp4`)
-  fs.writeFileSync(list, clips.map(c => `file '${c.replaceAll("'", "'\\''")}'`).join('\n') + '\n')
+  fs.writeFileSync(list, dressed.map(c => `file '${c.replaceAll("'", "'\\''")}'`).join('\n') + '\n')
   const joined = path.join(dir, `.${mode}-joined.${process.pid}.mp4`)
   try {
     emit({ type: 'log', message: `joining ${clips.length} shots` })
@@ -224,6 +226,8 @@ export function copyPublish(project, at = stamp()) {
 // AI has written it (publish.json). to: also deliver the files into a
 // new folder there, named after the work (deliver.mjs)
 export async function exportFilm(project, { mode = 'final', aspects, video = true, cover: withCover = true, publish: withPublish = true, to, name, lang } = {}) {
+  // A film whose subtitles cover what the viewer must see is not exported
+  if (video) await assertSubtitlesClear(project)
   const missing = video ? pendingShots(project, mode) : []
   for (const [i, shot] of missing.entries()) {
     emit({ type: 'log', message: `rendering ${shot.id} (${i + 1}/${missing.length}, ${mode})` })

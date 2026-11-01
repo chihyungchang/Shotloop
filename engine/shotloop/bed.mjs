@@ -1,7 +1,7 @@
 // The music bed for the whole film, made once per music and volume: a
 // music.json synthesized (engine/video/music.mjs), or the person's own
-// audio file cut to the film with short fades. Written where
-// compose.mjs's musicWav looks, so shot previews pick it up as it is.
+// audio file cut to the film with short fades. Shot previews and the
+// film play it (under the voice-over when there is one, voice.mjs).
 // A synthesized bed is tuned so the cuts land on its beats, and on its
 // bar lines where they can (the 2D principles' rhythm).
 

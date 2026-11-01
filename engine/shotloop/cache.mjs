@@ -12,6 +12,7 @@ import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { voiceCues } from './cues.mjs'
 import { finalSamples } from './settings.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -90,7 +91,10 @@ export function shotKey(project, shot, mode) {
     start: shot.start,
     duration: shot.duration,
     // 3D: the final render samples (2D keys stay as they were before it)
-    ...(project.track === '3d' ? { samples: mode === 'final' ? finalSamples(project) : null } : {})
+    ...(project.track === '3d' ? { samples: mode === 'final' ? finalSamples(project) : null } : {}),
+    // 2D: the voice-over's timing, which the shot's code may follow (keys
+    // without a voice-over stay as they were)
+    ...voiceKey(project, shot)
   }))
   hashFiles(h, ENGINE, RENDERER_FILES[project.track].map(f => path.join(ENGINE, f)))
   hashFiles(h, project.root, listFiles(project.world))
@@ -104,6 +108,12 @@ export function shotKey(project, shot, mode) {
     if (fs.existsSync(own)) hashFiles(h, project.root, listFiles(own))
   }
   return h.digest('hex').slice(0, 16)
+}
+
+// A 2D shot's code sees its voice-over's sentences and times (ctx.voice)
+function voiceKey(project, shot) {
+  const cues = project.track === '2d' ? voiceCues(project, shot) : []
+  return cues.length ? { voice: cues } : {}
 }
 
 // What went into a shot's key, part by part, so a stale shot can say
@@ -124,7 +134,7 @@ export function keyParts(project, shot, mode) {
       if (project.track === '3d' && fs.existsSync(own)) hashFiles(h, project.root, listFiles(own))
     }),
     captions: part(h => project.captions && hashFiles(h, project.root, [project.captions])),
-    timing: part(h => h.update(JSON.stringify([project.fps, project.size, shot.start, shot.duration]))),
+    timing: part(h => h.update(JSON.stringify([project.fps, project.size, shot.start, shot.duration, ...Object.values(voiceKey(project, shot))]))),
     engine: part(h => {
       h.update(JSON.stringify([RENDERER_VERSION, mode, project.track === '3d' && mode === 'final' ? finalSamples(project) : null]))
       hashFiles(h, ENGINE, RENDERER_FILES[project.track].map(f => path.join(ENGINE, f)))
@@ -164,6 +174,15 @@ export function writeJson(file, value) {
   const tmp = `${file}.${process.pid}.tmp`
   fs.writeFileSync(tmp, JSON.stringify(value, null, 2) + '\n')
   fs.renameSync(tmp, file)
+}
+
+// A shot's last subtitle check (check.mjs), kept with the shot and valid
+// while its frames' key is unchanged: the app marks the shot until its
+// code (or the voice) changes. Null when not checked since
+export const subtitleFile = (project, shot) => path.join(shotState(project, shot), 'subtitles.json')
+export function subtitleResult(project, shot, key = shotKey(project, shot, 'final')) {
+  const r = readJson(subtitleFile(project, shot), null)
+  return r && r.key === key ? { at: r.at, issues: r.issues } : null
 }
 
 export const takes = (project, shot) => readJson(path.join(shotState(project, shot), 'takes.json'), [])
@@ -235,6 +254,7 @@ export function status(project, shot) {
   out.takes = takes(project, shot)
   out.error = readJson(path.join(base, 'error.json'), null)
   out.checks = readJson(path.join(base, 'checks.json'), null)
+  out.subtitles = subtitleResult(project, shot, out.final.key)
   // The agent's fixes and checks of this shot, oldest first, with
   // before/after stills: the shot's conversation in the app
   const fixes = path.join(base, 'fixes')

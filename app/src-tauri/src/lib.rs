@@ -138,9 +138,14 @@ async fn create_project(
     duration: String,
     look: Option<String>,
     style: Option<String>,
+    // The voice-over: on unless the person turned it off
+    voice: Option<bool>,
 ) -> Result<Value, String> {
     blocking(move || {
         let mut args = vec!["new", &dir, "--idea", &idea, "--title", &title, "--track", &track, "--aspect", &aspect, "--duration", &duration];
+        if voice == Some(false) {
+            args.push("--no-voice");
+        }
         let look = look.unwrap_or_default();
         if !look.is_empty() {
             args.extend(["--look", look.as_str()]);
@@ -556,6 +561,36 @@ async fn music(handle: AppHandle, path: String, preset: Option<String>, shuffle:
     .await
 }
 
+/// The voice-over: read it (with the voices of the project's language), or
+/// turn it on or off and pick the voice (each speaks the lines again and
+/// fits the shots to them); sample: a WAV of the voice to listen to
+#[tauri::command]
+async fn voice(handle: AppHandle, path: String, on: Option<bool>, voice: Option<String>, sample: Option<bool>) -> Result<Value, String> {
+    blocking(move || {
+        let mut args = vec!["voice", path.as_str()];
+        match on {
+            Some(true) => args.push("--on"),
+            Some(false) => args.push("--off"),
+            None => {}
+        }
+        if let Some(v) = voice.as_deref() {
+            args.extend(["--voice", v]);
+        }
+        if sample == Some(true) {
+            args.push("--sample");
+        }
+        engine(&handle.state::<App>(), &args)
+    })
+    .await
+}
+
+/// The speech models: languages, size, license, downloaded or not, and
+/// where they live (Settings → Dependencies)
+#[tauri::command]
+async fn voice_models(handle: AppHandle) -> Result<Value, String> {
+    blocking(move || engine(&handle.state::<App>(), &["voice-models"])).await
+}
+
 /// Settings → About: what this build is and where it runs
 #[tauri::command]
 fn about(handle: AppHandle) -> Value {
@@ -624,6 +659,8 @@ pub fn run() {
             std::fs::create_dir_all(&library)?;
             std::env::set_var("SHOTLOOP_LIBRARY", &library);
             let _ = app.asset_protocol_scope().allow_directory(&library, true);
+            // Speech models for the voice-over, downloaded on first use
+            std::env::set_var("SHOTLOOP_VOICES", app.path().app_data_dir()?.join("voices"));
             // Cover templates, the same way
             let covers = app.path().app_data_dir()?.join("covers");
             std::fs::create_dir_all(&covers)?;
@@ -687,6 +724,8 @@ pub fn run() {
             library_search,
             library,
             music,
+            voice,
+            voice_models,
             tray::set_tray_text,
             tray::test_alert
         ])

@@ -14,32 +14,89 @@
     {
       "id": "01-hook-how-much-is",
       "title": "Hook: how much is solar?",
-      "duration": 3.5
+      "duration": 6.3,
+      "say": "How much of our electricity comes from the Sun? In 2025, about 1 unit in every 11.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 2.45
+        },
+        {
+          "at": 2.7,
+          "end": 5.81
+        }
+      ]
     },
     {
       "id": "02-still-a-small-slice",
       "title": "Still a small slice",
-      "duration": 4.5
+      "duration": 5.1,
+      "say": "That is still small. Coal alone made a third of all power, and gas more than a fifth.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 1.28
+        },
+        {
+          "at": 1.53,
+          "end": 4.75
+        }
+      ],
+      "sayFast": 1.06
     },
     {
       "id": "03-30-in-one-year",
       "title": "+30% in one year",
-      "duration": 4
+      "duration": 7.4,
+      "say": "But solar is the growth story. Its output rose 30% in one year, a record 636 terawatt hours.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 1.77
+        },
+        {
+          "at": 2.02,
+          "end": 6.95
+        }
+      ]
     },
     {
       "id": "04-three-quarters-of-new",
       "title": "Three-quarters of new demand",
-      "duration": 4
+      "duration": 4.5,
+      "say": "Solar alone met three quarters of the rise in world electricity demand.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 4.31
+        }
+      ],
+      "sayFast": 1.05
     },
     {
       "id": "05-biggest-source-of-new",
       "title": "Biggest growth, 4 years running",
-      "duration": 4.5
+      "duration": 4.5,
+      "say": "For the fourth year running, solar grew more than any other source.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 3.28
+        }
+      ]
     },
     {
       "id": "06-end-card",
       "title": "End card",
-      "duration": 3
+      "duration": 3.3,
+      "say": "A small slice of world power, with the biggest growth.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 2.87
+        }
+      ],
+      "sayFast": 1.05
     }
   ],
   "captions": null,
@@ -47,5 +104,9 @@
   "cover": "thumb.html",
   "publish": "publish.md",
   "look": "midnight",
-  "style": "infographic"
+  "style": "infographic",
+  "voice": {
+    "on": true,
+    "voice": "af_heart"
+  }
 }

@@ -1,14 +1,17 @@
 // Renders one shot, draft or final, as stills (start, middle, end) or
 // as a clip, through the cache: unchanged inputs reuse the last render.
 
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
-import { addTake, entry, keyParts, readJson, recordError, writeJson } from './cache.mjs'
+import { addTake, entry, keyParts, readJson, recordError, subtitleResult, writeJson } from './cache.mjs'
 import { musicBed } from './bed.mjs'
-import { composeStill, emit, encodeClip, frameName, previewClip, renderCaptions } from './compose.mjs'
+import { composeStill, emit, encodeClip, ffmpeg, frameName, renderCaptions } from './compose.mjs'
 import { frameCount } from './project.mjs'
 import { renderFrames2d } from './render2d.mjs'
 import { renderFrames3d } from './render3d.mjs'
+import { withVoice } from './voice.mjs'
+import { checkSubtitles, describeIssues } from './check.mjs'
 
 export const STILLS = ['start', 'middle', 'end']
 
@@ -23,8 +26,13 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
   const what = stills ? 'stills' : 'clip'
   if (!force && (stills ? e.stills : e.clip)) {
     emit({ type: 'log', message: `${shot.id}: ${mode} ${what} cached (${e.key})` })
-    return { shot: shot.id, mode, key: e.key, cached: true, ...(await outputs(project, shot, e)) }
+    return { shot: shot.id, mode, key: e.key, cached: true, ...(await outputs(project, shot, e, mode)) }
   }
+
+  // A voiced 2D shot is checked for what its subtitles would cover first
+  // (seconds, no frames): the result is kept with the shot for the app to
+  // mark; fixing it is the person's call, so the render goes on
+  const subtitles = await subtitleCheck(project, shot)
 
   const t0 = Date.now()
   const work = path.join(e.dir, `work-${process.pid}`)
@@ -70,10 +78,10 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
       renderedAt: new Date().toISOString()
     })
     const done = entry(project, shot, mode, e.key)
-    const out = await outputs(project, shot, done)
+    const out = await outputs(project, shot, done, mode)
     const take = addTake(project, shot, { mode, kind: what, key: e.key, parts: keyParts(project, shot, mode), seconds, ...out })
     emit({ type: 'done', shot: shot.id, mode, what, key: e.key, seconds, take: take.take })
-    return { shot: shot.id, mode, key: e.key, cached: false, take: take.take, seconds, ...out }
+    return { shot: shot.id, mode, key: e.key, cached: false, take: take.take, seconds, ...out, ...(subtitles ? { subtitles } : {}) }
   } catch (err) {
     recordError(project, shot, mode, err)
     throw err
@@ -82,11 +90,43 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
   }
 }
 
-async function outputs(project, shot, e) {
+async function subtitleCheck(project, shot) {
+  if (project.track !== '2d') return null
+  // These frames were checked already
+  const known = subtitleResult(project, shot)
+  if (known) return known.issues
+  try {
+    const { checked, issues } = await checkSubtitles(project, { shot: shot.id })
+    if (!checked) return null
+    for (const l of describeIssues(issues)) emit({ type: 'log', message: l })
+    return issues
+  } catch (err) {
+    // The check is advice before a render: the render goes on, and says why
+    emit({ type: 'log', message: `subtitle check skipped: ${err.message}` })
+    return null
+  }
+}
+
+async function outputs(project, shot, e, mode) {
   return {
     stills: e.stills,
     clip: e.clip,
-    // The bed first, so the preview gets this project's music and volume
-    preview: e.clip ? (musicBed(project), await previewClip(project, shot, e.clip)) : null
+    preview: e.clip ? await preview(project, shot, e.clip, mode) : null
   }
+}
+
+// The shot as the film plays it: its subtitles, the music and the voice
+async function preview(project, shot, clip, mode) {
+  const clips = project.shots.map(s => (s.id === shot.id ? clip : null))
+  const { clips: dressed, audio } = await withVoice(project, mode, clips, musicBed(project))
+  if (!audio) return dressed[shot.index]
+  // Next to the shot's own clip, named by what went in
+  const out = path.join(path.dirname(clip), `preview-${createHash('sha256').update(`${dressed[shot.index]}:${path.basename(audio)}`).digest('hex').slice(0, 12)}.mp4`)
+  if (fs.existsSync(out)) return out
+  await ffmpeg([
+    '-i', dressed[shot.index], '-ss', String(shot.start), '-t', String(shot.duration), '-i', audio,
+    '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k',
+    '-shortest', '-movflags', '+faststart', out
+  ])
+  return out
 }

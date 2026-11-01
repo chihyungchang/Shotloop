@@ -8,18 +8,18 @@ export default function render(t, { window, start }) {
   const k = window.kit
   const { C, clamp, ease, rise, hash } = k
   const F = k.FONT.replace(/"/g, '')
-  const BX = 40, BY = 800, BL = 580
+  const BX = 40, BY = 700, BL = 580 // labels end above the subtitle band
 
   // Sliver creeps wider (illustrative) under the arrow's push
-  const push = ease(clamp((t - 1.0) / 2.0))
+  const push = ease(clamp((t - 1.0) / 2.2))
   const solar = 8.7 + 5 * push
   const edge = BX + (solar / 100) * BL
   const base = BX + 0.087 * BL
 
   // The arrow: from the sliver's edge, curving up to the label
   const arrowP = ease(clamp((t - 0.35) / 0.9))
-  const hx = 268, hy = 492
-  const path = 'M ' + edge.toFixed(1) + ' ' + (BY - 40) + ' C ' + edge.toFixed(1) + ' 630, ' + (hx - 120) + ' ' + (hy + 10) + ', ' + hx + ' ' + hy
+  const hx = 268, hy = 412
+  const path = 'M ' + edge.toFixed(1) + ' ' + (BY - 40) + ' C ' + edge.toFixed(1) + ' 540, ' + (hx - 120) + ' ' + (hy + 10) + ', ' + hx + ' ' + hy
   const headIn = rise(t, 1.15, 0.25)
   const ang = Math.atan2(hy - (hy + 10), hx - (hx - 120)) * 180 / Math.PI
 
@@ -34,7 +34,7 @@ export default function render(t, { window, start }) {
   let specks = ''
   for (let i = 0; i < 24; i++) {
     const sx = 30 + hash(i, 11) * 640
-    const sy = 1000 - ((t * (16 + 22 * hash(i, 12)) + hash(i, 13) * 700) % 700)
+    const sy = 940 - ((t * (16 + 22 * hash(i, 12)) + hash(i, 13) * 700) % 700)
     specks += '<circle cx="' + sx.toFixed(1) + '" cy="' + sy.toFixed(1) + '" r="' + (1.2 + 2 * hash(i, 14)).toFixed(1) +
       '" fill="' + ENERGY.solar + '" opacity="' + (0.1 + 0.2 * hash(i, 15)).toFixed(2) + '"/>'
   }
@@ -54,12 +54,12 @@ export default function render(t, { window, start }) {
   const q$ = k.stage(
     '<defs><filter id="ec-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="5" stdDeviation="9" flood-color="#060c22" flood-opacity="0.6"/></filter></defs>' +
     specks +
-    sunDisc(k, { x: 420, y: 560, r: 130, t, p: rise(t, -0.3, 0.6), glow: 0.6 + 0.4 * push, id: 'ec-sun' }) +
+    sunDisc(k, { x: 420, y: 480, r: 120, t, p: rise(t, -0.3, 0.6), glow: 0.6 + 0.4 * push, id: 'ec-sun' }) +
     // Label over the number
-    '<text x="420" y="472" text-anchor="middle" font-family="' + F + '" font-size="18" font-weight="700" letter-spacing="3" fill="' + ENERGY.solarHi +
+    '<text x="420" y="392" text-anchor="middle" font-family="' + F + '" font-size="18" font-weight="700" letter-spacing="3" fill="' + ENERGY.solarHi +
       '" opacity="' + numIn.toFixed(2) + '">SOLAR OUTPUT · 2025</text>' +
     // The big growth number
-    '<g transform="translate(420 ' + (600 + k.float(t, 3, 3)).toFixed(1) + ') scale(' + numS.toFixed(4) + ')" opacity="' + numIn.toFixed(2) + '">' +
+    '<g transform="translate(420 ' + (520 + k.float(t, 3, 3)).toFixed(1) + ') scale(' + numS.toFixed(4) + ')" opacity="' + numIn.toFixed(2) + '">' +
       '<text x="0" y="0" text-anchor="middle" font-family="' + F + '" font-weight="800" font-size="118" letter-spacing="-3" fill="' + ENERGY.solar +
       '" filter="url(#ec-sh)" style="font-variant-numeric: tabular-nums">+' + k.count(roll, 0, 30) + '<tspan font-size="70">%</tspan></text></g>' +
     // The rising arrow
@@ -79,8 +79,7 @@ export default function render(t, { window, start }) {
     '</g>' +
     // Source line
     '<g font-family="' + F + '" font-size="13" fill="' + C.muted + '" opacity="' + (0.75 * rise(t, 0.6, 0.4)).toFixed(2) + '">' +
-      '<text x="40" y="996">Source: Ember, Global Electricity Review 2026</text>' +
-      '<text x="40" y="1014">Solar 8.7% of 2025 generation; solar output grew 30% in 2025</text></g>'
+      '<text x="40" y="1022">Source: Ember, Global Electricity Review 2026 · 2025 data</text></g>'
   )
   k.drawOn(q$('#ec-arrow'), arrowP)
 
@@ -88,6 +87,6 @@ export default function render(t, { window, start }) {
     kicker: 'Solar, in one line',
     head: ['Small slice.', '*Biggest growth.*'],
     typed: rise(t, -0.1, 0.75),
-    progress: (start + t) / 23.5
+    progress: (start + t) / 31.1
   })
 }

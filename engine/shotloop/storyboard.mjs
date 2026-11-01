@@ -1,9 +1,10 @@
 // The plan of a project, as the app's planning page edits it:
 // storyboard.json holds the copy (hook, body, facts with sources) and the
 // shots (title, duration, what the frame shows, the text on screen, the
-// motion). applyStoryboard turns it into the project: the shot list in
-// shotloop.json, each shot's notes.md, copy.md, and starter code for new
-// shots, so the agent can build every shot from its notes.
+// motion, and with the voice-over the line it says). applyStoryboard
+// turns it into the project: the shot list in shotloop.json, each shot's
+// notes.md, copy.md, and starter code for new shots, so the agent can
+// build every shot from its notes.
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -51,7 +52,7 @@ function notes(shot) {
 ## Must show
 
 ${shot.show?.trim() || '(what this shot must show)'}
-
+${shot.say?.trim() ? `\n## Voice-over\n\n${shot.say.trim()}\n` : ''}
 ## On screen
 
 ${shot.text?.trim() || '(no text)'}
@@ -66,7 +67,7 @@ ${shot.source?.trim() ? `\n## Source line\n\n${shot.source.trim()}\n` : ''}`
 const isStarterPage = file => fs.existsSync(file) && fs.readFileSync(file, 'utf8').includes('Shots draw it from shots/*/shot.js')
 
 // Code nobody has touched yet: the starter the engine wrote
-const isStarter = file => fs.readFileSync(file, 'utf8').split('\n', 1)[0].includes('Starter shot')
+export const isStarter = file => fs.readFileSync(file, 'utf8').split('\n', 1)[0].includes('Starter shot')
 
 // Nothing built yet: every shot is still its starter
 export const unbuilt = project => project.shots.every(s => !fs.existsSync(s.code) || isStarter(s.code))
@@ -112,7 +113,8 @@ export function applyStoryboard(project) {
       while (taken(id)) id += '-b'
     }
     used.add(id)
-    return { id, title: String(s.title).trim().slice(0, 80), duration: round1(s.duration), show: s.show, text: s.text, motion: s.motion }
+    const say = String(s.say ?? '').trim()
+    return { id, title: String(s.title).trim().slice(0, 80), duration: round1(s.duration), show: s.show, text: s.text, motion: s.motion, ...(say ? { say } : {}) }
   })
   const film = round1(shots.reduce((t, s) => t + s.duration, 0))
   const today = new Date().toISOString().slice(0, 10)
@@ -163,7 +165,7 @@ ${facts.map(f => `- ${f.text}${f.source ? ` (source: ${f.source})` : ''}`).join(
   const cell = s => line(s).replace(/\|/g, '\\|')
   fs.writeFileSync(path.join(project.root, 'script.md'), `# ${project.title} · Script
 
-${shots.map((s, i) => `${i + 1}. ${line(s.text) || line(s.title)}`).join('\n')}
+${shots.map((s, i) => `${i + 1}. ${line(s.say) || line(s.text) || line(s.title)}`).join('\n')}
 `)
   fs.writeFileSync(path.join(project.root, 'storyboard.md'), `# ${project.title} · Storyboard
 
@@ -189,8 +191,16 @@ ${shots.map((s, i) => `| ${i + 1} | ${s.duration} s | ${cell(s.title)}: ${cell(s
 
   // The starter caption layer follows the plan: 3D shows each shot's
   // text; 2D draws its text in the frame, so the layer goes
+  // A shot whose line and length are unchanged keeps its voice timing
+  // (voice.mjs fitVoice), so its frames stay valid; others are timed again
+  const before = new Map(project.shots.map(s => [s.id, s]))
+  const timing = s => {
+    const old = before.get(s.id)
+    return old?.cues && old.say === s.say && old.duration === s.duration ? { cues: old.cues, ...(old.sayFast ? { sayFast: old.sayFast } : {}) } : {}
+  }
   const cfg = {
-    ...project.config, shots: shots.map(({ id, title, duration }) => ({ id, title, duration })),
+    ...project.config, shots: shots.map(s => ({ id: s.id, title: s.title, duration: s.duration, ...(s.say ? { say: s.say, ...timing(s) } : {}) })),
+    ...(typeof sb.lang === 'string' && sb.lang.trim() ? { lang: sb.lang.trim() } : {}),
     ...(look ? { look } : {}), ...(styleId ? { style: styleId } : {}), ...(project.track === '3d' ? { style: '3d' } : {})
   }
   if (project.captions && fs.readFileSync(project.captions, 'utf8').includes("film's timeline. (starter)")) {
@@ -219,6 +229,7 @@ export function deriveStoryboard(project) {
     return {
       id: s.id, title: s.title ?? s.id, duration: s.duration,
       show: section(notes, 'Must show'), text: section(notes, 'On screen'), motion: section(notes, 'Motion'),
+      ...((s.say ?? section(notes, 'Voice-over')) ? { say: s.say ?? section(notes, 'Voice-over') } : {}),
       ...(section(notes, 'Source line') ? { source: section(notes, 'Source line') } : {})
     }
   })
@@ -239,6 +250,7 @@ export function deriveStoryboard(project) {
   const sb = {
     target: project.duration,
     look: project.config.look ?? null,
+    ...(project.config.lang ? { lang: project.config.lang } : {}),
     copy: { idea: section(copy, 'Idea'), hook, body, facts },
     shots: shots.map(s => ({ ...s, show: placeholder(s.show) ? '' : s.show, text: placeholder(s.text) ? '' : s.text, motion: placeholder(s.motion) ? '' : s.motion }))
   }

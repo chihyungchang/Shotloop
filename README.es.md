@@ -31,7 +31,7 @@ Una idea se convierte en texto, guion gráfico y una película hecha de planos. 
 
 Shotloop es una app de escritorio para videos cortos dibujados con código: promos de producto, divulgación científica, historias con datos y animaciones tipo diapositiva, en 2D (páginas web renderizadas fotograma a fotograma) o 3D (escenas de Blender), con siete estilos visuales.
 
-Empiezas con una frase. La IA elige cómo mostrarla (escena cinematográfica, infografía, mapa, demo de interfaz, plano técnico, tipografía cinética o 3D) y un tema, salvo que los elijas tú. Escribe el gancho, el guion y los datos con sus fuentes, y luego los divide en un guion gráfico. Tú editas el guion gráfico y la IA construye cada plano. En el editor revisas cada plano y dices qué falla con palabras normales, como "el texto es muy pequeño" o "está muy quieto: añade algo de movimiento". La IA cambia ese plano, lo renderiza, lo comprueba con las notas y te muestra un antes/después. Cuando la película funciona, Exportar une los planos y añade música; la IA diseña una portada con el estilo de la película (o rellena la plantilla de tu serie) y escribe la publicación para cada plataforma, todo en una carpeta propia.
+Empiezas con una frase. La IA elige cómo mostrarla (escena cinematográfica, infografía, mapa, demo de interfaz, plano técnico, tipografía cinética o 3D) y un tema, salvo que los elijas tú. Escribe el gancho, el guion y los datos con sus fuentes, y luego los divide en un guion gráfico, con la frase que dice la voz en off sobre cada plano. Tú editas el guion gráfico y la IA construye cada plano. En el editor revisas cada plano y dices qué falla con palabras normales, como "el texto es muy pequeño" o "está muy quieto: añade algo de movimiento". La IA cambia ese plano, lo renderiza, lo comprueba con las notas y te muestra un antes/después. Cuando la película funciona, Exportar une los planos y coloca la voz en off con sus subtítulos y la música por debajo; la IA diseña una portada con el estilo de la película (o rellena la plantilla de tu serie) y escribe la publicación para cada plataforma, todo en una carpeta propia.
 
 La IA es la que ya usas: Claude Code u otro agente de código con tu sesión iniciada, una API de modelos con tu propia clave o un modelo local.
 
@@ -112,7 +112,7 @@ flowchart LR
   B --> C[Construir cada plano]
   C --> D{Revisar un plano}
   D -- "di qué falla" --> E[La IA corrige ese plano] --> F[Renderizar + comprobar] --> D
-  D -- está bien --> G[Exportar: unir, música, texto de publicación]
+  D -- está bien --> G[Exportar: unir, voz en off, música, texto de publicación]
 ```
 
 - **Planos, no un render largo.** Una película es una lista de planos. Cada plano es un pequeño programa: `shot.js` para una página 2D, `shot.py` para un movimiento de cámara en Blender. Cada uno se guarda en caché según un hash de sus entradas, así que una corrección vuelve a renderizar un plano en segundos (2D) o en un minuto (3D), y Exportar solo une clips.
@@ -121,7 +121,8 @@ flowchart LR
 - **Reglas para medir un plan.** Antes de construir nada se comprueba la longitud de los subtítulos y el tiempo que permanecen en pantalla. Una imagen que se repite entre planos se dibuja una vez y se comparte, para que se vea igual en todos.
 - **Datos con fuentes.** El texto guarda cada dato junto a su fuente, y el texto de publicación solo puede usar datos del texto.
 - **Portadas.** La IA diseña una portada con el estilo de la película y revisa sus propios renders. Guarda una como plantilla para que una serie sea coherente, o sube una portada que te guste y la IA sigue su diseño.
-- **Música a la medida del montaje.** La base sintetizada se ajusta para que los cortes caigan en sus tiempos, dura hasta el último fotograma y termina con un fundido.
+- **Una voz en off, generada en tu Mac.** Cada plano tiene una frase, y la voz marca el montaje: un plano dura lo que dura su frase, y la imagen cae sobre las palabras. Kokoro habla inglés y chino, Supertonic los demás idiomas, todo sin conexión. Los subtítulos de lo que se dice se añaden automáticamente, y una comprobación enumera todo lo que taparían (el texto y el sujeto marcado), así que nunca se exporta una película tapada. Desactívala para una película solo con rótulos.
+- **Música a la medida del montaje.** La base sintetizada se ajusta para que los cortes caigan en sus tiempos, dura hasta el último fotograma y termina con un fundido. Bajo una voz en off suena más baja y se atenúa mientras se dice una frase.
 - **Rápido al editar, máxima calidad al exportar.** El 3D muestra vistas previas rápidas mientras editas y renderiza fotogramas en calidad completa solo al exportar. El 2D trabaja siempre en calidad completa.
 - **Biblioteca de recursos para 3D.** Busca modelos CC0 en [Poly Pizza](https://poly.pizza) y [Smithsonian Open Access](https://www.si.edu/openaccess) con tu propia clave. Cada modelo se descarga una vez y se puede añadir a cualquier proyecto 3D.
 
@@ -143,7 +144,7 @@ El modelo necesita llamadas a herramientas, y las comprobaciones necesitan uno q
 
 > **Primer arranque:** Shotloop aún no está notarizado por Apple, así que macOS dice que no puede verificar al desarrollador. Ábrelo una vez desde **Ajustes del Sistema → Privacidad y seguridad → Abrir igualmente**, o ejecuta `xattr -dr com.apple.quarantine /Applications/Shotloop.app` en Terminal. Después se abre con normalidad y las actualizaciones se instalan sin volver a preguntar.
 
-Node.js y ffmpeg vienen dentro de la app. Shotloop busca actualizaciones en GitHub y las instala en su sitio. Funciona en Macs con Apple silicon (M1 y posteriores).
+Node.js, ffmpeg y los motores de voz de la voz en off vienen dentro de la app. Los modelos de voz no: cada uno se descarga la primera vez que una película habla sus idiomas (Kokoro inglés 132 MB, Kokoro chino 147 MB, Supertonic para los demás idiomas 400 MB), con una barra de progreso, o por adelantado en Ajustes → Dependencias. Ajustes → Acerca de enumera cada componente de terceros con su licencia. Shotloop busca actualizaciones en GitHub y las instala en su sitio. Funciona en Macs con Apple silicon (M1 y posteriores).
 
 ## Compilar desde el código fuente
 
@@ -169,6 +170,9 @@ pnpm shotloop new      my-short --idea "¿Por qué envejece la batería de tu te
 pnpm shotloop new      coffee --idea "¿De dónde viene el café?" --track 2d --style map --duration 30
 pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # en una carpeta nueva allí
 pnpm shotloop covers   list                                         # plantillas de portada
+pnpm shotloop voice    my-short --on --voice af_heart --fit        # la voz en off: dice las frases y ajusta los planos
+pnpm shotloop check-subtitles my-short                              # qué taparían los subtítulos (falla si tapan algo)
+pnpm shotloop voice-models --download kokoro-en                     # un modelo de voz, por adelantado
 pnpm shotloop doctor
 ```
 
@@ -187,19 +191,20 @@ pnpm test                                                             # cada bac
 
 ```
 my-video/
-  shotloop.json        título, track (2d|3d), estilo, tamaño, fps, planos [{ id, title, duration }]
+  shotloop.json        título, track (2d|3d), estilo, tamaño, fps, lang, voice { on, voice, speed },
+                       planos [{ id, title, duration, say (la frase hablada), cues (los tiempos de sus oraciones) }]
   storyboard.json      el plan: texto (gancho, guion, datos con fuentes) y planos
   world/               3D: world.py (+ screen.html); 2D: page.html (el kit del estilo), parts.js (imágenes
                        que se repiten, dibujadas una vez), geo.data.js (los países del estilo mapa)
   shots/<id>/          shot.py | shot.js, notes.md (qué debe mostrar, texto en pantalla, movimiento)
   assets/<id>/         modelos 3D de la biblioteca de recursos
   copy.md  script.md  captions.html  music.json  thumb.html  publish.json
-  .shotloop/           caché: por plano y hash de entradas, tomas, comprobaciones, correcciones
+  .shotloop/           caché: por plano y hash de entradas, tomas, comprobaciones, correcciones; voice/: frases habladas, subtítulos
   out/                 las exportaciones del motor (con marca de tiempo); la app copia cada una a una carpeta nueva donde elijas
 ```
 
 - **3D**: `world.py` construye el mundo compartido con `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` se ejecuta en el espacio de nombres del mundo y crea una cámara; `at(t)` convierte los segundos locales del plano en tiempo de la película.
-- **2D**: `shot.js` exporta por defecto `render(t, ctx)`, que dibuja `world/page.html` en el tiempo local del plano `t`.
+- **2D**: `shot.js` exporta por defecto `render(t, ctx)`, que dibuja `world/page.html` en el tiempo local del plano `t`. `ctx.voice` contiene las oraciones habladas del plano con sus tiempos, para que la imagen caiga sobre las palabras; marca el sujeto con `data-keep` (o `subtitles.keep()` en un canvas) para que la comprobación de subtítulos lo deje despejado.
 - **Caché**: la clave de un plano es un hash del mundo, su código, los subtítulos, los recursos, el renderizador y los ajustes. Los planos sin cambios se reutilizan.
 
 </details>
@@ -210,7 +215,8 @@ my-video/
 | Ruta | Qué es |
 | --- | --- |
 | [`app/`](app/) | La app de escritorio: un contenedor Tauri 2 (Rust) con la cola de renderizado, el actualizador y la supervisión de procesos, y la interfaz en React + TypeScript. |
-| [`engine/shotloop/`](engine/shotloop/) | El motor de planos: formato de proyecto, caché de renderizado por plano, renders 2D (Chrome) y 3D (Blender), montaje de la película, exportación a MP4, música, biblioteca de recursos. Una CLI a la que llama la app. |
+| [`engine/shotloop/`](engine/shotloop/) | El motor de planos: formato de proyecto, caché de renderizado por plano, renders 2D (Chrome) y 3D (Blender), montaje de la película, exportación a MP4, sincronización de la voz en off, subtítulos y su comprobación, música, biblioteca de recursos. Una CLI a la que llama la app. |
+| [`voice/`](voice/) | La síntesis de voz de la voz en off, en este Mac: Kokoro a través de sherpa-onnx y Supertonic sobre ONNX Runtime, con las descargas de los modelos. |
 | [`agent/`](agent/) | El agente: planificación, construcción, correcciones en lenguaje normal, comprobaciones con la lista, texto de publicación. Admite API, CLI (a través de MCP) y modelos locales. |
 | [`examples/`](examples/) | Los ejemplos que ofrece Inicio, en inglés: al menos uno por estilo visual (2D y 3D, 9:16 y 16:9). |
 | [`fixtures/`](fixtures/) | Proyectos para las pruebas y los recorridos por terminal. |
@@ -219,4 +225,4 @@ my-video/
 
 ## Licencia
 
-[Apache License 2.0](LICENSE); consulta [NOTICE](NOTICE). Los modelos de la biblioteca de recursos mantienen sus propias licencias (CC0 o CC-BY, con el crédito escrito en el proyecto).
+[Apache License 2.0](LICENSE); consulta [NOTICE](NOTICE). Los modelos de la biblioteca de recursos mantienen sus propias licencias (CC0 o CC-BY, con el crédito escrito en el proyecto), y también los modelos de voz (Kokoro: Apache-2.0; Supertonic: OpenRAIL-M).

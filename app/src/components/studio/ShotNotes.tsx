@@ -6,8 +6,10 @@ import { Icon } from '../Icon'
 const OPEN = 'shotloop.notes.open'
 
 // Under the filmstrip, like a deck's speaker notes: what the shot must
-// show (notes.md) and how it fared against the checklist
-export function ShotNotes({ project, shot }: { project: Project; shot: Shot }) {
+// show (notes.md), what the voice says over it (sentence by sentence, with
+// its time in the shot; edited in the plan, since a new line re-times the
+// film) and how it fared against the checklist
+export function ShotNotes({ project, shot, editPlan, busy }: { project: Project; shot: Shot; editPlan: () => void; busy: boolean }) {
   const [must, setMust] = useState<string | null>(null)
   const index = project.shots.findIndex(s => s.id === shot.id)
 
@@ -46,6 +48,7 @@ export function ShotNotes({ project, shot }: { project: Project; shot: Shot }) {
         {checks
           ? <span className={`check-pill ${failing ? 'bad' : 'ok'}`}>{failing ? t('notes.failing', { n: failing }) : t('notes.allPass', { n: passed })}</span>
           : <span className="muted small">{t('notes.unchecked')}</span>}
+        {(shot.subtitles?.issues.length ?? 0) > 0 && <span className="check-pill bad">{t('subs.flag', { n: shot.subtitles!.issues.length })}</span>}
         {checks && <span className="muted small notes-when">{formatDate(checks.at, { dateStyle: 'short', timeStyle: 'short' })}</span>}
       </button>
       {open && (
@@ -53,6 +56,23 @@ export function ShotNotes({ project, shot }: { project: Project; shot: Shot }) {
           <div className="notes-col">
             <span className="section-label">{t('notes.must')}</span>
             <p className="small">{must || <span className="muted">{t('notes.empty')}</span>}</p>
+            {project.voice?.on && (
+              <>
+                <span className="section-label notes-voice-label">
+                  <Icon name="mic" size={11} /> {t('notes.voice')}
+                  <button className="link" onClick={editPlan}>{t('notes.voiceEdit')}</button>
+                </span>
+                {shot.cues?.length ? (
+                  <ol className="voice-cues">
+                    {shot.cues.map((c, i) => (
+                      <li key={i}><span className="muted tabular">{t('notes.voiceAt', { a: c.at.toFixed(1), b: c.end.toFixed(1) })}</span> {c.text}</li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className="small">{shot.say || <span className="muted">{t('notes.voiceNone')}</span>}</p>
+                )}
+              </>
+            )}
           </div>
           <div className="notes-col">
             <span className="section-label">{t('notes.checks')}</span>
@@ -67,6 +87,25 @@ export function ShotNotes({ project, shot }: { project: Project; shot: Shot }) {
               </ul>
             ) : (
               <p className="small muted">{t('notes.notChecked')}</p>
+            )}
+            {/* The subtitle check (run before each render): what is covered,
+                when; the person decides how to fix it, then renders again */}
+            {(shot.subtitles?.issues.length ?? 0) > 0 && (
+              <div className="subs-issues">
+                <span className="section-label">{t('subs.title')}</span>
+                <ul>
+                  {shot.subtitles!.issues.map((i, k) => (
+                    <li key={k}><span className="muted tabular">{t('notes.voiceAt', { a: i.from.toFixed(1), b: i.to.toFixed(1) })}</span> {i.what}</li>
+                  ))}
+                </ul>
+                <div className="subs-actions">
+                  <span className="muted">{t('subs.howTo')}</span>
+                  <button className="link" disabled={busy} onClick={() => api.enqueue({
+                    kind: 'fix', project: project.root, shot: shot.id,
+                    request: t('subs.request', { list: shot.subtitles!.issues.map(i => `${i.from.toFixed(1)}–${i.to.toFixed(1)} s: ${i.what}`).join('; ') })
+                  })}>{t('subs.askAi')}</button>
+                </div>
+              </div>
             )}
           </div>
         </div>

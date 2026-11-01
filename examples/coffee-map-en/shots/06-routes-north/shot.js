@@ -6,7 +6,7 @@ import { coffeeMap, tradeRoutes, beanPin, mapAt, TOP5, ROUTES } from '../../worl
 
 const INK = '#0b1533'
 
-export default function render(t, { window, start }) {
+export default function render(t, { window, start, voice = [] }) {
   const kit = window.kit
   const { C, FONT, clamp, lerp, ease, rise } = kit
   const font = FONT.replace(/"/g, '')
@@ -27,8 +27,12 @@ export default function render(t, { window, start }) {
   const zoom = Math.exp(lerp(Math.log(3), Math.log(1.3), out)) * (1 + 0.04 * drift)
   const view = { center: [lerp(39, 18, out), lerp(8.5, 10, out) + 8 * drift], zoom, globe: 0, x: 360, y: 625 }
 
-  // Six arcs, one after another; importers light as the first arcs land
-  const draw = ROUTES.map((_, i) => ease(clamp((t - 1.0 - i * 0.45) / 0.9)))
+  // The voice: 'From the belt, the beans sail north.' draws the arcs; 'The
+  // European Union and the United States…' lights the importers
+  const s2 = voice[1]?.at ?? 2.1
+
+  // Six arcs, one after another
+  const draw = ROUTES.map((_, i) => ease(clamp((t - 0.6 - i * 0.4) / 0.9)))
   const bright = { Brazil: 1, Vietnam: 1, Colombia: 1, Indonesia: 1, Ethiopia: 1 }
 
   // Tropic labels step aside once the American arcs cross them
@@ -40,7 +44,7 @@ export default function render(t, { window, start }) {
     svg += beanPin(kit, { x, y, vis, p: rise(t, 0.6 + i * 0.1, 0.5), t: t + i * 0.3, size: 0.9 })
   })
 
-  svg += tradeRoutes(kit, { view, draw, flow: t, importers: rise(t, 1.7, 0.9), labels: rise(t, 2.0, 0.5) })
+  svg += tradeRoutes(kit, { view, draw, flow: t, importers: rise(t, s2, 0.9), labels: rise(t, s2 + 0.2, 0.5) })
 
   // Calm ground under the headline and the source line
   svg = '<defs><linearGradient id="r6-top" x1="0" y1="0" x2="0" y2="1">' +
@@ -53,17 +57,16 @@ export default function render(t, { window, start }) {
     '<rect x="0" y="880" width="720" height="380" fill="url(#r6-foot)"/>'
 
   // Legend: what the colors mean
-  const lg = rise(t, 2.4, 0.5)
+  const lg = rise(t, s2 + 1.8, 0.5)
   svg += '<g font-family="' + font + '" font-size="19" font-weight="700" opacity="' + lg.toFixed(3) + '">' +
-    '<rect x="40" y="924" width="18" height="18" rx="4" fill="' + C.hue.green + '"/>' +
-    '<text x="66" y="940" fill="' + C.text + '" stroke="' + INK + '" stroke-width="4" paint-order="stroke">grows</text>' +
-    '<rect x="150" y="924" width="18" height="18" rx="4" fill="' + C.hue.blue + '"/>' +
-    '<text x="176" y="940" fill="' + C.text + '" stroke="' + INK + '" stroke-width="4" paint-order="stroke">biggest importers</text></g>'
+    '<rect x="40" y="842" width="18" height="18" rx="4" fill="' + C.hue.green + '"/>' +
+    '<text x="66" y="858" fill="' + C.text + '" stroke="' + INK + '" stroke-width="4" paint-order="stroke">grows</text>' +
+    '<rect x="150" y="842" width="18" height="18" rx="4" fill="' + C.hue.blue + '"/>' +
+    '<text x="176" y="858" fill="' + C.text + '" stroke="' + INK + '" stroke-width="4" paint-order="stroke">biggest importers</text></g>'
 
-  // Source line, small, under the picture
-  svg += '<g font-family="' + font + '" font-size="15" fill="' + C.muted + '" opacity="' + (0.85 * rise(t, 0.6, 0.6)).toFixed(3) + '">' +
-    '<text x="40" y="984">Source: USDA Foreign Agricultural Service,</text>' +
-    '<text x="40" y="1004">Coffee: World Markets and Trade (July 2026) · routes illustrative</text></g>'
+  // Source line, small, under the subtitle band
+  svg += '<text x="40" y="1023" font-family="' + font + '" font-size="14" fill="' + C.muted + '" opacity="' + (0.85 * rise(t, 0.6, 0.6)).toFixed(3) + '">' +
+    'Source: USDA FAS, World Markets and Trade (July 2026) · routes illustrative</text>'
 
   kit.stage(svg)
 
@@ -71,6 +74,6 @@ export default function render(t, { window, start }) {
     kicker: 'Where it goes',
     head: ['Most sails *north*', 'to Europe', 'and the US'],
     typed: rise(t, 0.1, 0.9),
-    progress: (start + t) / 32.5
+    progress: (start + t) / 36.6
   })
 }

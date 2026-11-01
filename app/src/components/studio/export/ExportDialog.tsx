@@ -7,7 +7,7 @@ import { estimate, formatSeconds } from '../../../model'
 import { Icon } from '../../Icon'
 import { ChangesDialog } from '../ChangesDialog'
 import { CoverEditor, coverSource, useCover } from './CoverEditor'
-import { CopySummary, Music, Publish, Samples } from './parts'
+import { CopySummary, Music, Publish, Samples, Voice } from './parts'
 
 const ASPECTS: { id: string; label: Key; note: Key }[] = [
   { id: '9:16', label: 'export.portrait', note: 'export.portraitFor' },
@@ -279,6 +279,7 @@ function Setup({ project, jobs, refresh, name, setName, rename, parts, tick, asp
             })}
           </div>
         </div>
+        <Voice project={project} jobs={jobs} refresh={refresh} />
         <Music project={project} refresh={refresh} />
         {project.track === '3d' && (
           <div className="xrow top">

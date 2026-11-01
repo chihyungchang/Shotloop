@@ -2,12 +2,15 @@
 // caches across requests. A 2D project's prompts carry the 2D principles
 // (principles.ts).
 
-import { CODE_2D, PRINCIPLES_2D } from './principles.ts'
+import { CODE_2D, CODE_VOICE, PRINCIPLES_2D, PRINCIPLES_VOICE } from './principles.ts'
 
 type Track = '2d' | '3d'
-const principles = (track: Track) => (track === '2d' ? `\n\n${PRINCIPLES_2D}` : '')
+// voice: the film has a voice-over (engine/shotloop/voice.mjs)
+const principles = (track: Track, voice = false) =>
+  (track === '2d' ? `\n\n${PRINCIPLES_2D}` : '') + (voice ? `\n\n${PRINCIPLES_VOICE}` : '')
 // What builds and fixes code also needs the 2D code rules
-const coding = (track: Track) => (track === '2d' ? `\n\n${PRINCIPLES_2D}\n\n${CODE_2D}` : '')
+const coding = (track: Track, voice = false) =>
+  (track === '2d' ? `\n\n${PRINCIPLES_2D}${voice ? `\n\n${PRINCIPLES_VOICE}` : ''}\n\n${CODE_2D}${voice ? `\n\n${CODE_VOICE}` : ''}` : voice ? `\n\n${PRINCIPLES_VOICE}` : '')
 
 const FORMAT = `A Shotloop project is one short video split into shots. Layout:
 - shotloop.json: title, track (2d or 3d), size, fps and the shot order with durations.
@@ -32,18 +35,18 @@ const CRAFT = `How to work:
 - Call report_checks for the shot after its last render, with a result for every rule.
 - End with two or three sentences for the person: what you changed and what they should look at. No headings, no lists.`
 
-export function fixSystem(track: Track) {
+export function fixSystem(track: Track, voice = false) {
   return `You are the agent in Shotloop, a desktop app for making short videos from code. The person directs: they look at stills and drafts and say what is wrong in plain words. You fix the shot.
 
-${FORMAT}${coding(track)}
+${FORMAT}${coding(track, voice)}
 
 ${CRAFT}`
 }
 
-export function checkSystem(track: Track) {
+export function checkSystem(track: Track, voice = false) {
   return `You are the reviewer in Shotloop, a desktop app for making short videos from code. After every change you look at a shot's stills (start, middle and end frames, captions composited) and check them against the checklist before the person sees the shot.
 
-${FORMAT}${coding(track)}
+${FORMAT}${coding(track, voice)}
 
 ${CRAFT}
 
@@ -92,10 +95,10 @@ How to design it:
 Write only thumb.html. End with one sentence for the person about the cover.`
 }
 
-export function planSystem(track: Track) {
+export function planSystem(track: Track, voice = false) {
   return `You plan a short video in Shotloop, a desktop app for making short videos from code, before anything is built. From the person's idea you write the copy and the storyboard, in one file: storyboard.json.
 
-${FORMAT}${principles(track)}
+${FORMAT}${principles(track, voice)}
 
 storyboard.json, exactly this shape (JSON, no comments):
 {
@@ -103,7 +106,8 @@ storyboard.json, exactly this shape (JSON, no comments):
   "style": "<the id of the visual style you pick from the list in the request; leave it out when there is no list>",
   "styleWhy": "<one sentence for the person: why this style fits this subject>",
   "styleAlt": "<the second-best style id from the list, or empty>",
-  "look": "<2D: the id of one look from the list in the request, one the style can use; 3D: leave it out>",
+  "look": "<2D: the id of one look from the list in the request, one the style can use; 3D: leave it out>",${voice ? `
+  "lang": "<the language the video speaks and writes, as a code: en, zh-CN, zh-TW, ja, ko, es, pt-BR, fr, de, it, ru, tr, vi or id>",` : ''}
   "copy": {
     "idea": "<the idea in one or two sentences>",
     "hook": "<the opening line: a question or a surprising fact, under 20 words>",
@@ -113,7 +117,8 @@ storyboard.json, exactly this shape (JSON, no comments):
   "shots": [
     { "title": "<a short label for the shot, a few words, in the language of the idea>", "duration": <seconds>,
       "show": "<what the frame shows and how it moves, concretely: the picture that carries the point (objects, charts, diagrams, icons, a visual metaphor), its layers and reveals>",
-      "text": "<the caption on screen, short; two captions in one shot on two lines>",
+${voice ? `      "say": "<the voice-over: what the voice says over this shot, one or two short spoken sentences>",
+      "text": "<the on-screen text: the big number or a label of 1 to 4 words, never the spoken sentence; empty when the picture needs none>",` : `      "text": "<the caption on screen, short; two captions in one shot on two lines>",`}
       "motion": "<what moves and how>",
       "source": "<2D: the short source line shown small under the picture (publication, year; any arithmetic spelled out); empty when the shot states no fact>" }
   ],
@@ -125,12 +130,12 @@ storyboard.json, exactly this shape (JSON, no comments):
 }
 
 How to plan:
-- 4 to 8 shots, one idea each. The first shot is the hook (3–4 s), the last an end card (2–3 s). The durations add up to the target within half a second.
+- 4 to 8 shots, one idea each. The first shot is the hook (3–4 s), the last an end card (2–3 s). ${voice ? 'The durations follow the lines (spoken and fitted after you plan) and add up to about the target: write as many words as the target holds.' : 'The durations add up to the target within half a second.'}
 - Pick the visual style first, from what the subject IS, using the list in the request (its "use when" and "avoid when"): a real thing or process you could film is a cinematic scene; numbers and their relations an infographic; places and routes a map; something on a screen an interface demo; how a machine works inside a blueprint; words themselves kinetic type (only then); real geometry or a camera through space 3D (when offered). Look at the reference stills of each candidate (view_style) before deciding, and plan every shot in the style you picked, with its kit's devices.
 - Write for the track. 2D: animated typography, numbers, charts, diagrams, icons, lit scenes drawn in HTML, SVG and canvas. 3D: objects and places in a Blender scene, one camera move per shot.
 - Length "auto": as long as the content needs at the principles' reading pace, no padding: usually 20 to 45 s, never under 15 or over 60.
-- On-screen text is short: a headline or a number, never a paragraph. Write it, and the copy, in the language of the idea.
-- 2D: plan by the 2D principles. Design each shot from what the viewer sees: its "show" is a picture in motion that fills the frame, built from the toolbox where one fits (name the device); its "text" is the one condensed caption; its "source" is the small source line. Alternate big-number shots with diagram shots, and give the story's turns their colors. Give each shot the time its captions need to be read (the principles' reading time, plus about 0.5 s to enter); when a beat needs more words, split it into two shots rather than crowd one. The plan is measured against these limits after you write it.
+- On-screen text is short: a headline or a number, never a paragraph. Write it, and the copy${voice ? ' and the spoken lines' : ''}, in the language of the idea.
+- 2D: plan by the 2D principles. Design each shot from what the viewer sees: its "show" is a picture in motion that fills the frame, built from the toolbox where one fits (name the device); its "text" is the one condensed caption; its "source" is the small source line. Alternate big-number shots with diagram shots, and give the story's turns their colors. ${voice ? 'Write each shot\'s "say" first (the voice-over rules), then the picture that shows it, and give the shot the time its line takes to speak' : 'Give each shot the time its captions need to be read (the principles\' reading time, plus about 0.5 s to enter)'}; when a beat needs more words, split it into two shots rather than crowd one. The plan is measured against these limits after you write it.
 - Every number and claim in the video is in copy.facts with a source you are confident of. Prefer English-language sources; use a source in the language of the idea only when no good English one exists, and name it as it is published. Never invent statistics; when unsure, say it qualitatively and leave the number out.
 - No brand names or people unless the idea asks for them.
 - 2D: pick the look that fits the idea's tone from the list in the request (or keep the one the person chose). Every shot is drawn in it, so plan visuals it can carry: typography, charts, diagrams, simple icons.
@@ -147,10 +152,10 @@ const TYPE_RULES = `- Type: use the platform's normal-width faces (2D: the kit's
 
 // The world first (3D, or a 2D project without a look): one visual system
 // for the whole film, before the shots are built in parallel
-export function buildWorldSystem(track: Track) {
+export function buildWorldSystem(track: Track, voice = false) {
   return `You are the agent in Shotloop, a desktop app for making short videos from code. A video has been planned. Your part is the world: one coherent visual system for the whole film (palette, type scale, spacing, background, shared helpers or props), so every shot looks like part of the same video. Other agents build the shots after you, in parallel, from your world; they cannot change it.
 
-${FORMAT}${coding(track)}
+${FORMAT}${coding(track, voice)}
 
 How to build the world:
 - Replace the starter world. Put in it everything two shots share: helpers, props, sets, materials, the type and colors. Document its helpers in a short comment at the top, so a shot's author can use them without reading all of it.
@@ -162,14 +167,14 @@ ${TYPE_RULES}
 // 2D: the plan's recurring pictures drawn once, in world/parts.js, with
 // the first shot that shows them as their proof; the other shots then
 // draw them from there, in parallel, so they look the same everywhere
-export function buildPartsSystem() {
+export function buildPartsSystem(voice = false) {
   return `You are the agent in Shotloop, a desktop app for making short videos from code. A 2D video has been planned. Some pictures recur across its shots; other agents will build those shots in parallel after you. Your part is to draw each recurring picture once, so it looks exactly the same in every shot, and to build the first shot that shows them.
 
 ${FORMAT}
 
-${PRINCIPLES_2D}
+${PRINCIPLES_2D}${voice ? `\n\n${PRINCIPLES_VOICE}` : ''}
 
-${CODE_2D}
+${CODE_2D}${voice ? `\n\n${CODE_VOICE}` : ''}
 
 How to build the parts:
 - Write world/parts.js, an ES module. Each recurring picture is one exported function, for example batteryCutaway(kit, { x, y, scale, t, ions, trapped }): position, size and the states the shots need (what is lit, how far a fill goes, how many items) are options; the design itself (layout, colors, labels, proportions) is fixed inside. On an infographic page (an SVG stage) it returns SVG markup for kit.stage(); on a scene page (a canvas world, see the top of world/page.html) it draws on kit.c with the kit's light helpers (light, sphere, halo, beam, trail, particles) at the camera, and returns nothing. Document every function and its options in a comment at the top: the shot agents read only that.
@@ -181,10 +186,10 @@ How to build the parts:
 }
 
 // One shot, alongside other shot agents: the world is fixed
-export function buildShotSystem(track: Track) {
+export function buildShotSystem(track: Track, voice = false) {
   return `You are the agent in Shotloop, a desktop app for making short videos from code. A video has been planned and its world (the shared look and helpers) is ready. You build one shot; other agents build the other shots at the same time.
 
-${FORMAT}${coding(track)}
+${FORMAT}${coding(track, voice)}
 
 How to build the shot:
 - You may write only this shot's folder. The world is fixed: use its helpers (2D: window.kit, documented at the top of world/page.html), and draw anything only this shot needs in the shot itself.

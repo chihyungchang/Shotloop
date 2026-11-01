@@ -226,24 +226,28 @@ export function render(cfg) {
   return { L, R, norm }
 }
 
-export function wav({ L, R, norm }) {
+// 16-bit PCM WAV: stereo from L and R, mono from L alone (the voice-over's
+// lines), at RATE unless told
+export function wav({ L, R, norm = 1, rate = RATE }) {
+  const ch = R ? 2 : 1
   const n = L.length
-  const buf = Buffer.alloc(44 + n * 4)
+  const buf = Buffer.alloc(44 + n * 2 * ch)
   buf.write('RIFF', 0)
-  buf.writeUInt32LE(36 + n * 4, 4)
+  buf.writeUInt32LE(36 + n * 2 * ch, 4)
   buf.write('WAVEfmt ', 8)
   buf.writeUInt32LE(16, 16)
   buf.writeUInt16LE(1, 20) // PCM
-  buf.writeUInt16LE(2, 22) // stereo
-  buf.writeUInt32LE(RATE, 24)
-  buf.writeUInt32LE(RATE * 4, 28)
-  buf.writeUInt16LE(4, 32)
+  buf.writeUInt16LE(ch, 22)
+  buf.writeUInt32LE(rate, 24)
+  buf.writeUInt32LE(rate * 2 * ch, 28)
+  buf.writeUInt16LE(2 * ch, 32)
   buf.writeUInt16LE(16, 34)
   buf.write('data', 36)
-  buf.writeUInt32LE(n * 4, 40)
+  buf.writeUInt32LE(n * 2 * ch, 40)
+  const pcm = x => Math.max(-32768, Math.min(32767, Math.round(x * norm * 32767)))
   for (let i = 0; i < n; i++) {
-    buf.writeInt16LE(Math.round(L[i] * norm * 32767), 44 + i * 4)
-    buf.writeInt16LE(Math.round(R[i] * norm * 32767), 46 + i * 4)
+    buf.writeInt16LE(pcm(L[i]), 44 + i * 2 * ch)
+    if (R) buf.writeInt16LE(pcm(R[i]), 46 + i * 4)
   }
   return buf
 }

@@ -1,7 +1,8 @@
 //! The render queue (docs/PRD.md §7.7). Jobs run in lanes, one job at a
 //! time per lane: `render` for shot renders and exports (one shot at a
 //! time, so a final render runs in the background while the person keeps
-//! working) and `agent` for fixes, checks, publish copy and the cover.
+//! working), `agent` for fixes, checks, publish copy and the cover, and
+//! `voice` for the voice-over's model downloads and line fitting.
 //!
 //! Every job is a child process (the engine CLI or the agent sidecar)
 //! that prints one JSON event per line; the queue keeps the latest
@@ -19,7 +20,7 @@ use std::sync::{Arc, Condvar, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter, Manager};
 
-pub const LANES: [&str; 2] = ["render", "agent"];
+pub const LANES: [&str; 3] = ["render", "agent", "voice"];
 const LOG_LINES: usize = 240;
 
 /// What the UI asks for
@@ -50,12 +51,19 @@ pub enum Spec {
     Plan { project: String, request: Option<String>, lang: Option<String> },
     /// The world and every shot, from the applied storyboard
     Build { project: String, lang: Option<String> },
+    /// A speech model for the voice-over, downloaded with progress (its own
+    /// lane: it never waits behind renders or the agent)
+    VoiceModel { model: String },
+    /// Every line spoken and the shots fitted to them (a plan's lines
+    /// edited without a build)
+    VoiceFit { project: String },
 }
 
 impl Spec {
     fn lane(&self) -> &'static str {
         match self {
             Spec::Render { .. } | Spec::Export { .. } => "render",
+            Spec::VoiceModel { .. } | Spec::VoiceFit { .. } => "voice",
             _ => "agent",
         }
     }
@@ -69,7 +77,9 @@ impl Spec {
             | Spec::Publish { project, .. }
             | Spec::Cover { project, .. }
             | Spec::Plan { project, .. }
-            | Spec::Build { project, .. } => project,
+            | Spec::Build { project, .. }
+            | Spec::VoiceFit { project } => project,
+            Spec::VoiceModel { .. } => "",
         }
     }
 
@@ -93,6 +103,8 @@ impl Spec {
             Spec::Plan { request: Some(r), .. } => format!("Plan: {}", r),
             Spec::Plan { .. } => "Plan the copy and storyboard".into(),
             Spec::Build { .. } => "Build the shots".into(),
+            Spec::VoiceModel { model } => format!("Download voice {}", model),
+            Spec::VoiceFit { .. } => "Speak the lines".into(),
         }
     }
 
@@ -180,6 +192,8 @@ impl Spec {
                 }
                 ("agent/src/main.ts", a)
             }
+            Spec::VoiceModel { model } => ("engine/shotloop/cli.mjs", vec![s("voice-models"), s("--download"), model.clone()]),
+            Spec::VoiceFit { project } => ("engine/shotloop/cli.mjs", vec![s("voice"), project.clone(), s("--fit")]),
         }
     }
 
@@ -189,6 +203,9 @@ impl Spec {
                 Spec::Render { project: p1, shot: s1, mode: m1, stills: x1 },
                 Spec::Render { project: p2, shot: s2, mode: m2, stills: x2 },
             ) => p1 == p2 && s1 == s2 && m1 == m2 && x1 == x2,
+            // One download of a model at a time
+            (Spec::VoiceModel { model: a }, Spec::VoiceModel { model: b }) => a == b,
+            (Spec::VoiceFit { project: a }, Spec::VoiceFit { project: b }) => a == b,
             _ => false,
         }
     }
@@ -212,6 +229,8 @@ pub struct Job {
     pub label: String,
     pub project: String,
     pub shot: Option<String>,
+    /// The speech model a voiceModel job downloads
+    pub model: Option<String>,
     pub mode: Option<String>,
     pub state: String,
     pub progress: Option<Progress>,
@@ -316,6 +335,8 @@ impl Queue {
                 Spec::Cover { .. } => "cover",
                 Spec::Plan { .. } => "plan",
                 Spec::Build { .. } => "build",
+                Spec::VoiceModel { .. } => "voiceModel",
+                Spec::VoiceFit { .. } => "voiceFit",
             };
             inner.jobs.push(Job {
                 id,
@@ -324,6 +345,10 @@ impl Queue {
                 label: spec.label(),
                 project: spec.project().into(),
                 shot: spec.shot(),
+                model: match &spec {
+                    Spec::VoiceModel { model } => Some(model.clone()),
+                    _ => None,
+                },
                 mode,
                 state: "queued".into(),
                 progress: None,

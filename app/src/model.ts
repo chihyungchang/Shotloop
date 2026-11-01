@@ -3,6 +3,7 @@
 
 import type { Job, Mode, Project, Shot, Take } from './api'
 import { t } from './i18n'
+import type { Key } from './i18n/en'
 import { lookName } from './looks'
 
 export type ShotState = 'cached' | 'stale' | 'missing' | 'queued' | 'rendering' | 'failed'
@@ -116,6 +117,10 @@ export function jobLabel(job: Job): string {
       return t('job.plan')
     case 'build':
       return t('job.build')
+    case 'voiceModel':
+      return t('job.voiceModel', { model: job.model ?? '' })
+    case 'voiceFit':
+      return t('job.voiceFit')
   }
 }
 
@@ -276,5 +281,9 @@ export function buildStepList(job: Job, shots: { id: string }[], look: string | 
 }
 
 // A render's stage, in words
-const STAGES: Record<string, 'stage.frames' | 'stage.captions' | 'stage.screen' | 'stage.export'> = { frames: 'stage.frames', captions: 'stage.captions', screen: 'stage.screen', export: 'stage.export' }
+const STAGES: Record<string, Key> = {
+  frames: 'stage.frames', captions: 'stage.captions', screen: 'stage.screen', export: 'stage.export',
+  // The voice-over's: a model downloading (MB), lines spoken, the subtitle check
+  download: 'stage.download', 'voice-model': 'stage.download', voice: 'stage.voice', 'subtitle check': 'stage.subtitles'
+}
 export const stageName = (s: string) => (STAGES[s] ? t(STAGES[s]) : s)

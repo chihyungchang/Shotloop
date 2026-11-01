@@ -1,7 +1,7 @@
 // 06-past: a big sunlit Earth, a small far Sun, rays arriving. The
 // payoff: the light on your face left the Sun about 8 minutes ago.
 
-export default function render(t, { window, duration }) {
+export default function render(t, { window, duration, voice = [] }) {
   const { space, sun, planet, beam, rise, ease, block, setUI } = window.kit
   const push = ease.inOut(t / duration)
   const sx = 96
@@ -22,10 +22,14 @@ export default function render(t, { window, duration }) {
   }
   planet(t, ex, ey, er, { light, spin: t * 0.04 })
 
+  // Timed to the line: the frame around the blank comes first, "8 minutes
+  // ago" lands as the voice says it (near the end of the sentence)
+  const s1 = voice[0] ?? { at: 0, end: 1.2 }
+  const eight = Math.max(0.3, s1.at + 0.72 * (s1.end - s1.at))
   setUI(
     block({ y: 150, p: rise(t, 0.05), cls: 'sub', style: 'font-size:34px;color:var(--text)', html: 'The sunlight on your face' }) +
-      block({ y: 208, p: rise(t, 0.3, 0.8), dy: 40, style: 'white-space:nowrap', html:
+      block({ y: 208, p: rise(t, eight, 0.8), dy: 40, style: 'white-space:nowrap', html:
         `<span class="num gold" style="font-size:150px;line-height:1">8</span><span class="head gold" style="font-size:76px;margin-left:12px">minutes ago</span>` }) +
-      block({ y: 380, p: rise(t, 0.8), cls: 'head m', html: 'was leaving the Sun.' })
+      block({ y: 380, p: rise(t, Math.min(0.8, eight)), cls: 'head m', html: 'was leaving the Sun.' })
   )
 }

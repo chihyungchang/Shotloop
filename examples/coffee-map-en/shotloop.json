@@ -14,37 +14,100 @@
     {
       "id": "01-184-million-bags",
       "title": "184 million bags",
-      "duration": 4
+      "duration": 5.8,
+      "say": "About 184 million bags of coffee are grown in a year. So where does it all come from?",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 3.72
+        },
+        {
+          "at": 3.97,
+          "end": 5.32
+        }
+      ]
     },
     {
       "id": "02-the-coffee-belt",
       "title": "The coffee belt",
-      "duration": 5
+      "duration": 5.7,
+      "say": "It grows in more than 40 nations, mostly in a band around the equator: the coffee belt.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 5.2
+        }
+      ]
     },
     {
       "id": "03-brazil-leads",
       "title": "Brazil leads",
-      "duration": 5
+      "duration": 6,
+      "say": "One country leads by far. Brazil grows nearly 40 percent of all the coffee in the world.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 1.73
+        },
+        {
+          "at": 1.98,
+          "end": 5.49
+        }
+      ]
     },
     {
       "id": "04-the-top-five",
       "title": "The top five",
-      "duration": 5
+      "duration": 5,
+      "say": "Next come Vietnam, mostly robusta, then Colombia, Ethiopia and Indonesia.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 4.71
+        }
+      ],
+      "sayFast": 1.04
     },
     {
       "id": "05-where-coffee-began",
       "title": "Where coffee began",
-      "duration": 4.5
+      "duration": 5.1,
+      "say": "The story of coffee begins in Ethiopia, where ancient coffee forest still grows.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 4.64
+        }
+      ]
     },
     {
       "id": "06-routes-north",
       "title": "Routes north",
-      "duration": 6
+      "duration": 6,
+      "say": "From the belt, the beans sail north. The European Union and the United States are the biggest importers.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 1.87
+        },
+        {
+          "at": 2.12,
+          "end": 5.75
+        }
+      ],
+      "sayFast": 1.07
     },
     {
       "id": "07-end-card",
       "title": "End card",
-      "duration": 3
+      "duration": 3,
+      "say": "Every cup, a long journey.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 1.71
+        }
+      ]
     }
   ],
   "captions": null,
@@ -52,5 +115,9 @@
   "cover": "thumb.html",
   "publish": "publish.md",
   "style": "map",
-  "look": "midnight"
+  "look": "midnight",
+  "voice": {
+    "on": true,
+    "voice": "af_heart"
+  }
 }

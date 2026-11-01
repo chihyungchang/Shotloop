@@ -31,7 +31,7 @@
 
 Shotloop は、コードで描く短い動画のためのデスクトップアプリです。製品紹介、科学の解説、データストーリー、スライド風アニメーションなどを、2D（1 フレームずつレンダリングする Web ページ）または 3D（Blender のシーン）で、7 つのビジュアルスタイルからつくれます。
 
-始めるのは一文だけ。AI が見せ方（シネマティックなシーン、インフォグラフィック、地図、UI デモ、設計図、モーションタイポグラフィ、3D）とテーマを選びます。自分で選んでもかまいません。続いてフック、台本、出典付きの事実を書き、絵コンテに分割します。絵コンテを編集すると、AI が全ショットを作成します。エディタでショットを 1 つずつ見て、気になる点を普段の言葉で伝えます。たとえば「文字が小さすぎる」「動きがなさすぎる。もっと動かして」。AI はそのショットを修正してレンダリングし、メモと照らしてチェックしたうえで、変更前と変更後を見せます。動画全体がうまくまとまったら「書き出し」へ。ショットを結合して音楽を付け、AI が動画のルックに合わせてカバーをデザインし（シリーズのテンプレートに当てはめることも可能）、プラットフォームごとの投稿用テキストを書きます。すべて専用のフォルダにまとまります。
+始めるのは一文だけ。AI が見せ方（シネマティックなシーン、インフォグラフィック、地図、UI デモ、設計図、モーションタイポグラフィ、3D）とテーマを選びます。自分で選んでもかまいません。続いてフック、台本、出典付きの事実を書き、絵コンテに分割します。各ショットでナレーションが話すセリフも付きます。絵コンテを編集すると、AI が全ショットを作成します。エディタでショットを 1 つずつ見て、気になる点を普段の言葉で伝えます。たとえば「文字が小さすぎる」「動きがなさすぎる。もっと動かして」。AI はそのショットを修正してレンダリングし、メモと照らしてチェックしたうえで、変更前と変更後を見せます。動画全体がうまくまとまったら「書き出し」へ。ショットを結合し、字幕付きのナレーションとその下に流れる音楽を重ね、AI が動画のルックに合わせてカバーをデザインし（シリーズのテンプレートに当てはめることも可能）、プラットフォームごとの投稿用テキストを書きます。すべて専用のフォルダにまとまります。
 
 AI はいま使っているものをそのまま使えます。サインイン済みの Claude Code やほかのコーディングエージェント、自分のキーで使うモデル API、ローカルモデルのどれでも大丈夫です。
 
@@ -112,7 +112,7 @@ flowchart LR
   B --> C[全ショットを作成]
   C --> D{ショットを確認}
   D -- "気になる点を伝える" --> E[AI がそのショットを修正] --> F[レンダリング + チェック] --> D
-  D -- 問題なし --> G[書き出し：結合、音楽、投稿用テキスト]
+  D -- 問題なし --> G[書き出し：結合、ナレーション、音楽、投稿用テキスト]
 ```
 
 - **長い 1 本ではなく、ショット単位で。** 動画はショットのリストです。各ショットは小さなプログラムで、2D ページなら `shot.js`、Blender のカメラワークなら `shot.py`。入力のハッシュでショットごとにキャッシュするので、修正時の再レンダリングは 1 ショットだけで数秒（2D）から 1 分（3D）。書き出しはクリップを結合するだけです。
@@ -121,7 +121,8 @@ flowchart LR
 - **プランはルールで測る。** 何かを作る前に、字幕の長さと表示時間をチェックします。複数のショットに出てくる図は一度だけ描いて共有するので、どのショットでも同じ見た目になります。
 - **事実には出典を。** コピーでは各事実の隣に出典を置き、投稿用テキストはコピー内の事実しか使えません。
 - **カバー。** AI が動画のルックに合わせてカバーをデザインし、自分のレンダリング結果をチェックします。テンプレートとして保存すればシリーズの統一感を保てます。気に入ったカバーをアップロードすれば、AI はそのデザインに倣います。
-- **カットに合う音楽。** 合成した BGM はカットが拍に合うよう調整され、最後のフレームまで流れてからフェードアウトします。
+- **ナレーションは Mac の上で読み上げ。** 各ショットにはセリフがあり、カットはナレーションに合わせて進みます。ショットの長さはセリフの長さで決まり、映像は言葉に合わせて動きます。英語と中国語は Kokoro、それ以外の言語は Supertonic が読み上げ、すべてオフラインで動きます。話した言葉の字幕は自動で付き、字幕が隠してしまうもの（文字とマークした被写体）をチェックで一覧にするので、隠れた動画が書き出されることはありません。字幕カードだけの動画にしたいときはオフにできます。
+- **カットに合う音楽。** 合成した BGM はカットが拍に合うよう調整され、最後のフレームまで流れてからフェードアウトします。ナレーションがあるときは音量を下げ、セリフの間はさらに控えめになります。
 - **編集中は速く、書き出しは最高画質。** 3D は編集中は簡易プレビューを表示し、書き出し時にだけフル画質でレンダリングします。2D は最初から最後までフル画質です。
 - **3D 用アセットライブラリ。** 自分のキーで [Poly Pizza](https://poly.pizza) と [Smithsonian Open Access](https://www.si.edu/openaccess) の CC0 モデルを検索できます。モデルは一度ダウンロードすれば、どの 3D プロジェクトにも追加できます。
 
@@ -143,7 +144,7 @@ flowchart LR
 
 > **初回起動：** Shotloop はまだ Apple の公証を受けていないため、macOS は「開発元を検証できません」と表示します。**システム設定 → プライバシーとセキュリティ → このまま開く** から一度開くか、ターミナルで `xattr -dr com.apple.quarantine /Applications/Shotloop.app` を実行してください。以降は普通に開け、アップデートも確認なしでインストールされます。
 
-Node.js と ffmpeg はアプリに同梱されています。Shotloop は GitHub でアップデートを確認し、その場でインストールします。Apple シリコン（M1 以降）搭載の Mac で動作します。
+Node.js、ffmpeg、ナレーションの音声合成エンジンはアプリに同梱されています。音声モデルは同梱されていません。動画がその言語を初めて話すときに、進行状況バーを表示しながらダウンロードします（Kokoro 英語 132 MB、Kokoro 中国語 147 MB、その他の言語用の Supertonic 400 MB）。「設定 → 依存関係」で前もってダウンロードすることもできます。「設定 → 情報」には、すべてのサードパーティ製コンポーネントとそのライセンスが載っています。Shotloop は GitHub でアップデートを確認し、その場でインストールします。Apple シリコン（M1 以降）搭載の Mac で動作します。
 
 ## ソースからビルド
 
@@ -169,6 +170,9 @@ pnpm shotloop new      my-short --idea "スマホのバッテリーはなぜ劣�
 pnpm shotloop new      coffee --idea "コーヒーはどこから来た？" --track 2d --style map --duration 30
 pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # into a new folder there
 pnpm shotloop covers   list                                         # cover templates
+pnpm shotloop voice    my-short --on --voice af_heart --fit        # the voice-over: speak the lines, fit the shots
+pnpm shotloop check-subtitles my-short                              # what the subtitles would cover (fails if anything)
+pnpm shotloop voice-models --download kokoro-en                     # a speech model, ahead of time
 pnpm shotloop doctor
 ```
 
@@ -187,19 +191,20 @@ pnpm test                                                             # every ba
 
 ```
 my-video/
-  shotloop.json        title, track (2d|3d), style, size, fps, shots [{ id, title, duration }]
+  shotloop.json        title, track (2d|3d), style, size, fps, lang, voice { on, voice, speed },
+                       shots [{ id, title, duration, say (the spoken line), cues (its sentences' times) }]
   storyboard.json      the plan: copy (hook, script, facts with sources) and shots
   world/               3D: world.py (+ screen.html); 2D: page.html (the style's kit), parts.js (pictures
                        that recur, drawn once), geo.data.js (the map style's countries)
   shots/<id>/          shot.py | shot.js, notes.md (must show, on screen, motion)
   assets/<id>/         3D models from the asset library
   copy.md  script.md  captions.html  music.json  thumb.html  publish.json
-  .shotloop/           cache: per shot and input hash, takes, checks, fixes
+  .shotloop/           cache: per shot and input hash, takes, checks, fixes; voice/: spoken lines, subtitles
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
 - **3D**：`world.py` が `kit`（[`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)）で共有のワールドを構築します。`shot.py` はワールドの名前空間で実行され、カメラを 1 台作ります。`at(t)` はショット内の秒数を動画全体の時間に変換します。
-- **2D**：`shot.js` は `render(t, ctx)` をデフォルトエクスポートし、ショット内の時刻 `t` における `world/page.html` を描画します。
+- **2D**：`shot.js` は `render(t, ctx)` をデフォルトエクスポートし、ショット内の時刻 `t` における `world/page.html` を描画します。`ctx.voice` にはショットで話す文とそのタイミングが入っているので、映像を言葉に合わせられます。被写体を `data-keep`（canvas なら `subtitles.keep()`）でマークすると、字幕チェックがそこを避けます。
 - **キャッシュ**：ショットのキーは、ワールド、コード、字幕、アセット、レンダラー、設定のハッシュです。変更のないショットは再利用されます。
 
 </details>
@@ -210,7 +215,8 @@ my-video/
 | パス | 内容 |
 | --- | --- |
 | [`app/`](app/) | デスクトップアプリ：レンダリングキュー、アップデーター、プロセス管理を担う Tauri 2（Rust）のシェルと、React + TypeScript の UI。 |
-| [`engine/shotloop/`](engine/shotloop/) | ショットエンジン：プロジェクト形式、ショットごとのレンダリングキャッシュ、2D（Chrome）と 3D（Blender）のレンダリング、動画の組み立て、MP4 書き出し、音楽、アセットライブラリ。アプリから呼び出される CLI。 |
+| [`engine/shotloop/`](engine/shotloop/) | ショットエンジン：プロジェクト形式、ショットごとのレンダリングキャッシュ、2D（Chrome）と 3D（Blender）のレンダリング、動画の組み立て、MP4 書き出し、ナレーションのタイミング、字幕とそのチェック、音楽、アセットライブラリ。アプリから呼び出される CLI。 |
+| [`voice/`](voice/) | ナレーションの音声合成（この Mac 上で実行）：sherpa-onnx 経由の Kokoro と ONNX Runtime 上の Supertonic、およびモデルのダウンロード。 |
 | [`agent/`](agent/) | エージェント：プラン作成、ショット作成、普段の言葉での修正、チェックリストによるチェック、投稿用テキスト。API、CLI（MCP 経由）、ローカルモデルに対応。 |
 | [`examples/`](examples/) | ホームに表示されるサンプル（英語）：すべてのビジュアルスタイルに最低 1 つ（2D と 3D、9:16 と 16:9）。 |
 | [`fixtures/`](fixtures/) | テストとターミナルでの動作確認用プロジェクト。 |
@@ -219,4 +225,4 @@ my-video/
 
 ## ライセンス
 
-[Apache License 2.0](LICENSE)。[NOTICE](NOTICE) も参照してください。アセットライブラリのモデルはそれぞれのライセンス（CC0 または CC-BY、クレジットはプロジェクトに記載）に従います。
+[Apache License 2.0](LICENSE)。[NOTICE](NOTICE) も参照してください。アセットライブラリのモデルはそれぞれのライセンス（CC0 または CC-BY、クレジットはプロジェクトに記載）に従います。音声モデルも同様です（Kokoro：Apache-2.0、Supertonic：OpenRAIL-M）。

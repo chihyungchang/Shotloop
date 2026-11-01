@@ -5,21 +5,27 @@
 import { ENERGY, sunDisc } from '../../world/parts.js'
 
 const V23 = 2142, V24 = 2778, ADD = 636
-const BASE = 900, SCALE = 440 / V24 // px per TWh
+const BASE = 805, SCALE = 350 / V24 // year labels end above the subtitle band // px per TWh
 const B23 = { x: 80, w: 130 }, B24 = { x: 250, w: 130 }
 
-export default function render(t, { window, start }) {
+export default function render(t, { window, start, voice = [] }) {
   const kit = window.kit
   const { C, rise, pop, clamp, lerp, count, hash, float, FONT, HEAD_FONT } = kit
   const F = FONT.replace(/"/g, ''), HF = HEAD_FONT.replace(/"/g, '')
   const fmt = n => Math.round(n).toLocaleString('en-US')
 
-  // Timing
+  // Timing, on the voice: 'But solar is the growth story.' while the bars
+  // rise; 'Its output rose 30% …' pushes 2025 past 2024 and rolls +30%;
+  // '… a record 636 terawatt hours' rolls the added slice's number
+  const s2 = voice[1] || { at: 2.02, end: 6.95 }
+  const at = share => s2.at + share * (s2.end - s2.at)
   const p23 = rise(t, -0.15, 0.9)
-  const p24a = rise(t, 0.9, 0.7) // up to the 2023 level
-  const p24b = pop(t, 1.5, 0.9) // past it, with a small overshoot
-  const pNum = rise(t, 1.4, 1.5)
-  const pAdd = rise(t, 1.8, 1.3)
+  const p24a = rise(t, 0.8, 0.8) // up to the 2024 level
+  const p24b = pop(t, at(0.1), 0.9) // past it, with a small overshoot
+  const pNum = rise(t, at(0.15), 1.1)
+  const pAdd = rise(t, at(0.5), 1.3)
+  const flowAt = at(0.1)
+  const numPulse = at(0.15) + 1.1
 
   const h23 = V23 * SCALE * p23
   const v24 = V23 * p24a + ADD * p24b
@@ -40,7 +46,7 @@ export default function render(t, { window, start }) {
   s += sunDisc(kit, { x: 572, y: 196, r: 30, t, p: rise(t, -0.4, 0.8), glow: 0.6 + 0.4 * pNum, id: 'sun3' })
 
   // Big rolling +30%
-  const sc = 1 + 0.06 * Math.sin(Math.PI * clamp((t - 2.7) / 0.5))
+  const sc = 1 + 0.06 * Math.sin(Math.PI * clamp((t - numPulse) / 0.5))
   s += '<g transform="translate(40 290) scale(' + sc.toFixed(3) + ')">' +
     '<text x="0" y="0" font-family="' + HF + '" font-size="156" font-weight="800" letter-spacing="-4" fill="' + ENERGY.solar + '" style="font-variant-numeric: tabular-nums">+' + count(pNum, 0, 30) + '%</text></g>'
 
@@ -51,12 +57,12 @@ export default function render(t, { window, start }) {
     const y = BASE - v * SCALE
     s += '<line x1="60" y1="' + y + '" x2="600" y2="' + y + '" stroke="' + C.line + '" stroke-width="1" stroke-dasharray="2 6" opacity="0.7"/>'
   }
-  s += '<text x="60" y="412" font-family="' + F + '" font-size="17" font-weight="600" letter-spacing="2.6" fill="' + C.muted + '">SOLAR GENERATION · TWh</text>'
+  s += '<text x="60" y="400" font-family="' + F + '" font-size="17" font-weight="600" letter-spacing="2.6" fill="' + C.muted + '">SOLAR GENERATION · TWh</text>'
   // Ground with its dots
   s += '<line x1="60" y1="' + BASE + '" x2="600" y2="' + BASE + '" stroke="' + C.muted + '" stroke-opacity="0.5" stroke-width="2"/>'
   for (let i = 0; i < 28; i++) {
     const gx = 70 + i * 19.5, near = Math.abs(gx - (B24.x + B24.w / 2)) < 90
-    const tw = 0.25 + 0.2 * Math.sin(t * 4 + i * 0.9) + (near ? 0.35 * rise(t, 1.4, 0.5) : 0)
+    const tw = 0.25 + 0.2 * Math.sin(t * 4 + i * 0.9) + (near ? 0.35 * rise(t, flowAt, 0.5) : 0)
     s += '<circle cx="' + gx + '" cy="' + (BASE + 14) + '" r="2.6" fill="' + ENERGY.solar + '" opacity="' + clamp(tw).toFixed(3) + '"/>'
   }
   s += '</g>'
@@ -69,7 +75,7 @@ export default function render(t, { window, start }) {
   }
 
   // Previous level carried across to the 2025 bar
-  const lvl = rise(t, 1.1, 0.5)
+  const lvl = rise(t, 1.5, 0.5)
   if (lvl > 0) {
     s += '<line x1="' + (B23.x + B23.w) + '" y1="' + top23 + '" x2="' + lerp(B23.x + B23.w, B24.x + B24.w + 14, lvl) + '" y2="' + top23 + '" stroke="' + C.text + '" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="6 5"/>'
   }
@@ -82,7 +88,7 @@ export default function render(t, { window, start }) {
     if (slice > 0) s += '<rect x="' + B24.x + '" y="' + top24 + '" width="' + B24.w + '" height="' + slice + '" fill="url(#gNew)"/>'
     s += '<rect x="' + B24.x + '" y="' + top24 + '" width="' + B24.w * 0.25 + '" height="' + h24 + '" fill="#fff" opacity="0.08"/>'
     // Particles rising from the ground into the new slice
-    const flow = rise(t, 1.3, 0.5)
+    const flow = rise(t, flowAt, 0.5)
     for (let i = 0; i < 46 && flow > 0; i++) {
       const per = 1.1 + hash(i, 1) * 0.6
       const ph = ((t * 1 + hash(i, 2) * per) % per) / per
@@ -95,7 +101,7 @@ export default function render(t, { window, start }) {
       s += '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + (inNew ? ENERGY.solar : '#fff4d6') + '" opacity="' + (op * (inNew ? 0.95 : 0.7)).toFixed(3) + '"/>'
     }
     s += '</g>'
-    s += '<text x="' + (B24.x + B24.w / 2) + '" y="' + (top24 - 14) + '" text-anchor="middle" font-family="' + F + '" font-size="24" font-weight="800" fill="' + C.text + '" opacity="' + rise(t, 1.0, 0.4).toFixed(3) + '" style="font-variant-numeric: tabular-nums">' + fmt(v24) + '</text>'
+    s += '<text x="' + (B24.x + B24.w / 2) + '" y="' + (top24 - 14) + '" text-anchor="middle" font-family="' + F + '" font-size="24" font-weight="800" fill="' + C.text + '" opacity="' + rise(t, 1.0, 0.4).toFixed(3) + '" style="font-variant-numeric: tabular-nums">' + fmt(Math.min(v24, V24)) + '</text>'
   }
 
   // Bracket and rolling +636 TWh beside the slice
@@ -115,8 +121,8 @@ export default function render(t, { window, start }) {
     '<text x="' + (B24.x + B24.w / 2) + '" y="' + (BASE + 52) + '" fill="' + ENERGY.solar + '" opacity="' + rise(t, 0.8, 0.4).toFixed(3) + '">2025</text></g>'
 
   // Source line
-  s += '<text x="40" y="1004" font-family="' + F + '" font-size="15" fill="' + C.muted + '" opacity="' + (0.85 * rise(t, -0.2, 0.5)).toFixed(3) + '">Ember, Global Electricity Review 2026 · 2024 ≈ 2,778 − 636 TWh</text>'
+  s += '<text x="40" y="1022" font-family="' + F + '" font-size="13" fill="' + C.muted + '" opacity="' + (0.85 * rise(t, -0.2, 0.5)).toFixed(3) + '">Ember, Global Electricity Review 2026 · 2024 ≈ 2,778 − 636 TWh</text>'
 
   kit.stage(s)
-  kit.frame({ kicker: '03 / 06', head: 'in a single year', typed: rise(t, -0.25, 0.7), top: 304, progress: (start + t) / 23.5 })
+  kit.frame({ kicker: '03 / 06', head: 'in a single year', typed: rise(t, -0.25, 0.7), top: 304, progress: (start + t) / 31.1 })
 }

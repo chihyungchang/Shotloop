@@ -12,6 +12,7 @@ import { DEFAULT_LOOK, lookById, lookPage, LOOKS, styleFiles } from './looks.mjs
 import { STYLES, styleById } from './styles.mjs'
 import { composeBed } from './score.mjs'
 import { isProject, loadProject, saveConfig, SIZES } from './project.mjs'
+import { voiceOn } from './cues.mjs'
 
 const round1 = x => Math.round(x * 10) / 10
 
@@ -235,8 +236,8 @@ function thumb(title) {
 // (applyStoryboard); duration 'auto': the planner picks 15–60 s from the
 // content, the starter shots fill 30 s until then. style: a 2D visual
 // style the person chose (styles.mjs), kept by the planner; none: the
-// planner picks
-export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16', duration = 30, look = '', style = '' }) {
+// planner picks. voice: the film has a voice-over (voice.mjs)
+export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16', duration = 30, look = '', style = '', voice = true }) {
   const root = path.resolve(dir)
   if (fs.existsSync(root) && fs.readdirSync(root).length) throw new Error(`${root} exists and is not empty`)
   if (!['2d', '3d', 'auto'].includes(track)) throw new Error('track must be 2d, 3d or auto')
@@ -297,7 +298,10 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
     ...(track === '2d' && look ? { look } : {}),
     ...(trackAuto ? { trackAuto: true } : {}),
     ...(style ? { style, styleChosen: true } : {}),
-    ...(lengthAuto ? { lengthAuto: true } : {})
+    ...(lengthAuto ? { lengthAuto: true } : {}),
+    // The voice-over: on for a new film unless the person turned it off;
+    // the plan writes each shot's line
+    voice: { on: !!voice }
   })
   return { root, title, track, shots: shots.length }
 }
@@ -323,6 +327,8 @@ export function summaries(dirs) {
       return [{
         root: p.root, title: p.title, description: p.config.description ?? '', lang: p.config.lang ?? null, slug: p.slug, track: p.track, size: p.size,
         style: p.track === '3d' ? '3d' : p.config.style ?? null,
+        // It has a voice-over that plays (on, and lines to say)
+        voice: voiceOn(p),
         duration: p.duration, shots: p.shots.length, poster, clip, changed: new Date(changed).toISOString()
       }]
     } catch {

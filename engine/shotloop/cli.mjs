@@ -11,7 +11,7 @@
 //   shotloop deliver-copy <project> --to <export folder> [--name] [--lang]   the publish copy, written later
 //   shotloop cover    <project> [--frame <shot>@<seconds> | --none] [--preview]
 //                     (--frame/--none: set the background frame first; --preview: to .shotloop/cover.png)
-//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>]
+//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>] [--no-voice]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
 //   shotloop move     <project> --to <folder>               move a project (a draft being saved)
@@ -25,10 +25,18 @@
 //   shotloop library  search --source polypizza|smithsonian --query … [--key] [--cursor] [--all]
 //                     get --item '<search result>' | list [<project>] | remove <id>
 //                     use <project> <id> | unuse <project> <id> | import <file.glb> [--title]   the 3D asset library
+//   shotloop voice    <project> [--on|--off] [--voice <id>] [--speed 0.8–1.25] [--gain 0–2] [--fit]
+//                     the voice-over: settings, the voices for the project's language,
+//                     --fit: speak every line and fit the shots to them (a new voice or speed fits too)
+//                     --sample: a WAV of the voice saying the first line, to choose by ear
+//   shotloop voice-models [--download <id>]                the speech models: languages, size, license,
+//                     on this Mac or not; --download fetches one (progress in MB)
+//   shotloop check-subtitles <project> [--shot <id>]      what the voice-over's subtitles would cover
+//                     (text, data-keep elements, subtitles.keep regions); fails when it covers anything
 //   shotloop music    <project> [--preset calm|bright|groove|tech | --shuffle | --file <audio> | --none] [--gain 0–2] [--bed]
 //   shotloop covers   list | save <project> [--title <name>] | apply <project> <id> | remove <id>
 //                     | reference <project> --file <image>     cover templates, an image to design after
-//   shotloop prune    <project>                          drop unused cache entries
+//   shotloop prune    <project>                          drop unused cache entries (shots and voice-over)
 //   shotloop doctor                                      Chrome, ffmpeg, Blender
 //
 // --json prints one JSON event per line (start, progress, log, done,
@@ -53,6 +61,9 @@ import * as library from './library.mjs'
 import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
 import { musicBed } from './bed.mjs'
+import { fitVoice, pruneVoice, sampleVoice, setVoice, voiceInfo, voiceModels } from './voice.mjs'
+import { voiceCues, voiceOn } from './cues.mjs'
+import { checkSubtitles, describeIssues } from './check.mjs'
 
 const OPTIONS = {
     shot: { type: 'string' },
@@ -69,6 +80,14 @@ const OPTIONS = {
     item: { type: 'string' },
     category: { type: 'string' },
     derive: { type: 'boolean' },
+    on: { type: 'boolean' },
+    off: { type: 'boolean' },
+    voice: { type: 'string' },
+    speed: { type: 'string' },
+    fit: { type: 'boolean' },
+    sample: { type: 'boolean' },
+    download: { type: 'string' },
+    'no-voice': { type: 'boolean' },
     to: { type: 'string' },
     reset: { type: 'boolean' },
     bed: { type: 'boolean' },
@@ -115,6 +134,10 @@ function parse(argv, options) {
 const { values, positionals } = parse(process.argv.slice(2), OPTIONS)
 setJson(!!values.json)
 const [cmd, ...args] = positionals
+
+// Exits once stdout is written out: process.exit drops what a pipe hasn't
+// taken yet, which cut long results (a status past 64 KB) short
+const exit = code => process.stdout.write('', () => process.exit(code))
 
 const result = value => {
   if (values.json) emit({ type: 'result', value })
@@ -191,6 +214,10 @@ function projectStatus(project) {
     size: project.size,
     duration: project.duration,
     world: worldKey(project),
+    lang: project.config.lang ?? null,
+    voice: project.config.voice ?? null,
+    // The voice-over plays (on, with lines): the agent's rules follow it
+    voiced: voiceOn(project),
     files: {
       captions: project.captions,
       music: project.music,
@@ -202,6 +229,9 @@ function projectStatus(project) {
       title: s.title ?? null,
       start: s.start,
       duration: s.duration,
+      say: s.say ?? null,
+      // The voice-over's sentences and times, as the shot's code sees them
+      cues: voiceCues(project, s),
       code: s.code,
       notes: s.notes,
       ...status(project, s)
@@ -306,6 +336,30 @@ try {
       result(values.bed ? { ...info, bed: musicBed(loadProject(args[0])) } : info)
       break
     }
+    case 'voice': {
+      let project = loadProject(args[0])
+      const change = values.on || values.off || values.voice || values.speed != null || values.gain != null
+      if (change) project = setVoice(project, { on: values.on ? true : values.off ? false : null, voice: values.voice, speed: values.speed, gain: values.gain })
+      // A new voice or speed speaks every line again, so the shots are fitted
+      // to it (as when asked); a project without lines keeps its timing
+      const refit = values.fit || values.on || values.voice || values.speed != null
+      const fitted = refit && project.shots.some(s => s.say?.trim()) && project.config.voice?.on ? await fitVoice(project) : null
+      const sample = values.sample ? await sampleVoice(loadProject(args[0])) : null
+      result({ ...(await voiceInfo(loadProject(args[0]))), ...(fitted ? { fit: fitted } : {}), ...(sample ? { sample } : {}) })
+      break
+    }
+    case 'voice-models':
+      result(await voiceModels({ download: values.download }))
+      break
+    case 'check-subtitles': {
+      const { checked, issues } = await checkSubtitles(loadProject(args[0]), { shot: values.shot })
+      result({ checked, issues, lines: describeIssues(issues) })
+      if (issues.length) {
+        emit({ type: 'error', message: `subtitles cover what the viewer must see:\n${describeIssues(issues).join('\n')}` })
+        exit(1)
+      }
+      break
+    }
     case 'quality': {
       // 3D final samples: read, set (--samples N) or back to the default (--reset)
       const project = loadProject(args[0])
@@ -341,7 +395,8 @@ try {
         aspect: values.aspect ?? '9:16',
         duration: values.duration === 'auto' ? 'auto' : Number(values.duration ?? 30),
         look: values.look ?? '',
-        style: values.style ?? ''
+        style: values.style ?? '',
+        voice: !values['no-voice']
       }))
       break
     case 'list':
@@ -382,19 +437,23 @@ try {
       result({ removed: root })
       break
     }
-    case 'prune':
-      result({ removed: prune(loadProject(args[0])) })
+    case 'prune': {
+      // Shot renders no take refers to, and the voice-over's unused files
+      const project = loadProject(args[0])
+      const removed = prune(project)
+      result({ removed, voice: await pruneVoice(project) })
       break
+    }
     case 'doctor':
       result(doctor())
       break
     default:
       console.error(fs.readFileSync(new URL(import.meta.url), 'utf8').split('\n').slice(1).filter((l, i, all) => all.slice(0, i + 1).every(x => x.startsWith('//'))).map(l => l.replace(/^\/\/ ?/, '')).join('\n'))
-      process.exit(cmd ? 1 : 0)
+      exit(cmd ? 1 : 0)
   }
   // Chrome sessions and sockets can keep the event loop alive
-  process.exit(0)
+  exit(0)
 } catch (err) {
   emit({ type: 'error', message: err.message })
-  process.exit(1)
+  exit(1)
 }

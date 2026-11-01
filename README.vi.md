@@ -31,7 +31,7 @@ Một ý tưởng trở thành lời văn, phân cảnh và một video gồm nh
 
 Shotloop là ứng dụng desktop để làm video ngắn được vẽ bằng code: quảng bá sản phẩm, giải thích khoa học, kể chuyện bằng dữ liệu và hoạt ảnh kiểu slide, ở dạng 2D (trang web render từng khung hình) hoặc 3D (cảnh Blender), với bảy phong cách hình ảnh.
 
-Bạn bắt đầu bằng một câu. Nếu bạn không tự chọn, AI sẽ chọn cách thể hiện (cảnh điện ảnh, infographic, bản đồ, demo giao diện, bản vẽ kỹ thuật, chữ chuyển động hoặc 3D) và chủ đề màu. AI viết câu mở đầu, kịch bản và các dữ kiện kèm nguồn, rồi chia thành phân cảnh. Bạn chỉnh phân cảnh, AI dựng từng cảnh. Trong trình chỉnh sửa, bạn xem từng cảnh và nói điều chưa ổn bằng lời thường, ví dụ "chữ nhỏ quá" hay "tĩnh quá, thêm chút chuyển động đi". AI sửa cảnh đó, render, đối chiếu với ghi chú và cho bạn xem trước/sau. Khi video đã ổn, Xuất sẽ ghép các cảnh và thêm nhạc; AI thiết kế ảnh bìa theo phong cách của video (hoặc điền vào mẫu của series) và viết bài đăng cho từng nền tảng, tất cả trong một thư mục riêng.
+Bạn bắt đầu bằng một câu. Nếu bạn không tự chọn, AI sẽ chọn cách thể hiện (cảnh điện ảnh, infographic, bản đồ, demo giao diện, bản vẽ kỹ thuật, chữ chuyển động hoặc 3D) và chủ đề màu. AI viết câu mở đầu, kịch bản và các dữ kiện kèm nguồn, rồi chia thành phân cảnh, kèm lời thoại mà giọng lồng tiếng đọc trên từng cảnh. Bạn chỉnh phân cảnh, AI dựng từng cảnh. Trong trình chỉnh sửa, bạn xem từng cảnh và nói điều chưa ổn bằng lời thường, ví dụ "chữ nhỏ quá" hay "tĩnh quá, thêm chút chuyển động đi". AI sửa cảnh đó, render, đối chiếu với ghi chú và cho bạn xem trước/sau. Khi video đã ổn, Xuất sẽ ghép các cảnh, đặt lồng tiếng cùng phụ đề và nhạc nằm bên dưới; AI thiết kế ảnh bìa theo phong cách của video (hoặc điền vào mẫu của series) và viết bài đăng cho từng nền tảng, tất cả trong một thư mục riêng.
 
 AI là cái bạn đang dùng: Claude Code hoặc một coding agent khác đã đăng nhập, API mô hình với khóa của bạn, hoặc mô hình chạy cục bộ.
 
@@ -112,7 +112,7 @@ flowchart LR
   B --> C[Dựng mọi cảnh]
   C --> D{Xem lại một cảnh}
   D -- "nói điều chưa ổn" --> E[AI sửa cảnh đó] --> F[Render + kiểm tra] --> D
-  D -- ổn rồi --> G[Xuất: ghép, nhạc, bài đăng]
+  D -- ổn rồi --> G[Xuất: ghép, lồng tiếng, nhạc, bài đăng]
 ```
 
 - **Theo từng cảnh, không phải một lần render dài.** Video là một danh sách cảnh. Mỗi cảnh là một chương trình nhỏ: `shot.js` cho trang 2D, `shot.py` cho chuyển động máy quay trong Blender. Mỗi cảnh được cache theo hash của đầu vào, nên sửa một cảnh chỉ render lại cảnh đó trong vài giây (2D) hoặc một phút (3D), và Xuất chỉ ghép các clip.
@@ -121,7 +121,8 @@ flowchart LR
 - **Kế hoạch được đo theo quy tắc.** Trước khi dựng, phụ đề được kiểm tra độ dài và thời gian hiển thị. Hình xuất hiện lặp lại qua nhiều cảnh chỉ vẽ một lần và dùng chung, nên trông giống nhau ở mọi cảnh.
 - **Dữ kiện có nguồn.** Lời văn giữ mỗi dữ kiện cạnh nguồn của nó, và bài đăng chỉ được dùng dữ kiện có trong lời văn.
 - **Ảnh bìa.** AI thiết kế ảnh bìa theo phong cách video và tự kiểm tra bản render. Lưu một ảnh làm mẫu để giữ series đồng nhất, hoặc tải lên ảnh bìa bạn thích để AI làm theo bố cục đó.
-- **Nhạc khớp nhịp cắt.** Nhạc nền tổng hợp được chỉnh để điểm cắt rơi đúng nhịp, chạy đến khung hình cuối rồi nhỏ dần.
+- **Lồng tiếng, đọc ngay trên Mac của bạn.** Mỗi cảnh có một lời thoại, và giọng đọc dẫn nhịp dựng: cảnh dài đúng bằng lời thoại của nó, hình ảnh khớp với từng chữ. Kokoro đọc tiếng Anh và tiếng Trung, Supertonic đọc các ngôn ngữ khác, tất cả đều offline. Phụ đề của lời đọc được thêm tự động, và một bước kiểm tra liệt kê mọi thứ phụ đề sẽ che (chữ và chủ thể được đánh dấu), nên video bị che sẽ không bao giờ được xuất. Tắt lồng tiếng nếu video chỉ dùng chữ trên màn hình.
+- **Nhạc khớp nhịp cắt.** Nhạc nền tổng hợp được chỉnh để điểm cắt rơi đúng nhịp, chạy đến khung hình cuối rồi nhỏ dần. Khi có lồng tiếng, nhạc nhỏ hơn và hạ xuống mỗi khi một lời thoại được đọc.
 - **Nhanh khi chỉnh sửa, chất lượng đầy đủ khi xuất.** 3D hiển thị bản xem trước nhanh khi bạn chỉnh và chỉ render chất lượng đầy đủ khi xuất. 2D luôn ở chất lượng đầy đủ.
 - **Thư viện tài nguyên 3D.** Tìm mô hình CC0 trên [Poly Pizza](https://poly.pizza) và [Smithsonian Open Access](https://www.si.edu/openaccess) bằng khóa của bạn. Mỗi mô hình chỉ tải một lần và thêm được vào bất kỳ dự án 3D nào.
 
@@ -143,7 +144,7 @@ Mô hình cần hỗ trợ gọi công cụ (tool calling), và việc kiểm tr
 
 > **Lần mở đầu tiên:** Shotloop chưa được Apple công chứng (notarize), nên macOS báo không thể xác minh nhà phát triển. Hãy mở một lần từ **Cài đặt hệ thống → Quyền riêng tư & Bảo mật → Vẫn mở**, hoặc chạy `xattr -dr com.apple.quarantine /Applications/Shotloop.app` trong Terminal. Sau đó ứng dụng mở bình thường và các bản cập nhật cài đặt mà không hỏi lại.
 
-Node.js và ffmpeg có sẵn trong ứng dụng. Shotloop kiểm tra bản cập nhật trên GitHub và cài tại chỗ. Chạy trên Mac dùng Apple silicon (M1 trở lên).
+Node.js, ffmpeg và các engine đọc giọng của phần lồng tiếng có sẵn trong ứng dụng. Mô hình giọng thì không: mỗi mô hình được tải về, kèm thanh tiến trình, vào lần đầu một video dùng ngôn ngữ của nó (Kokoro tiếng Anh 132 MB, Kokoro tiếng Trung 147 MB, Supertonic cho các ngôn ngữ khác 400 MB), hoặc tải trước trong Cài đặt → Thành phần phụ thuộc. Cài đặt → Giới thiệu liệt kê mọi thành phần bên thứ ba cùng giấy phép của chúng. Shotloop kiểm tra bản cập nhật trên GitHub và cài tại chỗ. Chạy trên Mac dùng Apple silicon (M1 trở lên).
 
 ## Build từ mã nguồn
 
@@ -169,6 +170,9 @@ pnpm shotloop new      my-short --idea "Vì sao pin điện thoại bị chai?" 
 pnpm shotloop new      coffee --idea "Cà phê đến từ đâu?" --track 2d --style map --duration 30
 pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # into a new folder there
 pnpm shotloop covers   list                                         # cover templates
+pnpm shotloop voice    my-short --on --voice af_heart --fit        # the voice-over: speak the lines, fit the shots
+pnpm shotloop check-subtitles my-short                              # what the subtitles would cover (fails if anything)
+pnpm shotloop voice-models --download kokoro-en                     # a speech model, ahead of time
 pnpm shotloop doctor
 ```
 
@@ -187,19 +191,20 @@ pnpm test                                                             # every ba
 
 ```
 my-video/
-  shotloop.json        title, track (2d|3d), style, size, fps, shots [{ id, title, duration }]
+  shotloop.json        title, track (2d|3d), style, size, fps, lang, voice { on, voice, speed },
+                       shots [{ id, title, duration, say (the spoken line), cues (its sentences' times) }]
   storyboard.json      the plan: copy (hook, script, facts with sources) and shots
   world/               3D: world.py (+ screen.html); 2D: page.html (the style's kit), parts.js (pictures
                        that recur, drawn once), geo.data.js (the map style's countries)
   shots/<id>/          shot.py | shot.js, notes.md (must show, on screen, motion)
   assets/<id>/         3D models from the asset library
   copy.md  script.md  captions.html  music.json  thumb.html  publish.json
-  .shotloop/           cache: per shot and input hash, takes, checks, fixes
+  .shotloop/           cache: per shot and input hash, takes, checks, fixes; voice/: spoken lines, subtitles
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
 - **3D**: `world.py` dựng thế giới dùng chung bằng `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` chạy trong namespace của thế giới và tạo một máy quay; `at(t)` đổi giây tính theo cảnh sang thời gian của video.
-- **2D**: `shot.js` default-export `render(t, ctx)`, hàm vẽ `world/page.html` tại thời điểm `t` tính theo cảnh.
+- **2D**: `shot.js` default-export `render(t, ctx)`, hàm vẽ `world/page.html` tại thời điểm `t` tính theo cảnh. `ctx.voice` chứa các câu được đọc trong cảnh cùng thời điểm của chúng, để hình ảnh khớp với lời; đánh dấu chủ thể bằng `data-keep` (hoặc `subtitles.keep()` trên canvas) để bước kiểm tra phụ đề giữ nó không bị che.
 - **Cache**: khóa của một cảnh là hash của thế giới, code của cảnh, phụ đề, tài nguyên, renderer và cài đặt. Cảnh không đổi sẽ được dùng lại.
 
 </details>
@@ -210,7 +215,8 @@ my-video/
 | Đường dẫn | Nội dung |
 | --- | --- |
 | [`app/`](app/) | Ứng dụng desktop: vỏ Tauri 2 (Rust) lo hàng đợi render, trình cập nhật và giám sát tiến trình, cùng giao diện React + TypeScript. |
-| [`engine/shotloop/`](engine/shotloop/) | Engine cảnh: định dạng dự án, cache render theo cảnh, render 2D (Chrome) và 3D (Blender), ghép video, xuất MP4, nhạc, thư viện tài nguyên. Là một CLI mà ứng dụng gọi. |
+| [`engine/shotloop/`](engine/shotloop/) | Engine cảnh: định dạng dự án, cache render theo cảnh, render 2D (Chrome) và 3D (Blender), ghép video, xuất MP4, canh thời gian lồng tiếng, phụ đề và bước kiểm tra phụ đề, nhạc, thư viện tài nguyên. Là một CLI mà ứng dụng gọi. |
+| [`voice/`](voice/) | Chuyển văn bản thành giọng nói cho phần lồng tiếng, ngay trên Mac này: Kokoro qua sherpa-onnx và Supertonic trên ONNX Runtime, kèm phần tải mô hình. |
 | [`agent/`](agent/) | Agent: lập kế hoạch, dựng cảnh, sửa bằng lời thường, kiểm tra theo danh sách, viết bài đăng. Hỗ trợ API, CLI (qua MCP) và mô hình cục bộ. |
 | [`examples/`](examples/) | Các ví dụ Trang chủ cung cấp, bằng tiếng Anh: ít nhất một cho mỗi phong cách (2D và 3D, 9:16 và 16:9). |
 | [`fixtures/`](fixtures/) | Dự án cho kiểm thử và hướng dẫn trên terminal. |
@@ -219,4 +225,4 @@ my-video/
 
 ## Giấy phép
 
-[Apache License 2.0](LICENSE); xem thêm [NOTICE](NOTICE). Mô hình từ thư viện tài nguyên giữ giấy phép riêng (CC0 hoặc CC-BY, ghi công được lưu trong dự án).
+[Apache License 2.0](LICENSE); xem thêm [NOTICE](NOTICE). Mô hình từ thư viện tài nguyên giữ giấy phép riêng (CC0 hoặc CC-BY, ghi công được lưu trong dự án), mô hình giọng cũng vậy (Kokoro: Apache-2.0; Supertonic: OpenRAIL-M).

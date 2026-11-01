@@ -38,6 +38,8 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
   const [track, setTrack] = useState<Track>('auto')
   const [aspect, setAspect] = useState<Aspect>('9:16')
   const [length, setLength] = useState('auto')
+  // The voice-over: on for a new film unless turned off here
+  const [voice, setVoice] = useState(true)
   // 2D: a look, or '' for the AI to pick one that fits the idea
   const [look, setLook] = useState('')
   // 2D: a visual style, or '' for the AI to pick one that fits the idea
@@ -54,6 +56,28 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
   }
   // An example's style for the next video: back to the composer to write it
   const ideaBox = useRef<HTMLTextAreaElement>(null)
+  // The track sits at the start of the idea, as its label: the text runs
+  // in a column beside it (every line aligned), however long the label is
+  // in this language
+  const trackChip = useRef<HTMLLabelElement>(null)
+  const [indent, setIndent] = useState(0)
+  useEffect(() => {
+    const el = trackChip.current
+    if (!el) return
+    const measure = () => setIndent(Math.ceil(el.getBoundingClientRect().width) + 8)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  // The idea box grows with the text instead of scrolling inside: the chip
+  // stays over the first line, which a scrolled box would slide under it
+  useEffect(() => {
+    const ta = ideaBox.current
+    if (!ta) return
+    ta.style.height = 'auto'
+    ta.style.height = `${ta.scrollHeight}px`
+  }, [idea, indent])
   const pickStyle = (id: string) => {
     if (id === '3d') {
       setTrack('3d')
@@ -122,7 +146,8 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
         aspect,
         duration: length,
         look: track === '3d' ? '' : look,
-        style: track === '3d' ? '' : style
+        style: track === '3d' ? '' : style,
+        voice
       })
       // A new project starts on its planning page: copy and storyboard first
       open(r.root, true)
@@ -161,10 +186,18 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
 
       <div className="composer">
         <div className="composer-card">
+        {/* What kind of film, as the idea's prefix: Auto, 2D or 3D */}
+        <label className={`track-chip${track === 'auto' ? ' auto' : ''}`} ref={trackChip} title={t(TRACKS[track].hint)}>
+          <Icon name="spark" size={12} />
+          <select value={track} onChange={e => chooseTrack(e.target.value as Track)} aria-label={t('home.aria.track')}>
+            {(['auto', '2d', '3d'] as Track[]).map(tr => <option key={tr} value={tr}>{t(TRACKS[tr].chip)}</option>)}
+          </select>
+        </label>
         <textarea
           ref={ideaBox}
           value={idea}
           rows={3}
+          style={{ paddingLeft: indent }}
           placeholder={t('home.placeholder', { example: t(TRACKS[track].idea) })}
           onChange={e => setIdea(e.target.value)}
           onKeyDown={e => {
@@ -173,14 +206,6 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
         />
         <div className="composer-bar">
           <div className="chips">
-            <div className="chip-group" role="radiogroup" aria-label={t('home.aria.track')}>
-              {(['auto', '2d', '3d'] as Track[]).map(tr => (
-                <button key={tr} role="radio" aria-checked={track === tr} className={`chip${track === tr ? ' on' : ''}`}
-                  onClick={() => chooseTrack(tr)} title={t(TRACKS[tr].hint)}>
-                  {track === tr && <Icon name="spark" size={12} />}{t(TRACKS[tr].chip)}
-                </button>
-              ))}
-            </div>
             <div className="chip-group" role="radiogroup" aria-label={t('home.aria.aspect')}>
               {(['9:16', '16:9'] as Aspect[]).map(a => (
                 <button key={a} role="radio" aria-checked={aspect === a} className={`chip${aspect === a ? ' on' : ''}`} onClick={() => setAspect(a)}>
@@ -192,9 +217,14 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
             <label className="chip-select" title={t('home.aria.length')}>
               <Icon name="clock" size={13} />
               <select value={length} onChange={e => setLength(e.target.value)} aria-label={t('home.aria.length')}>
-                {LENGTHS.map(l => <option key={l} value={l}>{l === 'auto' ? t('home.lengthAuto') : t('unit.s', { n: l })}</option>)}
+                {LENGTHS.map(l => <option key={l} value={l}>{l === 'auto' ? t('home.lengthAutoShort') : t('unit.s', { n: l })}</option>)}
               </select>
             </label>
+            {/* The voice-over: a round toggle, its state in the icon and the tooltip */}
+            <button className={`chip-toggle${voice ? ' on' : ''}`} aria-pressed={voice} onClick={() => setVoice(!voice)}
+              title={`${t('home.voice')} · ${t(voice ? 'home.voiceOnHint' : 'home.voiceOffHint')}`} aria-label={t('home.voice')}>
+              <Icon name={voice ? 'mic' : 'micOff'} size={14} />
+            </button>
             {track !== '3d' && <span className="bar-divider" aria-hidden />}
             {track !== '3d' && <StylePicker value={style} onChange={chooseStyle} />}
             {track !== '3d' && <LookPicker value={look} onChange={setLook} style={style} />}

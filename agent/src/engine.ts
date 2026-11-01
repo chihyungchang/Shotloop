@@ -16,6 +16,9 @@ export interface ShotStatus {
   duration: number
   code: string
   notes: string
+  // The voice-over: the shot's line, and its sentences timed in the shot
+  say?: string | null
+  cues?: { text: string; at: number; end: number }[]
   draft: { key: string; state: string; stills: string[] | null; clip: string | null }
   final: { key: string; state: string; stills: string[] | null; clip: string | null }
 }
@@ -37,6 +40,11 @@ export interface ProjectStatus {
   styleChosen?: boolean
   trackAuto?: boolean
   lengthAuto?: boolean
+  // The language spoken and written; the voice-over (engine/shotloop/voice.mjs)
+  lang?: string | null
+  voice?: { on: boolean; voice?: string; speed?: number; gain?: number } | null
+  // The voice-over plays: on, with lines (engine/shotloop/cues.mjs voiceOn)
+  voiced?: boolean
 }
 
 export interface RenderResult {
@@ -44,6 +52,9 @@ export interface RenderResult {
   key: string
   stills: string[] | null
   clip: string | null
+  // A voiced 2D shot's subtitle check, run before the render: what the
+  // subtitles would cover, in shot seconds (engine/shotloop/check.mjs)
+  subtitles?: { from: number; to: number; what: string }[]
 }
 
 // Runs one engine command with --json; progress events are passed on to

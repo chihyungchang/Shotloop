@@ -1,10 +1,12 @@
 // 05-habits: the honest caveat. Real progress is not a steady 1% a day;
 // a year of small habits fills in like a calendar, with gaps and uneven
 // days. The pattern is illustrative, seeded so every frame agrees.
-// Shot-local time: t = 0 is this shot's first frame.
+// Shot-local time: t = 0 is this shot's first frame. Timed to the
+// voice-over: the year fills in across both sentences and ends as the
+// voice says "day after day". Everything sits above the subtitle band.
 
 const COLS = 53, ROWS = 7, CELL = 16, GAP = 5, PITCH = CELL + GAP
-const GX = 80 + (1120 - (COLS * PITCH - GAP)) / 2, GY = 344
+const GX = 80 + (1120 - (COLS * PITCH - GAP)) / 2, GY = 280
 
 // A stable pseudo-random number per day (0..1)
 const rnd = i => {
@@ -21,13 +23,13 @@ const DAYS = Array.from({ length: 365 }, (_, i) => {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const MONTH_START = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
 
-export default function render(t, { window, start }) {
+export default function render(t, { window, start, voice = [] }) {
   const { kit } = window
   kit.frame(t, { index: 5, start, foot: 'Illustrative habit log, not real data', footR: '1% is a metaphor, not a law' })
   const s = kit.scene('habits', `
     <div class="abs mono" id="kick" style="left:80px; top:100px">To be honest</div>
     <h1 class="abs headline" id="h" style="left:80px; top:124px; font-size:52px">In real life, there's no steady <span class="num">1%</span></h1>
-    <p class="abs" id="sub" style="left:80px; top:200px; font-size:24px; font-weight:600; color:var(--muted); line-height:1.5">Progress speeds up, slows down and stalls. What really compounds is a small daily habit.</p>
+    <p class="abs" id="sub" style="left:80px; top:200px; font-size:24px; font-weight:600; color:var(--muted); line-height:1.5">Progress speeds up, slows down and stalls.</p>
     <svg class="plot" viewBox="0 0 1280 720">
       <g id="months">${MONTHS.map((m, i) => `<text x="${GX + Math.floor(MONTH_START[i] / 7) * PITCH}" y="${GY - 12}">${m}</text>`).join('')}</g>
       <g id="cells"></g>
@@ -50,7 +52,8 @@ export default function render(t, { window, start }) {
   $('#legend').style.opacity = kit.rise(t, 0.8, 0.6)
 
   // The year fills in, week column by week column
-  const now = 365 * kit.ease.inOut((t - 0.6) / 2.9)
+  const last = voice[voice.length - 1]?.end ?? 7.09
+  const now = 365 * kit.ease.inOut((t - 0.6) / (last - 0.8))
   let cells = '', done = 0
   for (let i = 0; i < 365; i++) {
     const x = GX + Math.floor(i / 7) * PITCH, y = GY + (i % 7) * PITCH

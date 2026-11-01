@@ -6,21 +6,23 @@
 import { airMolecules, scatter, figure, STRANDS } from '../../world/parts.js'
 
 const BLUE = STRANDS[0].rgb
-const FEET = [250, 880], FIG_H = 34
+const FEET = [250, 760], FIG_H = 34 // the figure stays above the subtitle band
 const EYE = [FEET[0], FEET[1] - FIG_H * 0.85]
 const SUN = [520, 430]
 const hillY = x => FEET[1] + Math.pow((x - FEET[0]) / 600, 2) * 140
 
-export default function render(t, { window }) {
+export default function render(t, { window, voice = [] }) {
   const kit = window.kit
   const { c, clamp, lerp, ease, rise, hash, radial, halo, C } = kit
 
   // Pull back from inside the molecule field and tilt down to the hill
-  const m = ease(clamp(t / 4.2))
-  kit.stage(t, { camera: { x: lerp(390, 360, m), y: lerp(560, 640, m), zoom: lerp(1.38, 1, m) }, drift: t * 10 })
+  const m = ease(clamp(t / 4.7))
+  kit.stage(t, { camera: { x: lerp(390, 360, m), y: lerp(620, 650, m), zoom: lerp(1.38, 1, m) }, drift: t * 10 })
 
   // The sky filling blue in soft waves, top band to hill
-  const fill = ease(clamp((t - 0.7) / 3.2))
+  // ...complete as the voice says 'the whole sky glows blue' (its end)
+  const vEnd = voice[0] ? voice[0].end : 4.4
+  const fill = ease(clamp((t - 0.7) / (vEnd - 0.7)))
   if (fill > 0) {
     c.save()
     c.globalCompositeOperation = 'lighter'
@@ -44,7 +46,7 @@ export default function render(t, { window }) {
   kit.depth(0.6, () => kit.particles(t, { n: 22, seed: 4, x: 0, y: 260, w: 720, h: 760, size: 1.3, color: C.rgb.cool, vx: 12, life: 4 }))
 
   // The air, as in shot 3
-  const mols = airMolecules(kit, { t, x: 40, y: 380, w: 580, h: 420, n: 34, seed: 7 })
+  const mols = airMolecules(kit, { t, x: 40, y: 400, w: 580, h: 330, n: 34, seed: 7 })
 
   // Sky patches: each molecule's patch glows once its first blue has arrived
   const PERIOD = 1.7, FLY = 0.75

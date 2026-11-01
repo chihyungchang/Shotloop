@@ -2,12 +2,17 @@
 // to Earth at constant speed while a timer runs 00:00 → 08:19.
 
 const SECONDS = 149597870.7 / 299792.458 // 499.0 s
-const LEAVE = 0.9 // shot time the pulse leaves the Sun
-const ARRIVE = 5.0 // and reaches Earth
 
-export default function render(t, { window }) {
+export default function render(t, { window, voice = [] }) {
   const { c, space, sun, planet, beam, glow, rise, clamp, lerp, block, setUI } = window.kit
-  const y = 600
+  // Timed to the line: "499" lands near the end of the first sentence; the
+  // pulse reaches Earth (timer 08:19) as the second says the minutes
+  const s1 = voice[0] ?? { at: 0.2, end: 2.6 }
+  const s2 = voice[1] ?? { at: 2.8, end: 5.0 }
+  const LEAVE = 1.2 // shot time the pulse leaves the Sun
+  const ARRIVE = Math.min(s2.end - 0.5, s2.at + 1.2) // and reaches Earth
+  // Everything sits above the subtitle band (y 870–1011)
+  const y = 520
   const x0 = 150
   const x1 = 600
 
@@ -36,12 +41,12 @@ export default function render(t, { window }) {
     block({ y: 150, p: rise(t, 0.05), cls: 'kicker', html: 'STEP 3 · DIVIDE' }) +
       block({ y: 196, p: rise(t, 0.15, 0.7), cls: 'head', style: 'font-size:32px;line-height:1.4;white-space:nowrap', html:
         `<span class="num">149.6</span> million km <span class="muted">÷</span> <span class="num">299,792</span> km/s` }) +
-      block({ y: 250, p: rise(t, 0.5, 0.7), cls: 'head', html: `≈ <span class="num gold">499</span> s` }) +
+      block({ y: 250, p: rise(t, Math.max(0.5, s1.end - 1.6), 0.7), cls: 'head', html: `≈ <span class="num gold">499</span> s` }) +
       block({ x: x1 - 60, y: y + 34, w: 120, p: rise(t, 0.3), cls: 'sub', style: 'font-size:22px;text-align:center', html: 'Earth' }) +
-      block({ y: 760, p: rise(t, 0.6), style: 'text-align:center', html:
-        `<div class="num${t > ARRIVE ? ' gold' : ''}" style="font-size:150px;line-height:1">${mm}:${ss}</div>` +
+      block({ y: 615, p: rise(t, 0.6), style: 'text-align:center', html:
+        `<div class="num${t > ARRIVE ? ' gold' : ''}" style="font-size:130px;line-height:1">${mm}:${ss}</div>` +
         `<div class="sub" style="margin-top:12px;letter-spacing:0.5em;padding-left:0.5em">min · sec</div>` }) +
-      block({ y: 990, p: done, style: 'text-align:center', html:
+      block({ y: 812, p: done, style: 'text-align:center', html:
         `<span class="chip" style="color:var(--text);font-size:26px">Sunlight crosses 1 AU in <b class="gold">8 min 19 s</b></span>` })
   )
 }

@@ -13,12 +13,12 @@ export default function render(t, { window, start }) {
     kicker: 'The coffee belt',
     head: 'Grown in *40+* countries between the tropics',
     typed: rise(t, 0.1, 0.6),
-    progress: (start + t) / 32.5
+    progress: (start + t) / 36.6
   })
 
   // The globe (where shot 1 left it) unrolls into the flat map, then a slow push in
   const u = ease(clamp(t / 1.4))
-  const zoom = 1.2 + 0.05 * ease(clamp((t - 2) / 3))
+  const zoom = 1.2 + 0.05 * ease(clamp((t - 2) / 3.7))
   const view = {
     center: [lerp(-20, 22, u), lerp(6, 0, u)],
     zoom,
@@ -28,18 +28,20 @@ export default function render(t, { window, start }) {
     R: 262 / zoom
   }
 
-  const tropics = ease(clamp((t - 1.0) / 1.2))
-  const band = rise(t, 1.8, 0.8)
-  const grow = clamp((t - 2.4) / 2.0)
+  // Timed to the voice: '40 nations' lights the growers, 'a band around the
+  // equator' draws the tropics, 'the coffee belt' fills the band
+  const grow = clamp((t - 1.1) / 1.8)
+  const tropics = ease(clamp((t - 2.7) / 1.1))
+  const band = rise(t, 3.7, 0.8)
   let svg = coffeeMap(kit, { view, tropics, band, labels: tropics, grow, bright: {} })
 
   // Counter beside the band, in the Indian Ocean
-  const cp = rise(t, 2.3, 0.4)
+  const cp = rise(t, 1.0, 0.4)
   if (cp > 0) {
     const [bx, by] = mapAt(kit, view, 82, -23.44)
     const [cx, cy] = mapAt(kit, view, 82, -41)
-    const n = Math.round(40 * grow), plus = pop(t, 4.4, 0.4)
-    const land = 1 + 0.12 * Math.sin(Math.PI * clamp((t - 4.4) / 0.3))
+    const n = Math.round(40 * grow), plus = pop(t, 2.9, 0.4)
+    const land = 1 + 0.12 * Math.sin(Math.PI * clamp((t - 2.9) / 0.3))
     svg += '<g opacity="' + cp.toFixed(3) + '">' +
       '<line x1="' + bx.toFixed(1) + '" y1="' + by.toFixed(1) + '" x2="' + bx.toFixed(1) + '" y2="' + (cy - 46).toFixed(1) +
       '" stroke="' + C.hue.green + '" stroke-width="2" stroke-dasharray="3 4"/>' +
@@ -54,15 +56,15 @@ export default function render(t, { window, start }) {
   // Legend under the map
   const legend = [[C.hue.green, 1, 'Where coffee grows'], [C.hue.yellow, 0.35, 'Coffee belt']]
   legend.forEach(([color, op, label], i) => {
-    const p = rise(t, i ? 1.9 : 2.5, 0.4)
-    const x = 44 + i * 280, y = 936 + (1 - p) * 10
+    const p = rise(t, i ? 4.2 : 1.4, 0.4)
+    const x = 44 + i * 280, y = 852 + (1 - p) * 10
     svg += '<g opacity="' + p.toFixed(3) + '"><rect x="' + x + '" y="' + (y - 16) + '" width="22" height="18" rx="4" fill="' + color + '" opacity="' + op + '"' +
       (i ? ' stroke="' + C.hue.yellow + '" stroke-dasharray="4 3"' : '') + '/>' +
       '<text x="' + (x + 32) + '" y="' + y + '" font-size="20" font-weight="600" fill="' + C.text + '" font-family="' + font + '">' + label + '</text></g>'
   })
 
   // Source line
-  svg += '<text x="40" y="1008" font-size="15" fill="' + C.muted + '" opacity="0.85" font-family="' + font +
+  svg += '<text x="40" y="1023" font-size="14" fill="' + C.muted + '" opacity="0.85" font-family="' + font +
     '">Source: National Coffee Association USA, aboutcoffee.org (2026)</text>'
 
   kit.stage(svg)

@@ -1,8 +1,9 @@
 // Gathers what Shotloop.app carries as resources, so it runs without the
-// repository: the engine (only the parts it loads), the agent with its
-// production dependencies, and the example projects. Output:
-// src-tauri/bundle-resources/{engine,agent,examples}, laid out as in the
-// repository, so the relative paths between them still hold.
+// repository: the engine (only the parts it loads), the agent and the
+// voice-over with their production dependencies, and the example
+// projects. Output: src-tauri/bundle-resources/{engine,agent,voice,examples},
+// laid out as in the repository, so the relative paths between them still
+// hold. The speech models are not shipped: they download on first use.
 
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
@@ -67,22 +68,40 @@ for (const name of fs.readdirSync(path.join(OUT, 'examples'))) {
   }
 }
 
-// The agent runs its TypeScript directly; its dependencies are deployed
-// flat (no symlinks, which app bundles do not keep). pnpm needs the
-// deploy folder on the repository's volume.
-const tmp = path.join(OUT, '.agent-deploy')
-try {
-  execFileSync('pnpm', ['--filter', '@shotloop/agent', 'deploy', '--legacy', '--prod', '--config.node-linker=hoisted', tmp], {
-    cwd: REPO,
-    stdio: ['ignore', 'ignore', 'inherit']
-  })
-  const agent = path.join(OUT, 'agent')
-  fs.mkdirSync(agent)
-  for (const f of ['package.json', 'src', 'node_modules']) fs.cpSync(path.join(tmp, f), path.join(agent, f), { recursive: true })
-  fs.rmSync(path.join(agent, 'node_modules', '.bin'), { recursive: true, force: true })
-} finally {
-  fs.rmSync(tmp, { recursive: true, force: true })
+// The agent runs its TypeScript directly; it and the voice-over get their
+// dependencies deployed flat (no symlinks, which app bundles do not
+// keep). pnpm needs the deploy folder on the repository's volume.
+function deploy(pkg, name, files) {
+  const tmp = path.join(OUT, `.${name}-deploy`)
+  try {
+    execFileSync('pnpm', ['--filter', pkg, 'deploy', '--legacy', '--prod', '--config.node-linker=hoisted', tmp], {
+      cwd: REPO,
+      stdio: ['ignore', 'ignore', 'inherit']
+    })
+    const dest = path.join(OUT, name)
+    fs.mkdirSync(dest)
+    for (const f of files) fs.cpSync(path.join(tmp, f), path.join(dest, f), { recursive: true })
+    fs.rmSync(path.join(dest, 'node_modules', '.bin'), { recursive: true, force: true })
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true })
+  }
+}
+deploy('@shotloop/agent', 'agent', ['package.json', 'src', 'node_modules'])
+deploy('@shotloop/voice', 'voice', ['package.json', 'src', 'node_modules'])
+
+// ONNX Runtime ships every platform's binaries: only this Mac's stay
+const arch = { aarch64: 'arm64', x86_64: 'x64' }[process.env.TAURI_ENV_TARGET_TRIPLE?.split('-')[0]] ?? process.arch
+const ort = path.join(OUT, 'voice', 'node_modules', 'onnxruntime-node', 'bin')
+for (const napi of fs.existsSync(ort) ? fs.readdirSync(ort) : []) {
+  for (const os of fs.readdirSync(path.join(ort, napi))) {
+    if (os !== 'darwin') fs.rmSync(path.join(ort, napi, os), { recursive: true, force: true })
+    else for (const a of fs.readdirSync(path.join(ort, napi, os))) if (a !== arch) fs.rmSync(path.join(ort, napi, os, a), { recursive: true, force: true })
+  }
+  // The versioned name was a symlink, deployed as a second copy: the
+  // binding loads libonnxruntime.1.dylib
+  const bin = path.join(ort, napi, 'darwin', arch)
+  for (const f of fs.existsSync(bin) ? fs.readdirSync(bin) : []) if (/^libonnxruntime\.\d+\.\d+\.\d+\.dylib$/.test(f)) fs.rmSync(path.join(bin, f))
 }
 
 const size = execFileSync('du', ['-sh', OUT], { encoding: 'utf8' }).split('\t')[0]
-console.log(`resources: engine, agent, examples → ${path.relative(REPO, OUT)} (${size})`)
+console.log(`resources: engine, agent, voice, examples → ${path.relative(REPO, OUT)} (${size})`)

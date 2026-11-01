@@ -38,43 +38,48 @@
   "shots": [
     {
       "title": "184 million bags",
-      "duration": 4,
+      "duration": 5.8,
       "show": "The whole globe, dark navy oceans and slate land, turning slowly. Small coffee-bean pins pop up one after another around the equator while a big gold rolling counter at the top climbs to ≈184 million and lands with a bounce, the unit 'bags / year' beneath it.",
       "text": "≈184 million bags a year. From where?",
       "motion": "Globe rotates; bean pins pop in with a small bounce in a ripple along the equator; counter rolls from 0 and bounces on 184,000,000.",
-      "source": "ICO Coffee Market Report, Aug 2026 (2025/26 estimate, 60-kg bags)"
+      "source": "ICO Coffee Market Report, Aug 2026 (2025/26 estimate, 60-kg bags)",
+      "say": "About 184 million bags of coffee are grown in a year. So where does it all come from?"
     },
     {
       "title": "The coffee belt",
-      "duration": 5,
+      "duration": 5.7,
       "show": "The globe unrolls into the flat world map. Two dashed lines draw on, labelled Tropic of Cancer and Tropic of Capricorn; the band between them fills with a soft gold glow. Then the growing countries light leaf green one by one from the Americas to Africa to Asia, while a small counter beside the band ticks up to 40+.",
       "text": "Grown in 40+ countries between the tropics",
       "motion": "Globe-to-flat morph; tropic lines draw left to right; band fades in; country fills ripple west to east; counter ticks to 40+.",
-      "source": "National Coffee Association USA, aboutcoffee.org (2026)"
+      "source": "National Coffee Association USA, aboutcoffee.org (2026)",
+      "say": "It grows in more than 40 nations, mostly in a band around the equator: the coffee belt."
     },
     {
       "title": "Brazil leads",
-      "duration": 5,
+      "duration": 6,
       "show": "Camera flies from the world into South America. Brazil fills a brighter leaf green and grows a gold pin with rank badge '1'. Beside it a big counter rolls to 40% under the word 'nearly', and a split bar at the bottom (the world's coffee) splits: Brazil's nearly 40% in green, the rest in dim slate.",
       "text": "Brazil grows nearly 40% of it",
       "motion": "Zoom and pan into Brazil; the fill pulses brighter; pin drops; counter rolls; split bar wipes and separates into its two shares.",
-      "source": "USDA FAS, Coffee: World Markets and Trade, July 2026 (\"nearly 40 percent\")"
+      "source": "USDA FAS, Coffee: World Markets and Trade, July 2026 (\"nearly 40 percent\")",
+      "say": "One country leads by far. Brazil grows nearly 40 percent of all the coffee in the world."
     },
     {
       "title": "The top five",
       "duration": 5,
       "show": "Camera pulls back out to the coffee belt. Rank pins drop in turn with their badges: 2 Vietnam (labelled 'robusta'), 3 Colombia, 4 Ethiopia, 5 Indonesia, each country brightening to the same leaf green as Brazil, which keeps its '1' pin.",
       "text": "Then Vietnam, Colombia, Ethiopia, Indonesia",
-      "motion": "Camera glides east across the belt; each pin drops with a bounce as the camera passes; country names type on beside the pins.",
-      "source": "USDA FAS, Coffee: World Markets and Trade, July 2026"
+      "motion": "Camera pulls back from Brazil to the whole belt; each pin drops with a bounce as the voice names its country; country names type on beside the pins.",
+      "source": "USDA FAS, Coffee: World Markets and Trade, July 2026",
+      "say": "Next come Vietnam, mostly robusta, then Colombia, Ethiopia and Indonesia."
     },
     {
       "title": "Where coffee began",
-      "duration": 4.5,
+      "duration": 5.1,
       "show": "Camera flies into East Africa. Ethiopia's highlands glow warm gold inside its green fill; its '4' pin stays, and a small coffee-plant icon sprouts on the highlands with the label 'coffee forests'. Faint ripples spread from it across the map.",
       "text": "Coffee's story begins in Ethiopia",
       "motion": "Zoom into the Horn of Africa; gold glow breathes; plant icon grows leaf by leaf; ripple rings expand outward.",
-      "source": "National Coffee Association USA, aboutcoffee.org (2026)"
+      "source": "National Coffee Association USA, aboutcoffee.org (2026)",
+      "say": "The story of coffee begins in Ethiopia, where ancient coffee forest still grows."
     },
     {
       "title": "Routes north",
@@ -82,7 +87,8 @@
       "show": "Camera pulls out to the full flat map with the belt and the five green producers. Coffee-orange arcs draw on from Brazil, Colombia, Vietnam, Indonesia and Ethiopia to two destinations that light cool blue: the European Union and the United States. Small bean dots run along every arc like a flow.",
       "text": "Most sails north to Europe and the US",
       "motion": "Arcs draw on one after another; destination fills fade in blue; bean dots stream continuously along the arcs; camera drifts slowly north.",
-      "source": "USDA FAS, Coffee: World Markets and Trade, July 2026 (largest importers)"
+      "source": "USDA FAS, Coffee: World Markets and Trade, July 2026 (largest importers)",
+      "say": "From the belt, the beans sail north. The European Union and the United States are the biggest importers."
     },
     {
       "title": "End card",
@@ -90,7 +96,8 @@
       "show": "The globe again, slowly turning, wrapped in the glowing orange routes from the previous shot, bean dots still flowing; the title 'Where does the world's coffee come from' settles above it.",
       "text": "Every cup, a long journey",
       "motion": "Globe turns; arcs shimmer; bean dots keep running; title fades and settles.",
-      "source": ""
+      "source": "",
+      "say": "Every cup, a long journey."
     }
   ],
   "recurring": [
@@ -124,5 +131,6 @@
         7
       ]
     }
-  ]
+  ],
+  "lang": "en"
 }

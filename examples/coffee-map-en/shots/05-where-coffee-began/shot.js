@@ -17,8 +17,10 @@ const leaf = (ang, s, op) =>
   '<path d="M2,0 L22,0" stroke="' + LEAF_EDGE + '" stroke-width="0.9" opacity="0.7"/></g>'
 
 // A coffee plant growing leaf by leaf with t (shot seconds)
-function plant(kit, x, y, t, s) {
+// a: when it starts growing
+function plant(kit, x, y, t, s, a = 1.5) {
   const { C, clamp, pop, rise } = kit
+  t -= a - 1.5
   const grow = clamp((t - 1.5) / 1.2)
   if (grow <= 0) return ''
   const h = 66 * (1 - Math.pow(1 - grow, 2))
@@ -43,7 +45,7 @@ function plant(kit, x, y, t, s) {
   return out + '</g>'
 }
 
-export default function render(t, { window, start }) {
+export default function render(t, { window, start, voice = [] }) {
   const kit = window.kit
   const { C, FONT, clamp, lerp, rise, ease, float } = kit
   const font = FONT.replace(/"/g, '')
@@ -58,20 +60,30 @@ export default function render(t, { window, start }) {
     window.GEO.t5Wrapped = true
   }
 
-  // Camera: from shot 4's last view over the belt into the Horn of Africa, then a slow push
-  const fly = ease(clamp(t / 1.7))
-  const zoom = Math.exp(lerp(Math.log(2), Math.log(8), fly)) * (1 + 0.06 * clamp((t - 1.7) / 2.8))
-  const view = { center: [lerp(86, 39, ease(clamp(t / 1.5))), lerp(0, 7, fly)], zoom, y: lerp(700, 730, fly) }
+  // The voice: '…begins in Ethiopia' (about 40% into the line) lights the
+  // highlands; '…ancient coffee forest' (about 60%) grows the plant
+  const line = voice[0] || { at: 0.2, end: 4.6 }
+  const say = k => line.at + (line.end - line.at) * k
+  const tLit = say(0.36), tPlant = say(0.52)
 
-  let svg = coffeeMap(kit, { view, tropics: 1, band: 1, labels: 1, grow: 1, bright: { Brazil: 1, Vietnam: 1, Colombia: 1, Indonesia: 1, Ethiopia: 1 } })
+  // Camera: from shot 4's last view of the whole belt into the Horn of Africa, then a slow push
+  const fly = ease(clamp(t / 1.9))
+  const zoom = Math.exp(lerp(Math.log(1.14), Math.log(8), fly)) * (1 + 0.06 * clamp((t - 1.9) / 3.2))
+  const view = { center: [lerp(18.5, 39, ease(clamp(t / 1.7))), lerp(2, 7, fly)], zoom, x: lerp(263.5, 360, fly), y: lerp(700, 730, fly) }
+
+  const bright = { Brazil: 1, Vietnam: 1, Colombia: 1, Indonesia: 1, Ethiopia: 1 }
+  // The flat world doesn't wrap: past its east edge (lon 180) draw the next copy of it
+  const east = view.x + (180 - view.center[0]) * 2 * zoom
+  let svg = (east < 720 ? coffeeMap(kit, { view: { ...view, center: [view.center[0] - 360, view.center[1]] }, tropics: 1, band: 1, labels: 0, grow: 1, bright }) : '') +
+    coffeeMap(kit, { view, tropics: 1, band: 1, labels: 1, grow: 1, bright })
 
   // Gold glow on the highlands, clipped to Ethiopia, breathing
   const et = (window.GEO || []).find(c => c.name === 'Ethiopia')
-  const lit = rise(t, 1.0, 0.7)
+  const lit = rise(t, tLit - 0.2, 0.7)
   if (et && lit > 0) {
     const d = et.rings.map(r => 'M' + r.map(([lon, lat]) => { const q = mapAt(kit, view, lon, lat); return q[0].toFixed(1) + ',' + q[1].toFixed(1) }).join('L') + 'Z').join('')
     const [hx, hy] = mapAt(kit, view, HIGH[0], HIGH[1]), hr = 6.5 * (kit.W / 360) * zoom
-    const breathe = 0.5 + 0.5 * Math.sin((t - 1.2) * Math.PI * 2 / 1.5)
+    const breathe = 0.5 + 0.5 * Math.sin((t - tLit) * Math.PI * 2 / 1.5)
     svg += '<defs><clipPath id="a5-et"><path d="' + d + '"/></clipPath>' +
       '<radialGradient id="a5-glow"><stop offset="0" stop-color="' + C.hue.yellow + '" stop-opacity="0.95"/>' +
       '<stop offset="0.55" stop-color="' + C.hue.orange + '" stop-opacity="0.45"/><stop offset="1" stop-color="' + C.hue.orange + '" stop-opacity="0"/></radialGradient></defs>' +
@@ -83,7 +95,7 @@ export default function render(t, { window, start }) {
   // Ripples spreading from the plant across the map
   const [px, py] = mapAt(kit, view, PLANT[0], PLANT[1])
   for (let i = 0; i < 4; i++) {
-    const age = t - 2.0 - i * 0.6
+    const age = t - tPlant - 0.4 - i * 0.6
     if (age <= 0) continue
     const k = (age % 2.4) / 2.4, r = 20 + 330 * (1 - Math.pow(1 - k, 2))
     svg += '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="none" stroke="' + C.hue.yellow +
@@ -102,15 +114,15 @@ export default function render(t, { window, start }) {
   svg += rankPins(kit, { view, drop: 1, notes: { 2: 'robusta' }, scale: lerp(1.25, 1.5, fly) })
 
   // The plant and its label
-  svg += plant(kit, px, py + float(t, 1.2, 2.5), t, 1.15)
-  const lab = rise(t, 2.6, 0.4)
+  svg += plant(kit, px, py + float(t, 1.2, 2.5), t, 1.15, tPlant - 0.1)
+  const lab = rise(t, tPlant + 0.7, 0.4)
   if (lab > 0) svg += '<text x="' + (px - 40).toFixed(1) + '" y="' + (py - 34 + (1 - lab) * 10).toFixed(1) + '" text-anchor="end" font-size="28" font-weight="800" font-style="italic" fill="' + C.hue.yellow +
     '" opacity="' + lab.toFixed(3) + '" stroke="' + INK + '" stroke-width="5" paint-order="stroke" font-family="' + font + '">coffee forests</text>'
 
   // Source line
   const src = rise(t, 0.6, 0.6)
-  svg += '<rect x="30" y="982" width="440" height="32" rx="8" fill="' + INK + '" opacity="' + (0.8 * src).toFixed(3) + '"/>' +
-    '<text x="40" y="1004" font-size="15" fill="' + C.muted + '" opacity="' + src.toFixed(3) + '" font-family="' + font + '">Source: National Coffee Association USA, aboutcoffee.org</text>'
+  svg += '<rect x="30" y="1011" width="430" height="18" rx="6" fill="' + INK + '" opacity="' + (0.8 * src).toFixed(3) + '"/>' +
+    '<text x="40" y="1024" font-size="14" fill="' + C.muted + '" opacity="' + src.toFixed(3) + '" font-family="' + font + '">Source: National Coffee Association USA, aboutcoffee.org</text>'
 
   kit.stage(svg)
 
@@ -118,6 +130,6 @@ export default function render(t, { window, start }) {
     kicker: 'The origin',
     head: ['Coffee’s story', 'begins in', '*Ethiopia*'],
     typed: rise(t, 0.05, 0.8),
-    progress: (start + t) / 32.5
+    progress: (start + t) / 36.6
   })
 }

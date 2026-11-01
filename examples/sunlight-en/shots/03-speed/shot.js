@@ -3,7 +3,7 @@
 
 const C_KMS = 299792.458
 
-export default function render(t, { window }) {
+export default function render(t, { window, voice = [] }) {
   const { c, W, space, planet, glow, radial, rise, ease, prng, fmt, block, setUI } = window.kit
 
   space(t, { drift: 60 + t * 40 })
@@ -13,7 +13,7 @@ export default function render(t, { window }) {
   const on = rise(t, 0, 0.6)
   c.globalCompositeOperation = 'lighter'
   for (let i = 0; i < 46; i++) {
-    const y = 380 + q() * 380
+    const y = 270 + q() * 380
     const len = 90 + q() * 260
     const speed = 1300 + q() * 2200
     const span = W + len + 200
@@ -34,7 +34,7 @@ export default function render(t, { window }) {
 
   // Earth with a light point lapping its equator (slowed so it reads)
   const ex = 360
-  const ey = 610
+  const ey = 500 // above the subtitle band (y 870–1011)
   planet(t, ex, ey, 66, { light: Math.PI * 1.15, spin: t * 0.15 })
   const ang = t * 4.2 - 1.2
   const rx = 132
@@ -55,14 +55,20 @@ export default function render(t, { window }) {
   const hy = ey + Math.sin(ang) * ry
   if (!(Math.sin(ang) < 0 && Math.abs(hx - ex) < 64)) glow(hx, hy, 26, '255, 236, 190', 0.95 * on)
 
-  const v = C_KMS * ease.out((t - 0.4) / 1.8)
+  // Timed to the line: the speed counts while the first sentence says it,
+  // the equator laps land with the second
+  const s1 = voice[0] ?? { at: 0.2, end: 2.2 }
+  const s2 = voice[1] ?? { at: 2.0, end: 3.6 }
+  const countAt = s1.at + 0.3 * (s1.end - s1.at)
+  const countEnd = s1.at + 0.8 * (s1.end - s1.at)
+  const v = C_KMS * ease.out((t - countAt) / (countEnd - countAt))
 
   setUI(
     block({ y: 150, p: rise(t, 0.05), cls: 'kicker', html: 'STEP 2 · SPEED' }) +
       block({ y: 196, p: rise(t, 0.15, 0.7), cls: 'head m', html: 'Light in a vacuum<br>travels at' }) +
-      block({ y: 770, p: rise(t, 0.4), html:
+      block({ y: 612, p: rise(t, countAt - 0.3), html:
         `<span class="num" style="font-size:120px;line-height:1">${fmt(Math.floor(v))}</span>` }) +
-      block({ y: 900, p: rise(t, 0.6), cls: 'unit gold', html: 'km / s' }) +
-      block({ y: 966, p: rise(t, 2.0), cls: 'sub', html: '<span style="color:var(--text)">7.5 laps</span> of Earth’s equator per second' })
+      block({ y: 744, p: rise(t, countAt), cls: 'unit gold', html: 'km / s' }) +
+      block({ y: 806, p: rise(t, s2.at + 0.4), cls: 'sub', html: '<span style="color:var(--text)">7.5 laps</span> of Earth’s equator per second' })
   )
 }

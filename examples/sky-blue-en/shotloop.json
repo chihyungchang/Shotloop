@@ -14,37 +14,99 @@
     {
       "id": "01-blue-sky-red-sunset",
       "title": "Blue sky, red sunset",
-      "duration": 4
+      "duration": 4.9,
+      "say": "Same Sun, same air. So why is the sky blue at noon, and red at sunset?",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 1.35
+        },
+        {
+          "at": 1.6,
+          "end": 4.45
+        }
+      ]
     },
     {
       "id": "02-white-light-every-colour",
       "title": "White light, every colour",
-      "duration": 4
+      "duration": 5.4,
+      "say": "Sunlight looks white, but every colour is in it, from short blue waves to long red ones.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 4.9
+        }
+      ]
     },
     {
       "id": "03-air-scatters-blue",
       "title": "Air scatters blue",
-      "duration": 5.5
+      "duration": 5.5,
+      "say": "Each tiny molecule of air scatters that light. Blue is scattered about 5 times more than red.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 2.52
+        },
+        {
+          "at": 2.77,
+          "end": 5.02
+        }
+      ],
+      "sayFast": 1.02
     },
     {
       "id": "04-blue-from-everywhere",
       "title": "Blue from everywhere",
-      "duration": 4.5
+      "duration": 4.9,
+      "say": "That scattered blue comes at you from every direction, so the whole sky glows blue.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 4.43
+        }
+      ]
     },
     {
       "id": "05-the-long-sunset-path",
       "title": "The long sunset path",
-      "duration": 5.5
+      "duration": 5.5,
+      "say": "At sunset the Sun is low, and its light crosses about 38 times more air to reach you.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 4.85
+        }
+      ]
     },
     {
       "id": "06-red-gets-through",
       "title": "Red gets through",
-      "duration": 4.5
+      "duration": 5.6,
+      "say": "Along that long path, even more of the blue is scattered away. What reaches you is orange and red.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 3.2
+        },
+        {
+          "at": 3.45,
+          "end": 5.12
+        }
+      ]
     },
     {
       "id": "07-same-air-different-path",
       "title": "Same air, different path",
-      "duration": 3
+      "duration": 3.6,
+      "say": "Same air, different path: blue by day, red at dusk.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 3.07
+        }
+      ]
     }
   ],
   "captions": null,
@@ -52,5 +114,9 @@
   "cover": "thumb.html",
   "publish": "publish.md",
   "look": "midnight",
-  "style": "scene"
+  "style": "scene",
+  "voice": {
+    "on": true,
+    "voice": "af_heart"
+  }
 }

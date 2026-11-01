@@ -80,6 +80,7 @@ textarea { resize: vertical; }
 .error-box { background: var(--danger-soft); border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent); color: var(--danger);
   border-radius: var(--r-md); padding: 8px 10px; white-space: pre-wrap; max-height: 160px; overflow: auto; margin: 6px 0; font-size: 11.5px; }
 .tag { font-size: 11px; font-weight: 600; background: var(--surface-2); border-radius: var(--r-pill); padding: 2px 8px; color: var(--text-2); white-space: nowrap; }
+.tag.ok { display: inline-flex; align-items: center; gap: 4px; background: var(--success-soft); color: var(--success); }
 .empty { color: var(--text-2); padding: 20px 16px; border: 1px dashed var(--border); border-radius: var(--r-md); text-align: center; }
 
 /* Entrances: short, eased, once */
@@ -125,17 +126,27 @@ textarea { resize: vertical; }
   transition: opacity var(--dur) var(--ease); }
 .composer-card:focus-within { border-color: transparent; box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 16px 40px rgb(45 212 191 / 0.12); }
 .composer-card:focus-within::after { opacity: 1; }
-.composer-card > textarea { border: 0; background: transparent; padding: 0 0 12px; font-size: 16px; line-height: 1.55; font-weight: 450; resize: none; min-height: 84px; }
+.composer-card > textarea { border: 0; background: transparent; padding: 0 0 12px; font-size: 16px; line-height: 1.55; font-weight: 450; resize: none; min-height: 84px; overflow: hidden; }
 .composer-card > textarea::placeholder { color: var(--text-3); }
+/* The track (Auto, 2D, 3D) at the idea's top left; the text runs in a
+   column beside it, padded by the chip's width (Home.tsx) */
+.track-chip { position: absolute; left: 20px; top: 17px; z-index: 1; display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 2px 0 10px;
+  border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent-text); }
+.track-chip select { border: 0; background-color: transparent; min-height: 26px; width: auto; padding: 0 20px 0 0; font-size: 12px; font-weight: 600; color: inherit; background-position: right 4px center; cursor: pointer; }
+.track-chip select:focus-visible { outline: none; }
+.track-chip:focus-within { box-shadow: 0 0 0 2px var(--focus); }
 .composer-card > textarea:focus-visible { outline: none; }
 .composer-bar { display: flex; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border-soft); }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; align-items: center; }
+/* A round on/off chip with only an icon (the voice-over) */
+.chip-toggle { display: inline-flex; align-items: center; justify-content: center; width: 32px; min-width: 32px; min-height: 32px; padding: 0; border: 0; border-radius: var(--r-pill); background: var(--surface-2); color: var(--text-3); }
+.chip-toggle:hover:not(:disabled) { background: var(--surface-hover); border: 0; color: var(--text); }
+.chip-toggle.on { background: var(--accent-soft); color: var(--accent-text); }
 .bar-divider { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
 .chip-group { display: inline-flex; gap: 2px; background: var(--surface-2); border-radius: var(--r-pill); padding: 3px; }
 .chip { border: 0; background: transparent; border-radius: var(--r-pill); min-height: 26px; padding: 0 11px; font-size: 12px; font-weight: 600; color: var(--text-2); }
 .chip:hover:not(:disabled) { background: transparent; color: var(--text); }
 .chip.on { background: var(--seg-on-bg); color: var(--seg-on-fg); box-shadow: var(--shadow-sm); }
-.chip-group:first-child .chip.on { background: var(--accent-soft); color: var(--accent-text); box-shadow: none; }
 .chip.static { border: 1px solid var(--border); background: var(--surface-2); cursor: default; font-size: 11.5px; padding: 3px 9px; }
 .aspect-glyph { display: inline-block; border: 1.5px solid currentColor; border-radius: 2px; }
 .aspect-glyph.a916 { width: 7px; height: 12px; } .aspect-glyph.a169 { width: 12px; height: 7px; }
@@ -403,6 +414,14 @@ details .field + .field { margin-top: 10px; }
 .frame-thumb img.dim { opacity: 0.45; filter: grayscale(0.6); }
 .frame-no { position: absolute; left: 4px; top: 3px; font-size: 10px; color: #fff; background: var(--scrim); border-radius: var(--r-sm); padding: 0 4px; }
 .frame-flag { position: absolute; right: 4px; top: 3px; font-size: 10px; font-weight: 700; color: #fff; background: var(--danger); border-radius: var(--r-pill); padding: 0 5px; }
+/* The subtitle check's flag, beside the failed checks' when both show */
+.frame-flag.sub { background: var(--warning); }
+.frame-flag.sub.second { right: 26px; }
+/* What the subtitles would cover, under the shot's checks */
+.subs-issues { margin-top: 10px; }
+.subs-issues ul { list-style: none; margin: 4px 0 6px; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+.subs-issues .tabular { font-variant-numeric: tabular-nums; margin-right: 4px; }
+.subs-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; }
 .frame-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgb(255 255 255 / 0.15); }
 .frame-bar i { display: block; height: 100%; background: var(--info); }
 .frame-meta { display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 0 2px; }
@@ -426,6 +445,11 @@ details .field + .field { margin-top: 10px; }
 .notes-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 .notes-col { min-width: 0; }
 .shot-notes p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+/* The voice-over under "Must show": its sentences, each with its time */
+.notes-voice-label { display: flex; align-items: center; gap: 4px; margin-top: 10px; }
+.notes-voice-label .link { margin-left: auto; font-size: 11px; font-weight: 500; text-transform: none; letter-spacing: 0; }
+.voice-cues { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12px; overflow-wrap: anywhere; }
+.voice-cues .tabular { font-variant-numeric: tabular-nums; margin-right: 4px; }
 .check-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .check-list li { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; line-height: 1.45; min-width: 0; }
 .check-list .dot { flex: none; width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; }
@@ -603,6 +627,8 @@ textarea.autotext { resize: none; overflow: hidden; line-height: 1.5; min-height
 .shot-field { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .shot-field > span { font-size: 11px; font-weight: 600; color: var(--text-3); letter-spacing: 0.02em; }
 .shot-field.onscreen .autotext { font-size: 14px; font-weight: 600; color: var(--text-strong); }
+.shot-field.say > span { display: inline-flex; align-items: center; gap: 4px; }
+.shot-field.say .autotext { font-weight: 500; }
 .shot-field:not(.onscreen) .autotext { font-size: 12.5px; color: var(--text-2); }
 .shot-card:focus-within { border-color: var(--border-strong); }
 .shot-card-head { display: flex; align-items: center; gap: 8px; }
@@ -990,6 +1016,26 @@ textarea.autotext { resize: none; overflow: hidden; line-height: 1.5; min-height
 .xrow-label { font-size: 12.5px; color: var(--text-2); }
 .xrow.top .xrow-label { padding-top: 6px; }
 .xrow .samples { margin: 0; }
+/* Settings → About: the third-party software, a folded list per group */
+.oss { margin-top: 18px; }
+.oss h4 { margin: 0 0 4px; font-size: 13px; }
+.oss-group { border-top: 1px solid var(--border-soft); padding: 8px 0; }
+.oss-group summary { cursor: pointer; font-size: 12.5px; }
+.oss-group ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; max-height: 260px; overflow-y: auto; }
+.oss-group li { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; min-width: 0; }
+.oss-group li .link { flex: none; font-size: 11.5px; }
+/* A speech model's download: its button, or a bar with MB and time left */
+.voice-dl { display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
+.voice-dl .bar { width: 100%; }
+.voice-dl > button { align-self: flex-start; }
+.voice-model { gap: 16px; }
+.voice-model > div:first-child { flex: 1; min-width: 0; }
+.voice-model > :last-child { flex: none; }
+.voice-model .voice-dl { align-items: flex-end; }
+.voice-model .voice-dl > button { align-self: flex-end; }
+/* A note under a row (the voice-over's state), aligned with the values */
+.xrow-note { margin: -8px 0 0; font-size: 12px; color: var(--text-2); }
+.voice-busy { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
 .path { display: flex; gap: 4px; align-items: center; min-width: 0; }
 .path input { flex: 1; min-width: 0; color: var(--text-2); cursor: pointer; }
 .path-col { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
@@ -1089,7 +1135,9 @@ textarea.autotext { resize: none; overflow: hidden; line-height: 1.5; min-height
 .poster-frame.wide img, .poster-frame.wide video { object-fit: contain; }
 .poster-frame video { opacity: 0; transition: opacity var(--dur) var(--ease); }
 .poster-frame video.on { opacity: 1; }
-.poster-tag { position: absolute; left: 8px; top: 8px; padding: 3px 8px; border-radius: 999px; background: rgb(0 0 0 / 0.55); backdrop-filter: blur(6px); color: #fff; font-size: 10.5px; font-weight: 600; }
+/* The style and, with a voice-over, its tag, at the poster's top left */
+.poster-tags { position: absolute; left: 8px; top: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 4px; pointer-events: none; }
+.poster-tag { display: inline-flex; align-items: center; gap: 3px; padding: 3px 8px; border-radius: 999px; background: rgb(0 0 0 / 0.55); backdrop-filter: blur(6px); color: #fff; font-size: 10.5px; font-weight: 600; }
 .poster-time { position: absolute; right: 8px; bottom: 8px; padding: 2px 6px; border-radius: 6px; background: rgb(0 0 0 / 0.55); color: #fff; font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .poster-media { position: relative; }
 .poster-use { position: absolute; left: 50%; bottom: 36px; transform: translate(-50%, 6px); white-space: nowrap; opacity: 0; min-height: 28px; padding: 0 12px; font-size: 11.5px; font-weight: 600; border: 0; border-radius: 999px;

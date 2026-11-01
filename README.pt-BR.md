@@ -31,7 +31,7 @@ Uma ideia vira texto, storyboard e um filme feito de cenas. Cada cena tem o seu 
 
 O Shotloop é um app de desktop para vídeos curtos desenhados com código: promoções de produto, divulgação científica, histórias com dados e animações em estilo de slides, em 2D (páginas web renderizadas quadro a quadro) ou 3D (cenas do Blender), em sete estilos visuais.
 
-Você começa com uma frase. A IA escolhe como mostrá-la (cena cinematográfica, infográfico, mapa, demonstração de interface, planta técnica, tipografia cinética ou 3D) e um tema, a menos que você escolha. Ela escreve o gancho, o roteiro e os fatos com as fontes, e depois divide tudo em um storyboard. Você edita o storyboard e a IA constrói cada cena. No editor, você olha cada cena e diz o que está errado com palavras simples, como "o texto está pequeno demais" ou "está muito parado: coloca um pouco de movimento". A IA altera aquela cena, renderiza, confere com as notas e mostra um antes/depois. Quando o filme estiver bom, Exportar junta as cenas e adiciona música; a IA cria uma capa no visual do filme (ou preenche o modelo da sua série) e escreve o post de cada plataforma, tudo em uma pasta própria.
+Você começa com uma frase. A IA escolhe como mostrá-la (cena cinematográfica, infográfico, mapa, demonstração de interface, planta técnica, tipografia cinética ou 3D) e um tema, a menos que você escolha. Ela escreve o gancho, o roteiro e os fatos com as fontes, e depois divide tudo em um storyboard, com a fala que a narração diz sobre cada cena. Você edita o storyboard e a IA constrói cada cena. No editor, você olha cada cena e diz o que está errado com palavras simples, como "o texto está pequeno demais" ou "está muito parado: coloca um pouco de movimento". A IA altera aquela cena, renderiza, confere com as notas e mostra um antes/depois. Quando o filme estiver bom, Exportar junta as cenas e coloca a narração com as legendas e a música por baixo; a IA cria uma capa no visual do filme (ou preenche o modelo da sua série) e escreve o post de cada plataforma, tudo em uma pasta própria.
 
 A IA é a que você já usa: Claude Code ou outro agente de código em que você está logado, uma API de modelos com a sua própria chave, ou um modelo local.
 
@@ -112,7 +112,7 @@ flowchart LR
   B --> C[Construir cada cena]
   C --> D{Revisar uma cena}
   D -- "diga o que está errado" --> E[A IA corrige a cena] --> F[Renderizar + verificar] --> D
-  D -- está bom --> G[Exportar: juntar, música, texto de publicação]
+  D -- está bom --> G[Exportar: juntar, narração, música, texto de publicação]
 ```
 
 - **Cenas, não um render longo.** Um filme é uma lista de cenas. Cada cena é um pequeno programa: `shot.js` para uma página 2D, `shot.py` para um movimento de câmera no Blender. Cada uma fica em cache pelo hash das suas entradas, então uma correção renderiza de novo uma cena em segundos (2D) ou em um minuto (3D), e Exportar só junta os clipes.
@@ -121,7 +121,8 @@ flowchart LR
 - **Regras para avaliar um plano.** Antes de construir qualquer coisa, as legendas são verificadas quanto ao tamanho e ao tempo que ficam na tela. Uma imagem que se repete entre cenas é desenhada uma vez e compartilhada, para ficar igual em todas.
 - **Fatos com fontes.** O texto guarda cada fato ao lado da fonte, e o texto de publicação só pode usar fatos do texto.
 - **Capas.** A IA cria uma capa no visual do filme e confere os próprios renders. Salve uma como modelo para manter uma série consistente, ou envie uma capa de que você gosta e a IA segue o design dela.
-- **Música no ritmo da edição.** A trilha sintetizada é ajustada para que os cortes caiam nas batidas, vai até o último quadro e termina em fade-out.
+- **Uma narração, gerada no seu Mac.** Cada cena tem uma fala, e a voz conduz a edição: uma cena dura o tempo da sua fala, e a imagem cai sobre as palavras. O Kokoro fala inglês e chinês, o Supertonic os outros idiomas, tudo offline. As legendas do que é falado são adicionadas automaticamente, e uma verificação lista tudo o que elas cobririam (texto e o objeto marcado), então um filme coberto nunca é exportado. Desative para um filme só com textos na tela.
+- **Música no ritmo da edição.** A trilha sintetizada é ajustada para que os cortes caiam nas batidas, vai até o último quadro e termina em fade-out. Sob uma narração, ela fica mais baixa e abaixa ainda mais enquanto uma fala é dita.
 - **Rápido para editar, qualidade máxima na exportação.** O 3D mostra prévias rápidas enquanto você edita e renderiza quadros em qualidade máxima só na exportação. O 2D trabalha em qualidade máxima o tempo todo.
 - **Biblioteca 3D.** Busque modelos CC0 no [Poly Pizza](https://poly.pizza) e no [Smithsonian Open Access](https://www.si.edu/openaccess) com a sua própria chave. Cada modelo é baixado uma vez e pode ser adicionado a qualquer projeto 3D.
 
@@ -143,7 +144,7 @@ O modelo precisa de chamada de ferramentas, e as verificações precisam de um q
 
 > **Primeira abertura:** o Shotloop ainda não é notarizado pela Apple, então o macOS diz que não consegue verificar o desenvolvedor. Abra uma vez em **Ajustes do Sistema → Privacidade e Segurança → Abrir Mesmo Assim**, ou rode `xattr -dr com.apple.quarantine /Applications/Shotloop.app` no Terminal. Depois disso ele abre normalmente, e as atualizações são instaladas sem perguntar de novo.
 
-Node.js e ffmpeg vêm dentro do app. O Shotloop busca atualizações no GitHub e as instala no lugar. Funciona em Macs com Apple silicon (M1 ou posterior).
+Node.js, ffmpeg e os motores de voz da narração vêm dentro do app. Os modelos de voz não: cada um é baixado na primeira vez que um filme fala os seus idiomas (Kokoro inglês 132 MB, Kokoro chinês 147 MB, Supertonic para os outros idiomas 400 MB), com uma barra de progresso, ou com antecedência em Configurações → Dependências. Configurações → Sobre lista cada componente de terceiros com a sua licença. O Shotloop busca atualizações no GitHub e as instala no lugar. Funciona em Macs com Apple silicon (M1 ou posterior).
 
 ## Compilar a partir do código-fonte
 
@@ -169,6 +170,9 @@ pnpm shotloop new      my-short --idea "Por que a bateria do celular envelhece?"
 pnpm shotloop new      coffee --idea "De onde vem o café?" --track 2d --style map --duration 30
 pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # em uma pasta nova ali
 pnpm shotloop covers   list                                         # modelos de capa
+pnpm shotloop voice    my-short --on --voice af_heart --fit        # a narração: fala as falas e ajusta as cenas
+pnpm shotloop check-subtitles my-short                              # o que as legendas cobririam (falha se cobrirem algo)
+pnpm shotloop voice-models --download kokoro-en                     # um modelo de voz, com antecedência
 pnpm shotloop doctor
 ```
 
@@ -187,19 +191,20 @@ pnpm test                                                             # cada bac
 
 ```
 my-video/
-  shotloop.json        título, track (2d|3d), estilo, tamanho, fps, cenas [{ id, title, duration }]
+  shotloop.json        título, track (2d|3d), estilo, tamanho, fps, lang, voice { on, voice, speed },
+                       cenas [{ id, title, duration, say (a fala dita), cues (os tempos das suas frases) }]
   storyboard.json      o plano: texto (gancho, roteiro, fatos com fontes) e cenas
   world/               3D: world.py (+ screen.html); 2D: page.html (o kit do estilo), parts.js (imagens
                        que se repetem, desenhadas uma vez), geo.data.js (os países do estilo mapa)
   shots/<id>/          shot.py | shot.js, notes.md (o que deve mostrar, texto na tela, movimento)
   assets/<id>/         modelos 3D da biblioteca
   copy.md  script.md  captions.html  music.json  thumb.html  publish.json
-  .shotloop/           cache: por cena e hash das entradas, tomadas, verificações, correções
+  .shotloop/           cache: por cena e hash das entradas, tomadas, verificações, correções; voice/: falas, legendas
   out/                 as exportações do motor (com data e hora); o app copia cada uma para uma pasta nova onde você escolher
 ```
 
 - **3D**: `world.py` constrói o mundo compartilhado com `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` roda no namespace do mundo e cria uma câmera; `at(t)` converte os segundos locais da cena em tempo do filme.
-- **2D**: `shot.js` exporta por padrão `render(t, ctx)`, que desenha `world/page.html` no tempo local da cena `t`.
+- **2D**: `shot.js` exporta por padrão `render(t, ctx)`, que desenha `world/page.html` no tempo local da cena `t`. `ctx.voice` traz as frases faladas da cena com os seus tempos, para que a imagem caia sobre as palavras; marque o objeto com `data-keep` (ou `subtitles.keep()` em um canvas) para que a verificação de legendas o deixe livre.
 - **Cache**: a chave de uma cena é um hash do mundo, do código dela, das legendas, dos assets, do renderizador e das configurações. Cenas sem mudança são reaproveitadas.
 
 </details>
@@ -210,7 +215,8 @@ my-video/
 | Caminho | O que é |
 | --- | --- |
 | [`app/`](app/) | O app de desktop: um shell Tauri 2 (Rust) com a fila de renderização, o atualizador e a supervisão de processos, e a interface em React + TypeScript. |
-| [`engine/shotloop/`](engine/shotloop/) | O motor de cenas: formato de projeto, cache de renderização por cena, renders 2D (Chrome) e 3D (Blender), montagem do filme, exportação para MP4, música, biblioteca 3D. Uma CLI que o app chama. |
+| [`engine/shotloop/`](engine/shotloop/) | O motor de cenas: formato de projeto, cache de renderização por cena, renders 2D (Chrome) e 3D (Blender), montagem do filme, exportação para MP4, tempo da narração, legendas e a sua verificação, música, biblioteca 3D. Uma CLI que o app chama. |
+| [`voice/`](voice/) | A conversão de texto em fala da narração, neste Mac: Kokoro via sherpa-onnx e Supertonic sobre ONNX Runtime, com os downloads dos modelos. |
 | [`agent/`](agent/) | O agente: planejamento, construção, correções em linguagem simples, verificações pela checklist, texto de publicação. Suporta API, CLI (via MCP) e modelos locais. |
 | [`examples/`](examples/) | Os exemplos oferecidos no Início, em inglês: pelo menos um para cada estilo visual (2D e 3D, 9:16 e 16:9). |
 | [`fixtures/`](fixtures/) | Projetos para os testes e os passo a passos no terminal. |
@@ -219,4 +225,4 @@ my-video/
 
 ## Licença
 
-[Apache License 2.0](LICENSE); veja [NOTICE](NOTICE). Os modelos da biblioteca 3D mantêm as próprias licenças (CC0 ou CC-BY, com o crédito escrito no projeto).
+[Apache License 2.0](LICENSE); veja [NOTICE](NOTICE). Os modelos da biblioteca 3D mantêm as próprias licenças (CC0 ou CC-BY, com o crédito escrito no projeto), assim como os modelos de voz (Kokoro: Apache-2.0; Supertonic: OpenRAIL-M).

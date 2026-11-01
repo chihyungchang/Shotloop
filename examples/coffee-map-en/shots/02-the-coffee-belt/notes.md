@@ -4,6 +4,10 @@
 
 The globe unrolls into the flat world map. Two dashed lines draw on, labelled Tropic of Cancer and Tropic of Capricorn; the band between them fills with a soft gold glow. Then the growing countries light leaf green one by one from the Americas to Africa to Asia, while a small counter beside the band ticks up to 40+.
 
+## Voice-over
+
+It grows in more than 40 nations, mostly in a band around the equator: the coffee belt.
+
 ## On screen
 
 Grown in 40+ countries between the tropics
@@ -15,3 +19,4 @@ Globe-to-flat morph; tropic lines draw left to right; band fades in; country fil
 ## Review history
 - 2026-10-31: planned in the storyboard.
 - 2026-10-31: facts updated to verified 2026 sources (ICO Aug 2026, USDA FAS Jul 2026, NCA aboutcoffee.org).
+- 2026-11-01: voice-over added; timed to the line, subtitle band kept clear.

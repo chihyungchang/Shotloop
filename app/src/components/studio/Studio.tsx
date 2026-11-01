@@ -42,6 +42,9 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   // Asked for the whole film while shots were still out of date
   const [wantFilm, setWantFilm] = useState(false)
   const [filmError, setFilmError] = useState<string | null>(null)
+  // Joining the film (with its voice-over and subtitles) takes a moment the
+  // first time: the button says so meanwhile
+  const [joining, setJoining] = useState(false)
   const [menu, setMenu] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
 
@@ -72,10 +75,13 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   const playNow = async () => {
     setAsk(false)
     setFilmError(null)
+    setJoining(true)
     try {
       setFilm(await api.filmPreview(project.root, mode))
     } catch (e) {
       setFilmError(/not rendered/.test(String(e)) ? t('film.failed') : String(e))
+    } finally {
+      setJoining(false)
     }
   }
   const updateThenPlay = () => {
@@ -122,8 +128,8 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
           </span>
         )}
         {filmError && <span className="small error ellipsis" title={filmError}>{filmError}</span>}
-        <button onClick={openFilm} disabled={wantFilm}>
-          {wantFilm ? <span className="spinner small" /> : <Icon name="play" size={14} />} {t(wantFilm ? 'film.rendering' : 'film.watch')}
+        <button onClick={openFilm} disabled={wantFilm || joining}>
+          {wantFilm || joining ? <span className="spinner small" /> : <Icon name="play" size={14} />} {t(wantFilm ? 'film.rendering' : joining ? 'film.joining' : 'film.watch')}
         </button>
         {project.track === '3d' && (
           <button className={drawer === 'assets' ? 'on' : ''} onClick={() => toggle('assets')}>
@@ -156,7 +162,8 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
           ? <Stage key={`stage-${shot.id}`} project={project} shot={shot} view={view} mode={mode} refresh={refresh} />
           : <div className="stage empty">{t('studio.noShots')}</div>}
         <Filmstrip project={project} views={views} mode={mode} selected={selected} onSelect={setSelected} />
-        {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} />}
+        {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} editPlan={() => void openPlan()}
+          busy={active.some(j => j.project === project.root && j.shot === shot.id)} />}
       </section>
 
       {ask && (

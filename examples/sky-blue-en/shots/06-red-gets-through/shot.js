@@ -5,12 +5,14 @@
 // Shot-local time: t = 0 is this shot's first frame.
 import { sunBeam, airMolecules, scatter, earthSection, earthGeometry, STRANDS } from '../../world/parts.js'
 
-const DUR = 4.5
+const DUR = 5.6
 const AIR = '79, 209, 197'
-// Beats
-const DRAW_A = 0.25, DRAW_D = 2.1 // strands travel from the split to the eye
-const PEEL = [0.85, 1.35, 1.85] // blue, green, yellow peel off
-const PEEL_D = 0.75
+// Beats, timed to the voice: the blue peels off on '...the blue is scattered away',
+// orange and red reach the eye on 'What reaches you'
+const DRAW_A = 0.3, DRAW_D = 3.2 // strands travel from the split to the eye
+const PEEL = [1.6, 2.15, 2.7] // blue, green, yellow peel off
+const PEEL_D = 0.8
+const LAG = 0.75 // scatter events and the red disc follow the peel
 const ARRIVE = DRAW_A + DRAW_D + 0.1
 
 export default function render(t, { window }) {
@@ -26,7 +28,7 @@ export default function render(t, { window }) {
   const eye = g0.eye
   // Capped so the red strands still read against the warm air
   const dusk = 0.6 * ease(clamp((t - ARRIVE + 0.3) / 1.4))
-  const warm = lerp(0.7, 1, ease(clamp((t - 1.2) / 2.6)))
+  const warm = lerp(0.7, 1, ease(clamp((t - 1.6) / 3.2)))
 
   // The sky warming to sunset behind everything
   kit.depth(0.7, () => {
@@ -58,7 +60,7 @@ export default function render(t, { window }) {
     x1: eye[0] + 8, y1: eye[1] - gap * 2 + 2, gap, p: 1, split, peel, labels: 0, flow: 0.6, scale: 0.7 })
 
   // The Sun's hot core deepening to a red disc on the horizon
-  const red = ease(clamp((t - 1.6) / 2.2))
+  const red = ease(clamp((t - 2.2) / 2.4))
   const sr = 30 * (1 + 0.25 * warm), [sx, sy] = g0.sunsetSun
   kit.disc(sx, sy, sr, kit.radial(sx - sr * 0.15, sy - sr * 0.15, 0, sr, [[0, 'rgba(255, 150, 90, ' + 0.75 * red + ')'], [0.6, 'rgba(240, 70, 40, ' + 0.85 * red + ')'], [1, 'rgba(190, 30, 30, ' + 0.9 * red + ')']]))
 
@@ -71,7 +73,7 @@ export default function render(t, { window }) {
   if (hits.length) {
     events.forEach(([a, s], k) => {
       const q = hits[(k * 3) % hits.length]
-      scatter(kit, { x: q.wx, y: q.wy, p: (t - a) / 0.75, n: 5, seed: 40 + k, len: 80, rgb: STRANDS[s].rgb, angle: -Math.PI / 2, spread: Math.PI * 1.6, scale: 0.8 })
+      scatter(kit, { x: q.wx, y: q.wy, p: (t - a - LAG) / 0.75, n: 5, seed: 40 + k, len: 80, rgb: STRANDS[s].rgb, angle: -Math.PI / 2, spread: Math.PI * 1.6, scale: 0.8 })
     })
   }
 

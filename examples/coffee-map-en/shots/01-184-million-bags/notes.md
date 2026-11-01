@@ -4,6 +4,10 @@
 
 The whole globe, dark navy oceans and slate land, turning slowly. Small coffee-bean pins pop up one after another around the equator while a big gold rolling counter at the top climbs to ≈184 million and lands with a bounce, the unit 'bags / year' beneath it.
 
+## Voice-over
+
+About 184 million bags of coffee are grown in a year. So where does it all come from?
+
 ## On screen
 
 ≈184 million bags a year. From where?
@@ -15,3 +19,4 @@ Globe rotates; bean pins pop in with a small bounce in a ripple along the equato
 ## Review history
 - 2026-10-31: planned in the storyboard.
 - 2026-10-31: facts updated to verified 2026 sources (ICO Aug 2026, USDA FAS Jul 2026, NCA aboutcoffee.org).
+- 2026-11-01: voice-over added; timed to the line, subtitle band kept clear.

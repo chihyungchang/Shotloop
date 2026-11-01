@@ -4,6 +4,10 @@
   "description": "1.01 and 0.99 to the 365th power: compounding explained in charts.",
   "slug": "one-percent-en",
   "lang": "en",
+  "voice": {
+    "on": true,
+    "voice": "af_heart"
+  },
   "track": "2d",
   "style": "infographic",
   "fps": 30,
@@ -12,12 +16,102 @@
     "height": 1080
   },
   "shots": [
-    { "id": "01-hook", "title": "1.01 vs 0.99: the question", "duration": 4.5 },
-    { "id": "02-up", "title": "1.01 to the 365th: the curve climbs to 37.78", "duration": 5 },
-    { "id": "03-down", "title": "0.99 to the 365th: the curve sinks to 0.026", "duration": 4.5 },
-    { "id": "04-gap", "title": "Both on a log scale: about 1,480 times apart", "duration": 5 },
-    { "id": "05-habits", "title": "The caveat: a year of small habits", "duration": 4.5 },
-    { "id": "06-end", "title": "End card", "duration": 2.5 }
+    {
+      "id": "01-hook",
+      "title": "1.01 vs 0.99: the question",
+      "duration": 5.9,
+      "say": "1% a day sounds tiny. But what happens if you keep it up, or let it slip, for a whole year?",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 2.1
+        },
+        {
+          "at": 2.35,
+          "end": 5.36
+        }
+      ]
+    },
+    {
+      "id": "02-up",
+      "title": "1.01 to the 365th: the curve climbs to 37.78",
+      "duration": 8.2,
+      "say": "Multiply by 1.01 every day. You have doubled by day 70, and after a year you are at about 37.78.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 2.68
+        },
+        {
+          "at": 2.93,
+          "end": 7.7
+        }
+      ]
+    },
+    {
+      "id": "03-down",
+      "title": "0.99 to the 365th: the curve sinks to 0.026",
+      "duration": 8.1,
+      "say": "Now take 0.99 every day. Half is gone by day 69, and a year later only about 2.6% is left.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 2.34
+        },
+        {
+          "at": 2.59,
+          "end": 7.63
+        }
+      ]
+    },
+    {
+      "id": "04-gap",
+      "title": "Both on a log scale: about 1,480 times apart",
+      "duration": 7,
+      "say": "On a log scale, both become straight lines. After a year, one is about 1,481 times the other.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 2.48
+        },
+        {
+          "at": 2.73,
+          "end": 6.51
+        }
+      ]
+    },
+    {
+      "id": "05-habits",
+      "title": "The caveat: a year of small habits",
+      "duration": 7.6,
+      "say": "Of course, nobody improves by exactly 1% a day. What really compounds is a small habit, kept up day after day.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 3.41
+        },
+        {
+          "at": 3.66,
+          "end": 7.09
+        }
+      ]
+    },
+    {
+      "id": "06-end",
+      "title": "End card",
+      "duration": 3.6,
+      "say": "So don't wait for one big day. Show up every day.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 1.71
+        },
+        {
+          "at": 1.96,
+          "end": 3.07
+        }
+      ]
+    }
   ],
   "captions": null,
   "music": "music.json",

@@ -44,6 +44,10 @@ export function Filmstrip({ project, views, mode, selected, onSelect }: {
                 {v.failedChecks.length > 0 && (
                   <span className="frame-flag" title={t('film.failedChecks', { rules: v.failedChecks.join(', ') })}>{v.failedChecks.length}</span>
                 )}
+                {/* The subtitles would cover something: fixed when the person chooses */}
+                {(shot.subtitles?.issues.length ?? 0) > 0 && (
+                  <span className={`frame-flag sub${v.failedChecks.length ? ' second' : ''}`} title={t('subs.flag', { n: shot.subtitles!.issues.length })}>{t('subs.short')}</span>
+                )}
                 {v.state === 'rendering' && p && p.total > 0 && (
                   <div className="frame-bar"><i style={{ width: `${(p.done / p.total) * 100}%` }} /></div>
                 )}

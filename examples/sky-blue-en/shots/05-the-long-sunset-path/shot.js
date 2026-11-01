@@ -8,17 +8,22 @@ const DUR = 5.5
 const AIR = '79, 209, 197'
 const NOON = '200, 245, 255', WARM = '255, 175, 100'
 // Beats
-const NOON_A = 0.25, NOON_D = 0.75
-const SUN_A = 1.15, SUN_D = 1.5
-const SET_A = 2.35, SET_D = 2.2
+// (fallbacks; the voice re-times SUN and SET: the Sun sinks on 'the Sun is low',
+// the count lands on 'about 38 times')
+const NOON_A = 0.15, NOON_D = 0.55
+const SUN_A0 = 0.6, SUN_D0 = 1.3
+const SET_A0 = 1.9, SET_D0 = 1.9
 
-export default function render(t, { window }) {
+export default function render(t, { window, voice = [] }) {
   const kit = window.kit
   const { c, clamp, lerp, ease, rise, pop, halo, C } = kit
+  const v = voice[0], at = f => v.at + f * (v.end - v.at)
+  const SUN_A = v ? at(0.1) : SUN_A0, SUN_D = v ? at(0.36) - SUN_A : SUN_D0
+  const SET_A = v ? at(0.36) : SET_A0, SET_D = v ? at(0.75) - SET_A : SET_D0
 
   // Camera: framed on the noon column, then drifting right along the long path
   const m = ease(clamp(t / DUR))
-  kit.stage(t, { camera: { x: lerp(370, 452, m), y: lerp(690, 742, m), zoom: lerp(1.1, 1.25, m) }, drift: t * 8 })
+  kit.stage(t, { camera: { x: lerp(370, 452, m), y: lerp(735, 800, m), zoom: lerp(1.1, 1.25, m) }, drift: t * 8 })
 
   const sun = ease(clamp((t - SUN_A) / SUN_D))
   const noon = ease(clamp((t - NOON_A) / NOON_D))

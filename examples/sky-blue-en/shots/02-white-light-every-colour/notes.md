@@ -4,6 +4,10 @@
 
 The sunlight beam (recurring): a white beam leaves the blooming Sun at upper left and travels across space; midway it fans apart into its colour strands — blue on top, then green, yellow, orange, red at the bottom — each a glowing wave line, blue waves visibly short and tight, red waves long and lazy. Small labels at the strand ends: '≈470 nm' on blue, '≈700 nm' on red.
 
+## Voice-over
+
+Sunlight looks white, but every colour is in it, from short blue waves to long red ones.
+
 ## On screen
 
 Sunlight carries every colour
@@ -14,3 +18,4 @@ Beam pulse travels left to right; at the midpoint it splits into strands that ri
 
 ## Review history
 - 2026-10-31: planned in the storyboard.
+- 2026-11-01: voice-over added; timed to the line, subtitle band kept clear.

@@ -31,7 +31,7 @@
 
 Shotloop 是一个桌面应用，用代码"画"短视频，适合做产品宣传、科普视频、数据可视化和 PPT 式动画。有两种做法：2D 是逐帧渲染的网页，3D 是 Blender 场景；画面方式共有七种。
 
-你只需要写一句话。AI 会根据题目选择画面方式（电影感场景、信息图、地图、界面演示、剖面图纸、动态排版或 3D）和主题色，你也可以自己选。接着它写好开头钩子、文案和带来源的事实，再拆成分镜。你改好分镜后，AI 生成每个镜头。在工作室里逐个看镜头，有问题就用大白话说出来，比如"字太小了""太静了，加点动效"。AI 只改这一个镜头，渲染后对照说明检查，再给你看改动前后的对比。整片满意后点导出：镜头拼接成片，配上音乐；AI 按视频的风格设计封面（也可以套用你的系列模版），并为各个平台写好发布文案，全部放进一个单独的文件夹。
+你只需要写一句话。AI 会根据题目选择画面方式（电影感场景、信息图、地图、界面演示、剖面图纸、动态排版或 3D）和主题色，你也可以自己选。接着它写好开头钩子、文案和带来源的事实，再拆成分镜，并写好每个镜头的配音台词。你改好分镜后，AI 生成每个镜头。在工作室里逐个看镜头，有问题就用大白话说出来，比如"字太小了""太静了，加点动效"。AI 只改这一个镜头，渲染后对照说明检查，再给你看改动前后的对比。整片满意后点导出：镜头拼接成片，铺上配音和字幕，下面垫上音乐；AI 按视频的风格设计封面（也可以套用你的系列模版），并为各个平台写好发布文案，全部放进一个单独的文件夹。
 
 驱动它的 AI 就用你已有的：已登录的 Claude Code 等命令行工具、自带 key 的模型 API，或者本地模型。
 
@@ -112,7 +112,7 @@ flowchart LR
   B --> C[生成每个镜头]
   C --> D{检查镜头}
   D -- "说出哪里不对" --> E[AI 修改这个镜头] --> F[渲染并检查] --> D
-  D -- 满意 --> G[导出：拼接、配乐、发布文案]
+  D -- 满意 --> G[导出：拼接、配音、配乐、发布文案]
 ```
 
 - **按镜头做，不是一次渲染整片。** 一部片子由多个镜头组成，每个镜头都是一小段程序：2D 是 `shot.js`，3D 是 Blender 里的 `shot.py` 运镜。每个镜头按输入内容缓存，修一个镜头只需几秒（2D）到一分钟（3D），导出时只是把片段拼起来。
@@ -121,7 +121,8 @@ flowchart LR
 - **策划会按规则检查。** 生成之前，先检查每句字幕的长度和停留时间。在多个镜头里反复出现的画面只画一次、各镜头共用，保证每次长得一样。
 - **事实都有来源。** 文案里每条事实都附带来源，发布文案也只能使用文案里的事实。
 - **封面。** AI 按视频的风格设计封面，并自己检查渲染效果。可以存为模版让同一系列统一，也可以上传一张喜欢的封面，让 AI 照它的版式设计。
-- **配乐贴合剪辑。** 合成的配乐会调整节拍，让剪切点落在拍子上；音乐一直响到最后一帧，再平滑淡出。
+- **配音，在你的 Mac 上配音。** 每个镜头有一句台词，由配音带动剪辑：镜头长度跟着台词走，画面落在说到的词上。英文和中文用 Kokoro，其他语言用 Supertonic，全部离线运行。字幕按说出的话自动生成，并会检查列出字幕会遮住的内容（文字和标记的主体），被遮住的片子不会导出。只想要字幕卡的片子可以关掉配音。
+- **配乐贴合剪辑。** 合成的配乐会调整节拍，让剪切点落在拍子上；音乐一直响到最后一帧，再平滑淡出。有配音时音乐会压低，说话时再让一让。
 - **编辑时快，导出时好。** 3D 编辑时用快速预览，导出时才按完整画质渲染；2D 全程都是高清。
 - **3D 素材库。** 用你自己的 key 在 [Poly Pizza](https://poly.pizza) 和 [Smithsonian 开放资源](https://www.si.edu/openaccess)中搜索免费模型。每个模型只下载一次，任何 3D 项目都能用。
 
@@ -143,7 +144,7 @@ flowchart LR
 
 > **第一次打开**：Shotloop 还没有经过 Apple 公证，macOS 会提示"无法验证开发者"。请在 **系统设置 → 隐私与安全性 → 仍要打开** 里打开一次，或者在终端运行 `xattr -dr com.apple.quarantine /Applications/Shotloop.app`。之后就能正常打开，自动更新也不会再弹这个提示。
 
-Node.js 和 ffmpeg 已经内置在应用里。Shotloop 会自动从 GitHub 检查并安装更新。支持 Apple 芯片（M1 及以后）的 Mac。
+Node.js、ffmpeg 和配音的语音引擎已经内置在应用里。语音模型不在其中：某种语言的片子第一次配音时才下载（Kokoro 英文 132 MB、Kokoro 中文 147 MB、用于其他语言的 Supertonic 400 MB），会显示进度条；也可以提前在"设置 → 依赖"里下载。"设置 → 关于"列出了所有第三方组件及其许可证。Shotloop 会自动从 GitHub 检查并安装更新。支持 Apple 芯片（M1 及以后）的 Mac。
 
 ## 从源码运行
 
@@ -169,6 +170,9 @@ pnpm shotloop new      my-short --idea "手机电池为什么会老化？" --tra
 pnpm shotloop new      coffee --idea "咖啡从哪里来？" --track 2d --style map --duration 30
 pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # 导出到那里的新文件夹
 pnpm shotloop covers   list                                         # 封面模版
+pnpm shotloop voice    my-short --on --voice af_heart --fit        # 配音：念出台词，按台词调整镜头时长
+pnpm shotloop check-subtitles my-short                              # 字幕会遮住什么（有遮挡就失败）
+pnpm shotloop voice-models --download kokoro-en                     # 提前下载一个语音模型
 pnpm shotloop doctor
 ```
 
@@ -187,14 +191,15 @@ pnpm test                                                             # 用脚�
 
 ```
 my-video/
-  shotloop.json        标题、2d|3d、画面方式、尺寸、帧率、镜头列表 [{ id, title, duration }]
+  shotloop.json        标题、2d|3d、画面方式、尺寸、帧率、lang、voice { on, voice, speed }、
+                       镜头列表 [{ id, title, duration, say（配音台词）, cues（各句的时间）}]
   storyboard.json      策划：文案（钩子、文案、带来源的事实）和镜头
   world/               3D：world.py（+ screen.html）；2D：page.html（画面方式的工具包）、parts.js（反复出现的画面，
                        只画一次）、geo.data.js（地图方式的国家数据）
   shots/<id>/          shot.py | shot.js、notes.md（必须呈现、屏幕文字、动作）
   assets/<id>/         从素材库加入的 3D 模型
   copy.md  script.md  captions.html  music.json  thumb.html  publish.json
-  .shotloop/           缓存：按镜头和输入哈希保存的渲染、记录、检查、修改
+  .shotloop/           缓存：按镜头和输入哈希保存的渲染、记录、检查、修改；voice/：配音语音、字幕
   out/                 引擎的导出文件（带时间戳）；App 会把每次导出复制到你选的位置，新建一个文件夹
 ```
 
@@ -206,7 +211,8 @@ my-video/
 | 路径 | 内容 |
 | --- | --- |
 | [`app/`](app/) | 桌面应用：Tauri 2（Rust）外壳，负责渲染队列、自动更新和进程管理；React + TypeScript 界面。 |
-| [`engine/shotloop/`](engine/shotloop/) | 镜头引擎：项目格式、按镜头缓存、2D（Chrome）和 3D（Blender）渲染、成片拼接、MP4 导出、配乐、素材库。app 通过它的命令行调用。 |
+| [`engine/shotloop/`](engine/shotloop/) | 镜头引擎：项目格式、按镜头缓存、2D（Chrome）和 3D（Blender）渲染、成片拼接、MP4 导出、配音计时、字幕及其检查、配乐、素材库。app 通过它的命令行调用。 |
+| [`voice/`](voice/) | 配音的文字转语音，在本机运行：Kokoro（通过 sherpa-onnx）和 Supertonic（基于 ONNX Runtime），以及模型的下载。 |
 | [`agent/`](agent/) | AI 助手：策划、生成、按要求修改、按检查清单检查、发布文案。支持 API、命令行工具（通过 MCP）和本地模型。 |
 | [`examples/`](examples/) | 首页提供的示例，统一为英文，每种画面方式至少一个（2D 和 3D，竖屏和横屏）。 |
 | [`fixtures/`](fixtures/) | 测试和终端演示用的项目。 |
@@ -215,4 +221,4 @@ my-video/
 
 ## 许可证
 
-[Apache License 2.0](LICENSE)，另见 [NOTICE](NOTICE)。素材库里的模型保留各自的许可（CC0 或 CC-BY，署名会写进项目里）。
+[Apache License 2.0](LICENSE)，另见 [NOTICE](NOTICE)。素材库里的模型保留各自的许可（CC0 或 CC-BY，署名会写进项目里），语音模型也一样（Kokoro：Apache-2.0；Supertonic：OpenRAIL-M）。

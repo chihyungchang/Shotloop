@@ -4,9 +4,12 @@
 // Shot-local time: t = 0 is this shot's first frame.
 import { sunBeam } from '../../world/parts.js'
 
-export default function render(t, { window }) {
+export default function render(t, { window, voice = [] }) {
   const kit = window.kit
   const { clamp, ease, rise, C } = kit
+
+  // The nm labels land as the voice reaches 'short blue waves' (~59% of the line)
+  const v = voice[0], lbl = v ? v.at + 0.59 * (v.end - v.at) : 2.9
 
   // A slow push in, drifting along the beam
   kit.stage(t, { camera: { x: 360 + 6 * t, y: 640 + 4 * t, zoom: 1 + 0.02 * t }, drift: t * 14 })
@@ -16,10 +19,11 @@ export default function render(t, { window }) {
 
   sunBeam(kit, {
     t, x0: 130, y0: 470, sunR: 44, sun: 0.4 + 0.6 * rise(t, 0, 0.9),
-    splitX: 290, splitY: 625, x1: 598, y1: 680, gap: 104,
+    splitX: 290, splitY: 590, x1: 598, y1: 590, gap: 80,
     p: clamp((t - 0.1) / 1.1),
-    split: [0, 1, 2, 3, 4].map(i => ease(clamp((t - 1.3 - i * 0.08) / 1.2))),
-    labels: clamp((t - 2.4) / 0.8)
+    // The fan opens through '…every colour is in it, from short blue waves to long red ones'
+    split: [0, 1, 2, 3, 4].map(i => ease(clamp((t - 1.3 - i * 0.22) / 1.4))),
+    labels: clamp((t - lbl) / 0.9)
   })
 
   // Near motes drifting past the camera

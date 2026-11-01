@@ -2,7 +2,7 @@
 // Shot-local time: t = 0 is this shot's first frame.
 import { ENERGY, bolt } from '../../world/parts.js'
 
-const X0 = 40, ROW0 = 492, ROW_H = 118, BAR_H = 22, BAR_GAP = 8
+const X0 = 40, ROW0 = 468, ROW_H = 102, BAR_H = 18, BAR_GAP = 7 // last row ends above the subtitle band
 const BX = 560, BR = 34 // badge column
 const RACE0 = 0.35, RACE_STEP = 0.75, RACE_D = 0.8
 // Illustrative lengths (px): solar always longest
@@ -21,7 +21,7 @@ export default function render(t, { window, start }) {
   const F = FONT.replace(/"/g, '')
 
   // Caption: typed in by 0.5 s, then still to the end
-  kit.frame({ kicker: '05 / 06', head: ['*Biggest* growth of', 'any source,', '*4 years* running'], typed: rise(t, -0.1, 0.55), progress: (start + t) / 23.5 })
+  kit.frame({ kicker: '05 / 06', head: ['*Biggest* growth of', 'any source,', '*4 years* running'], typed: rise(t, -0.1, 0.55), progress: (start + t) / 31.1 })
 
   const glowAll = rise(t, END + 0.35, 0.4)
   let s = '<defs><linearGradient id="r-gold" x1="0" y1="0" x2="1" y2="0">' +
@@ -33,30 +33,30 @@ export default function render(t, { window, start }) {
   const grid = rise(t, 0, 0.5)
   for (let k = 0; k <= 4; k++) {
     const x = X0 + k * 110
-    s += '<line x1="' + x + '" x2="' + x + '" y1="' + (ROW0 - 30) + '" y2="' + (ROW0 + 3 * ROW_H + 104) + '" stroke="' + C.line + '" stroke-width="1" stroke-dasharray="2 6" opacity="' + f(0.8 * grid) + '"/>'
+    s += '<line x1="' + x + '" x2="' + x + '" y1="' + (ROW0 - 30) + '" y2="' + (ROW0 + 3 * ROW_H + 90) + '" stroke="' + C.line + '" stroke-width="1" stroke-dasharray="2 6" opacity="' + f(0.8 * grid) + '"/>'
   }
 
   // Chart label and legend
   s += '<g font-family="' + F + '" opacity="' + f(rise(t, -0.3, 0.5)) + '">' +
-    '<text x="40" y="414" font-size="18" font-weight="600" letter-spacing="2.4" fill="' + C.muted + '">GROWTH IN GENERATION</text>'
+    '<text x="40" y="396" font-size="18" font-weight="600" letter-spacing="2.4" fill="' + C.muted + '">GROWTH IN GENERATION</text>'
   const legend = [['Solar', ENERGY.solar], ['Wind', ENERGY.clean], ['Others', ENERGY.other]]
   legend.forEach(([name, col], i) => {
     const lx = 40 + i * 120
-    s += '<rect x="' + lx + '" y="432" width="14" height="14" rx="3" fill="' + col + '"/>' +
-      '<text x="' + (lx + 22) + '" y="446" font-size="17" font-weight="600" fill="' + C.muted + '">' + name + '</text>'
+    s += '<rect x="' + lx + '" y="412" width="14" height="14" rx="3" fill="' + col + '"/>' +
+      '<text x="' + (lx + 22) + '" y="426" font-size="17" font-weight="600" fill="' + C.muted + '">' + name + '</text>'
   })
   s += '</g>'
 
   // Active-row highlight sliding from row to row
   const slide = k => ease((t - (RACE0 + k * RACE_STEP - 0.2)) / 0.2)
-  const hy = ROW0 - 40 + ROW_H * (slide(1) + slide(2) + slide(3))
+  const hy = ROW0 - 28 + ROW_H * (slide(1) + slide(2) + slide(3))
   const hOn = rise(t, RACE0 - 0.2, 0.3) * (1 - rise(t, END + 0.1, 0.4))
-  s += '<rect x="30" y="' + f(hy) + '" width="590" height="' + (ROW_H - 4) + '" rx="16" fill="' + C.panel + '" opacity="' + f(hOn) + '"/>'
+  s += '<rect x="30" y="' + f(hy) + '" width="590" height="' + (ROW_H + 4) + '" rx="16" fill="' + C.panel + '" opacity="' + f(hOn) + '"/>'
 
   // Gold thread joining the badges at the end
   const thread = rise(t, END + 0.1, 0.5)
   if (thread > 0) {
-    const y1 = ROW0 + 50, y2 = ROW0 + 3 * ROW_H + 50
+    const y1 = ROW0 + 46, y2 = ROW0 + 3 * ROW_H + 46
     s += '<line x1="' + BX + '" x2="' + BX + '" y1="' + y1 + '" y2="' + f(y1 + (y2 - y1) * thread) + '" stroke="' + ENERGY.solar + '" stroke-width="4" stroke-opacity="0.6" stroke-linecap="round"/>'
   }
 
@@ -96,7 +96,7 @@ export default function render(t, { window, start }) {
     const st = pop(t, a + RACE_D - 0.05, 0.4)
     if (st > 0) {
       const sc = 1 + (1 - clamp(st)) * 0.9
-      const by = y + 50 + float(t, 2, 2.2, i * 0.3) * glowAll
+      const by = y + 46 + float(t, 2, 2.2, i * 0.3) * glowAll
       const flash = hold(t, a + RACE_D, a + RACE_D + 0.45, 0.2)
       const halo = Math.max(flash, glowAll * (0.75 + 0.25 * Math.sin(t * 6)))
       s += '<g transform="translate(' + BX + ' ' + f(by) + ')">' +
@@ -111,16 +111,15 @@ export default function render(t, { window, start }) {
   // '4 years running' tag beside the legend, over the badge column
   const tag = pop(t, END + 0.25, 0.45)
   if (tag > 0) {
-    const ty = 439
+    const ty = 419
     s += '<g transform="translate(' + BX + ' ' + ty + ') scale(' + f(0.7 + 0.3 * tag) + ')" opacity="' + f(clamp(tag * 1.5)) + '">' +
       '<rect x="-166" y="-22" width="222" height="44" rx="22" fill="' + ENERGY.solar + '" fill-opacity="0.14" stroke="' + ENERGY.solar + '" stroke-width="2"/>' +
       '<text x="-55" y="7" text-anchor="middle" font-family="' + F + '" font-size="18" font-weight="800" letter-spacing="1.6" fill="' + ENERGY.solar + '">4 YEARS RUNNING</text></g>'
   }
 
   // Source line under the picture
-  s += '<g font-family="' + F + '" font-size="15" fill="' + C.muted + '" opacity="' + f(0.85 * rise(t, 0.5)) + '">' +
-    '<text x="40" y="988">Source: Ember, Global Electricity Review 2026</text>' +
-    '<text x="40" y="1010">Bar lengths illustrative; solar grew most each year</text></g>'
+  s += '<text x="40" y="1022" font-family="' + F + '" font-size="13" fill="' + C.muted + '" opacity="' + f(0.85 * rise(t, 0.5)) + '">' +
+    'Source: Ember, Global Electricity Review 2026 · bar lengths illustrative</text>'
 
   kit.stage(s)
 }

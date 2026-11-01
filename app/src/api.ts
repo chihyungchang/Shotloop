@@ -66,6 +66,12 @@ export interface Shot {
   duration: number
   code: string
   notes: string
+  // The voice-over's line, and its sentences timed in the shot
+  say?: string | null
+  cues?: { text: string; at: number; end: number }[]
+  // The last subtitle check of these frames: what the subtitles would
+  // cover, in shot seconds (null: not checked since the shot changed)
+  subtitles?: { at: string; issues: { from: number; to: number; what: string }[] } | null
   draft: CacheEntry
   final: CacheEntry
   takes: Take[]
@@ -92,6 +98,9 @@ export interface Project {
   style?: string | null
   trackAuto?: boolean
   lengthAuto?: boolean
+  // The language spoken and written; the voice-over's settings
+  lang?: string | null
+  voice?: { on: boolean; voice?: string; speed?: number; gain?: number } | null
   title: string
   slug: string
   track: '2d' | '3d'
@@ -123,11 +132,13 @@ export type JobState = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
 
 export interface Job {
   id: number
-  kind: 'render' | 'export' | 'fix' | 'check' | 'publish' | 'cover' | 'plan' | 'build'
-  lane: 'render' | 'agent'
+  kind: 'render' | 'export' | 'fix' | 'check' | 'publish' | 'cover' | 'plan' | 'build' | 'voiceModel' | 'voiceFit'
+  lane: 'render' | 'agent' | 'voice'
   label: string
   project: string
   shot: string | null
+  // The speech model a voiceModel job downloads
+  model?: string | null
   mode: Mode | null
   state: JobState
   progress: Progress | null
@@ -149,6 +160,10 @@ export type Spec =
   | { kind: 'cover'; project: string; request?: string; template?: string; reference?: boolean; lang?: string }
   | { kind: 'plan'; project: string; request?: string; lang?: string }
   | { kind: 'build'; project: string; lang?: string }
+  // A speech model for the voice-over, downloaded with progress
+  | { kind: 'voiceModel'; model: string }
+  // Every line spoken and the shots fitted to them
+  | { kind: 'voiceFit'; project: string }
 
 // The plan the planning page edits (storyboard.json)
 export interface StoryShot {
@@ -157,6 +172,8 @@ export interface StoryShot {
   show: string
   text: string
   motion: string
+  // The voice-over's line for the shot
+  say?: string
 }
 export interface Storyboard {
   target?: number
@@ -166,6 +183,8 @@ export interface Storyboard {
   styleWhy?: string
   styleAlt?: string
   look?: string | null
+  // The language spoken and written (a voiced plan names it)
+  lang?: string
   copy: { idea?: string; hook: string; body: string; facts: { text: string; source: string }[] }
   shots: StoryShot[]
 }
@@ -249,6 +268,35 @@ export const EMPTY_SETTINGS: Settings = {
   provider: '', apiPreset: '', apiProtocol: '', apiUrl: '', apiKeys: {}, cli: '', model: '', localUrl: '', localModel: '', localKey: '', blender: '', chrome: '', notifySound: false, notifyDesktop: false, polypizzaKey: '', smithsonianKey: '', parallel: 0
 }
 
+// The voice-over (engine/shotloop/voice.mjs): its settings, the voices of
+// the project's language, and the speech model behind them
+export interface VoiceInfo {
+  on: boolean
+  voice: string | null
+  speed: number
+  gain: number
+  lang: string
+  // A voice speaks the project's language
+  available: boolean
+  voices: { id: string; name: string; gender: 'f' | 'm' }[]
+  // Downloaded on first use
+  model: { id: string; name: string; bytes: number; installed: boolean } | null
+  // Shots with a line
+  lines: number
+}
+
+// The speech models (Settings → Dependencies): each downloaded on first
+// use into one folder
+export interface VoiceModel {
+  id: string
+  name: string
+  license: string
+  home: string
+  langs: string[]
+  bytes: number
+  installed: boolean
+}
+
 export interface MusicInfo {
   kind: 'preset' | 'file' | 'none'
   preset?: string
@@ -307,6 +355,8 @@ export interface ProjectSummary {
   poster: string | null
   // The poster's shot as a clip, to play on hover
   clip?: string | null
+  // It has a voice-over
+  voice?: boolean
   changed: string
   // The visual style (engine/shotloop/styles.mjs): 3d for 3D projects
   style?: string | null
@@ -325,6 +375,8 @@ export interface NewProject {
   look: string
   // 2D visual style id; '' lets the planner pick
   style: string
+  // The voice-over (on unless turned off)
+  voice?: boolean
 }
 
 export const api = {
@@ -386,6 +438,12 @@ export const api = {
   applyStoryboard: (path: string) => invoke<{ shots: string[]; duration: number }>('apply_storyboard', { path }),
   setTitle: (path: string, title: string) => invoke<{ title: string }>('set_title', { path, title }),
   setStyle: (path: string, style: string) => invoke<{ style: string }>('set_style', { path, style }),
+  // The voice-over: read, or change (turning it on or a new voice fits the
+  // shots to the lines again); sample: a WAV of the voice to listen to
+  voice: (path: string, change: { on?: boolean; voice?: string; sample?: boolean } = {}) =>
+    invoke<VoiceInfo & { sample?: string }>('voice', { path, ...change }),
+  // The speech models, with what is on this Mac (Settings → Dependencies)
+  voiceModels: () => invoke<{ dir: string; models: VoiceModel[] }>('voice_models'),
   // The music bed: read with no change, or set a preset, a file, none, a volume
   music: (path: string, change: { preset?: string; shuffle?: boolean; file?: string; none?: boolean; gain?: number; bed?: boolean } = {}) => invoke<MusicInfo & { bed?: string | null }>('music', { path, ...change }),
   quality: (path: string, change: { samples?: number; reset?: boolean } = {}) => invoke<{ samples: number; custom: boolean; default: number }>('quality', { path, ...change }),

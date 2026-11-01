@@ -1,6 +1,8 @@
 // 02-up: 1.01 multiplied 365 times. The green curve draws across the year
 // while the counter climbs from 1.00 to 37.78 (1.01^365 = 37.783).
-// Shot-local time: t = 0 is this shot's first frame.
+// Shot-local time: t = 0 is this shot's first frame. Timed to the
+// voice-over: the curve passes day 70 as the voice says "doubled by day 70"
+// and reaches 37.78 as it says the number.
 
 export default function render(t, { window, start }) {
   const { kit } = window
@@ -14,10 +16,10 @@ export default function render(t, { window, start }) {
     yt: [0, 10, 20, 30, 40],
     yfmt: v => v,
     digits: 2,
-    counter: 'left:190px; top:164px',
+    counter: 'left:190px; top:150px',
     note: 'After a year: 37.78× where you started',
     // 1.01^70 = 2.007
     mark: { day: 70, label: ['Day 70', 'doubled'] },
-    draw: [0.5, 3.9]
+    draw: [1.4, 7.3]
   })
 }

@@ -198,7 +198,7 @@ export default function App() {
 
   // Settings takes the whole window, with its own section list (as in
   // open-design); from a project, Back returns to it
-  if (page === 'settings') return <SettingsPage key={`${language.lang}-${settingsAt}`} theme={theme} language={language} start={settingsAt} back={() => setPage(settingsFrom)} backLabel={settingsFrom === 'library' ? 'settings.backLibrary' : 'settings.back'} />
+  if (page === 'settings') return <SettingsPage key={`${language.lang}-${settingsAt}`} theme={theme} language={language} jobs={jobs} start={settingsAt} back={() => setPage(settingsFrom)} backLabel={settingsFrom === 'library' ? 'settings.backLibrary' : 'settings.back'} />
 
   if (project && view === 'plan') {
     return <>{dialogs}<PlanPage key={language.lang} project={project} jobs={jobs} refresh={refresh} back={close} toStudio={() => setView('studio')} openSettings={() => openSettings()} /></>

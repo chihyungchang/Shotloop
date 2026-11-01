@@ -41,28 +41,31 @@ function odometer(kit, v, { x, y, size, color }) {
     '<g clip-path="url(#odo)" font-size="' + size + '" font-weight="800" fill="' + color + '" font-family="' + font + '" style="font-variant-numeric: tabular-nums">' + out + '</g>'
 }
 
-export default function render(t, { window, start }) {
+export default function render(t, { window, start, duration = 5.8, voice = [] }) {
   const kit = window.kit
   const { C, FONT, clamp, rise, ease } = kit
   const font = FONT.replace(/"/g, '')
 
-  kit.frame({ kicker: 'World coffee harvest', progress: (start + t) / 32.5 })
+  kit.frame({ kicker: 'World coffee harvest', progress: (start + t) / 36.6 })
 
-  // The globe turns from the Americas towards Africa, drawing a little closer
-  const view = { center: [-84 + 16 * t, 6], zoom: 1, globe: 1, x: 330, y: 716, R: 250 + 12 * ease(t / 4) }
+  // The voice: the number, then the question
+  const s2 = voice[1]?.at ?? 4
+
+  // The globe turns from the Americas towards Africa (ending where shot 2 picks it up), drawing a little closer
+  const view = { center: [-84 + 64 * t / duration, 6], zoom: 1, globe: 1, x: 330, y: 716, R: 250 + 12 * ease(t / duration) }
   let svg = coffeeMap(kit, { view, tropics: 0, band: 0, labels: 0, grow: 0 })
 
   // Bean pins pop up in a ripple along the equator
   SPOTS.forEach(([lon, lat], i) => {
-    const a = 0.1 + i * 0.1
+    const a = 0.1 + i * 0.18
     const [x, y, vis] = mapAt(kit, view, lon, lat)
     svg += beanPin(kit, { x, y, p: rise(t, a, 0.45), t: t - a, vis, size: 0.95 })
   })
 
   // The counter rolls from 0 and lands on 184,000,000 with a bounce
-  const roll = clamp((t - 0.1) / 1.0)
+  const roll = clamp((t - 0.1) / 1.2)
   const v = TOTAL * (1 - Math.pow(1 - roll, 3))
-  const bounce = 1 + 0.07 * Math.sin(Math.PI * clamp((t - 1.1) / 0.32))
+  const bounce = 1 + 0.07 * Math.sin(Math.PI * clamp((t - 1.3) / 0.32))
   const size = 84, cx = 330
   svg += '<g transform="translate(' + cx + ',250) scale(' + bounce.toFixed(4) + ') translate(' + -cx + ',-250)">' +
     '<text x="40" y="250" font-size="54" font-weight="800" fill="' + C.accent + '" font-family="' + font + '">≈</text>' +
@@ -70,12 +73,12 @@ export default function render(t, { window, start }) {
   svg += '<text x="44" y="296" font-size="28" font-weight="600" fill="' + C.muted + '" opacity="' + rise(t, 0.2).toFixed(3) + '" font-family="' + font + '">60-kg bags / year</text>'
 
   // The question
-  const q = rise(t, 0.55, 0.45)
+  const q = rise(t, s2 - 0.1, 0.45)
   svg += '<text x="40" y="' + (382 + (1 - q) * 18).toFixed(1) + '" font-size="58" font-weight="800" fill="' + C.text + '" opacity="' + q.toFixed(3) +
     '" font-family="' + font + '">From <tspan fill="' + C.accent + '">where?</tspan></text>'
 
   // Source line
-  svg += '<text x="40" y="1012" font-size="15" fill="' + C.muted + '" opacity="0.85" font-family="' + font + '">Source: ICO Coffee Market Report, Aug 2026 (2025/26 estimate)</text>'
+  svg += '<text x="40" y="1023" font-size="14" fill="' + C.muted + '" opacity="0.85" font-family="' + font + '">Source: ICO Coffee Market Report, Aug 2026 (2025/26 estimate)</text>'
 
   kit.stage(svg)
 }

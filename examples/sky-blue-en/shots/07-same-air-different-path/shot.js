@@ -47,7 +47,7 @@ export default function render(t, { window }) {
     halo(470, 800, 420, ORANGE, 0.26)
     halo(520, 820, 220, RED, 0.22)
     k.particles(t, { n: 30, seed: 72, x: 0, y: 640, w: W, h: 300, size: 1.6, color: ORANGE, vx: -16, vy: 4, life: 2.6 })
-    earthSection(k, { t, x: 300, y: 880, R: 520, shell: 100, sun: 1, warm: 1, dusk: 0.8, sunR: 24 * pulse,
+    earthSection(k, { t, x: 300, y: 850, R: 520, shell: 100, sun: 1, warm: 1, dusk: 0.8, sunR: 24 * pulse,
       sunGlow: pulse, sunset: rise(t, 0.45, 1.1) })
   })
 

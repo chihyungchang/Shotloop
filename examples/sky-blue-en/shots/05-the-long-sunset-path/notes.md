@@ -4,6 +4,10 @@
 
 Earth cross-section (recurring): the curve of Earth at the bottom, a glowing teal atmosphere shell around it, the small figure on top. First a short teal-white noon path drops straight down through the shell from overhead and is marked '1×'. Then the Sun slides to the horizon at the right and a second path skims in sideways, threading a long way through the shell; its length is drawn as light and a counter on it rolls up to '≈38×'.
 
+## Voice-over
+
+At sunset the Sun is low, and its light crosses about 38 times more air to reach you.
+
 ## On screen
 
 At sunset, light crosses ≈38× more air
@@ -14,3 +18,4 @@ Noon path draws in fast; Sun glides down to the horizon; the low path draws in s
 
 ## Review history
 - 2026-10-31: planned in the storyboard.
+- 2026-11-01: voice-over added; timed to the line, subtitle band kept clear.

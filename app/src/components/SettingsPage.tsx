@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { SAVED } from '../ai/useSettings'
-import { api, EMPTY_SETTINGS, type About, type Settings, type Machine } from '../api'
+import { api, EMPTY_SETTINGS, type About, type Job, type Settings, type Machine, type VoiceModel } from '../api'
 import { checkForUpdate, installUpdate, useUpdate } from '../update'
 import { LANGS, t, type LangPref, type useLanguage } from '../i18n'
 import type { Key } from '../i18n/en'
@@ -9,6 +9,8 @@ import { AiSettings } from './AiSettings'
 import { Icon } from './Icon'
 import { Setup } from './Setup'
 import { ThemeToggle } from './ThemeToggle'
+import { VoiceDownload } from './VoiceDownload'
+import licenses from '../licenses.json'
 
 export type Section = 'ai' | 'assets' | 'general' | 'deps' | 'about'
 
@@ -23,9 +25,10 @@ const SECTIONS: [Section, Key, Parameters<typeof Icon>[0]['name']][] = [
 // Settings, after open-design's: the whole window, a back link and a
 // section list on the ground, one section at a time on the card.
 // General applies at once; the AI backend and tool paths save together.
-export function SettingsPage({ theme, language, back, start = 'ai', backLabel = 'settings.back' }: {
+export function SettingsPage({ theme, language, jobs, back, start = 'ai', backLabel = 'settings.back' }: {
   theme: ReturnType<typeof useTheme>
   language: ReturnType<typeof useLanguage>
+  jobs: Job[]
   back: () => void
   // The section to open on (an "add your key" button points at its own)
   start?: Section
@@ -77,7 +80,7 @@ export function SettingsPage({ theme, language, back, start = 'ai', backLabel = 
           )}
           {section === 'ai' && <AiSettings settings={settings} update={update} />}
           {section === 'general' && <General settings={settings} savePref={savePref} theme={theme} language={language} />}
-          {section === 'deps' && <Setup settings={settings} update={update} />}
+          {section === 'deps' && <><Setup settings={settings} update={update} /><VoiceModels jobs={jobs} /></>}
           {section === 'assets' && <AssetSources settings={settings} update={update} />}
           {section === 'about' && <AboutSection />}
         </div>
@@ -189,6 +192,72 @@ function AboutSection() {
           <button className="small" onClick={() => api.reveal(about.data!)}>{t('studio.finder')}</button>
         </div>
       )}
+      <ThirdParty />
+    </section>
+  )
+}
+
+// The third-party software the app carries or fetches, with versions and
+// licenses (app/scripts/licenses.mjs writes the list at build time)
+const GROUPS: Record<string, { title: Key; note?: Key }> = {
+  programs: { title: 'oss.programs', note: 'oss.programsNote' },
+  models: { title: 'oss.models', note: 'oss.modelsNote' },
+  npm: { title: 'oss.npm' },
+  crates: { title: 'oss.crates' }
+}
+function ThirdParty() {
+  return (
+    <div className="oss">
+      <h4>{t('oss.title')}</h4>
+      <p className="hint">{t('oss.intro')}</p>
+      {licenses.groups.map(g => (
+        <details key={g.id} className="oss-group" open={g.id === 'programs' || g.id === 'models'}>
+          <summary><strong>{t(GROUPS[g.id]?.title ?? 'oss.npm')}</strong> <span className="muted">{g.items.length}</span></summary>
+          {GROUPS[g.id]?.note && <p className="hint">{t(GROUPS[g.id].note!)}</p>}
+          <ul>
+            {g.items.map(i => (
+              <li key={`${i.name}@${i.version}`}>
+                <span className="ellipsis">{i.name}{i.version && <span className="muted"> {i.version}</span>}</span>
+                <button className="link" onClick={() => api.openUrl(i.url)}>{i.license}</button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ))}
+    </div>
+  )
+}
+
+// Settings → Dependencies: the voice-over's speech models. They don't ship
+// with the app: each downloads the first time its languages speak (or
+// here, ahead of time), then works offline
+function VoiceModels({ jobs }: { jobs: Job[] }) {
+  const [list, setList] = useState<{ dir: string; models: VoiceModel[] } | null>(null)
+  const load = useCallback(() => {
+    api.voiceModels().then(setList, () => setList(null))
+  }, [])
+  useEffect(load, [load])
+  if (!list) return null
+  return (
+    <section className="settings-block">
+      <h3>{t('voiceDl.title')}</h3>
+      <p className="hint">{t('voiceDl.intro')}</p>
+      {list.models.map(m => (
+        <div key={m.id} className="pref-row boxed voice-model">
+          <div>
+            <strong>{m.name}</strong>
+            <p className="hint">{m.langs.map(l => LANGS.find(x => x.id === l)?.name ?? l).join(' · ')}</p>
+            <p className="hint">{Math.round(m.bytes / 1e6)} MB · <button className="link" onClick={() => api.openUrl(m.home)}>{m.license}</button></p>
+          </div>
+          {m.installed && !jobs.some(j => j.kind === 'voiceModel' && j.model === m.id && j.state === 'running')
+            ? <span className="tag ok"><Icon name="check" size={11} /> {t('voiceDl.installed')}</span>
+            : <VoiceDownload model={m} jobs={jobs} onDone={load} />}
+        </div>
+      ))}
+      <div className="pref-row boxed">
+        <div><strong>{t('voiceDl.folder')}</strong><p className="hint">{list.dir}</p></div>
+        <button className="small" onClick={() => api.reveal(list.dir)}>{t('studio.finder')}</button>
+      </div>
     </section>
   )
 }

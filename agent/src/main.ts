@@ -27,7 +27,7 @@ import { engine, renderCover, renderStills, status, type ProjectStatus, type Sho
 import { emit, setJson } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
 import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, planSystem, postLanguage, publishSystem, replyLanguage } from './prompts.ts'
-import { lintPlan } from './principles.ts'
+import { lintPlan, lintVoice } from './principles.ts'
 import type { ToolContext } from './tools.ts'
 
 const OPTIONS = {
@@ -149,13 +149,23 @@ function shotBrief(project: ProjectStatus, shot: ShotStatus) {
   return `Project: "${project.title}", ${project.track.toUpperCase()} track, ${project.duration} s.
 Shots: ${others.join(', ')}.
 
-Shot ${shot.id}: film time ${shot.start}–${shot.start + shot.duration} s, ${shot.duration} s long.
+Shot ${shot.id}: film time ${shot.start}–${shot.start + shot.duration} s, ${shot.duration} s long.${voiceBrief(shot)}
 
 ${rel(shot.notes)}:
 ${read(shot.notes)}
 
 ${rel(shot.code)}:
 ${read(shot.code)}${styleBrief(project)}${recurringBrief(project, shot)}${assetsBrief(project)}`
+}
+
+// The film has a voice-over that plays (the engine's voiceOn)
+const voiced = (project: ProjectStatus) => !!project.voiced
+
+// What the voice says over the shot, sentence by sentence with its times
+// (ctx.voice in the shot's code); subtitles are added by the engine
+function voiceBrief(shot: ShotStatus) {
+  if (!shot.cues?.length) return shot.say?.trim() ? `\nVoice-over (not timed yet): "${shot.say.trim()}"` : ''
+  return `\nVoice-over (ctx.voice; subtitled by the engine, keep the subtitle band clear):\n${shot.cues.map(c => `- ${c.at.toFixed(2)}–${c.end.toFixed(2)} s: "${c.text}"`).join('\n')}`
 }
 
 // Copies stills into the fix record, so before/after survive later renders
@@ -207,7 +217,7 @@ async function shotTask(kind: 'fix' | 'check') {
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent(kind === 'fix' ? 'code' : 'routine', {
     effort: kind === 'fix' ? 'high' : 'medium',
-    system: (kind === 'fix' ? fixSystem(project.track) : checkSystem(project.track)) + replyLanguage(values.lang),
+    system: (kind === 'fix' ? fixSystem(project.track, voiced(project)) : checkSystem(project.track, voiced(project))) + replyLanguage(values.lang),
     prompt: `${ask}\n\n${shotBrief(project, shot)}`,
     ctx
   })
@@ -262,7 +272,7 @@ async function planTask() {
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent('copy', {
     effort: 'medium',
-    system: planSystem(project.track) + replyLanguage(values.lang),
+    system: planSystem(project.track, !!project.voice?.on) + replyLanguage(values.lang),
     prompt: `${ask}
 
 Idea: ${ideaOf(project)}
@@ -274,7 +284,7 @@ ${await trackBrief(project)} · frame ${size} · target length ${project.lengthA
   const load = () => {
     const sb = JSON.parse(fs.readFileSync(file, 'utf8'))
     if (!Array.isArray(sb.shots) || !sb.shots.length) throw new Error('the plan has no shots; try again')
-    return sb as { shots: { title?: string; duration: number; text?: string }[] }
+    return sb as { shots: { title?: string; duration: number; text?: string; say?: string }[] }
   }
   let sb = load()
   // 2D: measured against the principles; what breaks them goes back once
@@ -282,18 +292,24 @@ ${await trackBrief(project)} · frame ${size} · target length ${project.lengthA
   // up to 12% faster to land the cuts, engine/shotloop/bed.mjs)
   const bpm = Number(JSON.parse(read(path.join(project.root, 'music.json')).replace(/^\(missing\)$/, '{}')).bpm) || 0
   const bar = bpm ? 240 / (bpm * 1.12) : 0
-  let issues = project.track === '2d' ? lintPlan(sb.shots, bar) : []
+  // A voiced film is timed by its lines (fitted when it's built), so its
+  // lines are measured instead of the captions' reading time
+  // The plan writes the lines when the voice-over is on (a new film has
+  // none yet, so it isn't "voiced" until this plan)
+  const speaks = !!project.voice?.on
+  const lint = () => (speaks ? lintVoice(sb.shots) : project.track === '2d' ? lintPlan(sb.shots, bar) : [])
+  let issues = lint()
   let final = summary
   if (issues.length) {
     emit({ type: 'log', message: `plan breaks ${issues.length} reading rule(s); revising` })
     final = await runAgent('copy', {
       effort: 'medium',
-      system: planSystem(project.track) + replyLanguage(values.lang),
-      prompt: `storyboard.json breaks the 2D principles where they can be measured:\n${issues.map(i => `- ${i}`).join('\n')}\n\nFix it: sum captions up shorter, move words into the picture, split a crowded beat into two shots, or give a shot more time while the total stays ${project.duration} s. Keep everything else.\n\nstoryboard.json:\n${fs.readFileSync(file, 'utf8')}`,
+      system: planSystem(project.track, !!project.voice?.on) + replyLanguage(values.lang),
+      prompt: `storyboard.json breaks the ${speaks ? 'voice-over rules' : '2D principles'} where they can be measured:\n${issues.map(i => `- ${i}`).join('\n')}\n\nFix it: ${speaks ? 'shorten a spoken line, cut the on-screen text to the number or a short label, split a crowded beat into two shots, or give a shot the time its line needs' : 'sum captions up shorter, move words into the picture, split a crowded beat into two shots, or give a shot more time'} while the total stays ${project.duration} s. Keep everything else.\n\nstoryboard.json:\n${fs.readFileSync(file, 'utf8')}`,
       ctx
     })
     sb = load()
-    issues = lintPlan(sb.shots, bar)
+    issues = lint()
   }
   return { task: 'plan', summary: final, shots: sb.shots.length, warnings: issues }
 }
@@ -352,6 +368,13 @@ const PARALLEL = Math.min(5, Math.max(1, Number(process.env.SHOTLOOP_PARALLEL) |
 // its own agent that may write only its shot
 async function buildTask() {
   let project = await status(dir)
+  // The voice leads the cut: every line spoken and its shot fitted to it
+  // before anything is drawn, so each shot is built at its final length
+  if (voiced(project)) {
+    emit({ type: 'log', message: 'voice-over: speaking the lines' })
+    await engine(['voice', project.root, '--fit'])
+    project = await status(dir)
+  }
   const worldDir = path.join(project.root, 'world')
   // The world's text files (not folders such as __pycache__, not media)
   const worldFiles = () => fs.existsSync(worldDir)
@@ -370,7 +393,7 @@ async function buildTask() {
     const ctx = context(project.root, ['world/', 'captions.html'])
     await runAgent('code', {
       effort: 'high',
-      system: buildWorldSystem(project.track) + replyLanguage(values.lang),
+      system: buildWorldSystem(project.track, voiced(project)) + replyLanguage(values.lang),
       prompt: `Design the world of ${head(project)} from its plan.\n\ncopy.md:\n${copy}\n\n${worldFiles()}\n\n${project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')}`,
       ctx
     })
@@ -393,7 +416,7 @@ async function buildTask() {
     try {
       const summary = await runAgent('code', {
         effort: 'high',
-        system: buildPartsSystem() + replyLanguage(values.lang),
+        system: buildPartsSystem(voiced(project)) + replyLanguage(values.lang),
         prompt: `Draw the recurring pictures of ${head(project)} in world/parts.js, then build shot ${lead.id} with them.\n\nRecurring pictures:\n${parts.map(r => `- ${r.name} (shots ${r.shots.join(', ')}): ${r.design}`).join('\n')}\n\ncopy.md:\n${copy}\n\n${worldFiles()}\n\n${shotBrief(project, lead)}`,
         ctx,
         maxTurns: 40
@@ -416,7 +439,7 @@ async function buildTask() {
     try {
       const summary = await runAgent('code', {
         effort: 'medium',
-        system: buildShotSystem(project.track) + replyLanguage(values.lang),
+        system: buildShotSystem(project.track, voiced(project)) + replyLanguage(values.lang),
         prompt: `Build shot ${shot.id} of ${head(project)} from its plan.\n\ncopy.md:\n${copy}\n\n${world}\n\n${shotBrief(project, shot)}`,
         ctx,
         maxTurns: 30

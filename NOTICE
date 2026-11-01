@@ -14,6 +14,23 @@ processes and under their own licenses:
   License version 3. Its source code is available from
   https://ffmpeg.org/download.html and from the build's page.
 
+The voice-over (voice/) bundles two libraries, loaded into its Node.js
+process:
+
+- sherpa-onnx (https://github.com/k2-fsa/sherpa-onnx), Apache License 2.0,
+  with the ONNX Runtime it ships.
+- ONNX Runtime (https://onnxruntime.ai), MIT License.
+
+Its speech models are not part of this distribution: they are downloaded
+on first use, each under its own license:
+
+- Kokoro 82M by hexgrad (https://huggingface.co/hexgrad/Kokoro-82M),
+  Apache License 2.0, in the int8 packaging of sherpa-onnx with its
+  lexicons.
+- Supertonic 3 by Supertone (https://huggingface.co/Supertone/supertonic-3),
+  OpenRAIL-M License; voice/src/supertonic.mjs adapts its MIT-licensed
+  Node.js example (https://github.com/supertone-inc/supertonic).
+
 Third-party material that projects may use is not part of this
 distribution: the CC0 asset packs listed in engine/video/assets/README.md
 (Kenney, Poly Haven, Quaternius) are downloaded, not committed, and keep

@@ -203,7 +203,15 @@ export async function runTool(ctx: ToolContext, name: string, input: Record<stri
       const r = await renderStills(ctx.root, shot)
       if (!r.stills) throw new Error('the render produced no stills')
       ctx.renders.set(shot, r.stills)
-      return stillBlocks(r.stills)
+      const blocks = stillBlocks(r.stills) as Exclude<ToolResult, string | undefined>
+      // The subtitle check that ran before the render: the stills don't
+      // show the subtitles, so what they would cover is said in words
+      if (r.subtitles) {
+        blocks.push({ type: 'text', text: r.subtitles.length
+          ? `Subtitle check: the voice-over's subtitles would cover\n${r.subtitles.map(i => `- ${i.from.toFixed(1)}–${i.to.toFixed(1)} s: ${i.what}`).join('\n')}\nMove it out of the subtitle band, or let it pass under only if it is background.`
+          : 'Subtitle check: nothing the viewer must see is under the subtitles.' })
+      }
+      return blocks
     }
     case 'view_style': {
       const id = str('style')

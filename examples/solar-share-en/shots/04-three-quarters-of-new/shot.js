@@ -4,8 +4,8 @@
 // Shot-local time: t = 0 is this shot's first frame.
 import { ENERGY, sunDisc, bolt } from '../../world/parts.js'
 
-const AXIS_Y = 910, BH = 104, GAP = 10, BW = 150, CX = 190
-const FILL = [0.7, 1.15, 1.6] // gold fills, bottom block first
+const AXIS_Y = 850, BH = 104, GAP = 10, BW = 150, CX = 190
+const FILL = [0.8, 1.3, 1.8] // gold fills, bottom block first, as 'three quarters' is said
 const blockY = i => AXIS_Y - (i + 1) * BH - i * GAP
 const f = n => Number(n).toFixed(1)
 
@@ -15,7 +15,7 @@ export default function render(t, { window, start }) {
   const F = FONT.replace(/"/g, '')
 
   // Caption: typed in by 0.55 s, then still to the end
-  kit.frame({ kicker: '04 / 06', head: ['Solar met *75%*', 'of new demand'], typed: rise(t, -0.15, 0.6), progress: (start + t) / 23.5 })
+  kit.frame({ kicker: '04 / 06', head: ['Solar met *75%*', 'of new demand'], typed: rise(t, -0.15, 0.6), progress: (start + t) / 31.1 })
 
   let s = '<defs><linearGradient id="d-gold" x1="0" y1="0" x2="1" y2="0">' +
     '<stop offset="0" stop-color="' + ENERGY.solarHi + '"/><stop offset="1" stop-color="' + ENERGY.solar + '"/></linearGradient>' +
@@ -31,7 +31,7 @@ export default function render(t, { window, start }) {
     const y = blockY(i), on = rise(t, -0.3 + i * 0.08, 0.4)
     s += '<rect x="' + (CX - BW / 2) + '" y="' + y + '" width="' + BW + '" height="' + BH + '" rx="8" fill="' + ENERGY.slate + '" stroke="' + C.muted + '" stroke-opacity="0.45" stroke-width="1.5" stroke-dasharray="5 5" opacity="' + f(on) + '"/>'
     if (i === 3) {
-      s += '<text x="' + CX + '" y="' + (y + BH / 2 + 7) + '" text-anchor="middle" font-family="' + F + '" font-size="20" font-weight="700" fill="' + C.muted + '" opacity="' + f(rise(t, 2.1, 0.4)) + '">the rest</text>'
+      s += '<text x="' + CX + '" y="' + (y + BH / 2 + 7) + '" text-anchor="middle" font-family="' + F + '" font-size="20" font-weight="700" fill="' + C.muted + '" opacity="' + f(rise(t, 2.4, 0.4)) + '">the rest</text>'
       continue
     }
     const g = pop(t, FILL[i], 0.45)
@@ -46,7 +46,7 @@ export default function render(t, { window, start }) {
 
   // Bolts rising off the newest gold block while it fills
   const top = blockY(Math.min(2, Math.floor(clamp((t - FILL[0]) / 1.4) * 3)))
-  const bOn = rise(t, FILL[0], 0.3) * (1 - rise(t, 2.2, 0.5))
+  const bOn = rise(t, FILL[0], 0.3) * (1 - rise(t, 2.1, 0.4))
   for (let i = 0; bOn > 0 && i < 10; i++) {
     const life = 1.0, age = ((t + hash(i, 4) * life) % life) / life
     const x = CX - BW / 2 + 14 + hash(i, 9) * (BW - 28) + Math.sin(age * 6 + i) * 4
@@ -55,7 +55,7 @@ export default function render(t, { window, start }) {
   }
 
   // Bracket along the three gold blocks
-  const br = rise(t, 2.0, 0.4)
+  const br = rise(t, 2.2, 0.4)
   if (br > 0) {
     const bx = CX + BW / 2 + 18, y0 = blockY(2), y1 = AXIS_Y
     s += '<path d="M' + bx + ' ' + y0 + ' h12 V' + f(y0 + (y1 - y0) * br) + ' h-12" fill="none" stroke="' + ENERGY.solarHi + '" stroke-width="3" stroke-linecap="round" opacity="' + f(br) + '"/>'
@@ -64,8 +64,8 @@ export default function render(t, { window, start }) {
   // The big 75%: rolls with the fills, lands with a bounce, then floats
   const mx = 480, my = 640
   const roll = clamp((t - FILL[0]) / (FILL[2] + 0.45 - FILL[0]))
-  const q = clamp((t - 2.05) / 0.6)
-  const bounce = t < 2.05 ? 0 : Math.exp(-5 * q) * Math.sin(3 * Math.PI * q)
+  const q = clamp((t - 2.25) / 0.6)
+  const bounce = t < 2.25 ? 0 : Math.exp(-5 * q) * Math.sin(3 * Math.PI * q)
   const numIn = rise(t, 0.5, 0.35)
   s += sunDisc(kit, { x: mx, y: my - 40, r: 96, t, p: rise(t, 0.3, 0.6), glow: 0.5 + 0.5 * roll, id: 'q-sun' })
   s += '<g transform="translate(' + mx + ' ' + f(my + float(t, 3, 2.4)) + ') scale(' + (1 + 0.08 * bounce).toFixed(4) + ')" opacity="' + f(numIn) + '">' +
@@ -74,9 +74,8 @@ export default function render(t, { window, start }) {
   s += '<text x="' + mx + '" y="' + (my + 44) + '" text-anchor="middle" font-family="' + F + '" font-size="18" font-weight="700" letter-spacing="2" fill="' + C.muted + '" opacity="' + f(rise(t, 1.0, 0.4)) + '">MET BY SOLAR ALONE</text>'
 
   // Source line under the picture
-  s += '<g font-family="' + F + '" font-size="15" fill="' + C.muted + '" opacity="' + f(0.85 * rise(t, 0.5)) + '">' +
-    '<text x="40" y="988">Source: Ember, Global Electricity Review 2026</text>' +
-    '<text x="40" y="1010">“Solar power alone met 75% of the net increase in electricity demand”</text></g>'
+  s += '<text x="40" y="1022" font-family="' + F + '" font-size="13" fill="' + C.muted + '" opacity="' + f(0.85 * rise(t, 0.5)) + '">' +
+    'Source: Ember, Global Electricity Review 2026 · solar met 75% of the net increase in demand</text>'
 
   kit.stage(s)
 }

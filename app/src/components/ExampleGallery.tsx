@@ -56,7 +56,12 @@ function Poster({ p, open, pickStyle }: { p: ProjectSummary; open: () => void; p
       <button className={`poster-frame${wide ? ' wide' : ''}`} onClick={open} title={p.description || p.title}>
         {p.poster ? <img src={fileUrl(p.poster)} alt="" /> : <Icon name="film" size={24} />}
         {p.clip && <video ref={video} src={fileUrl(p.clip)} muted loop playsInline preload="none" className={playing ? 'on' : ''} />}
-        {p.style && <span className="poster-tag">{styleName(p.style)}</span>}
+        {(p.style || p.voice) && (
+          <span className="poster-tags">
+            {p.style && <span className="poster-tag">{styleName(p.style)}</span>}
+            {p.voice && <span className="poster-tag" title={t('gallery.voiceHint')}><Icon name="mic" size={11} /> {t('gallery.voice')}</span>}
+          </span>
+        )}
         <span className="poster-time">{formatSeconds(p.duration)}</span>
       </button>
       {p.style && (

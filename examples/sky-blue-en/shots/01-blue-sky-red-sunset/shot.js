@@ -2,7 +2,7 @@
 // a hill while the sky floods from deep blue to orange-red.
 // Shot-local time: t = 0 is this shot's first frame.
 
-const DUR = 4
+const DUR = 4.7 // the descent fills the voiced shot (4.9 s)
 const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16))
 const mixHex = (a, b, k) => { const A = hex(a), B = hex(b); return 'rgb(' + A.map((v, i) => Math.round(v + (B[i] - v) * k)).join(', ') + ')' }
 const mixRgb = (a, b, k) => { const A = a.split(',').map(Number), B = b.split(',').map(Number); return A.map((v, i) => Math.round(v + (B[i] - v) * k)).join(', ') }
@@ -61,7 +61,7 @@ export default function render(t, { window }) {
 
   // The Sun on a far layer: arcs from the upper third to the horizon
   const sx = lerp(470, 395, q) + 26 * Math.sin(Math.PI * q)
-  const sy = lerp(470, 838, Math.pow(q, 1.15))
+  const sy = lerp(470, 815, Math.pow(q, 1.15))
   const sr = lerp(34, 58, p)
   const sunRgb = mixRgb('255, 214, 150', '255, 80, 40', p)
   kit.depth(0.6, () => {

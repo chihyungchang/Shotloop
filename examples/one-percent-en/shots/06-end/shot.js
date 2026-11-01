@@ -1,16 +1,18 @@
 // 06-end: end card. The two results, a small echo of the log chart and
 // the takeaway; no links or personal branding.
-// Shot-local time: t = 0 is this shot's first frame.
+// Shot-local time: t = 0 is this shot's first frame. The takeaway rises
+// as the voice says "show up every day"; everything sits above the
+// subtitle band (y 518).
 
 const row = (id, base, value, color) => `
-  <div class="abs num" id="${id}" style="left:80px; top:${id === 'r1' ? 196 : 306}px; font-size:84px; font-weight:700; line-height:1; color:var(--${color})">
+  <div class="abs num" id="${id}" style="left:80px; top:${id === 'r1' ? 150 : 254}px; font-size:84px; font-weight:700; line-height:1; color:var(--${color})">
     ${base}<sup class="exp">365</sup><span class="muted" style="font-weight:400; margin:0 22px 0 18px">≈</span>${value}
   </div>`
 
-export default function render(t, { window, start }) {
+export default function render(t, { window, start, voice = [] }) {
   const { kit } = window
   kit.frame(t, { index: 6, start, foot: 'Math: (1 ± 0.01)³⁶⁵', footR: 'A Shotloop example' })
-  const c = kit.chart({ x: 900, y: 200, w: 300, h: 190, y0: 0.01, y1: 100, log: true })
+  const c = kit.chart({ x: 900, y: 150, w: 300, h: 170, y0: 0.01, y1: 100, log: true })
   const s = kit.scene('end', `
     <div class="abs mono" id="kick" style="left:80px; top:100px">After a year</div>
     ${row('r1', '1.01', '37.78', 'green')}
@@ -25,18 +27,18 @@ export default function render(t, { window, start }) {
       <path id="up" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" />
       <path id="down" fill="none" stroke="var(--red)" stroke-width="3" stroke-linecap="round" />
     </svg>
-    <div class="abs" id="rule" style="left:80px; right:80px; top:470px; height:1px; background:var(--ink)"></div>
-    <div class="abs headline" id="take" style="left:80px; top:502px; font-size:46px">The gap isn't made on one day. It's made every day.</div>`)
+    <div class="abs" id="rule" style="left:80px; right:80px; top:390px; height:1px; background:var(--ink)"></div>
+    <div class="abs headline" id="take" style="left:80px; right:80px; top:414px; font-size:40px">The gap isn't made on one day. It's made every day.</div>`)
   const $ = sel => s.querySelector(sel)
 
   kit.lift($('#kick'), kit.rise(t, -0.15, 0.5), 10)
   kit.lift($('#r1'), kit.rise(t, 0, 0.7), 24)
   kit.lift($('#r2'), kit.rise(t, 0.15, 0.7), 24)
   $('#mini').style.opacity = kit.rise(t, 0.1, 0.5)
-  const day = 365 * kit.ease.inOut((t - 0.2) / 1.1)
+  const day = 365 * kit.ease.inOut((t - 0.2) / 1.6)
   $('#up').setAttribute('d', day > 0.5 ? c.path(d => Math.pow(1.01, d), day, 40) : '')
   $('#down').setAttribute('d', day > 0.5 ? c.path(d => Math.pow(0.99, d), day, 40) : '')
   $('#rule').style.transformOrigin = 'left'
   $('#rule').style.transform = `scaleX(${kit.rise(t, 0.5, 0.8, kit.ease.out)})`
-  kit.lift($('#take'), kit.rise(t, 0.7, 0.7), 16)
+  kit.lift($('#take'), kit.rise(t, (voice[1]?.at ?? 1.96) - 0.3, 0.7), 16)
 }

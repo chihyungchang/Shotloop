@@ -1,5 +1,5 @@
-// Shared steps of every shot render: the caption layer, ffmpeg encodes,
-// the music bed and progress events. Both tracks render a shot to a
+// Shared steps of every shot render: the caption layer, ffmpeg encodes
+// and progress events. Both tracks render a shot to a
 // folder of PNG frames; this module turns them into clips.
 
 import { spawn } from 'node:child_process'
@@ -7,8 +7,6 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { openPage } from '../lib/chrome.mjs'
-import { render as renderMusic, wav } from '../video/music.mjs'
-import { musicKey } from './cache.mjs'
 
 // ---------------------------------------------------------------- events
 
@@ -67,7 +65,7 @@ export const run = (cmd, args, { input, onStdout, env } = {}) =>
 
 export const ffmpeg = (args, opts) => run('ffmpeg', ['-loglevel', 'error', '-y', ...args], opts)
 
-const QUALITY = {
+export const QUALITY = {
   draft: ['-crf', '23', '-preset', 'veryfast'],
   final: ['-crf', '18', '-preset', 'slow']
 }
@@ -162,33 +160,4 @@ export async function composeStill(frame, caption, out) {
     return
   }
   await ffmpeg(['-i', frame, '-i', caption, '-filter_complex', '[0][1]overlay=0:0', out])
-}
-
-// ---------------------------------------------------------------- music
-
-// The music bed for the whole film, rendered once per music.json
-export function musicWav(project) {
-  const key = musicKey(project)
-  if (!key) return null
-  const file = path.join(project.state, 'music', `${key}.wav`)
-  if (!fs.existsSync(file)) {
-    fs.mkdirSync(path.dirname(file), { recursive: true })
-    const cfg = JSON.parse(fs.readFileSync(project.music, 'utf8'))
-    fs.writeFileSync(file, wav(renderMusic(cfg)))
-  }
-  return file
-}
-
-// The shot's clip with the music for its range of the film, for review
-export async function previewClip(project, shot, clip) {
-  const music = musicWav(project)
-  if (!music) return clip
-  const out = path.join(path.dirname(clip), `preview-${musicKey(project)}.mp4`)
-  if (fs.existsSync(out)) return out
-  await ffmpeg([
-    '-i', clip, '-ss', String(shot.start), '-t', String(shot.duration), '-i', music,
-    '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k',
-    '-shortest', '-movflags', '+faststart', out
-  ])
-  return out
 }

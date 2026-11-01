@@ -9,7 +9,7 @@ export default function render(t, { window, start }) {
   const font = FONT.replace(/"/g, '')
 
   // The caption types in fast and holds still to the end
-  kit.frame({ head: ['Every cup,', 'a *long journey*'], typed: rise(t, 0.05, 0.4), top: 236, progress: (start + t) / 32.5 })
+  kit.frame({ head: ['Every cup,', 'a *long journey*'], typed: rise(t, 0.05, 0.4), top: 236, progress: (start + t) / 36.6 })
 
   // The globe turns east while the camera eases back to show it whole
   const view = { center: [-42 + 7 * t, 16], zoom: 1.1 - 0.1 * ease(t / 3), globe: 1, x: 330, y: 716, R: 238 }
@@ -43,7 +43,7 @@ export default function render(t, { window, start }) {
     '<rect x="40" y="208" height="3" rx="1.5" width="' + (90 * tl).toFixed(1) + '" fill="' + C.accent + '"/></g>'
 
   // Source line
-  svg += '<text x="40" y="1012" font-size="15" fill="' + C.muted + '" opacity="0.85" font-family="' + font + '">Source: USDA FAS, Coffee: World Markets and Trade (July 2026)</text>'
+  svg += '<text x="40" y="1023" font-size="14" fill="' + C.muted + '" opacity="0.85" font-family="' + font + '">Source: USDA FAS, Coffee: World Markets and Trade (July 2026)</text>'
 
   kit.stage(svg)
 }

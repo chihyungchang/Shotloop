@@ -31,7 +31,7 @@
 
 Shotloop은 코드로 그리는 짧은 영상을 위한 데스크톱 앱입니다. 제품 홍보, 과학 설명, 데이터 스토리, 슬라이드형 애니메이션을 2D(프레임 단위로 렌더링하는 웹 페이지) 또는 3D(Blender 장면)로, 일곱 가지 비주얼 스타일 중 하나로 만듭니다.
 
-시작은 문장 하나입니다. 직접 고르지 않으면 AI가 표현 방식(시네마틱 장면, 인포그래픽, 지도, 인터페이스 데모, 설계도, 키네틱 타이포그래피, 3D)과 테마를 고릅니다. 이어서 훅, 대본, 출처가 달린 사실을 쓰고 이를 스토리보드로 나눕니다. 스토리보드를 다듬으면 AI가 모든 샷을 만듭니다. 편집기에서 샷을 하나씩 보면서 문제를 평범한 말로 이야기하면 됩니다. 예를 들어 "글자가 너무 작아요", "너무 정적이에요. 움직임을 좀 넣어 주세요". AI는 그 샷만 고쳐 렌더링하고, 노트와 대조해 검사한 뒤 전후 비교를 보여 줍니다. 영상이 마음에 들면 내보내기에서 샷을 이어 붙이고 음악을 넣습니다. AI는 영상 분위기에 맞는 커버를 디자인하고(또는 시리즈 템플릿을 채우고) 플랫폼별 게시글을 써서, 모두 전용 폴더에 담습니다.
+시작은 문장 하나입니다. 직접 고르지 않으면 AI가 표현 방식(시네마틱 장면, 인포그래픽, 지도, 인터페이스 데모, 설계도, 키네틱 타이포그래피, 3D)과 테마를 고릅니다. 이어서 훅, 대본, 출처가 달린 사실을 쓰고 이를 스토리보드로 나누며, 샷마다 내레이션이 읽을 대사도 붙입니다. 스토리보드를 다듬으면 AI가 모든 샷을 만듭니다. 편집기에서 샷을 하나씩 보면서 문제를 평범한 말로 이야기하면 됩니다. 예를 들어 "글자가 너무 작아요", "너무 정적이에요. 움직임을 좀 넣어 주세요". AI는 그 샷만 고쳐 렌더링하고, 노트와 대조해 검사한 뒤 전후 비교를 보여 줍니다. 영상이 마음에 들면 내보내기에서 샷을 이어 붙이고, 자막이 달린 내레이션과 그 아래 깔리는 음악을 넣습니다. AI는 영상 분위기에 맞는 커버를 디자인하고(또는 시리즈 템플릿을 채우고) 플랫폼별 게시글을 써서, 모두 전용 폴더에 담습니다.
 
 AI는 이미 쓰고 있는 것을 그대로 씁니다. 로그인해 둔 Claude Code나 다른 코딩 에이전트, 내 키로 쓰는 모델 API, 또는 로컬 모델.
 
@@ -112,7 +112,7 @@ flowchart LR
   B --> C[모든 샷 만들기]
   C --> D{샷 검토}
   D -- "문제를 말하기" --> E[AI가 그 샷을 수정] --> F[렌더링 + 검사] --> D
-  D -- 괜찮음 --> G[내보내기: 이어 붙이기, 음악, 게시글]
+  D -- 괜찮음 --> G[내보내기: 이어 붙이기, 내레이션, 음악, 게시글]
 ```
 
 - **긴 렌더링 한 번이 아니라 샷 단위.** 영상은 샷의 목록입니다. 각 샷은 작은 프로그램으로, 2D 페이지는 `shot.js`, Blender 카메라 이동은 `shot.py`입니다. 샷마다 입력의 해시로 캐시되므로, 수정하면 샷 하나만 몇 초(2D) 또는 1분(3D) 안에 다시 렌더링되고, 내보내기는 클립을 이어 붙이기만 합니다.
@@ -121,7 +121,8 @@ flowchart LR
 - **계획을 평가하는 규칙.** 무엇이든 만들기 전에 자막의 길이와 화면에 머무는 시간을 검사합니다. 여러 샷에 반복되는 그림은 한 번만 그려 공유하므로 어디서나 똑같아 보입니다.
 - **출처가 있는 사실.** 문안은 각 사실 옆에 출처를 두고, 게시글은 문안에 있는 사실만 쓸 수 있습니다.
 - **커버.** AI가 영상 분위기에 맞는 커버를 디자인하고 렌더링 결과를 스스로 검사합니다. 템플릿으로 저장해 시리즈를 일관되게 유지하거나, 마음에 드는 커버를 올리면 AI가 그 디자인을 따릅니다.
-- **편집에 맞춘 음악.** 합성 배경 음악은 컷이 박자에 떨어지도록 맞춰지고, 마지막 프레임까지 이어진 뒤 페이드아웃됩니다.
+- **내 Mac에서 읽어 주는 내레이션.** 샷마다 대사가 있고, 컷은 내레이션을 따라갑니다. 샷의 길이는 대사 길이에 맞춰지고, 화면은 말에 맞춰 움직입니다. 영어와 중국어는 Kokoro가, 나머지 언어는 Supertonic이 읽으며 모두 오프라인으로 동작합니다. 말한 내용의 자막이 자동으로 붙고, 자막이 가리게 될 것(글자와 표시해 둔 피사체)을 검사로 나열하므로 가려진 영상은 절대 내보내지지 않습니다. 자막 카드만 쓰는 영상이라면 끌 수 있습니다.
+- **편집에 맞춘 음악.** 합성 배경 음악은 컷이 박자에 떨어지도록 맞춰지고, 마지막 프레임까지 이어진 뒤 페이드아웃됩니다. 내레이션이 있으면 더 낮게 깔리고, 대사가 나오는 동안에는 한층 줄어듭니다.
 - **편집할 땐 빠르게, 내보낼 땐 최고 품질로.** 3D는 편집 중에는 빠른 미리보기를 보여 주고, 내보낼 때만 최고 품질로 렌더링합니다. 2D는 처음부터 끝까지 최고 품질입니다.
 - **3D 에셋 라이브러리.** 내 키로 [Poly Pizza](https://poly.pizza)와 [Smithsonian Open Access](https://www.si.edu/openaccess)에서 CC0 모델을 검색합니다. 모델은 한 번만 다운로드되며 어떤 3D 프로젝트에도 추가할 수 있습니다.
 
@@ -143,7 +144,7 @@ flowchart LR
 
 > **처음 실행할 때:** Shotloop은 아직 Apple 공증을 받지 않아 macOS가 개발자를 확인할 수 없다고 표시합니다. **시스템 설정 → 개인정보 보호 및 보안 → 그래도 열기**에서 한 번 열거나, 터미널에서 `xattr -dr com.apple.quarantine /Applications/Shotloop.app`을 실행하세요. 그다음부터는 평소처럼 열리고, 업데이트도 다시 묻지 않고 설치됩니다.
 
-Node.js와 ffmpeg는 앱에 들어 있습니다. Shotloop은 GitHub에서 업데이트를 확인하고 그 자리에서 설치합니다. Apple silicon(M1 이상) Mac에서 실행됩니다.
+Node.js, ffmpeg, 내레이션의 음성 엔진은 앱에 들어 있습니다. 음성 모델은 들어 있지 않습니다. 영상이 해당 언어로 처음 말할 때 진행 표시줄과 함께 다운로드되며(Kokoro 영어 132 MB, Kokoro 중국어 147 MB, 그 밖의 언어용 Supertonic 400 MB), 설정 → 의존성에서 미리 받아 둘 수도 있습니다. 설정 → 정보에는 모든 서드파티 구성 요소와 그 라이선스가 나와 있습니다. Shotloop은 GitHub에서 업데이트를 확인하고 그 자리에서 설치합니다. Apple silicon(M1 이상) Mac에서 실행됩니다.
 
 ## 소스에서 빌드
 
@@ -169,6 +170,9 @@ pnpm shotloop new      my-short --idea "휴대폰 배터리는 왜 노화할까?
 pnpm shotloop new      coffee --idea "커피는 어디에서 왔을까?" --track 2d --style map --duration 30
 pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # into a new folder there
 pnpm shotloop covers   list                                         # cover templates
+pnpm shotloop voice    my-short --on --voice af_heart --fit        # the voice-over: speak the lines, fit the shots
+pnpm shotloop check-subtitles my-short                              # what the subtitles would cover (fails if anything)
+pnpm shotloop voice-models --download kokoro-en                     # a speech model, ahead of time
 pnpm shotloop doctor
 ```
 
@@ -187,19 +191,20 @@ pnpm test                                                             # every ba
 
 ```
 my-video/
-  shotloop.json        title, track (2d|3d), style, size, fps, shots [{ id, title, duration }]
+  shotloop.json        title, track (2d|3d), style, size, fps, lang, voice { on, voice, speed },
+                       shots [{ id, title, duration, say (the spoken line), cues (its sentences' times) }]
   storyboard.json      the plan: copy (hook, script, facts with sources) and shots
   world/               3D: world.py (+ screen.html); 2D: page.html (the style's kit), parts.js (pictures
                        that recur, drawn once), geo.data.js (the map style's countries)
   shots/<id>/          shot.py | shot.js, notes.md (must show, on screen, motion)
   assets/<id>/         3D models from the asset library
   copy.md  script.md  captions.html  music.json  thumb.html  publish.json
-  .shotloop/           cache: per shot and input hash, takes, checks, fixes
+  .shotloop/           cache: per shot and input hash, takes, checks, fixes; voice/: spoken lines, subtitles
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
 - **3D**: `world.py`는 `kit`([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py))으로 공유 월드를 만듭니다. `shot.py`는 월드의 네임스페이스에서 실행되며 카메라 하나를 만듭니다. `at(t)`는 샷 기준 초를 영상 시간으로 변환합니다.
-- **2D**: `shot.js`는 `render(t, ctx)`를 default export하며, 샷 기준 시간 `t`의 `world/page.html`을 그립니다.
+- **2D**: `shot.js`는 `render(t, ctx)`를 default export하며, 샷 기준 시간 `t`의 `world/page.html`을 그립니다. `ctx.voice`에는 샷에서 말하는 문장과 그 시간이 담겨 있어 화면을 말에 맞출 수 있습니다. 피사체를 `data-keep`(canvas라면 `subtitles.keep()`)으로 표시하면 자막 검사가 그 부분을 비워 둡니다.
 - **캐시**: 샷의 키는 월드, 샷 코드, 자막, 에셋, 렌더러, 설정을 해시한 값입니다. 바뀌지 않은 샷은 재사용됩니다.
 
 </details>
@@ -210,7 +215,8 @@ my-video/
 | 경로 | 내용 |
 | --- | --- |
 | [`app/`](app/) | 데스크톱 앱: 렌더 대기열, 업데이터, 프로세스 관리를 맡는 Tauri 2(Rust) 셸과 React + TypeScript UI. |
-| [`engine/shotloop/`](engine/shotloop/) | 샷 엔진: 프로젝트 형식, 샷별 렌더 캐시, 2D(Chrome)·3D(Blender) 렌더링, 영상 조립, MP4 내보내기, 음악, 에셋 라이브러리. 앱이 호출하는 CLI입니다. |
+| [`engine/shotloop/`](engine/shotloop/) | 샷 엔진: 프로젝트 형식, 샷별 렌더 캐시, 2D(Chrome)·3D(Blender) 렌더링, 영상 조립, MP4 내보내기, 내레이션 타이밍, 자막과 그 검사, 음악, 에셋 라이브러리. 앱이 호출하는 CLI입니다. |
+| [`voice/`](voice/) | 내레이션의 텍스트 음성 변환(이 Mac에서 실행): sherpa-onnx를 통한 Kokoro와 ONNX Runtime 기반 Supertonic, 그리고 모델 다운로드. |
 | [`agent/`](agent/) | 에이전트: 계획, 제작, 평범한 말로 하는 수정, 체크리스트 검사, 게시글. API, CLI(MCP 경유), 로컬 모델을 지원합니다. |
 | [`examples/`](examples/) | 홈에서 제공하는 영어 예제: 비주얼 스타일마다 하나 이상(2D와 3D, 9:16과 16:9). |
 | [`fixtures/`](fixtures/) | 테스트와 터미널 실습용 프로젝트. |
@@ -219,4 +225,4 @@ my-video/
 
 ## 라이선스
 
-[Apache License 2.0](LICENSE). [NOTICE](NOTICE)도 참고하세요. 에셋 라이브러리의 모델은 각자의 라이선스를 따릅니다(CC0 또는 CC-BY, 출처 표기는 프로젝트에 기록됩니다).
+[Apache License 2.0](LICENSE). [NOTICE](NOTICE)도 참고하세요. 에셋 라이브러리의 모델은 각자의 라이선스를 따릅니다(CC0 또는 CC-BY, 출처 표기는 프로젝트에 기록됩니다). 음성 모델도 마찬가지입니다(Kokoro: Apache-2.0, Supertonic: OpenRAIL-M).

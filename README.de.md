@@ -31,7 +31,7 @@ Aus einer Idee werden Text, Storyboard und ein Film aus Shots. Jeder Shot hat se
 
 Shotloop ist eine Desktop-App für kurze Videos, die mit Code gezeichnet werden: Produktvideos, Wissenschaftserklärungen, Datengeschichten und Animationen im Folienstil – in 2D (Webseiten, Bild für Bild gerendert) oder 3D (Blender-Szenen), in sieben visuellen Stilen.
 
-Du beginnst mit einem Satz. Die KI wählt, wie er gezeigt wird (filmische Szene, Infografik, Karte, Interface-Demo, Blaupause, Kinetic Type oder 3D), und ein Theme – außer du wählst selbst. Sie schreibt Hook, Skript und Fakten mit Quellen und teilt alles in ein Storyboard auf. Du bearbeitest das Storyboard, die KI baut jeden Shot. Im Studio siehst du dir jeden Shot an und sagst in einfachen Worten, was nicht stimmt, etwa „die Schrift ist zu klein“ oder „zu statisch: bring etwas Bewegung rein“. Die KI ändert diesen Shot, rendert ihn, prüft ihn anhand der Notizen und zeigt dir einen Vorher-Nachher-Vergleich. Wenn der Film passt, fügt „Exportieren“ die Shots zusammen und legt Musik darunter. Die KI gestaltet ein Cover im Look des Films (oder füllt die Vorlage deiner Serie) und schreibt den Post für jede Plattform – alles in einem eigenen Ordner.
+Du beginnst mit einem Satz. Die KI wählt, wie er gezeigt wird (filmische Szene, Infografik, Karte, Interface-Demo, Blaupause, Kinetic Type oder 3D), und ein Theme – außer du wählst selbst. Sie schreibt Hook, Skript und Fakten mit Quellen und teilt alles in ein Storyboard auf, mit dem Satz, den ein Sprecher über jeden Shot spricht. Du bearbeitest das Storyboard, die KI baut jeden Shot. Im Studio siehst du dir jeden Shot an und sagst in einfachen Worten, was nicht stimmt, etwa „die Schrift ist zu klein“ oder „zu statisch: bring etwas Bewegung rein“. Die KI ändert diesen Shot, rendert ihn, prüft ihn anhand der Notizen und zeigt dir einen Vorher-Nachher-Vergleich. Wenn der Film passt, fügt „Exportieren“ die Shots zusammen und legt den Sprecher mit seinen Untertiteln und darunter die Musik an. Die KI gestaltet ein Cover im Look des Films (oder füllt die Vorlage deiner Serie) und schreibt den Post für jede Plattform – alles in einem eigenen Ordner.
 
 Die KI ist die, die du schon nutzt: Claude Code oder ein anderer Coding-Agent, bei dem du angemeldet bist, eine Modell-API mit eigenem Schlüssel oder ein lokales Modell.
 
@@ -112,7 +112,7 @@ flowchart LR
   B --> C[Jeden Shot bauen]
   C --> D{Shot prüfen}
   D -- "sagen, was nicht stimmt" --> E[KI korrigiert diesen Shot] --> F[Rendern + prüfen] --> D
-  D -- passt --> G[Export: zusammenfügen, Musik, Post-Text]
+  D -- passt --> G[Export: zusammenfügen, Sprecher, Musik, Post-Text]
 ```
 
 - **Shots statt eines langen Renders.** Ein Film ist eine Liste von Shots. Jeder Shot ist ein kleines Programm: `shot.js` für eine 2D-Seite, `shot.py` für eine Blender-Kamerafahrt. Jeder wird über einen Hash seiner Eingaben gecacht, sodass eine Korrektur einen Shot in Sekunden (2D) oder einer Minute (3D) neu rendert und der Export nur noch Clips zusammenfügt.
@@ -121,7 +121,8 @@ flowchart LR
 - **Regeln, an denen ein Plan gemessen wird.** Untertitel werden auf Länge und Standzeit geprüft, bevor etwas gebaut wird. Ein Bild, das in mehreren Shots vorkommt, wird einmal gezeichnet und geteilt, damit es überall gleich aussieht.
 - **Fakten mit Quellen.** Der Text hält jede Tatsache neben ihrer Quelle, und der Post-Text darf nur Fakten aus dem Text verwenden.
 - **Cover.** Die KI gestaltet ein Cover im Look des Films und prüft ihre eigenen Renders. Speichere eines als Vorlage, damit eine Serie einheitlich bleibt, oder lade ein Cover hoch, das dir gefällt, und die KI folgt seinem Design.
-- **Musik passend zum Schnitt.** Der synthetisierte Klangteppich ist so abgestimmt, dass die Schnitte auf seine Beats fallen; er läuft bis zum letzten Frame und blendet aus.
+- **Ein Sprecher, gesprochen auf deinem Mac.** Jeder Shot hat einen Sprechtext, und die Stimme führt den Schnitt: Ein Shot dauert so lange wie sein Text, und das Bild trifft die Worte. Kokoro spricht Englisch und Chinesisch, Supertonic die übrigen Sprachen, alles offline. Untertitel der gesprochenen Worte kommen automatisch dazu, und eine Prüfung listet alles auf, was sie verdecken würden (Text und das markierte Motiv), sodass ein verdeckter Film nie exportiert wird. Für einen Film nur mit Texteinblendungen schaltest du den Sprecher aus.
+- **Musik passend zum Schnitt.** Der synthetisierte Klangteppich ist so abgestimmt, dass die Schnitte auf seine Beats fallen; er läuft bis zum letzten Frame und blendet aus. Unter einem Sprecher liegt er leiser und duckt sich, während ein Satz gesprochen wird.
 - **Schnell beim Bearbeiten, volle Qualität beim Export.** 3D zeigt beim Bearbeiten schnelle Vorschauen und rendert erst beim Export in voller Qualität. 2D arbeitet durchgehend in voller Qualität.
 - **Asset-Bibliothek für 3D.** Suche CC0-Modelle auf [Poly Pizza](https://poly.pizza) und [Smithsonian Open Access](https://www.si.edu/openaccess) mit deinem eigenen Schlüssel. Jedes Modell wird einmal geladen und lässt sich in jedes 3D-Projekt einfügen.
 
@@ -143,7 +144,7 @@ Das Modell braucht Tool-Calling, für Prüfungen eines, das Bilder sehen kann. D
 
 > **Erster Start:** Shotloop ist noch nicht von Apple notarisiert, daher meldet macOS, dass der Entwickler nicht überprüft werden kann. Öffne die App einmal über **Systemeinstellungen → Datenschutz & Sicherheit → Dennoch öffnen** oder führe im Terminal `xattr -dr com.apple.quarantine /Applications/Shotloop.app` aus. Danach öffnet sie sich normal, und Updates installieren sich ohne erneute Nachfrage.
 
-Node.js und ffmpeg sind in der App enthalten. Shotloop sucht auf GitHub nach Updates und installiert sie direkt. Läuft auf Macs mit Apple Silicon (M1 und neuer).
+Node.js, ffmpeg und die Sprach-Engines des Sprechers sind in der App enthalten. Die Stimmmodelle nicht: Jedes wird geladen, wenn ein Film zum ersten Mal seine Sprachen spricht (Kokoro Englisch 132 MB, Kokoro Chinesisch 147 MB, Supertonic für die übrigen Sprachen 400 MB), mit Fortschrittsbalken, oder vorab unter Einstellungen → Abhängigkeiten. Einstellungen → Über listet jede Fremdkomponente mit ihrer Lizenz. Shotloop sucht auf GitHub nach Updates und installiert sie direkt. Läuft auf Macs mit Apple Silicon (M1 und neuer).
 
 ## Aus dem Quellcode bauen
 
@@ -169,6 +170,9 @@ pnpm shotloop new      my-short --idea "Warum altert dein Handy-Akku?" --track a
 pnpm shotloop new      coffee --idea "Woher kommt Kaffee?" --track 2d --style map --duration 30
 pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # in einen neuen Ordner dort
 pnpm shotloop covers   list                                         # Cover-Vorlagen
+pnpm shotloop voice    my-short --on --voice af_heart --fit        # der Sprecher: Texte sprechen, Shots anpassen
+pnpm shotloop check-subtitles my-short                              # was die Untertitel verdecken würden (schlägt fehl, wenn etwas)
+pnpm shotloop voice-models --download kokoro-en                     # ein Sprachmodell, vorab
 pnpm shotloop doctor
 ```
 
@@ -187,19 +191,20 @@ pnpm test                                                             # jedes Ba
 
 ```
 my-video/
-  shotloop.json        Titel, Track (2d|3d), Stil, Größe, fps, Shots [{ id, title, duration }]
+  shotloop.json        Titel, Track (2d|3d), Stil, Größe, fps, Sprache, Sprecher { on, voice, speed },
+                       Shots [{ id, title, duration, say (der gesprochene Text), cues (die Zeiten seiner Sätze) }]
   storyboard.json      der Plan: Text (Hook, Skript, Fakten mit Quellen) und Shots
   world/               3D: world.py (+ screen.html); 2D: page.html (Kit des Stils), parts.js (wiederkehrende
                        Bilder, einmal gezeichnet), geo.data.js (Länder des Kartenstils)
   shots/<id>/          shot.py | shot.js, notes.md (muss zeigen, im Bild, Bewegung)
   assets/<id>/         3D-Modelle aus der Asset-Bibliothek
   copy.md  script.md  captions.html  music.json  thumb.html  publish.json
-  .shotloop/           Cache: pro Shot und Eingabe-Hash, Takes, Prüfungen, Korrekturen
+  .shotloop/           Cache: pro Shot und Eingabe-Hash, Takes, Prüfungen, Korrekturen; voice/: gesprochene Texte, Untertitel
   out/                 Exporte der Engine (mit Zeitstempel); die App kopiert jeden in einen neuen Ordner deiner Wahl
 ```
 
 - **3D**: `world.py` baut die gemeinsame Welt mit `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` läuft im Namespace der Welt und erzeugt eine Kamera; `at(t)` bildet Shot-lokale Sekunden auf die Filmzeit ab.
-- **2D**: `shot.js` exportiert standardmäßig `render(t, ctx)`, das `world/page.html` zur Shot-lokalen Zeit `t` zeichnet.
+- **2D**: `shot.js` exportiert standardmäßig `render(t, ctx)`, das `world/page.html` zur Shot-lokalen Zeit `t` zeichnet. `ctx.voice` enthält die gesprochenen Sätze des Shots mit ihren Zeiten, damit das Bild die Worte trifft; markiere das Motiv mit `data-keep` (oder `subtitles.keep()` auf einem Canvas), damit die Untertitel-Prüfung es frei hält.
 - **Cache**: Der Schlüssel eines Shots hasht Welt, Code, Untertitel, Assets, Renderer und Einstellungen. Unveränderte Shots werden wiederverwendet.
 
 </details>
@@ -210,7 +215,8 @@ my-video/
 | Pfad | Inhalt |
 | --- | --- |
 | [`app/`](app/) | Die Desktop-App: eine Tauri-2-Shell (Rust) mit Render-Warteschlange, Updater und Prozessüberwachung sowie die UI in React + TypeScript. |
-| [`engine/shotloop/`](engine/shotloop/) | Die Shot-Engine: Projektformat, Render-Cache pro Shot, 2D- (Chrome) und 3D-Renders (Blender), Filmmontage, MP4-Export, Musik, Asset-Bibliothek. Eine CLI, die die App aufruft. |
+| [`engine/shotloop/`](engine/shotloop/) | Die Shot-Engine: Projektformat, Render-Cache pro Shot, 2D- (Chrome) und 3D-Renders (Blender), Filmmontage, MP4-Export, Timing des Sprechers, Untertitel und ihre Prüfung, Musik, Asset-Bibliothek. Eine CLI, die die App aufruft. |
+| [`voice/`](voice/) | Die Sprachausgabe des Sprechers, auf diesem Mac: Kokoro über sherpa-onnx und Supertonic auf ONNX Runtime, mit den Downloads der Modelle. |
 | [`agent/`](agent/) | Der Agent: Planung, Aufbau, Korrekturen in einfachen Worten, Prüfung anhand der Checkliste, Post-Text. Unterstützt API, CLI (über MCP) und lokale Modelle. |
 | [`examples/`](examples/) | Die Beispiele auf der Startseite, auf Englisch: mindestens eines pro visuellem Stil (2D und 3D, 9:16 und 16:9). |
 | [`fixtures/`](fixtures/) | Projekte für die Tests und Terminal-Walkthroughs. |
@@ -219,4 +225,4 @@ my-video/
 
 ## Lizenz
 
-[Apache License 2.0](LICENSE); siehe [NOTICE](NOTICE). Modelle aus der Asset-Bibliothek behalten ihre eigenen Lizenzen (CC0 oder CC-BY, mit Namensnennung im Projekt).
+[Apache License 2.0](LICENSE); siehe [NOTICE](NOTICE). Modelle aus der Asset-Bibliothek behalten ihre eigenen Lizenzen (CC0 oder CC-BY, mit Namensnennung im Projekt), ebenso die Stimmmodelle (Kokoro: Apache-2.0; Supertonic: OpenRAIL-M).

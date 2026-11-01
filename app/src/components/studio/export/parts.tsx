@@ -1,15 +1,126 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useEffect, useRef, useState } from 'react'
 import { agentError } from '../../../ai/errors'
-import { api, fileUrl, type Job, type MusicInfo, type Project } from '../../../api'
+import { api, fileUrl, type Job, type MusicInfo, type Project, type VoiceInfo } from '../../../api'
 import { activityLine } from '../../../model'
 import { t } from '../../../i18n'
 import { Icon } from '../../Icon'
+import { VoiceDownload } from '../../VoiceDownload'
 
-// The export dialog's parts that keep their own state: the music bed,
-// 3D final quality and the publish copy
+// The export dialog's parts that keep their own state: the voice-over,
+// the music bed, 3D final quality and the publish copy
 
 const PRESETS = ['calm', 'bright', 'groove', 'tech'] as const
+
+// The voice-over: off or on, and which voice, with a sample to listen to.
+// A new voice speaks every line again and the shots are fitted to it
+// (the engine does that with the change), so it can take a moment. A
+// model not on this Mac yet downloads first (a queue job with a bar), and
+// the change waiting for it is made when it lands
+export function Voice({ project, jobs, refresh }: { project: Project; jobs: Job[]; refresh: () => void }) {
+  const [info, setInfo] = useState<VoiceInfo | null>(null)
+  const [pending, setPending] = useState<Parameters<typeof api.voice>[1] | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [playing, setPlaying] = useState<'loading' | 'on' | null>(null)
+  const audio = useRef<HTMLAudioElement | null>(null)
+  useEffect(() => {
+    api.voice(project.root).then(setInfo, () => setInfo(null))
+    return () => audio.current?.pause()
+  }, [project.root])
+
+  const stop = () => {
+    audio.current?.pause()
+    setPlaying(null)
+  }
+  const listen = async () => {
+    setPlaying('loading')
+    try {
+      const r = await api.voice(project.root, { sample: true })
+      if (!r.sample) return setPlaying(null)
+      audio.current?.pause()
+      const a = new Audio(fileUrl(r.sample))
+      a.onended = () => setPlaying(null)
+      audio.current = a
+      await a.play()
+      setPlaying('on')
+    } catch {
+      setPlaying(null)
+    }
+  }
+  // current: the info to judge by (the fresh one when a download lands)
+  const change = async (c: Parameters<typeof api.voice>[1], current = info) => {
+    stop()
+    // Speaking needs the model: turning on or a new voice waits for it;
+    // turning off never does
+    if ((c?.on || c?.voice) && current?.model && !current.model.installed) {
+      setPending(c)
+      api.enqueue({ kind: 'voiceModel', model: current.model.id })
+      return
+    }
+    setBusy(true)
+    setError(null)
+    try {
+      setInfo(await api.voice(project.root, c))
+      refresh()
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const landed = async () => {
+    const next = await api.voice(project.root)
+    setInfo(next)
+    if (pending) {
+      setPending(null)
+      if (next.model?.installed) change(pending, next)
+    }
+  }
+
+  if (!info) return null
+  const missing = !!info.model && !info.model.installed
+  return (
+    <>
+      <div className="xrow">
+        <span className="xrow-label">{t('voice.title')}</span>
+        <div className="chips">
+          <div className="seg" role="radiogroup" aria-label={t('voice.title')}>
+            <button role="radio" aria-checked={!info.on} className={!info.on ? 'on' : ''} disabled={busy} onClick={() => info.on && change({ on: false })}>{t('voice.off')}</button>
+            <button role="radio" aria-checked={info.on} className={info.on ? 'on' : ''} disabled={busy || !info.available} onClick={() => !info.on && change({ on: true })}>{t('voice.on')}</button>
+          </div>
+          {busy && <span className="muted voice-busy"><span className="spinner small" /> {t('voice.fitting')}</span>}
+        </div>
+      </div>
+      {!info.available && <p className="xrow-note">{t('voice.unavailable')}</p>}
+      {/* The voice isn't on this Mac yet: shown when it is needed (on, or
+          turning on), with its download */}
+      {info.model && missing && (info.on || pending) && (
+        <div className="xrow">
+          <span className="xrow-label">{t('voiceDl.model')}</span>
+          <VoiceDownload model={info.model} jobs={jobs} onDone={landed} />
+        </div>
+      )}
+      {info.on && info.available && (
+        <div className="xrow">
+          <span className="xrow-label">{t('voice.voice')}</span>
+          <div className="vol">
+            <select value={info.voice ?? ''} disabled={busy || missing} aria-label={t('voice.voice')} onChange={e => change({ voice: e.currentTarget.value })}>
+              {info.voices.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+            </select>
+            <button className="link listen" disabled={busy || missing} onClick={playing ? stop : listen}>
+              {playing === 'loading' ? <span className="spinner small" /> : <Icon name={playing ? 'pause' : 'play'} size={11} />} {t(playing ? 'music.stop' : 'music.listen')}
+            </button>
+          </div>
+        </div>
+      )}
+      {info.on && info.available && (!info.lines || error) && (
+        <p className="xrow-note">{error ?? t('voice.noLines')}</p>
+      )}
+    </>
+  )
+}
 
 // The music bed: none, a preset or the person's file, its volume, and a
 // listen button (the bed is made for the film's length, then played)

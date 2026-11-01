@@ -10,6 +10,8 @@
 
   Keep text and the subject inside x 40…620, y 110…1024 (the
   platforms' buttons cover the rest); the sky and light fill the whole frame.
+  The film has a voice-over: its subtitles sit in y 870…1011, so keep text
+  and the subject above 864 (backgrounds may pass behind).
 
   How it reads as 3D: one light source that blooms; objects lit from it
   (sphere: a night side away from the light); particles at several depths
@@ -60,7 +62,9 @@
     caption({ kicker, head, sub, p = 1, y = 154, align = 'left', size })
                                     the condensed line in glowing type; *word* is the accent;
                                     p 0→1 fades, lifts and unblurs it in
-    source(text, p = 1)             the small source line at the bottom of the safe area
+    source(text, p = 1)             the small source line, its bottom at y 864, just above
+                                    the subtitle band (y 870…1011: keep text and the
+                                    subject out of it; the sky may pass behind)
     block({ x, y, w, p, cls, html, style })  free type; classes: kicker, head, sub, num
                                     (tabular mono digits), hl (accent glow), muted, chip
     card(t, { kicker, title, body, progress })  the starter title card
@@ -415,7 +419,9 @@
         if (lines) block({ y, p, cls: 'head', style, html: lines })
         if (sub) block({ y: y + (size || 61) * 1.18 * (Array.isArray(head) ? head.length : 1) + 18, p: clamp(p * 1.2 - 0.2), cls: 'sub', style, html: esc(sub) })
       }
-      const source = (text, p = 1) => block({ y: SAFE_BOTTOM - 36, p, dy: 8, cls: 'source', html: esc(text) })
+      // Bottom-anchored just above the voice-over's subtitle band (y 870…1011)
+      const SOURCE_BOTTOM = 864
+      const source = (text, p = 1) => block({ y: 0, p, dy: 8, cls: 'source', style: 'top:auto;bottom:' + (H - SOURCE_BOTTOM) + 'px', html: esc(text) })
 
       // The starter title card, until a shot gets its own design
       function card(t, { kicker, title, body, progress }) {
