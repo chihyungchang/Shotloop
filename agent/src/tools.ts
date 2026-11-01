@@ -8,7 +8,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { renderCover, renderStills } from './engine.ts'
 import { emit, reason, warn } from './events.ts'
-import { STYLES, styleById, styleStills } from './styles.ts'
+import { STYLES, styleById, styleStills } from './enginelib.ts'
 
 type Tool = Anthropic.Beta.BetaTool
 

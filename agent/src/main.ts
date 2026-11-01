@@ -22,9 +22,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parseArgs } from 'node:util'
 import { credits, head, ideaOf, looksBrief, read, recurring, shotBrief, stylesBrief, trackBrief, worldFiles } from './briefs.ts'
 import { engine, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
+import { parseFlags, STILLS } from './enginelib.ts'
 import { emit, exit, reason, setJson, warn } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
 import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, planSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, TEMPLATE_RULES } from './prompts.ts'
@@ -46,28 +46,13 @@ const OPTIONS = {
 } as const
 
 // A request that starts with "-" ("-make it slower") must not read as an
-// option: string values are joined to their flag before parsing
-async function parse(argv: string[]) {
-  const joined: string[] = []
-  for (let i = 0; i < argv.length; i++) {
-    const name = argv[i].startsWith('--') && !argv[i].includes('=') ? argv[i].slice(2) : null
-    if (name && (OPTIONS as Record<string, { type: string }>)[name]?.type === 'string' && i + 1 < argv.length) joined.push(`--${name}=${argv[++i]}`)
-    else joined.push(argv[i])
-  }
-  try {
-    return parseArgs({ args: joined, allowPositionals: true, options: OPTIONS })
-  } catch (err) {
-    console.log(JSON.stringify({ type: 'error', message: (err as Error).message }))
-    return exit(1)
-  }
-}
-const { values, positionals } = await parse(process.argv.slice(2))
+// option: engine/lib/jsonl.mjs joins string values to their flag first
+const { values, positionals } = parseFlags(process.argv.slice(2), OPTIONS)
 setJson(!!values.json)
 // --model picks the model of the chosen backend (see providers.ts)
 if (values.model) process.env.SHOTLOOP_MODEL = values.model
 const [task, dir] = positionals
 
-const STILLS = ['start', 'middle', 'end']
 const stamp = () => new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15)
 const today = () => new Date().toISOString().slice(0, 10)
 

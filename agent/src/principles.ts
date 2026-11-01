@@ -5,6 +5,8 @@
 // measured against them before anything is built (lintPlan). Within them,
 // the AI makes each frame as rich to watch as it can.
 
+import { readTime, SUBTITLE_BAND, VOICE_LEAD, VOICE_TAIL } from './enginelib.ts'
+
 export const PRINCIPLES_2D = `The 2D principles (fixed; only how richly they are done changes):
 1. Visual first. A short video is not an info journal. Design each shot from "what does the viewer SEE?" before writing a word. If a fact can be shown, show it.
 2. The animation explains; the caption sums up. One condensed line per shot: about 6 to 8 words plus the big number (Chinese: at most 14 characters plus the number). Cut every word the picture already says. Short labels inside the picture are fine.
@@ -39,16 +41,14 @@ Color: the look sets only the ground and the type (background, text, headlines, 
 Rhythm across the video: alternate big-number shots with diagram shots; change the dominant color as the story turns. A picture that comes back in another shot keeps its design (same layout, colors and labels), so the viewer recognises it at once.`
 
 // Where the subtitles sit (engine/shotloop/cues.mjs), as "68–79%"
-const { SUBTITLE_BAND } = await import(new URL('../../engine/shotloop/cues.mjs', import.meta.url).href) as
-  { SUBTITLE_BAND: Record<'portrait' | 'landscape', [number, number]> }
 const band = (k: 'portrait' | 'landscape') => `${SUBTITLE_BAND[k].map(x => Math.round(x * 100)).join('–')}%`
 
 // How fast a line is spoken, for planning (words, or Chinese and Japanese
-// characters, a second), and the silence its shot gets around it: the
-// same as engine/shotloop/voice.mjs LEAD+TAIL
+// characters, a second), and the silence its shot gets around it (the
+// engine fits shots with the same)
 const WORDS_PER_S = 2.7
 const CJK_PER_S = 4.5
-const VOICE_PAD = 0.65
+const VOICE_PAD = VOICE_LEAD + VOICE_TAIL
 
 // With a voice-over (on for a new film, engine/shotloop/voice.mjs) the
 // voice carries the explanation: these rules change principles 2 and 3,
@@ -86,14 +86,6 @@ function units(text: string) {
   return { cjk, words, numbers: tokens.length - words }
 }
 
-// Seconds a caption must stay fully on screen: about 3 words a second
-// (slower than subtitle standards, since nobody should have to pause), a
-// number read like a word. The same formula as the 2D kit's readTime
-// (engine/shotloop/looks.mjs)
-function readingTime(text: string) {
-  const { cjk, words, numbers } = units(text)
-  return cjk + words + numbers ? 1 + 0.3 * (words + numbers) + 0.15 * cjk : 0
-}
 
 // A shot's captions: its on-screen text, one caption per line
 const captions = (text: string) => text.split(/\n+/).map(s => s.trim()).filter(Boolean)
@@ -137,7 +129,7 @@ export function lintPlan(shots: { title?: string; duration: number; text?: strin
       const { cjk, words } = units(c)
       if (words / 8 + cjk / 14 > 1) issues.push(`${name}: the caption "${c}" is too long (about 6 to 8 words, or 14 Chinese characters, plus the number); cut what the picture already says`)
     }
-    const need = list.reduce((n, c) => n + Math.max(readingTime(c), bar), 0) + (list.length ? ANIMATION : 0)
+    const need = list.reduce((n, c) => n + Math.max(readTime(c), bar), 0) + (list.length ? ANIMATION : 0)
     if (s.duration + 0.05 < need) {
       issues.push(`${name}: ${s.duration} s is too short to read its ${list.length > 1 ? `${list.length} captions` : 'caption'} (needs ${need.toFixed(1)} s); shorten or drop text, or give the shot more time`)
     }

@@ -3,11 +3,10 @@
 
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { CLI } from './enginelib.ts'
 import { emit } from './events.ts'
 import { spawnLines } from './spawn.ts'
 
-const CLI = process.env.SHOTLOOP_ENGINE
-  ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'engine', 'shotloop', 'cli.mjs')
 
 export interface ShotStatus {
   id: string

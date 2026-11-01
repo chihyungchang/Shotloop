@@ -22,16 +22,14 @@ import { cachedFile, MODES } from './cache.mjs'
 import { readJson, writeAtomic, writeJson } from './files.mjs'
 import { emit, ffmpeg, progress } from './compose.mjs'
 import { round } from './data.mjs'
-import { sentences, voiceLang, voiceOn } from './cues.mjs'
+import { sentences, VOICE_LEAD, VOICE_TAIL, voiceLang, voiceOn } from './cues.mjs'
 import { loadProject, localPath, projectPath, updateConfig } from './project.mjs'
 import { isStarter } from './starters.mjs'
 import { STORYBOARD_FILE } from './storyboard.mjs'
 import { dressClips } from './subtitles.mjs'
 
-// The picture comes first: a line starts this far into its shot, and the
-// cut waits this long after it ends
-const LEAD = 0.2
-const TAIL = 0.45
+const LEAD = VOICE_LEAD
+const TAIL = VOICE_TAIL
 // Between two sentences of one shot
 const GAP = 0.25
 // How much faster a line may be spoken to keep a built shot's length
@@ -82,7 +80,12 @@ function downloadTicker(stage, bytes) {
   const total = Math.round(bytes / 1e6)
   const tick = progress({ stage }, total)
   let last = -1
-  return done => {
+  let waiting = false
+  // { waiting }: another process is fetching the same model, and done is
+  // how far it has got; said once, so the bar isn't taken for our own
+  return (done, _total, info) => {
+    if (info?.waiting && !waiting) emit({ type: 'log', message: 'waiting for another download of the same voice model' })
+    waiting = !!info?.waiting
     const mb = Math.min(Math.floor(done / 1e6), done >= bytes ? total : total - 1)
     if (mb !== last) tick((last = mb))
   }
@@ -114,10 +117,10 @@ async function speak(project, text, { lang, voice, speed = 1 }) {
   let tick = null
   const out = await v.synthesize(text, {
     lang, voice, speed,
-    onProgress: (done, total) => {
+    onProgress: (done, total, info) => {
       if (!tick) emit({ type: 'log', message: 'downloading the voice model (once)' })
       tick ??= downloadTicker('voice-model', total)
-      tick(done)
+      tick(done, total, info)
     }
   })
   const samples = trim(out.samples, out.sampleRate)

@@ -8,7 +8,7 @@ import path from 'node:path'
 import type { ProjectStatus, ShotStatus } from './engine.ts'
 import { reason, warn } from './events.ts'
 import { creditsPrompt } from './prompts.ts'
-import { STYLES } from './styles.ts'
+import { LOOKS, STYLES } from './enginelib.ts'
 
 export const read = (f: string) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '(missing)')
 
@@ -122,7 +122,6 @@ export function stylesBrief(project: ProjectStatus, threeD: boolean) {
 // The looks a 2D plan picks from, or the one the person chose
 export async function looksBrief(project: ProjectStatus) {
   if (project.track !== '2d') return ''
-  const { LOOKS } = await import(new URL('../../engine/shotloop/looks.mjs', import.meta.url).href) as { LOOKS: { id: string; about: string; scene?: unknown }[] }
   const chosen = (JSON.parse(read(path.join(project.root, 'shotloop.json'))) as { look?: string }).look
   if (chosen) return `\nLook: "${chosen}" (chosen by the person; keep it unless the style you pick cannot use it).`
   return `\nLooks (pick one for "look", one the style can use):\n${LOOKS.map(l => `- ${l.id}: ${l.about}${l.scene ? '' : ' (not for the cinematic scene)'}`).join('\n')}`

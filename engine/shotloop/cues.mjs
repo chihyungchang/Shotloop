@@ -8,6 +8,12 @@
 // subtitle layer, subtitles.mjs, and the agent's rules read it here)
 export const SUBTITLE_BAND = { portrait: [0.68, 0.79], landscape: [0.72, 0.84] }
 
+// The picture comes first: a line starts VOICE_LEAD into its shot, and the
+// cut waits VOICE_TAIL after it ends (voice.mjs fits shots with them; the
+// agent plans durations with them)
+export const VOICE_LEAD = 0.2
+export const VOICE_TAIL = 0.45
+
 // The language spoken (and written in the subtitles): the project's, else
 // read from its lines
 export function voiceLang(project) {
