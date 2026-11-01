@@ -14,17 +14,15 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { CREDITS as CHINESE_VOICE } from '../../voice/src/cosyvoice.mjs'
 import { MODELS } from '../../voice/src/models.mjs'
+import { TAURI, triple } from './build-info.mjs'
+import { FFMPEG, NODE } from './sidecars.mjs'
 
 const REPO = path.resolve(import.meta.dirname, '..', '..')
 const OUT = path.join(import.meta.dirname, '..', 'src', 'licenses.json')
 
-// The pinned versions in sidecars.mjs (it downloads when imported)
-const sidecars = fs.readFileSync(path.join(import.meta.dirname, 'sidecars.mjs'), 'utf8')
-const pinned = name => sidecars.match(new RegExp(`^const ${name} = '([^']+)'`, 'm'))?.[1] ?? null
-
 const programs = [
-  { name: 'Node.js', version: pinned('NODE'), license: 'MIT', url: 'https://nodejs.org' },
-  { name: 'FFmpeg', version: pinned('FFMPEG'), license: 'GPL-3.0', url: 'https://ffmpeg.org' }
+  { name: 'Node.js', version: NODE, license: 'MIT', url: 'https://nodejs.org' },
+  { name: 'FFmpeg', version: FFMPEG, license: 'GPL-3.0', url: 'https://ffmpeg.org' }
 ]
 
 const models = Object.values(MODELS).map(m => ({ name: m.name, version: null, license: m.license, url: m.home }))
@@ -49,9 +47,8 @@ function npm() {
 // The shell's crates on the target being built (normal and build
 // dependencies of the release, not dev tools)
 function crates() {
-  const target = process.env.TAURI_ENV_TARGET_TRIPLE ?? (process.arch === 'arm64' ? 'aarch64-apple-darwin' : 'x86_64-apple-darwin')
-  const meta = JSON.parse(execFileSync('cargo', ['metadata', '--format-version', '1', '--filter-platform', target], {
-    cwd: path.join(import.meta.dirname, '..', 'src-tauri'), encoding: 'utf8', maxBuffer: 64 * 1024 * 1024
+  const meta = JSON.parse(execFileSync('cargo', ['metadata', '--format-version', '1', '--filter-platform', triple], {
+    cwd: TAURI, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024
   }))
   const used = new Set(meta.resolve.nodes.map(n => n.id))
   return meta.packages

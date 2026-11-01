@@ -10,9 +10,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { MODES, shotKey } from '../../engine/shotloop/cache.mjs'
 import { loadProject } from '../../engine/shotloop/project.mjs'
+import { arch, TAURI } from './build-info.mjs'
 
 const REPO = path.resolve(import.meta.dirname, '..', '..')
-const OUT = path.join(import.meta.dirname, '..', 'src-tauri', 'bundle-resources')
+const OUT = path.join(TAURI, 'bundle-resources')
 
 // Engine files the CLI imports or reads (see engine/shotloop/cache.mjs)
 const ENGINE = [
@@ -102,16 +103,16 @@ deploy('@shotloop/agent', 'agent', ['package.json', 'src', 'node_modules'])
 deploy('@shotloop/voice', 'voice', ['package.json', 'src', 'py', 'node_modules'])
 
 // ONNX Runtime ships every platform's binaries: only this Mac's stay
-const arch = { aarch64: 'arm64', x86_64: 'x64' }[process.env.TAURI_ENV_TARGET_TRIPLE?.split('-')[0]] ?? process.arch
+const ortArch = { aarch64: 'arm64', x86_64: 'x64' }[arch]
 const ort = path.join(OUT, 'voice', 'node_modules', 'onnxruntime-node', 'bin')
 for (const napi of fs.existsSync(ort) ? fs.readdirSync(ort) : []) {
   for (const os of fs.readdirSync(path.join(ort, napi))) {
     if (os !== 'darwin') fs.rmSync(path.join(ort, napi, os), { recursive: true, force: true })
-    else for (const a of fs.readdirSync(path.join(ort, napi, os))) if (a !== arch) fs.rmSync(path.join(ort, napi, os, a), { recursive: true, force: true })
+    else for (const a of fs.readdirSync(path.join(ort, napi, os))) if (a !== ortArch) fs.rmSync(path.join(ort, napi, os, a), { recursive: true, force: true })
   }
   // The versioned name was a symlink, deployed as a second copy: the
   // binding loads libonnxruntime.1.dylib
-  const bin = path.join(ort, napi, 'darwin', arch)
+  const bin = path.join(ort, napi, 'darwin', ortArch)
   for (const f of fs.existsSync(bin) ? fs.readdirSync(bin) : []) if (/^libonnxruntime\.\d+\.\d+\.\d+\.dylib$/.test(f)) fs.rmSync(path.join(bin, f))
 }
 
