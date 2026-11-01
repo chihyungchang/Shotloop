@@ -8,8 +8,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { editMode, entry, takes } from './cache.mjs'
-import { DEFAULT_LOOK, lookById, lookPage, LOOKS, styleFiles } from './looks.mjs'
-import { STYLES, styleById } from './styles.mjs'
+import { DEFAULT_LOOK, DEFAULT_STYLE, firstLine, lookById, LOOKS, STYLES, styleById } from './data.mjs'
+import { lookPage, styleFiles } from './looks.mjs'
 import { composeBed } from './score.mjs'
 import { isProject, loadProject, saveConfig, SIZES } from './project.mjs'
 import { voiceOn } from './cues.mjs'
@@ -101,15 +101,6 @@ function page2d({ width, height }) {
 `
 }
 
-// The idea's first sentence as a title, at most 60 characters, cut at a
-// word (an ellipsis marks the cut) so no word is left half-written
-export function firstLine(idea, max = 60) {
-  const t = String(idea).split(/[.?!\n。？！]/)[0].trim()
-  if (t.length <= max) return t
-  const cut = t.slice(0, max - 1)
-  const space = cut.lastIndexOf(' ')
-  return (space > max / 2 ? cut.slice(0, space) : cut).replace(/[\s,;:–-]+$/, '') + '…'
-}
 
 function shot2d(shot, i, n, idea) {
   const title = i === 0 ? esc(firstLine(idea)) : i === n - 1 ? 'Follow for <b>more</b>' : esc(shot.title)
@@ -264,7 +255,7 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
     fs.writeFileSync(path.join(root, rel), text)
   }
   if (track === '2d') {
-    write('world/page.html', lookPage(look || DEFAULT_LOOK, size, style || 'infographic'))
+    write('world/page.html', lookPage(look || DEFAULT_LOOK, size, style || DEFAULT_STYLE))
     for (const [name, text] of Object.entries(styleFiles(style))) write(`world/${name}`, text)
   }
   else write('world/world.py', WORLD_3D.replace('{{DURATION}}', String(duration)).replace('{{W}}', size.width).replace('{{H}}', size.height))

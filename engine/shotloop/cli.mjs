@@ -54,8 +54,8 @@ import { deliverCopy } from './deliver.mjs'
 import { emit, setJson } from './compose.mjs'
 import { isStarterCover, newProject, projectsIn, summaries } from './create.mjs'
 import { assemble, exportFilm, preview, renderCover, setCoverFrame } from './film.mjs'
-import { findShot, loadProject } from './project.mjs'
-import { DEFAULT_SAMPLES, finalSamples, musicInfo, setMusic, setSamples, setStyle, setTitle } from './settings.mjs'
+import { finalSamples, findShot, loadProject } from './project.mjs'
+import { musicInfo, samplesInfo, setMusic, setSamples, setStyle, setTitle } from './settings.mjs'
 import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
 import * as covers from './covers.mjs'
 import * as library from './library.mjs'
@@ -345,7 +345,7 @@ try {
       const project = loadProject(args[0])
       result(values.reset ? setSamples(project, null)
         : values.samples ? setSamples(project, values.samples)
-        : { samples: finalSamples(project), custom: project.config.samples != null, default: DEFAULT_SAMPLES })
+        : samplesInfo(project))
       break
     }
     case 'preview':

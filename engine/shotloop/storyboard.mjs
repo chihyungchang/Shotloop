@@ -9,10 +9,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { captions, shot3d, WORLD_3D } from './create.mjs'
-import { DEFAULT_LOOK, lookById, lookPage, styleFiles, untouchedLook } from './looks.mjs'
+import { DEFAULT_LOOK, DEFAULT_STYLE, lookById, styleById } from './data.mjs'
+import { lookPage, styleFiles, untouchedLook } from './looks.mjs'
 import { writeJson } from './files.mjs'
 import { loadProject, updateConfig } from './project.mjs'
-import { styleById } from './styles.mjs'
 
 export const FILE = 'storyboard.json'
 
@@ -179,7 +179,7 @@ ${shots.map((s, i) => `| ${i + 1} | ${s.duration} s | ${cell(s.title)}: ${cell(s
   const twoD = project.track === '2d'
   // The plan's style, else the project's own when it fits the track
   const own = styleById(project.config.style)?.track === project.track ? project.config.style : null
-  const styleId = twoD ? (style?.id ?? own ?? 'infographic') : null
+  const styleId = twoD ? (style?.id ?? own ?? DEFAULT_STYLE) : null
   let look = twoD ? (lookById(sb.look) ? sb.look : project.config.look ?? null) : null
   if (styleId === 'scene' && !lookById(look ?? DEFAULT_LOOK)?.scene) look = DEFAULT_LOOK
   const page = path.join(project.root, 'world', 'page.html')

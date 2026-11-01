@@ -6,31 +6,27 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { writeJson } from './files.mjs'
-import { updateConfig } from './project.mjs'
+import { loadProject, updateConfig } from './project.mjs'
 import { unbuilt } from './storyboard.mjs'
-import { composeBed, cutTimes, MOODS, newSeed } from './score.mjs'
-import { styleById } from './styles.mjs'
-
-// Synthesized beds: a mood, composed anew for each film (score.mjs)
-export const MUSIC_PRESETS = Object.keys(MOODS)
+import { DEFAULT_SAMPLES, MUSIC_MOODS, styleById } from './data.mjs'
+import { composeBed, cutTimes, newSeed } from './score.mjs'
 
 // A new bed in a mood, written as the project's music.json
 export function writeBed(root, mood, project) {
   writeJson(path.join(root, 'music.json'), composeBed(mood, { seed: newSeed(), duration: project.duration, cuts: cutTimes(project) }))
 }
 
-// 3D final quality: EEVEE render samples per frame. 24 looks the same as
-// 64 on these scenes (SSIM 0.9999) at well under half the time; more
-// helps fine glossy detail and fast motion blur
-export const DEFAULT_SAMPLES = 24
-export const finalSamples = project => project.config.samples ?? DEFAULT_SAMPLES
+// 3D final quality as the app shows it: the samples, whether the person
+// set them, and the default (data.mjs DEFAULT_SAMPLES)
+export const samplesInfo = project =>
+  ({ samples: project.config.samples ?? DEFAULT_SAMPLES, custom: project.config.samples != null, default: DEFAULT_SAMPLES })
 
 // samples: 4–512, or null for the default
 export function setSamples(project, samples) {
   const n = samples == null ? null : Math.round(Number(samples))
   if (n != null && !(n >= 4 && n <= 512)) throw new Error('samples must be 4–512')
-  const cfg = updateConfig(project.root, ({ samples: _, ...cfg }) => (n == null ? cfg : { ...cfg, samples: n }))
-  return { samples: cfg.samples ?? DEFAULT_SAMPLES, custom: cfg.samples != null, default: DEFAULT_SAMPLES }
+  updateConfig(project.root, ({ samples: _, ...cfg }) => (n == null ? cfg : { ...cfg, samples: n }))
+  return samplesInfo(loadProject(project.root))
 }
 
 // The visual style the person picked (styles.mjs): the planner keeps it
@@ -54,7 +50,7 @@ export function setTitle(project, title) {
   return { title }
 }
 
-// preset: one of MUSIC_PRESETS, a new bed in that mood; shuffle: another
+// preset: one of MUSIC_MOODS, a new bed in that mood; shuffle: another
 // bed in the current mood; file: an audio file, copied into the project;
 // none: no music. gain: the bed's volume, 0–2
 export function setMusic(project, { preset, shuffle, file, none, gain }) {
@@ -71,7 +67,7 @@ export function setMusic(project, { preset, shuffle, file, none, gain }) {
     own.music = `music/${name}`
   } else if (preset || shuffle) {
     const mood = preset ?? musicInfo(project).preset
-    if (!MOODS[mood]) throw new Error(`unknown music preset ${mood} (${MUSIC_PRESETS.join(', ')})`)
+    if (!MUSIC_MOODS.includes(mood)) throw new Error(`unknown music preset ${mood} (${MUSIC_MOODS.join(', ')})`)
     writeBed(project.root, mood, project)
     own.music = 'music.json'
   }

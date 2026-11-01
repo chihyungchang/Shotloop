@@ -1,143 +1,29 @@
-// Built-in looks for 2D projects: one page (world/page.html) with the same
-// kit in every look, only the tokens differ (palette, type, background).
-// The planner picks a look, the person can change it on the plan, and the
+// The pages of the built-in looks for 2D projects (the looks themselves
+// are data.mjs LOOKS): one page (world/page.html) with the same kit in
+// every look, only the tokens differ (palette, type, background). The
+// planner picks a look, the person can change it on the plan, and the
 // build starts from it, so the AI writes shots instead of a design system.
 
 import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { DEFAULT_LOOK, DEFAULT_STYLE, HUES, lookById } from './data.mjs'
 import { EXTRAS } from './extras.mjs'
 import { scenePage } from './scene.mjs'
 
-export const LOOKS = [
-  {
-    id: 'midnight',
-    name: { en: 'Midnight', 'zh-CN': '深夜蓝', 'pt-BR': 'Meia-noite' },
-    about: 'dark navy, warm gold and teal accents; science and explainers',
-    bg: 'radial-gradient(120% 80% at 50% 0%, #1b2d63 0%, #0d1736 55%, #080e24 100%)',
-    text: '#f4f7ff', muted: '#9fb0d6', accent: '#ffb340', accent2: '#4fd1c5', accent3: '#ff6b8b',
-    line: 'rgba(255, 255, 255, 0.16)', panel: 'rgba(255, 255, 255, 0.07)',
-    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 2px 18px rgba(6, 12, 34, 0.45)',
-    // The cinematic scene style (scene.mjs): deep space blue, warm gold light
-    scene: { sky: ['#040714', '#060b1d', '#03050c'], clouds: [[0.83, 0.2, 0.72, '40, 70, 160', 0.16], [0.11, 0.84, 0.78, '90, 40, 120', 0.1]],
-      specks: ['220, 232, 255', '255, 226, 190'], light: '255, 200, 120', cool: '120, 180, 255' }
-  },
-  {
-    id: 'paper',
-    name: { en: 'Paper', 'zh-CN': '纸张', 'pt-BR': 'Papel' },
-    about: 'warm off-white paper, black ink, blue and red accents; editorial and calm',
-    bg: 'radial-gradient(130% 90% at 50% 30%, #f7f3ea 0%, #efe8da 70%, #e6dccb 100%)',
-    text: '#1d1b17', muted: '#776f62', accent: '#2f6fed', accent2: '#e8553d', accent3: '#2a9d6f',
-    line: 'rgba(29, 27, 23, 0.16)', panel: 'rgba(29, 27, 23, 0.05)',
-    head: "'New York', 'Songti SC', Georgia, serif", headWeight: 700, glow: 'none'
-  },
-  {
-    id: 'neon',
-    name: { en: 'Neon', 'zh-CN': '霓虹', 'pt-BR': 'Neon' },
-    about: 'black with glowing magenta and cyan; tech, games, bold hooks',
-    bg: 'radial-gradient(90% 60% at 15% 10%, rgba(255, 61, 154, 0.28), transparent 60%), radial-gradient(90% 60% at 90% 85%, rgba(46, 230, 255, 0.22), transparent 60%), #07070c',
-    text: '#ffffff', muted: '#a7a7c7', accent: '#ff3d9a', accent2: '#2ee6ff', accent3: '#c4ff3d',
-    line: 'rgba(255, 255, 255, 0.18)', panel: 'rgba(255, 255, 255, 0.06)',
-    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 0 24px rgba(255, 61, 154, 0.45)',
-    scene: { sky: ['#0a0612', '#07060f', '#030308'], clouds: [[0.15, 0.12, 0.7, '255, 61, 154', 0.16], [0.9, 0.85, 0.75, '46, 230, 255', 0.13]],
-      specks: ['200, 240, 255', '255, 190, 230'], light: '255, 120, 200', cool: '46, 230, 255' }
-  },
-  {
-    id: 'pastel',
-    name: { en: 'Pastel', 'zh-CN': '马卡龙', 'pt-BR': 'Pastel' },
-    about: 'soft lavender and mint, rounded and friendly; lifestyle, kids, how-tos',
-    bg: 'linear-gradient(165deg, #f7f0ff 0%, #f1f6ff 50%, #eaf8f2 100%)',
-    text: '#2b2540', muted: '#7d7598', accent: '#7c5cff', accent2: '#ff8a65', accent3: '#21a99a',
-    line: 'rgba(43, 37, 64, 0.14)', panel: 'rgba(124, 92, 255, 0.08)',
-    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: 'none'
-  },
-  {
-    id: 'mono',
-    name: { en: 'Swiss', 'zh-CN': '极简黑白', 'pt-BR': 'Suíço' },
-    about: 'white, heavy black type, one red accent; data, facts, news',
-    bg: '#ffffff',
-    text: '#0a0a0a', muted: '#6b6b6b', accent: '#ff3b30', accent2: '#0a0a0a', accent3: '#8e8e93',
-    line: 'rgba(10, 10, 10, 0.14)', panel: 'rgba(10, 10, 10, 0.05)',
-    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 900, glow: 'none'
-  }
-,
-  {
-    id: 'ocean',
-    name: { en: 'Ocean', 'zh-CN': '深海', 'pt-BR': 'Oceano' },
-    about: 'deep sea blue-green, aqua and coral; nature, water, biology',
-    bg: 'radial-gradient(120% 80% at 50% 0%, #0d4a5c 0%, #072a3a 55%, #041822 100%)',
-    text: '#eefcff', muted: '#8fbac6', accent: '#3ee0d0', accent2: '#ff8a6b', accent3: '#ffd166',
-    line: 'rgba(255, 255, 255, 0.16)', panel: 'rgba(255, 255, 255, 0.07)',
-    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 2px 18px rgba(2, 20, 28, 0.5)',
-    scene: { sky: ['#03202b', '#04151f', '#020b12'], clouds: [[0.8, 0.18, 0.75, '30, 140, 160', 0.18], [0.12, 0.86, 0.8, '20, 70, 120', 0.14]],
-      specks: ['180, 240, 255', '160, 255, 230'], light: '120, 240, 230', cool: '62, 224, 208' }
-  },
-  {
-    id: 'ember',
-    name: { en: 'Ember', 'zh-CN': '余烬', 'pt-BR': 'Brasa' },
-    about: 'warm black with fire orange and red; history, drama, energy, danger',
-    bg: 'radial-gradient(110% 80% at 50% 100%, #3a120a 0%, #1a0907 55%, #0c0505 100%)',
-    text: '#fff4ec', muted: '#c79a86', accent: '#ff7a2f', accent2: '#ffc65c', accent3: '#ff3d3d',
-    line: 'rgba(255, 255, 255, 0.15)', panel: 'rgba(255, 200, 160, 0.07)',
-    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 0 22px rgba(255, 110, 40, 0.35)',
-    scene: { sky: ['#0d0604', '#140806', '#070303'], clouds: [[0.2, 0.85, 0.8, '200, 70, 20', 0.18], [0.85, 0.15, 0.6, '120, 30, 20', 0.12]],
-      specks: ['255, 220, 190', '255, 170, 110'], light: '255, 150, 70', cool: '255, 198, 92' }
-  },
-  {
-    id: 'forest',
-    name: { en: 'Forest', 'zh-CN': '森林', 'pt-BR': 'Floresta' },
-    about: 'deep green with leaf lime and sun amber; nature, plants, climate, health',
-    bg: 'radial-gradient(120% 80% at 50% 0%, #1d4a2c 0%, #0f2a19 55%, #08170e 100%)',
-    text: '#f1fbf0', muted: '#9dbea1', accent: '#a8e05f', accent2: '#ffc94d', accent3: '#5fd0b8',
-    line: 'rgba(255, 255, 255, 0.15)', panel: 'rgba(255, 255, 255, 0.06)',
-    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 2px 18px rgba(4, 20, 10, 0.5)',
-    scene: { sky: ['#06160c', '#081a10', '#030b06'], clouds: [[0.82, 0.2, 0.7, '70, 140, 60', 0.15], [0.1, 0.85, 0.75, '40, 90, 70', 0.12]],
-      specks: ['220, 255, 210', '255, 240, 180'], light: '255, 220, 120', cool: '168, 224, 95' }
-  },
-  {
-    id: 'graphite',
-    name: { en: 'Graphite', 'zh-CN': '石墨', 'pt-BR': 'Grafite' },
-    about: 'neutral graphite with electric blue; tech, products, engineering',
-    bg: 'radial-gradient(120% 80% at 50% 0%, #2b2f36 0%, #1a1d22 55%, #101215 100%)',
-    text: '#f5f7fa', muted: '#a3aab5', accent: '#4c9dff', accent2: '#f5f7fa', accent3: '#ffb547',
-    line: 'rgba(255, 255, 255, 0.14)', panel: 'rgba(255, 255, 255, 0.06)',
-    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: 'none',
-    scene: { sky: ['#14161a', '#101215', '#08090b'], clouds: [[0.8, 0.2, 0.7, '76, 157, 255', 0.12], [0.15, 0.85, 0.7, '120, 130, 150', 0.1]],
-      specks: ['220, 230, 245', '200, 215, 240'], light: '160, 200, 255', cool: '76, 157, 255' }
-  },
-  {
-    id: 'sand',
-    name: { en: 'Sand', 'zh-CN': '沙丘', 'pt-BR': 'Areia' },
-    about: 'warm sand with terracotta and teal; travel, culture, food, history',
-    bg: 'radial-gradient(130% 90% at 50% 30%, #f6ead6 0%, #eedcc0 70%, #e4ceab 100%)',
-    text: '#2a2118', muted: '#86715a', accent: '#d2582f', accent2: '#1f8a83', accent3: '#e3a23b',
-    line: 'rgba(42, 33, 24, 0.16)', panel: 'rgba(42, 33, 24, 0.05)',
-    head: "'New York', 'Songti SC', Georgia, serif", headWeight: 700, glow: 'none'
-  }
-]
+export { DEFAULT_LOOK, HUES, LOOKS, lookById } from './data.mjs'
 
-export const DEFAULT_LOOK = 'midnight'
-
-// Content colors: pictures and data are drawn in the colors their subject
-// needs (real-world colors, colors with a meaning), the same in every
-// look; a look only sets the ground and the type. One set reads on dark
-// grounds, one on light ones
-export const HUES = {
-  dark: { red: '#ff5a5f', orange: '#ff9f40', yellow: '#ffd23f', green: '#4ade80', teal: '#2dd4bf', blue: '#4da3ff', violet: '#a78bfa', pink: '#f472b6', gray: '#9aa4b2' },
-  light: { red: '#d93a3a', orange: '#e0731a', yellow: '#c99a06', green: '#1f9d55', teal: '#0f9488', blue: '#2563eb', violet: '#7c3aed', pink: '#db2777', gray: '#6b7280' }
-}
 // A look with light text sits on a dark ground
-export const darkGround = L => {
+const darkGround = L => {
   const [r, g, b] = [1, 3, 5].map(i => parseInt(L.text.slice(i, i + 2), 16))
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 128
 }
-export const huesFor = L => HUES[darkGround(L) ? 'dark' : 'light']
-export const lookById = id => LOOKS.find(l => l.id === id) ?? null
+const huesFor = L => HUES[darkGround(L) ? 'dark' : 'light']
 
 // The page for a look at the project's size, in a style (styles.mjs): the
 // infographic page below, or the cinematic scene (scene.mjs) for a look
 // that has scene colors. Its first comment documents the kit: the AI
 // reads it before writing shots
-export function lookPage(id, { width, height }, style = 'infographic') {
+export function lookPage(id, { width, height }, style = DEFAULT_STYLE) {
   const L = lookById(id) ?? lookById(DEFAULT_LOOK)
   const w = Math.round(width / 1.5)
   const h = Math.round(height / 1.5)
@@ -400,7 +286,7 @@ ${X.js}
 // its style (or the old starter), so a new look or style may replace it
 export function untouchedLook(text, size) {
   const id = text.match(/shotloop-look: ([a-z0-9-]+)/)?.[1]
-  const style = text.match(/shotloop-style: ([a-z0-9-]+)/)?.[1] ?? 'infographic'
+  const style = text.match(/shotloop-style: ([a-z0-9-]+)/)?.[1] ?? DEFAULT_STYLE
   return !!id && text === lookPage(id, size, style)
 }
 

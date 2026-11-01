@@ -14,6 +14,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { DEFAULT_SAMPLES } from './data.mjs'
 import { readJson, writeJson } from './files.mjs'
 
 export const FILE = 'shotloop.json'
@@ -89,6 +90,9 @@ export function findShot(project, id) {
   if (!shot) throw new Error(`no shot "${id}" (shots: ${project.shots.map(s => s.id).join(', ')})`)
   return shot
 }
+
+// 3D final quality: EEVEE render samples per frame
+export const finalSamples = project => project.config.samples ?? DEFAULT_SAMPLES
 
 // Frames are counted per shot: frame 1 is the shot's first frame
 export function frameCount(project, shot) {

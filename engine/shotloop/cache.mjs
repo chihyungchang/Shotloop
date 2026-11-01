@@ -14,7 +14,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { voiceCues } from './cues.mjs'
 import { readJson, writeJson } from './files.mjs'
-import { finalSamples } from './settings.mjs'
+import { finalSamples } from './project.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 export const ENGINE = path.resolve(HERE, '..')

@@ -12,7 +12,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { ASSETS, KIT_3D } from './cache.mjs'
 import { capture, frameName, openRenderPage, progress, run } from './compose.mjs'
-import { finalSamples } from './settings.mjs'
+import { finalSamples } from './project.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 export const BLENDER = process.env.BLENDER ?? '/Applications/Blender.app/Contents/MacOS/Blender'

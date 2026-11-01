@@ -14,6 +14,7 @@ import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { POLY_CATEGORIES } from './data.mjs'
 
 export const LIBRARY = process.env.SHOTLOOP_LIBRARY ?? path.join(os.homedir(), '.shotloop', 'library')
 export const SOURCES = ['polypizza', 'smithsonian']
@@ -51,7 +52,6 @@ function item(source, o) {
 // CC0 only; Category browses without a keyword
 const POLY = 'https://api.poly.pizza/v1.1'
 const POLY_PAGE = 32
-export const POLY_CATEGORIES = ['food', 'clutter', 'weapons', 'transport', 'furniture', 'objects', 'nature', 'animals', 'buildings', 'people', 'scenes', 'other']
 
 async function searchPolyPizza(query, { key, cursor, cc0Only, category }) {
   if (!key) throw new Error('Poly Pizza needs an API key (free, from poly.pizza/settings/api): add it in Settings → Assets')
