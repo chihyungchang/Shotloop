@@ -95,6 +95,13 @@ How to design it:
 Write only thumb.html. End with one sentence for the person about the cover.`
 }
 
+const LANGUAGES: Record<string, string> = {
+  en: 'English', 'zh-CN': 'Simplified Chinese', 'zh-TW': 'Traditional Chinese (Taiwan)', ja: 'Japanese', ko: 'Korean',
+  es: 'Spanish', 'pt-BR': 'Brazilian Portuguese', fr: 'French', de: 'German', it: 'Italian', ru: 'Russian',
+  tr: 'Turkish', vi: 'Vietnamese', id: 'Indonesian'
+}
+const LANGUAGE_CODES = Object.keys(LANGUAGES)
+
 export function planSystem(track: Track, voice = false) {
   return `You plan a short video in Shotloop, a desktop app for making short videos from code, before anything is built. From the person's idea you write the copy and the storyboard, in one file: storyboard.json.
 
@@ -107,7 +114,7 @@ storyboard.json, exactly this shape (JSON, no comments):
   "styleWhy": "<one sentence for the person: why this style fits this subject>",
   "styleAlt": "<the second-best style id from the list, or empty>",
   "look": "<2D: the id of one look from the list in the request, one the style can use; 3D: leave it out>",${voice ? `
-  "lang": "<the language the video speaks and writes, as a code: en, zh-CN, zh-TW, ja, ko, es, pt-BR, fr, de, it, ru, tr, vi or id>",` : ''}
+  "lang": "<the language the video speaks and writes, as a code: ${LANGUAGE_CODES.slice(0, -1).join(', ')} or ${LANGUAGE_CODES.at(-1)}>",` : ''}
   "copy": {
     "idea": "<the idea in one or two sentences>",
     "hook": "<the opening line: a question or a surprising fact, under 20 words>",
@@ -170,11 +177,7 @@ ${TYPE_RULES}
 export function buildPartsSystem(voice = false) {
   return `You are the agent in Shotloop, a desktop app for making short videos from code. A 2D video has been planned. Some pictures recur across its shots; other agents will build those shots in parallel after you. Your part is to draw each recurring picture once, so it looks exactly the same in every shot, and to build the first shot that shows them.
 
-${FORMAT}
-
-${PRINCIPLES_2D}${voice ? `\n\n${PRINCIPLES_VOICE}` : ''}
-
-${CODE_2D}${voice ? `\n\n${CODE_VOICE}` : ''}
+${FORMAT}${coding('2d', voice)}
 
 How to build the parts:
 - Write world/parts.js, an ES module. Each recurring picture is one exported function, for example batteryCutaway(kit, { x, y, scale, t, ions, trapped }): position, size and the states the shots need (what is lit, how far a fill goes, how many items) are options; the design itself (layout, colors, labels, proportions) is fixed inside. On an infographic page (an SVG stage) it returns SVG markup for kit.stage(); on a scene page (a canvas world, see the top of world/page.html) it draws on kit.c with the kit's light helpers (light, sphere, halo, beam, trail, particles) at the camera, and returns nothing. Document every function and its options in a comment at the top: the shot agents read only that.
@@ -202,11 +205,6 @@ ${TYPE_RULES}
 - End with one sentence for the person about the shot. No headings, no lists.`
 }
 
-const LANGUAGES: Record<string, string> = {
-  en: 'English', 'zh-CN': 'Simplified Chinese', 'zh-TW': 'Traditional Chinese (Taiwan)', ja: 'Japanese', ko: 'Korean',
-  es: 'Spanish', 'pt-BR': 'Brazilian Portuguese', fr: 'French', de: 'German', it: 'Italian', ru: 'Russian',
-  tr: 'Turkish', vi: 'Vietnamese', id: 'Indonesian'
-}
 
 // The language of the publish posts: the app's UI language, the one the
 // person works and publishes in
@@ -221,3 +219,41 @@ export function replyLanguage(lang?: string) {
   if (!name || name === 'English') return ''
   return `\n\nWrite everything meant for the person (your replies, check notes and summaries) in ${name}. Code, comments and the project's files keep their own language.`
 }
+
+// A plan that breaks the measurable rules, sent back once. A voiced film's
+// length follows its lines (fitted when it's built), so only an unvoiced
+// one keeps its total; target: the plan's length (null when unknown)
+export function revisePlanPrompt(issues: string[], voiced: boolean, target: number | null, storyboard: string) {
+  const how = voiced
+    ? 'shorten a spoken line, cut the on-screen text to the number or a short label, split a crowded beat into two shots, or give a shot the time its line needs'
+    : `sum captions up shorter, move words into the picture, split a crowded beat into two shots, or give a shot more time${target ? ` while the total stays ${target} s` : ''}`
+  return `storyboard.json breaks the ${voiced ? 'voice-over rules' : '2D principles'} where they can be measured:
+${issues.map(i => `- ${i}`).join('\n')}
+
+Fix it: ${how}. Keep everything else.
+
+storyboard.json:
+${storyboard}`
+}
+
+// CC-BY models need their authors credited in every post
+export interface Credit { name: string; author: string; license: string; page: string; attribution: string }
+export function creditsPrompt(models: Credit[]) {
+  if (!models.length) return ''
+  return `\n\nThe video uses these CC-BY models: credit each one in every platform's description or caption, as "<name>" by <author> (<license>)<link if any>:
+${models.map(a => `- ${a.attribution || `"${a.name}" by ${a.author || 'unknown'} (${a.license})${a.page ? ` ${a.page}` : ''}`}`).join('\n')}`
+}
+
+// A saved cover template: what to keep and what to replace
+export const TEMPLATE_RULES = `A template mixes two kinds of things; tell them apart before you edit.
+- The series design, which you keep exactly, even where this video's look differs: the fonts, sizes and weights of every text, where each text sits, the text and accent colors, how the background is treated (its darkening or tint), and series marks (a name, an episode label, a logo, a border or a rule).
+- The last video's content, which you replace: every word and number, and anything that illustrates the last video's subject (drawings, icons, diagrams, labels about its topic). Remove such an illustration, or draw this video's equivalent in the same style and place; never relabel the old one to fit.
+- The background frame: pick this video's own with render_cover (when the template shows no frame, set none). It fills the whole page (object-fit: cover, no bands), and the overlay is adjusted so the frame sits in the template's tone and the text keeps its contrast.
+- When a text is longer than the template's, shorten it first; only then reduce its font size or let it wrap.`
+
+// An uploaded cover whose design the person wants
+export const REFERENCE_RULES = `The person uploaded cover-reference.png, a cover whose design they want for this video and the next ones of the series. Look at it with view_image first, and describe to yourself what makes it: the layout and where each text sits, the size, weight and style of each text, the colors, the background and how it is treated, decorations and marks.
+- Recreate that design in thumb.html at 1080×1920 (scale the reference's layout to it when its shape differs, keeping the 3:4 crop rule), with the closest system fonts.
+- Fill it with this video's content: its own words in the same roles (kicker, headline, highlighted words, a number), and this video's own imagery (a frame through render_cover, or drawings) where the reference has its imagery. Every number from copy.md.
+- Never put the reference itself on the cover as a picture: its words and imagery are baked in. The one exception is when it is itself a logo, frame or overlay (transparent areas, nothing about another video): then use the file as a layer, cropped with CSS.
+- Render with render_cover and compare with the reference (view_image again if needed). Fix the largest difference in design, not content, and render again; stop after four renders.`

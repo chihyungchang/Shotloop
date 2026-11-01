@@ -23,10 +23,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
+import { credits, head, ideaOf, looksBrief, read, recurring, shotBrief, stylesBrief, trackBrief, worldFiles } from './briefs.ts'
 import { engine, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
-import { emit, exit, setJson } from './events.ts'
+import { emit, exit, reason, setJson, warn } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
-import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, planSystem, postLanguage, publishSystem, replyLanguage } from './prompts.ts'
+import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, planSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, TEMPLATE_RULES } from './prompts.ts'
 import { lintPlan, lintVoice } from './principles.ts'
 import { newContext, writeAtomic, type ToolContext } from './tools.ts'
 
@@ -79,93 +80,6 @@ function checklistPath(root: string) {
 
 const context = (root: string, writable: string[]) => newContext(root, checklistPath(root), writable)
 
-const read = (f: string) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '(missing)')
-
-// The models in the project's assets/ (from the asset library)
-function assetList(project: ProjectStatus) {
-  const dir = path.join(project.root, 'assets')
-  if (!fs.existsSync(dir)) return []
-  return fs.readdirSync(dir).flatMap(id => {
-    const meta = path.join(dir, id, 'asset.json')
-    if (!fs.existsSync(meta)) return []
-    const a = JSON.parse(fs.readFileSync(meta, 'utf8'))
-    return [{ id, name: String(a.name ?? id), license: String(a.license ?? ''), author: String(a.author ?? ''), page: a.page ? String(a.page) : '', attribution: a.attribution ? String(a.attribution) : '' }]
-  })
-}
-
-// CC-BY models need their authors credited in every post
-function credits(project: ProjectStatus) {
-  const byl = assetList(project).filter(a => /cc-by/i.test(a.license))
-  if (!byl.length) return ''
-  return `\n\nThe video uses these CC-BY models: credit each one in every platform's description or caption, as "<name>" by <author> (<license>)${'<link if any>'}:\n${byl.map(a => `- ${a.attribution || `"${a.name}" by ${a.author || 'unknown'} (${a.license})${a.page ? ` ${a.page}` : ''}`}`).join('\n')}`
-}
-
-function assetsBrief(project: ProjectStatus) {
-  const assets = assetList(project)
-  if (!assets.length) return ''
-  return `\n\nModels in assets/ (import them as the format describes):\n${assets.map(a => `- assets/${a.id}/model.glb: ${a.name} (${a.license}${a.author ? `, ${a.author}` : ''})`).join('\n')}`
-}
-
-// A project in one line, for prompts
-const head = (p: ProjectStatus) => `"${p.title}" (${p.track.toUpperCase()}, ${p.size.width}×${p.size.height}, ${p.duration} s, ${p.shots.length} shots)`
-
-// The plan's pictures that appear in more than one shot (storyboard.json
-// "recurring"), each with its fixed design and the 1-based shots it is in
-interface Recurring { name: string; design: string; shots: number[] }
-function recurring(project: ProjectStatus): Recurring[] {
-  try {
-    const sb = JSON.parse(fs.readFileSync(path.join(project.root, 'storyboard.json'), 'utf8'))
-    return (Array.isArray(sb.recurring) ? sb.recurring : [])
-      .filter((r: Recurring) => r && String(r.name ?? '').trim() && Array.isArray(r.shots) && r.shots.length)
-      .map((r: Recurring) => ({ name: String(r.name), design: String(r.design ?? ''), shots: r.shots.map(Number) }))
-  } catch {
-    return []
-  }
-}
-
-// 2D: the recurring pictures a shot shows, to draw from world/parts.js
-function recurringBrief(project: ProjectStatus, shot: ShotStatus) {
-  if (project.track !== '2d') return ''
-  const n = project.shots.findIndex(s => s.id === shot.id) + 1
-  const mine = recurring(project).filter(r => r.shots.includes(n))
-  if (!mine.length) return ''
-  return `\n\nRecurring pictures in this shot (draw them with their functions in world/parts.js when it has them; keep their design exactly):\n${mine.map(r => `- ${r.name}: ${r.design}`).join('\n')}`
-}
-
-// 2D: the project's visual style, what its frames are made of and the
-// reference that sets the bar
-let stylesCache: Style[] | null = null
-function styleBrief(project: ProjectStatus) {
-  const s = project.track === '2d' && project.style ? stylesCache?.find(x => x.id === project.style) : null
-  if (!s) return ''
-  return `\n\nVisual style: ${s.id} (${s.name.en}). ${s.frames} Reference: ${s.why} Look at its reference stills (view_style "${s.id}") before you build, and reach that quality.`
-}
-
-function shotBrief(project: ProjectStatus, shot: ShotStatus) {
-  const rel = (f: string) => path.relative(project.root, f)
-  const others = project.shots.map(s => `${s.id} (${s.start}–${s.start + s.duration} s)${s.id === shot.id ? ' ← this shot' : ''}`)
-  return `Project: "${project.title}", ${project.track.toUpperCase()} track, ${project.duration} s.
-Shots: ${others.join(', ')}.
-
-Shot ${shot.id}: film time ${shot.start}–${shot.start + shot.duration} s, ${shot.duration} s long.${voiceBrief(shot)}
-
-${rel(shot.notes)}:
-${read(shot.notes)}
-
-${rel(shot.code)}:
-${read(shot.code)}${styleBrief(project)}${recurringBrief(project, shot)}${assetsBrief(project)}`
-}
-
-// The film has a voice-over that plays (the engine's voiceOn)
-const voiced = (project: ProjectStatus) => !!project.voiced
-
-// What the voice says over the shot, sentence by sentence with its times
-// (ctx.voice in the shot's code); subtitles are added by the engine
-function voiceBrief(shot: ShotStatus) {
-  if (!shot.cues?.length) return shot.say?.trim() ? `\nVoice-over (not timed yet): "${shot.say.trim()}"` : ''
-  return `\nVoice-over (ctx.voice; subtitled by the engine, keep the subtitle band clear):\n${shot.cues.map(c => `- ${c.at.toFixed(2)}–${c.end.toFixed(2)} s: "${c.text}"`).join('\n')}`
-}
-
 // Copies stills into the fix record, so before/after survive later renders
 function keepStills(files: string[] | null | undefined, dir: string, prefix: string) {
   if (!files) return null
@@ -215,7 +129,7 @@ async function shotTask(kind: 'fix' | 'check') {
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent(kind === 'fix' ? 'code' : 'routine', {
     effort: kind === 'fix' ? 'high' : 'medium',
-    system: (kind === 'fix' ? fixSystem(project.track, voiced(project)) : checkSystem(project.track, voiced(project))) + replyLanguage(values.lang),
+    system: (kind === 'fix' ? fixSystem : checkSystem)(project.track, !!project.voiced) + replyLanguage(values.lang),
     prompt: `${ask}\n\n${shotBrief(project, shot)}`,
     ctx
   })
@@ -249,12 +163,6 @@ async function shotTask(kind: 'fix' | 'check') {
   return result
 }
 
-// The idea, from copy.md's Idea section
-function ideaOf(project: ProjectStatus) {
-  const copy = read(path.join(project.root, 'copy.md'))
-  return copy.match(/## Idea\n+([\s\S]*?)(\n## |$)/)?.[1]?.trim() || project.title
-}
-
 // Copy and storyboard in storyboard.json, from the idea (or revised on request)
 async function planTask() {
   const project = await status(dir)
@@ -267,22 +175,27 @@ async function planTask() {
     : existing
       ? `Plan this video again, from the idea, with fresh ideas. The current storyboard.json, for reference:\n${existing}`
       : 'Plan this video.'
+  // The plan writes the lines when the voice-over is on (a new film has
+  // none yet, so it isn't "voiced" until this plan)
+  const speaks = !!project.voice?.on
+  const system = planSystem(project.track, speaks) + replyLanguage(values.lang)
+  const threeD = await threeDPossible(project)
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent('copy', {
     effort: 'medium',
-    system: planSystem(project.track, !!project.voice?.on) + replyLanguage(values.lang),
+    system,
     prompt: `${ask}
 
 Idea: ${ideaOf(project)}
 Title: ${project.title}
-${await trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 'auto (choose it from the content, 15 to 60 s, then make the shots add up to it)' : `${project.duration} s`}${await stylesBrief(project)}${await looksBrief(project)}`,
+${trackBrief(project, threeD)} · frame ${size} · target length ${project.lengthAuto ? 'auto (choose it from the content, 15 to 60 s, then make the shots add up to it)' : `${project.duration} s`}${stylesBrief(project, threeD)}${await looksBrief(project)}`,
     ctx
   })
   // The page reads it: it has to be valid
   const load = () => {
     const sb = JSON.parse(fs.readFileSync(file, 'utf8'))
     if (!Array.isArray(sb.shots) || !sb.shots.length) throw new Error('the plan has no shots; try again')
-    return sb as { shots: { title?: string; duration: number; text?: string; say?: string }[] }
+    return sb as { target?: number; shots: { title?: string; duration: number; text?: string; say?: string }[] }
   }
   let sb = load()
   // 2D: measured against the principles; what breaks them goes back once
@@ -292,9 +205,6 @@ ${await trackBrief(project)} · frame ${size} · target length ${project.lengthA
   const bar = bpm ? 240 / (bpm * 1.12) : 0
   // A voiced film is timed by its lines (fitted when it's built), so its
   // lines are measured instead of the captions' reading time
-  // The plan writes the lines when the voice-over is on (a new film has
-  // none yet, so it isn't "voiced" until this plan)
-  const speaks = !!project.voice?.on
   const lint = () => (speaks ? lintVoice(sb.shots) : project.track === '2d' ? lintPlan(sb.shots, bar) : [])
   let issues = lint()
   let final = summary
@@ -302,8 +212,8 @@ ${await trackBrief(project)} · frame ${size} · target length ${project.lengthA
     emit({ type: 'log', message: `plan breaks ${issues.length} reading rule(s); revising` })
     final = await runAgent('copy', {
       effort: 'medium',
-      system: planSystem(project.track, !!project.voice?.on) + replyLanguage(values.lang),
-      prompt: `storyboard.json breaks the ${speaks ? 'voice-over rules' : '2D principles'} where they can be measured:\n${issues.map(i => `- ${i}`).join('\n')}\n\nFix it: ${speaks ? 'shorten a spoken line, cut the on-screen text to the number or a short label, split a crowded beat into two shots, or give a shot the time its line needs' : 'sum captions up shorter, move words into the picture, split a crowded beat into two shots, or give a shot more time'} while the total stays ${project.duration} s. Keep everything else.\n\nstoryboard.json:\n${fs.readFileSync(file, 'utf8')}`,
+      system,
+      prompt: revisePlanPrompt(issues, speaks, Number(sb.target) || (project.lengthAuto ? null : project.duration), fs.readFileSync(file, 'utf8')),
       ctx
     })
     sb = load()
@@ -312,41 +222,15 @@ ${await trackBrief(project)} · frame ${size} · target length ${project.lengthA
   return { task: 'plan', summary: final, shots: sb.shots.length, warnings: issues }
 }
 
-interface Style { id: string; track: string; name: { en: string }; when: string; avoid: string; frames: string; why: string; looks: string[] }
-const loadStyles = async () =>
-  (await import(new URL('../../engine/shotloop/styles.mjs', import.meta.url).href) as { STYLES: Style[] }).STYLES
-
 // 3D is a choice only for a project made with "auto" and a Mac with Blender
 async function threeDPossible(project: ProjectStatus) {
   if (!project.trackAuto) return false
-  const doctor = await engine<{ blender: unknown }>(['doctor']).catch(() => ({ blender: null }))
-  return !!doctor.blender
-}
-
-async function trackBrief(project: ProjectStatus) {
-  if (project.trackAuto) return `Track: chosen by you through the style (${(await threeDPossible(project)) ? '2D or 3D' : '2D; Blender is not installed, so no 3D'})`
-  return `Track: ${project.track.toUpperCase()} (chosen by the person)`
-}
-
-// The visual styles the plan picks from (engine/shotloop/styles.mjs)
-async function stylesBrief(project: ProjectStatus) {
-  const all = await loadStyles()
-  const chosen = project.styleChosen ? all.find(s => s.id === project.style) : null
-  if (chosen) return `\n\nVisual style: "${chosen.id}" (${chosen.name.en}), chosen by the person: keep it as "style" and plan every shot in it. ${chosen.frames} Reference: ${chosen.why} Look at its reference stills (view_style) first.`
-  const threeD = await threeDPossible(project)
-  const open = all.filter(s => (s.track === project.track && project.track === '2d') || (s.track === '3d' && threeD))
-  if (project.track === '3d' || !open.length) return ''
-  return `\n\nVisual styles (pick one for "style"; look at each candidate's reference stills with view_style before you decide):\n${open.map(s =>
-    `- ${s.id} (${s.name.en}): use when ${s.when} Avoid when: ${s.avoid} Frames: ${s.frames} Reference: ${s.why}${s.looks.length ? ` Looks: ${s.looks.join(', ')}.` : ''}`).join('\n')}`
-}
-
-// The looks a 2D plan picks from, or the one the person chose
-async function looksBrief(project: ProjectStatus) {
-  if (project.track !== '2d') return ''
-  const { LOOKS } = await import(new URL('../../engine/shotloop/looks.mjs', import.meta.url).href) as { LOOKS: { id: string; about: string; scene?: unknown }[] }
-  const chosen = (JSON.parse(read(path.join(project.root, 'shotloop.json'))) as { look?: string }).look
-  if (chosen) return `\nLook: "${chosen}" (chosen by the person; keep it unless the style you pick cannot use it).`
-  return `\nLooks (pick one for "look", one the style can use):\n${LOOKS.map(l => `- ${l.id}: ${l.about}${l.scene ? '' : ' (not for the cinematic scene)'}`).join('\n')}`
+  try {
+    return !!(await engine<{ blender: unknown }>(['doctor'])).blender
+  } catch (err) {
+    warn(`could not ask the engine whether Blender is installed (${reason(err)}); planning in 2D`)
+    return false
+  }
 }
 
 // At most n at a time, in order
@@ -361,107 +245,129 @@ async function pool<T>(items: T[], n: number, f: (item: T) => Promise<void>) {
 // "auto" by the machine), 1–5
 const PARALLEL = Math.min(5, Math.max(1, Number(process.env.SHOTLOOP_PARALLEL) || 3))
 
+// What a build has done so far, across its phases
+interface Build {
+  copy: string
+  touched: Set<string>
+  done: string[]
+  failed: string[]
+}
+
+// A finished agent's changes and checks, kept
+function collect(b: Build, project: ProjectStatus, ctx: ToolContext) {
+  ctx.touched.forEach(f => b.touched.add(f))
+  saveChecks(project, ctx)
+}
+
 // The world and every shot, from the applied storyboard: the world first
-// (unless a 2D look already is one), then the shots five at a time, each by
-// its own agent that may write only its shot
+// (unless a 2D look already is one), then the recurring pictures, then the
+// shots PARALLEL at a time, each by its own agent that may write only its shot
 async function buildTask() {
   let project = await status(dir)
   // The voice leads the cut: every line spoken and its shot fitted to it
   // before anything is drawn, so each shot is built at its final length
-  if (voiced(project)) {
+  if (project.voiced) {
     emit({ type: 'log', message: 'voice-over: speaking the lines' })
     await engine(['voice', project.root, '--fit'])
     project = await status(dir)
   }
-  const worldDir = path.join(project.root, 'world')
-  // The world's text files (not folders such as __pycache__, not media)
-  const worldFiles = () => fs.existsSync(worldDir)
-    ? fs.readdirSync(worldDir, { withFileTypes: true })
-      // Not data (the map's countries): too long to read, never edited
-      .filter(e => e.isFile() && /\.(py|js|mjs|html|css|json|md|txt|svg)$/i.test(e.name) && !/\.data\./.test(e.name))
-      .map(e => `world/${e.name}:\n${read(path.join(worldDir, e.name))}`).join('\n\n')
-    : ''
-  const copy = read(path.join(project.root, 'copy.md'))
-  const touched = new Set<string>()
+  const b: Build = { copy: read(path.join(project.root, 'copy.md')), touched: new Set(), done: [], failed: [] }
   emit({ type: 'log', message: `agent: ${describe()}` })
 
-  const look = project.track === '2d' && /shotloop-look: /.test(read(path.join(worldDir, 'page.html')))
-  if (!look) {
-    emit({ type: 'phase', phase: 'world' })
-    const ctx = context(project.root, ['world/', 'captions.html'])
-    await runAgent('code', {
-      effort: 'high',
-      system: buildWorldSystem(project.track, voiced(project)) + replyLanguage(values.lang),
-      prompt: `Design the world of ${head(project)} from its plan.\n\ncopy.md:\n${copy}\n\n${worldFiles()}\n\n${project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')}`,
-      ctx
-    })
-    ctx.touched.forEach(f => touched.add(f))
-    project = await status(dir)
-  }
+  const look = project.track === '2d' && /shotloop-look: /.test(read(path.join(project.root, 'world', 'page.html')))
+  if (!look) project = await buildWorld(project, b)
+  const lead = await buildParts(project, b)
+  await buildShots(project, b, lead)
+  if (!b.done.length) throw new Error(b.failed[0] ?? 'no shot was built')
+  await renderStale(b)
 
-  const done: string[] = []
-  const failed: string[] = []
-  // 2D: the recurring pictures drawn once (world/parts.js), built into the
-  // first shot that shows them as their proof; failing that, every shot
-  // draws its own
+  const summary = [...b.done, ...b.failed.map(f => `✗ ${f}`)].join('\n')
+  return { task: 'build', summary, touched: [...b.touched].sort(), failed: [...new Set(b.failed.map(f => f.split(':')[0]))] }
+}
+
+// One visual system for the whole film; returns the project as it now is
+async function buildWorld(project: ProjectStatus, b: Build) {
+  emit({ type: 'phase', phase: 'world' })
+  const ctx = context(project.root, ['world/', 'captions.html'])
+  await runAgent('code', {
+    effort: 'high',
+    system: buildWorldSystem(project.track, !!project.voiced) + replyLanguage(values.lang),
+    prompt: `Design the world of ${head(project)} from its plan.\n\ncopy.md:\n${b.copy}\n\n${worldFiles(project)}\n\n${project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')}`,
+    ctx
+  })
+  collect(b, project, ctx)
+  return status(dir)
+}
+
+// 2D: the recurring pictures drawn once (world/parts.js), built into the
+// first shot that shows them as their proof; returns that shot, or
+// nothing when there are none or they failed (then every shot draws its own)
+async function buildParts(project: ProjectStatus, b: Build): Promise<ShotStatus | undefined> {
   const parts = project.track === '2d' ? recurring(project) : []
   const first = Math.min(...parts.flatMap(r => r.shots).filter(n => n >= 1 && n <= project.shots.length))
-  let lead: ShotStatus | undefined = Number.isFinite(first) ? project.shots[first - 1] : undefined
-  if (lead) {
-    emit({ type: 'phase', phase: 'parts' })
-    emit({ type: 'shot', id: lead.id, state: 'start' })
-    const ctx = context(project.root, ['world/parts.js', `shots/${lead.id}/`])
-    try {
-      const summary = await runAgent('code', {
-        effort: 'high',
-        system: buildPartsSystem(voiced(project)) + replyLanguage(values.lang),
-        prompt: `Draw the recurring pictures of ${head(project)} in world/parts.js, then build shot ${lead.id} with them.\n\nRecurring pictures:\n${parts.map(r => `- ${r.name} (shots ${r.shots.join(', ')}): ${r.design}`).join('\n')}\n\ncopy.md:\n${copy}\n\n${worldFiles()}\n\n${shotBrief(project, lead)}`,
-        ctx,
-        maxTurns: 40
-      })
-      done.push(`${lead.id}: ${summary}`)
-    } catch (err) {
-      emit({ type: 'log', message: `parts failed: ${err instanceof Error ? err.message : String(err)}` })
-      lead = undefined
-    }
-    ctx.touched.forEach(f => touched.add(f))
-    saveChecks(project, ctx)
-    if (lead) emit({ type: 'shot', id: lead.id, state: 'done' })
+  const lead = Number.isFinite(first) ? project.shots[first - 1] : undefined
+  if (!lead) return undefined
+  emit({ type: 'phase', phase: 'parts' })
+  emit({ type: 'shot', id: lead.id, state: 'start' })
+  const ctx = context(project.root, ['world/parts.js', `shots/${lead.id}/`])
+  let built = false
+  try {
+    const summary = await runAgent('code', {
+      effort: 'high',
+      system: buildPartsSystem(!!project.voiced) + replyLanguage(values.lang),
+      prompt: `Draw the recurring pictures of ${head(project)} in world/parts.js, then build shot ${lead.id} with them.\n\nRecurring pictures:\n${parts.map(r => `- ${r.name} (shots ${r.shots.join(', ')}): ${r.design}`).join('\n')}\n\ncopy.md:\n${b.copy}\n\n${worldFiles(project)}\n\n${shotBrief(project, lead)}`,
+      ctx
+    })
+    b.done.push(`${lead.id}: ${summary}`)
+    built = true
+  } catch (err) {
+    warn(`the recurring pictures failed (${reason(err)}); every shot draws its own`)
   }
+  collect(b, project, ctx)
+  if (!built) return undefined
+  emit({ type: 'shot', id: lead.id, state: 'done' })
+  return lead
+}
 
+// Every other shot, PARALLEL at a time, on the finished world
+async function buildShots(project: ProjectStatus, b: Build, lead: ShotStatus | undefined) {
   emit({ type: 'phase', phase: 'shots' })
-  const world = worldFiles()
+  const world = worldFiles(project)
   await pool(project.shots.filter(s => s.id !== lead?.id), PARALLEL, async shot => {
     emit({ type: 'shot', id: shot.id, state: 'start' })
     const ctx = context(project.root, [`shots/${shot.id}/`])
     try {
       const summary = await runAgent('code', {
         effort: 'medium',
-        system: buildShotSystem(project.track, voiced(project)) + replyLanguage(values.lang),
-        prompt: `Build shot ${shot.id} of ${head(project)} from its plan.\n\ncopy.md:\n${copy}\n\n${world}\n\n${shotBrief(project, shot)}`,
+        system: buildShotSystem(project.track, !!project.voiced) + replyLanguage(values.lang),
+        prompt: `Build shot ${shot.id} of ${head(project)} from its plan.\n\ncopy.md:\n${b.copy}\n\n${world}\n\n${shotBrief(project, shot)}`,
         ctx,
         maxTurns: 30
       })
-      done.push(`${shot.id}: ${summary}`)
+      b.done.push(`${shot.id}: ${summary}`)
     } catch (err) {
-      failed.push(`${shot.id}: ${err instanceof Error ? err.message : String(err)}`)
+      b.failed.push(`${shot.id}: ${reason(err)}`)
     }
-    ctx.touched.forEach(f => touched.add(f))
-    saveChecks(project, ctx)
+    collect(b, project, ctx)
     emit({ type: 'shot', id: shot.id, state: 'done' })
   })
-  if (!done.length) throw new Error(failed[0] ?? 'no shot was built')
+}
 
-  // Stills out of date (a shot that never rendered, a world changed after
-  // its stills): render them, so every shot ends with current stills
+// Stills out of date (a shot that never rendered, a world changed after
+// its stills): render them, so every shot ends with current stills. A shot
+// that doesn't render is broken: it joins the failed ones
+async function renderStale(b: Build) {
   const after = await status(dir)
   for (const s of after.shots) {
     if ((after.track === '3d' ? s.draft : s.final).stills) continue
     emit({ type: 'tool', name: 'render_stills', summary: s.id })
-    await renderStills(after.root, s.id).catch(() => null)
+    try {
+      await renderStills(after.root, s.id)
+    } catch (err) {
+      warn(`shot ${s.id} does not render (${reason(err)})`)
+      b.failed.push(`${s.id}: its stills do not render: ${reason(err)}`)
+    }
   }
-  const summary = [...done, ...failed.map(f => `✗ ${f}`)].join('\n')
-  return { task: 'build', summary, touched: [...touched].sort(), failed: failed.map(f => f.split(':')[0]) }
 }
 
 interface PublishPost { id: string; name: string; title?: string; description?: string; tags?: string[]; pinned?: string; label?: string }
@@ -497,18 +403,6 @@ async function publishTask() {
   fs.writeFileSync(path.join(project.root, 'publish.md'), publishMarkdown(project.title, kit.platforms))
   return { task: 'publish', summary, touched: [...ctx.touched], file }
 }
-
-const TEMPLATE_RULES = `A template mixes two kinds of things; tell them apart before you edit.
-- The series design, which you keep exactly, even where this video's look differs: the fonts, sizes and weights of every text, where each text sits, the text and accent colors, how the background is treated (its darkening or tint), and series marks (a name, an episode label, a logo, a border or a rule).
-- The last video's content, which you replace: every word and number, and anything that illustrates the last video's subject (drawings, icons, diagrams, labels about its topic). Remove such an illustration, or draw this video's equivalent in the same style and place; never relabel the old one to fit.
-- The background frame: pick this video's own with render_cover (when the template shows no frame, set none). It fills the whole page (object-fit: cover, no bands), and the overlay is adjusted so the frame sits in the template's tone and the text keeps its contrast.
-- When a text is longer than the template's, shorten it first; only then reduce its font size or let it wrap.`
-
-const REFERENCE_RULES = `The person uploaded cover-reference.png, a cover whose design they want for this video and the next ones of the series. Look at it with view_image first, and describe to yourself what makes it: the layout and where each text sits, the size, weight and style of each text, the colors, the background and how it is treated, decorations and marks.
-- Recreate that design in thumb.html at 1080×1920 (scale the reference's layout to it when its shape differs, keeping the 3:4 crop rule), with the closest system fonts.
-- Fill it with this video's content: its own words in the same roles (kicker, headline, highlighted words, a number), and this video's own imagery (a frame through render_cover, or drawings) where the reference has its imagery. Every number from copy.md.
-- Never put the reference itself on the cover as a picture: its words and imagery are baked in. The one exception is when it is itself a logo, frame or overlay (transparent areas, nothing about another video): then use the file as a layer, cropped with CSS.
-- Render with render_cover and compare with the reference (view_image again if needed). Fix the largest difference in design, not content, and render again; stop after four renders.`
 
 // The cover: thumb.html designed from the copy, the look and the shots'
 // stills, then rendered for the export panel's preview
@@ -550,7 +444,6 @@ async function coverTask() {
 }
 
 try {
-  stylesCache = await loadStyles()
   let value: unknown
   if (task === 'detect') value = await detect()
   else if (task === 'test') value = await smokeTest()

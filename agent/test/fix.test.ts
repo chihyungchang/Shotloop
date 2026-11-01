@@ -1,6 +1,6 @@
-// End-to-end test of the fix flow without the network: a scripted stand-in
-// for the Messages API drives the real loop, tools and engine renders on a
-// copy of the ep01 example (2D, renders in seconds).
+// End-to-end tests of the fix and build flows without the network: a
+// scripted stand-in for the Messages API drives the real loop, tools and
+// engine renders on a copy of the ep01 example (2D, renders in seconds).
 //
 //   node --test test/
 
@@ -129,6 +129,43 @@ test('fix: reads, edits only the shot, renders, reports checks, keeps before/aft
     assert.equal(checks.results[0].rule, 'safe-area')
     assert.match(fs.readFileSync(path.join(project, 'shots', SHOT, 'notes.md'), 'utf8'), /fix "show "Follow for more"/)
     assert.equal(result.summary, 'Made the follow line visible from the start of the end card.')
+  } finally {
+    api.close()
+    fs.rmSync(project, { recursive: true, force: true })
+  }
+})
+
+test('build: phases and shots told as events, in order', async () => {
+  const project = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-agent-'))
+  fs.cpSync(EXAMPLE, project, { recursive: true, filter: src => !/\.shotloop|\/out(\/|$)/.test(src) })
+  // Two shots, the first with a recurring picture (the parts phase)
+  const cfgFile = path.join(project, 'shotloop.json')
+  const cfg = JSON.parse(fs.readFileSync(cfgFile, 'utf8'))
+  cfg.shots = cfg.shots.filter((s: { id: string }) => s.id === '01-password-field-dots' || s.id === SHOT)
+  fs.writeFileSync(cfgFile, JSON.stringify(cfg, null, 2))
+  fs.writeFileSync(path.join(project, 'storyboard.json'), JSON.stringify({ shots: [], recurring: [{ name: 'field', design: 'a password field', shots: [1] }] }))
+  const code = `shots/${SHOT}/shot.js`
+
+  const api = await mockApi([
+    [{ type: 'text', text: 'World ready.' }],
+    [{ type: 'text', text: 'Parts drawn.' }],
+    [use('w1', 'write_file', { path: code, content: fs.readFileSync(path.join(project, code), 'utf8') })],
+    [{ type: 'text', text: 'Shot built.' }]
+  ])
+  try {
+    const { code: exit, events } = await runAgent(['build', project], api.url)
+    assert.equal(exit, 0, JSON.stringify(events.filter(e => e.type === 'error')))
+    const steps = events.filter(e => e.type === 'phase' || e.type === 'shot').map(e => (e.type === 'phase' ? e.phase : `${e.id} ${e.state}`))
+    assert.deepEqual(steps, [
+      'world',
+      'parts', '01-password-field-dots start', '01-password-field-dots done',
+      'shots', `${SHOT} start`, `${SHOT} written`, `${SHOT} done`
+    ])
+    // The old log lines are gone
+    assert.ok(!events.some(e => e.type === 'log' && /^(phase |shot_start|shot_done)/.test(e.message)))
+    const result = events.find(e => e.type === 'result').value
+    assert.deepEqual(result.failed, [])
+    assert.deepEqual(result.touched, [code])
   } finally {
     api.close()
     fs.rmSync(project, { recursive: true, force: true })
