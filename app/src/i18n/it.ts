@@ -399,6 +399,8 @@ export const it: Record<Key, string> = {
   'oss.programsNote': 'Eseguiti come processi separati dentro l’app.',
   'oss.models': 'Modelli della voce narrante',
   'oss.modelsNote': 'Non inclusi: ognuno si scarica la prima volta che si usano le sue lingue.',
+  'oss.chineseVoice': 'Ciò che usa la voce cinese',
+  'oss.chineseVoiceNote': 'Scaricato con la voce cinese, in una cartella a sé: CosyVoice 2 funziona con PyTorch.',
   'oss.npm': 'Pacchetti npm',
   'oss.crates': 'Crate Rust',
   'ai.cliIntro': 'Usa un agente di programmazione a cui hai già fatto l’accesso su questo Mac. Gira con i suoi strumenti disattivati e lavora solo tramite gli strumenti di Shotloop.',

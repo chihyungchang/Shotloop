@@ -1,7 +1,7 @@
 // Text to speech for Shotloop's voice-over, on this Mac: Kokoro for
-// English and Chinese, Supertonic 3 for the other languages (listened
-// side by side on 31 Oct 2026: Kokoro sounds best in English, the two
-// are close elsewhere, and Supertonic needs no phonemizer).
+// English, CosyVoice 2 for Chinese, Supertonic 3 for the other languages
+// (listened side by side: Kokoro sounds best in English, CosyVoice far
+// more natural in Chinese, and Supertonic needs no phonemizer).
 //
 //   voicesFor(lang)                  the voices a film in lang can use
 //   synthesize(text, { lang, voice, speed, onProgress })
@@ -13,6 +13,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { ensureModel, installed, modelDir, MODELS, SUPERTONIC_VOICES } from './models.mjs'
+import * as cosyvoice from './cosyvoice.mjs'
 import * as english from './english.mjs'
 import * as kokoro from './kokoro.mjs'
 import * as supertonic from './supertonic.mjs'
@@ -26,12 +27,8 @@ const KOKORO_EN = [
   { id: 'bf_emma', sid: 21, gender: 'f', name: 'Emma (UK)' },
   { id: 'bm_george', sid: 26, gender: 'm', name: 'George (UK)' }
 ]
-const KOKORO_ZH = [
-  { id: 'zf_001', sid: 3, gender: 'f', name: '女声 1' },
-  { id: 'zf_018', sid: 12, gender: 'f', name: '女声 2' },
-  { id: 'zm_009', sid: 58, gender: 'm', name: '男声 1' },
-  { id: 'zm_066', sid: 90, gender: 'm', name: '男声 2' }
-]
+// CosyVoice's voices: each a reference recording in its install
+const COSYVOICE_ZH = [{ id: 'female', gender: 'f', name: '女声' }]
 const SUPERTONIC = SUPERTONIC_VOICES
   .map(id => ({ id, gender: id[0].toLowerCase(), name: `${id[0] === 'F' ? 'Female' : 'Male'} ${id[1]}` }))
 // The English lexicons Kokoro reads: the model's, then the word forms
@@ -43,7 +40,7 @@ const EN_LEXICONS = ['lexicon-us-en.txt', 'lexicon-gb-en.txt', INFLECTED]
 export function engineFor(lang) {
   const base = String(lang ?? '').split('-')[0].toLowerCase()
   if (base === 'en') return { model: 'kokoro-en', voices: KOKORO_EN, lexicons: EN_LEXICONS }
-  if (base === 'zh') return { model: 'kokoro-zh', voices: KOKORO_ZH, lexicons: ['lexicon-zh.txt', 'lexicon-us-en.txt'], rules: ['date-zh.fst', 'phone-zh.fst', 'number-zh.fst'] }
+  if (base === 'zh') return { model: 'cosyvoice-zh', voices: COSYVOICE_ZH }
   if (supertonic.LANGS.includes(base)) return { model: 'supertonic', voices: SUPERTONIC, code: base }
   return null
 }
@@ -69,7 +66,9 @@ async function model(e, onProgress) {
     loaded.set(e.model, (async () => {
       const dir = await ensureModel(e.model, onProgress)
       if (e.model === 'kokoro-en') withInflections(dir)
-      return MODELS[e.model].kind === 'kokoro' ? kokoro.load(dir, e.lexicons, e.rules) : supertonic.load(dir)
+      const kind = MODELS[e.model].kind
+      // CosyVoice runs in its own server: its folder is all it needs here
+      return kind === 'kokoro' ? kokoro.load(dir, e.lexicons) : kind === 'supertonic' ? supertonic.load(dir) : dir
     })())
     // A failed download or load can be tried again
     loaded.get(e.model).catch(() => loaded.delete(e.model))
@@ -82,6 +81,7 @@ export async function synthesize(text, { lang, voice, speed = 1, onProgress } = 
   if (!e) throw new Error(`no voice for the language "${lang}"`)
   const v = e.voices.find(x => x.id === voice) ?? e.voices[0]
   const m = await model(e, onProgress)
+  if (MODELS[e.model].kind === 'cosyvoice') return cosyvoice.speak(m, text, { voice: v.id, speed })
   if (MODELS[e.model].kind === 'supertonic') return supertonic.speak(m, text, { lang: e.code, voice: v.id, speed })
   if (e.model === 'kokoro-en') text = englishFor(text).text
   return kokoro.speak(m, text, { sid: v.sid, speed })

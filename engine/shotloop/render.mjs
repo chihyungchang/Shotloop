@@ -54,7 +54,7 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
       await composeStill(
         path.join(framesDir, frameName(f)),
         capsDir ? path.join(capsDir, frameName(f)) : null,
-        path.join(e.dir, 'stills', `${name}.png`)
+        path.join(e.dir, 'stills', `${name}.jpg`)
       )
     }
     if (!stills) {

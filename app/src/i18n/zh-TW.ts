@@ -399,6 +399,8 @@ export const zhTW: Record<Key, string> = {
   'oss.programsNote': '在 app 內以獨立行程執行。',
   'oss.models': '配音模型',
   'oss.modelsNote': '不隨 app 內建：第一次為對應語言配音時下載。',
+  'oss.chineseVoice': '中文配音的執行元件',
+  'oss.chineseVoiceNote': '隨中文配音一起下載到它自己的目錄：CosyVoice 2 執行在 PyTorch 上。',
   'oss.npm': 'npm 套件',
   'oss.crates': 'Rust 相依套件',
   'ai.cliIntro': '使用你在這台 Mac 上已登入的程式碼代理。它執行時會關閉自己的工具，只能透過 Shotloop 的工具操作。',

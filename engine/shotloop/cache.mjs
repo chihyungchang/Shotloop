@@ -211,12 +211,13 @@ export function recordError(project, shot, mode, error) {
 export function entry(project, shot, mode, key = shotKey(project, shot, mode)) {
   const dir = entryDir(project, shot, mode, key)
   const meta = readJson(path.join(dir, 'meta.json'), null)
-  const stills = ['start', 'middle', 'end'].map(n => path.join(dir, 'stills', `${n}.png`))
+  // JPEG since 0.7; renders from before keep their PNGs
+  const stills = ['start', 'middle', 'end'].map(n => ['jpg', 'png'].map(x => path.join(dir, 'stills', `${n}.${x}`)).find(f => fs.existsSync(f)))
   return {
     key,
     dir,
     clip: meta?.clip ? path.join(dir, 'clip.mp4') : null,
-    stills: stills.every(f => fs.existsSync(f)) ? stills : null,
+    stills: stills.every(Boolean) ? stills : null,
     meta
   }
 }

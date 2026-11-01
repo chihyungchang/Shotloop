@@ -202,6 +202,7 @@ function AboutSection() {
 const GROUPS: Record<string, { title: Key; note?: Key }> = {
   programs: { title: 'oss.programs', note: 'oss.programsNote' },
   models: { title: 'oss.models', note: 'oss.modelsNote' },
+  chineseVoice: { title: 'oss.chineseVoice', note: 'oss.chineseVoiceNote' },
   npm: { title: 'oss.npm' },
   crates: { title: 'oss.crates' }
 }
@@ -211,7 +212,7 @@ function ThirdParty() {
       <h4>{t('oss.title')}</h4>
       <p className="hint">{t('oss.intro')}</p>
       {licenses.groups.map(g => (
-        <details key={g.id} className="oss-group" open={g.id === 'programs' || g.id === 'models'}>
+        <details key={g.id} className="oss-group" open={g.id === 'programs' || g.id === 'models' || g.id === 'chineseVoice'}>
           <summary><strong>{t(GROUPS[g.id]?.title ?? 'oss.npm')}</strong> <span className="muted">{g.items.length}</span></summary>
           {GROUPS[g.id]?.note && <p className="hint">{t(GROUPS[g.id].note!)}</p>}
           <ul>

@@ -121,7 +121,7 @@ flowchart LR
 - **Planın ölçüldüğü kurallar.** Altyazıların uzunluğu ve ekranda kalma süresi, hiçbir şey oluşturulmadan önce denetlenir. Çekimler boyunca tekrar eden bir görsel bir kez çizilip paylaşılır, böylece her çekimde aynı görünür.
 - **Kaynaklı bilgiler.** Metin her bilgiyi kaynağının yanında tutar; paylaşım metni yalnızca metindeki bilgileri kullanabilir.
 - **Kapaklar.** Yapay zekâ filmin görünümünde bir kapak tasarlar ve kendi işlediklerini denetler. Bir seriyi tutarlı tutmak için birini şablon olarak kaydedin ya da beğendiğiniz bir kapağı yükleyin, yapay zekâ onun tasarımını izlesin.
-- **Mac'inizde üretilen seslendirme.** Her çekimin bir repliği vardır ve kurguyu ses yönetir: bir çekim repliği kadar sürer, görüntü de sözcüklere denk gelir. Kokoro İngilizce ve Çince, Supertonic diğer dilleri konuşur; hepsi çevrimdışı. Söylenen sözcüklerin altyazıları otomatik eklenir ve bir denetim bunların örteceği her şeyi (yazıları ve işaretlenmiş özneyi) listeler; böylece örtülmüş bir film asla dışa aktarılmaz. Yalnızca ekran yazıları olan bir film için seslendirmeyi kapatın.
+- **Mac'inizde üretilen seslendirme.** Her çekimin bir repliği vardır ve kurguyu ses yönetir: bir çekim repliği kadar sürer, görüntü de sözcüklere denk gelir. Kokoro İngilizce, CosyVoice 2 Çince, Supertonic diğer dilleri konuşur; hepsi çevrimdışı. Söylenen sözcüklerin altyazıları otomatik eklenir ve bir denetim bunların örteceği her şeyi (yazıları ve işaretlenmiş özneyi) listeler; böylece örtülmüş bir film asla dışa aktarılmaz. Yalnızca ekran yazıları olan bir film için seslendirmeyi kapatın.
 - **Kurguya uyan müzik.** Sentezlenen fon müziği, kesmeler vuruşlarına denk gelecek şekilde ayarlanır, son kareye kadar sürer ve yavaşça kısılır. Seslendirmenin altında daha kısık çalar ve bir replik söylenirken sesini alçaltır.
 - **Düzenlerken hızlı, dışa aktarırken tam kalite.** 3D, düzenleme sırasında hızlı önizlemeler gösterir ve tam kaliteli kareleri yalnızca dışa aktarırken işler. 2D baştan sona tam kalitede çalışır.
 - **3D için varlık kütüphanesi.** Kendi anahtarınızla [Poly Pizza](https://poly.pizza) ve [Smithsonian Open Access](https://www.si.edu/openaccess) üzerinde CC0 modeller arayın. Her model bir kez indirilir ve herhangi bir 3D projeye eklenebilir.
@@ -144,7 +144,7 @@ Modelin araç çağırmayı desteklemesi, denetimler için de görüntü görebi
 
 > **İlk açılış:** Shotloop henüz Apple tarafından onaylanmadı (notarize edilmedi), bu yüzden macOS geliştiriciyi doğrulayamadığını söyler. Bir kez **Sistem Ayarları → Gizlilik ve Güvenlik → Yine de Aç** yoluyla açın ya da Terminal'de `xattr -dr com.apple.quarantine /Applications/Shotloop.app` komutunu çalıştırın. Sonrasında normal açılır ve güncellemeler yeniden sormadan kurulur.
 
-Node.js, ffmpeg ve seslendirmenin konuşma motorları uygulamanın içindedir. Ses modelleri ise değildir: her biri, bir film onun dillerini ilk kez konuştuğunda ilerleme çubuğuyla indirilir (Kokoro İngilizce 132 MB, Kokoro Çince 147 MB, diğer diller için Supertonic 400 MB) ya da önceden Ayarlar → Bağımlılıklar bölümünden indirilebilir. Ayarlar → Hakkında, her üçüncü taraf bileşeni lisansıyla birlikte listeler. Shotloop güncellemeleri GitHub'da denetler ve yerinde kurar. Apple silikonlu Mac'lerde (M1 ve sonrası) çalışır.
+Node.js, ffmpeg ve seslendirmenin konuşma motorları uygulamanın içindedir. Ses modelleri ise değildir: her biri, bir film onun dillerini ilk kez konuştuğunda ilerleme çubuğuyla indirilir (İngilizce için Kokoro 132 MB; Çince için CosyVoice 2 yaklaşık 5 GB, üzerinde çalıştığı Python ile birlikte; diğer diller için Supertonic 400 MB) ya da önceden Ayarlar → Bağımlılıklar bölümünden indirilebilir. Ayarlar → Hakkında, her üçüncü taraf bileşeni lisansıyla birlikte listeler. Shotloop güncellemeleri GitHub'da denetler ve yerinde kurar. Apple silikonlu Mac'lerde (M1 ve sonrası) çalışır.
 
 ## Kaynaktan derleme
 
@@ -216,13 +216,24 @@ my-video/
 | --- | --- |
 | [`app/`](app/) | Masaüstü uygulaması: işleme kuyruğu, güncelleyici ve süreç denetimi içeren bir Tauri 2 (Rust) kabuğu ile React + TypeScript arayüzü. |
 | [`engine/shotloop/`](engine/shotloop/) | Çekim motoru: proje biçimi, çekim başına işleme önbelleği, 2D (Chrome) ve 3D (Blender) işleme, film birleştirme, MP4 dışa aktarma, seslendirme zamanlaması, altyazılar ve denetimleri, müzik, varlık kütüphanesi. Uygulamanın çağırdığı bir CLI. |
-| [`voice/`](voice/) | Seslendirmenin metinden konuşmaya dönüşümü, bu Mac'te: sherpa-onnx üzerinden Kokoro ve ONNX Runtime üzerinde Supertonic, modellerin indirmeleriyle birlikte. |
+| [`voice/`](voice/) | Seslendirmenin metinden konuşmaya dönüşümü, bu Mac'te: sherpa-onnx üzerinden Kokoro, ONNX Runtime üzerinde Supertonic ve yerel bir Python sunucusunda CosyVoice 2, modellerin indirmeleriyle birlikte. |
 | [`agent/`](agent/) | Ajan: planlama, oluşturma, sade dille düzeltmeler, kontrol listesine göre denetimler, paylaşım metni. API, CLI (MCP üzerinden) ve yerel modelleri destekler. |
 | [`examples/`](examples/) | Ana Sayfa'nın sunduğu İngilizce örnekler: her görsel stil için en az bir tane (2D ve 3D, 9:16 ve 16:9). |
 | [`fixtures/`](fixtures/) | Testler ve terminal örnekleri için projeler. |
 
 </details>
 
+## Teşekkürler
+
+Shotloop açık kaynak emeğinin üzerinde duruyor. Şunların arkasındaki insanlara teşekkürler:
+
+- **Seslendirme:** hexgrad'ın [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) modeli ve [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (İngilizce); FunAudioLLM'in [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) modeli ile [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) ve [Transformers](https://github.com/huggingface/transformers) (Çince); Supertone'un [Supertonic](https://huggingface.co/Supertone/supertonic-3) modeli (diğer diller); [ONNX Runtime](https://onnxruntime.ai); Çince sesi çalıştıran [uv](https://github.com/astral-sh/uv) ve [Python](https://www.python.org).
+- **Render ve film:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) (DevTools protokolü üzerinden), [Blender](https://www.blender.org) ve [Node.js](https://nodejs.org).
+- **Uygulama:** [Tauri](https://tauri.app), [React](https://react.dev), [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) ve [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
+- **Varlıklar ve veriler:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess) ve [world-atlas](https://github.com/topojson/world-atlas) aracılığıyla [Natural Earth](https://www.naturalearthdata.com).
+
+Ayarlar → Hakkında her bileşeni sürümü ve lisansıyla listeler; ayrıntılar [NOTICE](NOTICE) dosyasındadır.
+
 ## Lisans
 
-[Apache License 2.0](LICENSE); bkz. [NOTICE](NOTICE). Varlık kütüphanesindeki modeller kendi lisanslarını korur (CC0 veya CC-BY; atıf projeye yazılır), ses modelleri de öyle (Kokoro: Apache-2.0; Supertonic: OpenRAIL-M).
+[Apache License 2.0](LICENSE); bkz. [NOTICE](NOTICE). Varlık kütüphanesindeki modeller kendi lisanslarını korur (CC0 veya CC-BY; atıf projeye yazılır), ses modelleri de öyle (Kokoro ve CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).

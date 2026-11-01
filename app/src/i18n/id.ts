@@ -399,6 +399,8 @@ export const id: Record<Key, string> = {
   'oss.programsNote': 'Berjalan sebagai proses terpisah di dalam aplikasi.',
   'oss.models': 'Model sulih suara',
   'oss.modelsNote': 'Tidak disertakan: masing-masing diunduh saat bahasanya pertama kali dipakai.',
+  'oss.chineseVoice': 'Yang dipakai suara Mandarin',
+  'oss.chineseVoiceNote': 'Diunduh bersama suara Mandarin ke foldernya sendiri: CosyVoice 2 berjalan di PyTorch.',
   'oss.npm': 'Paket npm',
   'oss.crates': 'Crate Rust',
   'ai.cliIntro': 'Memakai agen pemrograman yang sudah Anda masuki di Mac ini. Agen berjalan dengan alatnya sendiri dimatikan dan hanya bekerja lewat alat Shotloop.',

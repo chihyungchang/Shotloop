@@ -400,6 +400,8 @@ export const en = {
   'oss.programsNote': 'Run as separate processes from inside the app.',
   'oss.models': 'Voice-over models',
   'oss.modelsNote': 'Not bundled: each downloads the first time its languages speak.',
+  'oss.chineseVoice': 'What the Chinese voice runs on',
+  'oss.chineseVoiceNote': 'Downloaded with the Chinese voice, into its own folder: CosyVoice 2 runs in PyTorch.',
   'oss.npm': 'npm packages',
   'oss.crates': 'Rust crates',
   'ai.cliIntro': 'Uses a coding agent you are already signed in to on this Mac. It runs with its own tools off and works only through Shotloop’s tools.',

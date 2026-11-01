@@ -48,6 +48,8 @@ export async function openShot(project, shot, mode) {
   return { page: p, draw, close: () => p.close() }
 }
 
+// One page draws the frames in order: a shot's code may carry state from
+// one frame to the next, and pages taking turns would make it stutter
 export async function renderFrames2d(project, shot, mode, framesDir, frames) {
   fs.mkdirSync(framesDir, { recursive: true })
   const s = await openShot(project, shot, mode)
@@ -55,7 +57,7 @@ export async function renderFrames2d(project, shot, mode, framesDir, frames) {
     const tick = progress({ shot: shot.id, stage: 'frames' }, frames.length)
     for (const [n, f] of frames.entries()) {
       await s.draw((f - 1) / project.fps)
-      fs.writeFileSync(path.join(framesDir, frameName(f)), await capture(s.page))
+      fs.writeFileSync(path.join(framesDir, frameName(f)), await capture(s.page, { fast: true }))
       tick(n + 1)
     }
   } finally {

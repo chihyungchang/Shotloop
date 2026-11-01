@@ -399,6 +399,8 @@ export const tr: Record<Key, string> = {
   'oss.programsNote': 'Uygulama içinde ayrı süreçler olarak çalışır.',
   'oss.models': 'Seslendirme modelleri',
   'oss.modelsNote': 'Dahil değil: her biri, dilleri ilk kez kullanıldığında indirilir.',
+  'oss.chineseVoice': 'Çince sesin kullandıkları',
+  'oss.chineseVoiceNote': 'Çince sesle birlikte kendi klasörüne indirilir: CosyVoice 2, PyTorch üzerinde çalışır.',
   'oss.npm': 'npm paketleri',
   'oss.crates': 'Rust paketleri',
   'ai.cliIntro': 'Bu Mac’te zaten oturum açtığınız bir kodlama ajanını kullanır. Kendi araçları kapalı çalışır ve yalnızca Shotloop’un araçlarıyla çalışır.',

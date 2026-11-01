@@ -399,6 +399,8 @@ export const ja: Record<Key, string> = {
   'oss.programsNote': 'アプリ内で別プロセスとして動作します。',
   'oss.models': 'ナレーションのモデル',
   'oss.modelsNote': '同梱されていません。その言語で初めてナレーションするときにダウンロードされます。',
+  'oss.chineseVoice': '中国語ナレーションの実行環境',
+  'oss.chineseVoiceNote': '中国語ナレーションと一緒に専用フォルダへダウンロードされます。CosyVoice 2 は PyTorch で動きます。',
   'oss.npm': 'npm パッケージ',
   'oss.crates': 'Rust クレート',
   'ai.cliIntro': 'この Mac でサインイン済みのコーディングエージェントを使います。自身のツールはオフで実行され、Shotloop のツールだけで作業します。',

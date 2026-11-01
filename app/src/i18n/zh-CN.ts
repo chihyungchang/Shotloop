@@ -395,6 +395,8 @@ export const zhCN: Record<Key, string> = {
   'oss.programsNote': '在 app 内以独立进程运行。',
   'oss.models': '配音模型',
   'oss.modelsNote': '不随 app 内置：第一次给对应语言配音时下载。',
+  'oss.chineseVoice': '中文配音的运行组件',
+  'oss.chineseVoiceNote': '随中文配音一起下载到它自己的目录：CosyVoice 2 运行在 PyTorch 上。',
   'oss.npm': 'npm 包',
   'oss.crates': 'Rust 依赖',
   'ai.cliIntro': '用你在这台 Mac 上已经登录的命令行 AI 工具来驱动。它运行时自带工具全部关闭，只能通过 Shotloop 的工具操作。',

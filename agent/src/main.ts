@@ -173,7 +173,7 @@ function keepStills(files: string[] | null | undefined, dir: string, prefix: str
   if (!files) return null
   fs.mkdirSync(dir, { recursive: true })
   return files.map((f, i) => {
-    const out = path.join(dir, `${prefix}-${STILLS[i]}.png`)
+    const out = path.join(dir, `${prefix}-${STILLS[i]}${path.extname(f)}`)
     fs.copyFileSync(f, out)
     return out
   })

@@ -121,7 +121,7 @@ flowchart LR
 - **規劃會依規則檢查。** 建構之前，先檢查每句字幕的長度和停留時間。在多個鏡頭中重複出現的圖像只畫一次、共用，確保每次看起來都一樣。
 - **事實附來源。** 文案中每條事實都緊跟著來源，發布文案也只能使用文案裡的事實。
 - **封面。** AI 依影片風格設計封面，並自行檢查渲染結果。可以存成範本讓系列保持一致，也可以上傳一張喜歡的封面，讓 AI 照著它的設計做。
-- **配音，在你的 Mac 上配音。** 每個鏡頭有一句台詞，由配音帶動剪接：鏡頭長度跟著台詞走，畫面落在說到的字詞上。英文和中文用 Kokoro，其他語言用 Supertonic，全部離線執行。字幕依說出的話自動產生，並會檢查列出字幕會遮住的內容（文字和標記的主體），被遮住的影片絕不會匯出。只想用字幕卡的影片可以關掉配音。
+- **配音，在你的 Mac 上配音。** 每個鏡頭有一句台詞，由配音帶動剪接：鏡頭長度跟著台詞走，畫面落在說到的字詞上。英文用 Kokoro，中文用 CosyVoice 2，其他語言用 Supertonic，全部離線執行。字幕依說出的話自動產生，並會檢查列出字幕會遮住的內容（文字和標記的主體），被遮住的影片絕不會匯出。只想用字幕卡的影片可以關掉配音。
 - **配樂貼合剪接。** 合成的配樂會調整節拍，讓剪接點落在拍子上，一路播到最後一格再淡出。有配音時配樂會壓低，說話時再退讓一些。
 - **編輯時快，匯出時高畫質。** 3D 編輯時顯示快速預覽，匯出時才渲染完整畫質；2D 全程都是完整畫質。
 - **3D 素材庫。** 用你自己的金鑰在 [Poly Pizza](https://poly.pizza) 和 [Smithsonian Open Access](https://www.si.edu/openaccess) 搜尋 CC0 模型。每個模型只下載一次，任何 3D 專案都能加入。
@@ -144,7 +144,7 @@ flowchart LR
 
 > **第一次開啟：** Shotloop 尚未經過 Apple 公證，macOS 會顯示無法驗證開發者。請從 **系統設定 → 隱私權與安全性 → 強制打開** 開啟一次，或在終端機執行 `xattr -dr com.apple.quarantine /Applications/Shotloop.app`。之後就能正常開啟，更新也不會再詢問。
 
-Node.js、ffmpeg 和配音的語音引擎已內建在 App 中。語音模型則沒有：影片第一次用到某種語言配音時才下載（Kokoro 英文 132 MB、Kokoro 中文 147 MB、用於其他語言的 Supertonic 400 MB），會顯示進度條；也可以事先在「設定 → 相依元件」下載。「設定 → 關於」列出所有第三方元件及其授權。Shotloop 會從 GitHub 檢查更新並直接安裝。支援 Apple 晶片（M1 以後）的 Mac。
+Node.js、ffmpeg 和配音的語音引擎已內建在 App 中。語音模型則沒有：影片第一次用到某種語言配音時才下載（英文用的 Kokoro 132 MB；中文用的 CosyVoice 2 約 5 GB，含它執行所需的 Python；用於其他語言的 Supertonic 400 MB），會顯示進度條；也可以事先在「設定 → 相依元件」下載。「設定 → 關於」列出所有第三方元件及其授權。Shotloop 會從 GitHub 檢查更新並直接安裝。支援 Apple 晶片（M1 以後）的 Mac。
 
 ## 從原始碼建置
 
@@ -216,13 +216,24 @@ my-video/
 | --- | --- |
 | [`app/`](app/) | 桌面應用程式：Tauri 2（Rust）外殼，負責渲染佇列、自動更新和行程監管；React + TypeScript 介面。 |
 | [`engine/shotloop/`](engine/shotloop/) | 鏡頭引擎：專案格式、逐鏡頭渲染快取、2D（Chrome）與 3D（Blender）渲染、成片組裝、MP4 匯出、配音計時、字幕及其檢查、配樂、素材庫。App 透過它的 CLI 呼叫。 |
-| [`voice/`](voice/) | 配音的文字轉語音，在這台 Mac 上執行：Kokoro（透過 sherpa-onnx）和 Supertonic（基於 ONNX Runtime），以及模型的下載。 |
+| [`voice/`](voice/) | 配音的文字轉語音，在這台 Mac 上執行：Kokoro（透過 sherpa-onnx）、Supertonic（基於 ONNX Runtime）和 CosyVoice 2（在本機的 Python 伺服器中執行），以及模型的下載。 |
 | [`agent/`](agent/) | 代理：規劃、建構、白話修改、依檢查清單檢查、發布文案。支援 API、CLI（透過 MCP）和本機模型。 |
 | [`examples/`](examples/) | 首頁提供的範例，皆為英文：每種視覺風格至少一個（2D 和 3D，9:16 和 16:9）。 |
 | [`fixtures/`](fixtures/) | 測試和終端機示範用的專案。 |
 
 </details>
 
+## 致謝
+
+Shotloop 建立在開源成果之上。感謝以下專案背後的人：
+
+- **配音：** hexgrad 的 [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) 和 [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)（英文）；FunAudioLLM 的 [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice)，以及 [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS)、[WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing)、[Whisper](https://github.com/openai/whisper)、[PyTorch](https://pytorch.org) 和 [Transformers](https://github.com/huggingface/transformers)（中文）；Supertone 的 [Supertonic](https://huggingface.co/Supertone/supertonic-3)（其他語言）；[ONNX Runtime](https://onnxruntime.ai)；執行中文配音的 [uv](https://github.com/astral-sh/uv) 和 [Python](https://www.python.org)。
+- **算繪與成片：** [FFmpeg](https://ffmpeg.org)、透過 DevTools 協定驅動的 [Google Chrome](https://www.google.com/chrome/)、[Blender](https://www.blender.org) 和 [Node.js](https://nodejs.org)。
+- **App：** [Tauri](https://tauri.app)、[React](https://react.dev)、[Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) 和 [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk)。
+- **素材與資料：** [Kenney](https://kenney.nl)、[Poly Haven](https://polyhaven.com)、[Quaternius](https://quaternius.com)、[Poly Pizza](https://poly.pizza)、[Smithsonian Open Access](https://www.si.edu/openaccess)，以及經由 [world-atlas](https://github.com/topojson/world-atlas) 提供的 [Natural Earth](https://www.naturalearthdata.com)。
+
+「設定 → 關於」列出每個元件的版本和授權，詳情見 [NOTICE](NOTICE)。
+
 ## 授權
 
-[Apache License 2.0](LICENSE)；另見 [NOTICE](NOTICE)。素材庫中的模型保留各自的授權（CC0 或 CC-BY，署名會寫進專案），語音模型也一樣（Kokoro：Apache-2.0；Supertonic：OpenRAIL-M）。
+[Apache License 2.0](LICENSE)；另見 [NOTICE](NOTICE)。素材庫中的模型保留各自的授權（CC0 或 CC-BY，署名會寫進專案），語音模型也一樣（Kokoro 和 CosyVoice 2：Apache-2.0；Supertonic：OpenRAIL-M）。

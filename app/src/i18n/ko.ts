@@ -399,6 +399,8 @@ export const ko: Record<Key, string> = {
   'oss.programsNote': '앱 안에서 별도 프로세스로 실행됩니다.',
   'oss.models': '내레이션 모델',
   'oss.modelsNote': '포함되어 있지 않으며 해당 언어로 처음 내레이션할 때 다운로드됩니다.',
+  'oss.chineseVoice': '중국어 내레이션 실행 구성 요소',
+  'oss.chineseVoiceNote': '중국어 내레이션과 함께 전용 폴더에 다운로드됩니다. CosyVoice 2는 PyTorch에서 실행됩니다.',
   'oss.npm': 'npm 패키지',
   'oss.crates': 'Rust 크레이트',
   'ai.cliIntro': '이 Mac에서 이미 로그인한 코딩 에이전트를 사용합니다. 자체 도구를 끈 상태로 실행되며, Shotloop의 도구로만 작업합니다.',

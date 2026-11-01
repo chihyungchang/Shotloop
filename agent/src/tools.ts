@@ -150,15 +150,21 @@ function listFiles(ctx: ToolContext, dir: string) {
   return out.join('\n') || '(empty)'
 }
 
+// A PNG or JPEG file as an image block (null for another kind of file)
+const imageType = (file: string): 'image/png' | 'image/jpeg' | null =>
+  (/\.png$/i.test(file) ? 'image/png' : /\.jpe?g$/i.test(file) ? 'image/jpeg' : null)
+function imageBlock(file: string) {
+  const media_type = imageType(file)
+  if (!media_type) throw new Error(`${path.basename(file)} is not a PNG or JPEG image`)
+  return { type: 'image' as const, source: { type: 'base64' as const, media_type, data: fs.readFileSync(file).toString('base64') } }
+}
+
 function stillBlocks(files: string[]): ToolResult {
   const names = ['start', 'middle', 'end']
   const blocks: Exclude<ToolResult, string | undefined> = []
   files.forEach((f, i) => {
     blocks.push({ type: 'text', text: `${names[i]} frame:` })
-    blocks.push({
-      type: 'image',
-      source: { type: 'base64', media_type: 'image/png', data: fs.readFileSync(f).toString('base64') }
-    })
+    blocks.push(imageBlock(f))
   })
   return blocks
 }
@@ -224,21 +230,17 @@ export async function runTool(ctx: ToolContext, name: string, input: Record<stri
       emit({ type: 'tool', name, summary: id })
       const blocks: Exclude<ToolResult, string | undefined> = [{ type: 'text', text: style.why }]
       for (const f of styleStills(id)) {
-        blocks.push({ type: 'image', source: { type: 'base64', media_type: /\.png$/i.test(f) ? 'image/png' : 'image/jpeg', data: fs.readFileSync(f).toString('base64') } })
+        blocks.push(imageBlock(f))
       }
       return blocks
     }
     case 'view_image': {
       const { abs, rel } = resolve(ctx, str('path'))
-      const type = /\.png$/i.test(rel) ? 'image/png' : /\.jpe?g$/i.test(rel) ? 'image/jpeg' : null
-      if (!type) throw new Error(`${rel} is not a PNG or JPEG image`)
+      if (!imageType(rel)) throw new Error(`${rel} is not a PNG or JPEG image`)
       if (!fs.existsSync(abs)) throw new Error(`${rel} does not exist`)
       if (fs.statSync(abs).size > 4 * 1024 * 1024) throw new Error(`${rel} is larger than 4 MB`)
       emit({ type: 'tool', name, summary: rel })
-      return [
-        { type: 'text', text: `${rel}:` },
-        { type: 'image', source: { type: 'base64', media_type: type, data: fs.readFileSync(abs).toString('base64') } }
-      ]
+      return [{ type: 'text', text: `${rel}:` }, imageBlock(abs)]
     }
     case 'render_cover': {
       // Only the cover task, which may write the cover page
@@ -249,10 +251,7 @@ export async function runTool(ctx: ToolContext, name: string, input: Record<stri
       emit({ type: 'tool', name, summary: shot ? `${shot} @ ${time} s` : 'no frame' })
       const file = await renderCover(ctx.root, shot ? { shot, time } : null)
       if (!file) throw new Error('this project has no cover page')
-      return [
-        { type: 'text', text: 'cover:' },
-        { type: 'image', source: { type: 'base64', media_type: 'image/png', data: fs.readFileSync(file).toString('base64') } }
-      ]
+      return [{ type: 'text', text: 'cover:' }, imageBlock(file)]
     }
     case 'read_checklist':
       emit({ type: 'tool', name })

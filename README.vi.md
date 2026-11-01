@@ -121,7 +121,7 @@ flowchart LR
 - **Kế hoạch được đo theo quy tắc.** Trước khi dựng, phụ đề được kiểm tra độ dài và thời gian hiển thị. Hình xuất hiện lặp lại qua nhiều cảnh chỉ vẽ một lần và dùng chung, nên trông giống nhau ở mọi cảnh.
 - **Dữ kiện có nguồn.** Lời văn giữ mỗi dữ kiện cạnh nguồn của nó, và bài đăng chỉ được dùng dữ kiện có trong lời văn.
 - **Ảnh bìa.** AI thiết kế ảnh bìa theo phong cách video và tự kiểm tra bản render. Lưu một ảnh làm mẫu để giữ series đồng nhất, hoặc tải lên ảnh bìa bạn thích để AI làm theo bố cục đó.
-- **Lồng tiếng, đọc ngay trên Mac của bạn.** Mỗi cảnh có một lời thoại, và giọng đọc dẫn nhịp dựng: cảnh dài đúng bằng lời thoại của nó, hình ảnh khớp với từng chữ. Kokoro đọc tiếng Anh và tiếng Trung, Supertonic đọc các ngôn ngữ khác, tất cả đều offline. Phụ đề của lời đọc được thêm tự động, và một bước kiểm tra liệt kê mọi thứ phụ đề sẽ che (chữ và chủ thể được đánh dấu), nên video bị che sẽ không bao giờ được xuất. Tắt lồng tiếng nếu video chỉ dùng chữ trên màn hình.
+- **Lồng tiếng, đọc ngay trên Mac của bạn.** Mỗi cảnh có một lời thoại, và giọng đọc dẫn nhịp dựng: cảnh dài đúng bằng lời thoại của nó, hình ảnh khớp với từng chữ. Kokoro đọc tiếng Anh, CosyVoice 2 đọc tiếng Trung và Supertonic đọc các ngôn ngữ khác, tất cả đều offline. Phụ đề của lời đọc được thêm tự động, và một bước kiểm tra liệt kê mọi thứ phụ đề sẽ che (chữ và chủ thể được đánh dấu), nên video bị che sẽ không bao giờ được xuất. Tắt lồng tiếng nếu video chỉ dùng chữ trên màn hình.
 - **Nhạc khớp nhịp cắt.** Nhạc nền tổng hợp được chỉnh để điểm cắt rơi đúng nhịp, chạy đến khung hình cuối rồi nhỏ dần. Khi có lồng tiếng, nhạc nhỏ hơn và hạ xuống mỗi khi một lời thoại được đọc.
 - **Nhanh khi chỉnh sửa, chất lượng đầy đủ khi xuất.** 3D hiển thị bản xem trước nhanh khi bạn chỉnh và chỉ render chất lượng đầy đủ khi xuất. 2D luôn ở chất lượng đầy đủ.
 - **Thư viện tài nguyên 3D.** Tìm mô hình CC0 trên [Poly Pizza](https://poly.pizza) và [Smithsonian Open Access](https://www.si.edu/openaccess) bằng khóa của bạn. Mỗi mô hình chỉ tải một lần và thêm được vào bất kỳ dự án 3D nào.
@@ -144,7 +144,7 @@ Mô hình cần hỗ trợ gọi công cụ (tool calling), và việc kiểm tr
 
 > **Lần mở đầu tiên:** Shotloop chưa được Apple công chứng (notarize), nên macOS báo không thể xác minh nhà phát triển. Hãy mở một lần từ **Cài đặt hệ thống → Quyền riêng tư & Bảo mật → Vẫn mở**, hoặc chạy `xattr -dr com.apple.quarantine /Applications/Shotloop.app` trong Terminal. Sau đó ứng dụng mở bình thường và các bản cập nhật cài đặt mà không hỏi lại.
 
-Node.js, ffmpeg và các engine đọc giọng của phần lồng tiếng có sẵn trong ứng dụng. Mô hình giọng thì không: mỗi mô hình được tải về, kèm thanh tiến trình, vào lần đầu một video dùng ngôn ngữ của nó (Kokoro tiếng Anh 132 MB, Kokoro tiếng Trung 147 MB, Supertonic cho các ngôn ngữ khác 400 MB), hoặc tải trước trong Cài đặt → Thành phần phụ thuộc. Cài đặt → Giới thiệu liệt kê mọi thành phần bên thứ ba cùng giấy phép của chúng. Shotloop kiểm tra bản cập nhật trên GitHub và cài tại chỗ. Chạy trên Mac dùng Apple silicon (M1 trở lên).
+Node.js, ffmpeg và các engine đọc giọng của phần lồng tiếng có sẵn trong ứng dụng. Mô hình giọng thì không: mỗi mô hình được tải về, kèm thanh tiến trình, vào lần đầu một video dùng ngôn ngữ của nó (Kokoro cho tiếng Anh 132 MB; CosyVoice 2 cho tiếng Trung khoảng 5 GB, kèm Python để chạy nó; Supertonic cho các ngôn ngữ khác 400 MB), hoặc tải trước trong Cài đặt → Thành phần phụ thuộc. Cài đặt → Giới thiệu liệt kê mọi thành phần bên thứ ba cùng giấy phép của chúng. Shotloop kiểm tra bản cập nhật trên GitHub và cài tại chỗ. Chạy trên Mac dùng Apple silicon (M1 trở lên).
 
 ## Build từ mã nguồn
 
@@ -216,13 +216,24 @@ my-video/
 | --- | --- |
 | [`app/`](app/) | Ứng dụng desktop: vỏ Tauri 2 (Rust) lo hàng đợi render, trình cập nhật và giám sát tiến trình, cùng giao diện React + TypeScript. |
 | [`engine/shotloop/`](engine/shotloop/) | Engine cảnh: định dạng dự án, cache render theo cảnh, render 2D (Chrome) và 3D (Blender), ghép video, xuất MP4, canh thời gian lồng tiếng, phụ đề và bước kiểm tra phụ đề, nhạc, thư viện tài nguyên. Là một CLI mà ứng dụng gọi. |
-| [`voice/`](voice/) | Chuyển văn bản thành giọng nói cho phần lồng tiếng, ngay trên Mac này: Kokoro qua sherpa-onnx và Supertonic trên ONNX Runtime, kèm phần tải mô hình. |
+| [`voice/`](voice/) | Chuyển văn bản thành giọng nói cho phần lồng tiếng, ngay trên Mac này: Kokoro qua sherpa-onnx, Supertonic trên ONNX Runtime và CosyVoice 2 trong một máy chủ Python cục bộ, kèm phần tải mô hình. |
 | [`agent/`](agent/) | Agent: lập kế hoạch, dựng cảnh, sửa bằng lời thường, kiểm tra theo danh sách, viết bài đăng. Hỗ trợ API, CLI (qua MCP) và mô hình cục bộ. |
 | [`examples/`](examples/) | Các ví dụ Trang chủ cung cấp, bằng tiếng Anh: ít nhất một cho mỗi phong cách (2D và 3D, 9:16 và 16:9). |
 | [`fixtures/`](fixtures/) | Dự án cho kiểm thử và hướng dẫn trên terminal. |
 
 </details>
 
+## Lời cảm ơn
+
+Shotloop được xây trên công sức của cộng đồng mã nguồn mở. Cảm ơn những người đứng sau:
+
+- **Lồng tiếng:** [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) của hexgrad và [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (tiếng Anh); [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) của FunAudioLLM cùng [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) và [Transformers](https://github.com/huggingface/transformers) (tiếng Trung); [Supertonic](https://huggingface.co/Supertone/supertonic-3) của Supertone (các ngôn ngữ khác); [ONNX Runtime](https://onnxruntime.ai); [uv](https://github.com/astral-sh/uv) và [Python](https://www.python.org), dùng để chạy giọng tiếng Trung.
+- **Kết xuất và video:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) qua giao thức DevTools, [Blender](https://www.blender.org) và [Node.js](https://nodejs.org).
+- **Ứng dụng:** [Tauri](https://tauri.app), [React](https://react.dev), [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) và [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
+- **Tài nguyên và dữ liệu:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), và [Natural Earth](https://www.naturalearthdata.com) qua [world-atlas](https://github.com/topojson/world-atlas).
+
+Cài đặt → Giới thiệu liệt kê mọi thành phần cùng phiên bản và giấy phép, còn [NOTICE](NOTICE) có đầy đủ chi tiết.
+
 ## Giấy phép
 
-[Apache License 2.0](LICENSE); xem thêm [NOTICE](NOTICE). Mô hình từ thư viện tài nguyên giữ giấy phép riêng (CC0 hoặc CC-BY, ghi công được lưu trong dự án), mô hình giọng cũng vậy (Kokoro: Apache-2.0; Supertonic: OpenRAIL-M).
+[Apache License 2.0](LICENSE); xem thêm [NOTICE](NOTICE). Mô hình từ thư viện tài nguyên giữ giấy phép riêng (CC0 hoặc CC-BY, ghi công được lưu trong dự án), mô hình giọng cũng vậy (Kokoro và CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).

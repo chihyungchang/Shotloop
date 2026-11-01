@@ -1,0 +1,3 @@
+# Build-time pins for the packages that build from source (pure Python):
+# openai-whisper's setup.py imports pkg_resources, gone from setuptools 81
+setuptools<70

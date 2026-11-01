@@ -82,12 +82,24 @@ function deploy(pkg, name, files) {
     fs.mkdirSync(dest)
     for (const f of files) fs.cpSync(path.join(tmp, f), path.join(dest, f), { recursive: true })
     fs.rmSync(path.join(dest, 'node_modules', '.bin'), { recursive: true, force: true })
+    dropDevFiles(path.join(dest, 'node_modules'))
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true })
   }
 }
+// What a package ships for its authors, not for running it: source maps,
+// type declarations and docs (licenses stay). About half of the agent's
+// dependencies by size
+function dropDevFiles(dir) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name)
+    if (e.isDirectory()) dropDevFiles(p)
+    else if (/\.(map|d\.ts|d\.mts|d\.cts|md|markdown)$/i.test(e.name) && !/^licen[cs]e/i.test(e.name)) fs.rmSync(p)
+  }
+}
+
 deploy('@shotloop/agent', 'agent', ['package.json', 'src', 'node_modules'])
-deploy('@shotloop/voice', 'voice', ['package.json', 'src', 'node_modules'])
+deploy('@shotloop/voice', 'voice', ['package.json', 'src', 'py', 'node_modules'])
 
 // ONNX Runtime ships every platform's binaries: only this Mac's stay
 const arch = { aarch64: 'arm64', x86_64: 'x64' }[process.env.TAURI_ENV_TARGET_TRIPLE?.split('-')[0]] ?? process.arch

@@ -1,9 +1,10 @@
 // The third-party software Shotloop.app carries or fetches, with versions
 // and licenses, for Settings → About: the bundled programs (Node.js,
-// FFmpeg), the speech models (downloaded on first use), the npm packages
-// of the app, the agent and the voice-over, and the Rust crates of the
-// shell. Read from the sources of truth (scripts/sidecars.mjs,
-// voice/src/models.mjs, pnpm, cargo), never written by hand.
+// FFmpeg), the speech models and what the Chinese voice runs on
+// (downloaded on first use), the npm packages of the app, the agent and
+// the voice-over, and the Rust crates of the shell. Read from the sources
+// of truth (scripts/sidecars.mjs, voice/src/models.mjs and cosyvoice.mjs,
+// pnpm, cargo), never written by hand.
 //
 // Output: app/src/licenses.json. Run by `pnpm build` (tauri.bundle.json)
 // and by hand after a dependency changes.
@@ -11,6 +12,7 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import { CREDITS as CHINESE_VOICE } from '../../voice/src/cosyvoice.mjs'
 import { MODELS } from '../../voice/src/models.mjs'
 
 const REPO = path.resolve(import.meta.dirname, '..', '..')
@@ -61,6 +63,7 @@ const byName = (a, b) => a.name.localeCompare(b.name) || String(a.version).local
 const groups = [
   { id: 'programs', items: programs },
   { id: 'models', items: models },
+  { id: 'chineseVoice', items: CHINESE_VOICE },
   { id: 'npm', items: npm().sort(byName) },
   { id: 'crates', items: crates().sort(byName) }
 ]

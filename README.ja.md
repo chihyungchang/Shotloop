@@ -121,7 +121,7 @@ flowchart LR
 - **プランはルールで測る。** 何かを作る前に、字幕の長さと表示時間をチェックします。複数のショットに出てくる図は一度だけ描いて共有するので、どのショットでも同じ見た目になります。
 - **事実には出典を。** コピーでは各事実の隣に出典を置き、投稿用テキストはコピー内の事実しか使えません。
 - **カバー。** AI が動画のルックに合わせてカバーをデザインし、自分のレンダリング結果をチェックします。テンプレートとして保存すればシリーズの統一感を保てます。気に入ったカバーをアップロードすれば、AI はそのデザインに倣います。
-- **ナレーションは Mac の上で読み上げ。** 各ショットにはセリフがあり、カットはナレーションに合わせて進みます。ショットの長さはセリフの長さで決まり、映像は言葉に合わせて動きます。英語と中国語は Kokoro、それ以外の言語は Supertonic が読み上げ、すべてオフラインで動きます。話した言葉の字幕は自動で付き、字幕が隠してしまうもの（文字とマークした被写体）をチェックで一覧にするので、隠れた動画が書き出されることはありません。字幕カードだけの動画にしたいときはオフにできます。
+- **ナレーションは Mac の上で読み上げ。** 各ショットにはセリフがあり、カットはナレーションに合わせて進みます。ショットの長さはセリフの長さで決まり、映像は言葉に合わせて動きます。英語は Kokoro、中国語は CosyVoice 2、それ以外の言語は Supertonic が読み上げ、すべてオフラインで動きます。話した言葉の字幕は自動で付き、字幕が隠してしまうもの（文字とマークした被写体）をチェックで一覧にするので、隠れた動画が書き出されることはありません。字幕カードだけの動画にしたいときはオフにできます。
 - **カットに合う音楽。** 合成した BGM はカットが拍に合うよう調整され、最後のフレームまで流れてからフェードアウトします。ナレーションがあるときは音量を下げ、セリフの間はさらに控えめになります。
 - **編集中は速く、書き出しは最高画質。** 3D は編集中は簡易プレビューを表示し、書き出し時にだけフル画質でレンダリングします。2D は最初から最後までフル画質です。
 - **3D 用アセットライブラリ。** 自分のキーで [Poly Pizza](https://poly.pizza) と [Smithsonian Open Access](https://www.si.edu/openaccess) の CC0 モデルを検索できます。モデルは一度ダウンロードすれば、どの 3D プロジェクトにも追加できます。
@@ -144,7 +144,7 @@ flowchart LR
 
 > **初回起動：** Shotloop はまだ Apple の公証を受けていないため、macOS は「開発元を検証できません」と表示します。**システム設定 → プライバシーとセキュリティ → このまま開く** から一度開くか、ターミナルで `xattr -dr com.apple.quarantine /Applications/Shotloop.app` を実行してください。以降は普通に開け、アップデートも確認なしでインストールされます。
 
-Node.js、ffmpeg、ナレーションの音声合成エンジンはアプリに同梱されています。音声モデルは同梱されていません。動画がその言語を初めて話すときに、進行状況バーを表示しながらダウンロードします（Kokoro 英語 132 MB、Kokoro 中国語 147 MB、その他の言語用の Supertonic 400 MB）。「設定 → 依存関係」で前もってダウンロードすることもできます。「設定 → 情報」には、すべてのサードパーティ製コンポーネントとそのライセンスが載っています。Shotloop は GitHub でアップデートを確認し、その場でインストールします。Apple シリコン（M1 以降）搭載の Mac で動作します。
+Node.js、ffmpeg、ナレーションの音声合成エンジンはアプリに同梱されています。音声モデルは同梱されていません。動画がその言語を初めて話すときに、進行状況バーを表示しながらダウンロードします（英語用の Kokoro 132 MB、中国語用の CosyVoice 2 約 5 GB（動作に使う Python を含む）、その他の言語用の Supertonic 400 MB）。「設定 → 依存関係」で前もってダウンロードすることもできます。「設定 → 情報」には、すべてのサードパーティ製コンポーネントとそのライセンスが載っています。Shotloop は GitHub でアップデートを確認し、その場でインストールします。Apple シリコン（M1 以降）搭載の Mac で動作します。
 
 ## ソースからビルド
 
@@ -216,13 +216,24 @@ my-video/
 | --- | --- |
 | [`app/`](app/) | デスクトップアプリ：レンダリングキュー、アップデーター、プロセス管理を担う Tauri 2（Rust）のシェルと、React + TypeScript の UI。 |
 | [`engine/shotloop/`](engine/shotloop/) | ショットエンジン：プロジェクト形式、ショットごとのレンダリングキャッシュ、2D（Chrome）と 3D（Blender）のレンダリング、動画の組み立て、MP4 書き出し、ナレーションのタイミング、字幕とそのチェック、音楽、アセットライブラリ。アプリから呼び出される CLI。 |
-| [`voice/`](voice/) | ナレーションの音声合成（この Mac 上で実行）：sherpa-onnx 経由の Kokoro と ONNX Runtime 上の Supertonic、およびモデルのダウンロード。 |
+| [`voice/`](voice/) | ナレーションの音声合成（この Mac 上で実行）：sherpa-onnx 経由の Kokoro、ONNX Runtime 上の Supertonic、ローカルの Python サーバーで動く CosyVoice 2、およびモデルのダウンロード。 |
 | [`agent/`](agent/) | エージェント：プラン作成、ショット作成、普段の言葉での修正、チェックリストによるチェック、投稿用テキスト。API、CLI（MCP 経由）、ローカルモデルに対応。 |
 | [`examples/`](examples/) | ホームに表示されるサンプル（英語）：すべてのビジュアルスタイルに最低 1 つ（2D と 3D、9:16 と 16:9）。 |
 | [`fixtures/`](fixtures/) | テストとターミナルでの動作確認用プロジェクト。 |
 
 </details>
 
+## 謝辞
+
+Shotloop はオープンソースの成果の上に成り立っています。次のプロジェクトに携わる皆さんに感謝します。
+
+- **ナレーション：** hexgrad による [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) と [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)（英語）、FunAudioLLM による [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) と、それを支える [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS)、[WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing)、[Whisper](https://github.com/openai/whisper)、[PyTorch](https://pytorch.org)、[Transformers](https://github.com/huggingface/transformers)（中国語）、Supertone による [Supertonic](https://huggingface.co/Supertone/supertonic-3)（その他の言語）、[ONNX Runtime](https://onnxruntime.ai)、中国語の音声を動かす [uv](https://github.com/astral-sh/uv) と [Python](https://www.python.org)。
+- **レンダリングと動画：** [FFmpeg](https://ffmpeg.org)、DevTools プロトコル経由の [Google Chrome](https://www.google.com/chrome/)、[Blender](https://www.blender.org)、[Node.js](https://nodejs.org)。
+- **アプリ：** [Tauri](https://tauri.app)、[React](https://react.dev)、[Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript)、[Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk)。
+- **アセットとデータ：** [Kenney](https://kenney.nl)、[Poly Haven](https://polyhaven.com)、[Quaternius](https://quaternius.com)、[Poly Pizza](https://poly.pizza)、[Smithsonian Open Access](https://www.si.edu/openaccess)、[world-atlas](https://github.com/topojson/world-atlas) 経由の [Natural Earth](https://www.naturalearthdata.com)。
+
+「設定 → 情報」にはすべてのコンポーネントがバージョンとライセンス付きで載っており、詳細は [NOTICE](NOTICE) にあります。
+
 ## ライセンス
 
-[Apache License 2.0](LICENSE)。[NOTICE](NOTICE) も参照してください。アセットライブラリのモデルはそれぞれのライセンス（CC0 または CC-BY、クレジットはプロジェクトに記載）に従います。音声モデルも同様です（Kokoro：Apache-2.0、Supertonic：OpenRAIL-M）。
+[Apache License 2.0](LICENSE)。[NOTICE](NOTICE) も参照してください。アセットライブラリのモデルはそれぞれのライセンス（CC0 または CC-BY、クレジットはプロジェクトに記載）に従います。音声モデルも同様です（Kokoro と CosyVoice 2：Apache-2.0、Supertonic：OpenRAIL-M）。

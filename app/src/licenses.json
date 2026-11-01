@@ -27,16 +27,87 @@
      "url": "https://huggingface.co/hexgrad/Kokoro-82M"
     },
     {
-     "name": "Kokoro v1.1-zh (Chinese)",
+     "name": "CosyVoice 2 (Chinese)",
      "version": null,
      "license": "Apache-2.0",
-     "url": "https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh"
+     "url": "https://huggingface.co/FunAudioLLM/CosyVoice2-0.5B"
     },
     {
      "name": "Supertonic 3",
      "version": null,
      "license": "OpenRAIL-M",
      "url": "https://huggingface.co/Supertone/supertonic-3"
+    }
+   ]
+  },
+  {
+   "id": "chineseVoice",
+   "items": [
+    {
+     "name": "CosyVoice",
+     "version": "074ca6d",
+     "license": "Apache-2.0",
+     "url": "https://github.com/FunAudioLLM/CosyVoice"
+    },
+    {
+     "name": "Matcha-TTS",
+     "version": "dd9105b",
+     "license": "MIT",
+     "url": "https://github.com/shivammehta25/Matcha-TTS"
+    },
+    {
+     "name": "PyTorch",
+     "version": "2.3.1",
+     "license": "BSD-3-Clause",
+     "url": "https://pytorch.org"
+    },
+    {
+     "name": "torchaudio",
+     "version": "2.3.1",
+     "license": "BSD-2-Clause",
+     "url": "https://github.com/pytorch/audio"
+    },
+    {
+     "name": "Transformers",
+     "version": "4.51.3",
+     "license": "Apache-2.0",
+     "url": "https://github.com/huggingface/transformers"
+    },
+    {
+     "name": "ONNX Runtime",
+     "version": "1.18.0",
+     "license": "MIT",
+     "url": "https://onnxruntime.ai"
+    },
+    {
+     "name": "Whisper",
+     "version": "20231117",
+     "license": "MIT",
+     "url": "https://github.com/openai/whisper"
+    },
+    {
+     "name": "WeTextProcessing / wetext",
+     "version": "1.2.0",
+     "license": "Apache-2.0",
+     "url": "https://github.com/wenet-e2e/WeTextProcessing"
+    },
+    {
+     "name": "librosa",
+     "version": null,
+     "license": "ISC",
+     "url": "https://librosa.org"
+    },
+    {
+     "name": "uv",
+     "version": "0.13.6",
+     "license": "MIT OR Apache-2.0",
+     "url": "https://github.com/astral-sh/uv"
+    },
+    {
+     "name": "Python",
+     "version": "3.10",
+     "license": "PSF-2.0",
+     "url": "https://www.python.org"
     }
    ]
   },

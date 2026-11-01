@@ -233,21 +233,27 @@ export async function voiceLines(project) {
   return out
 }
 
-// The voice track of the whole film (44.1 kHz stereo WAV), cached by the
-// lines and their places
-export async function voiceTrack(project, lines) {
-  if (!lines.length) return null
+// The voice track's identity: its lines and their places
+const trackKey = (project, lines) => createHash('sha256')
+  .update(JSON.stringify([2, lines.map(l => [path.basename(l.file), l.at]), voiceConfig(project).gain ?? 1, project.duration])).digest('hex').slice(0, 16)
+
+// The voice track of the whole film (44.1 kHz stereo WAV) written to out
+async function renderTrack(project, lines, out) {
   const gain = voiceConfig(project).gain ?? 1
-  const key = createHash('sha256').update(JSON.stringify([2, lines.map(l => [path.basename(l.file), l.at]), gain, project.duration])).digest('hex').slice(0, 16)
-  const file = path.join(voiceDir(project), 'track', `${key}.wav`)
-  if (fs.existsSync(file)) return file
-  fs.mkdirSync(path.dirname(file), { recursive: true })
-  const part = `${file}.${process.pid}.wav`
   const inputs = lines.flatMap(l => ['-i', l.file])
   const delays = lines.map((l, i) => `[${i}:a]aresample=44100,adelay=${Math.round(l.at * 1000)}:all=1[a${i}]`)
   // At a speech loudness for phones (-16 LUFS), whatever the model's level
   const mix = `${lines.map((_, i) => `[a${i}]`).join('')}amix=inputs=${lines.length}:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=44100,volume=${gain},apad,atrim=0:${project.duration},aformat=channel_layouts=stereo[v]`
-  await ffmpeg([...inputs, '-filter_complex', [...delays, mix].join(';'), '-map', '[v]', '-ar', '44100', part])
+  await ffmpeg([...inputs, '-filter_complex', [...delays, mix].join(';'), '-map', '[v]', '-ar', '44100', out])
+}
+
+// The voice track kept as the film's sound (a film without music), cached
+async function voiceTrack(project, lines) {
+  const file = path.join(voiceDir(project), 'track', `${trackKey(project, lines)}.wav`)
+  if (fs.existsSync(file)) return file
+  fs.mkdirSync(path.dirname(file), { recursive: true })
+  const part = `${file}.${process.pid}.wav`
+  await renderTrack(project, lines, part)
   fs.renameSync(part, file)
   return file
 }
@@ -280,23 +286,31 @@ function duckCurve(lines) {
   return `${BED_GAIN}-${(BED_GAIN - BED_UNDER_VOICE).toFixed(3)}*(${dip || '0'})`
 }
 
-// The film's sound: the music ducked under the voice, or either alone
-export async function soundtrack(project, music, lines) {
-  const voice = await voiceTrack(project, lines)
-  if (!voice) return music
-  if (!music) return voice
+// The film's sound: the music ducked under the voice, or the voice alone.
+// With music, the voice track is only a step on the way: made, mixed and
+// dropped (the mix is what plays and what is cached)
+async function soundtrack(project, music, lines) {
+  if (!lines.length) return music
+  if (!music) return voiceTrack(project, lines)
   const curve = duckCurve(lines)
-  const key = createHash('sha256').update(`3:${path.basename(music)}:${path.basename(voice)}:${curve}`).digest('hex').slice(0, 16)
+  const key = createHash('sha256').update(`4:${path.basename(music)}:${trackKey(project, lines)}:${curve}`).digest('hex').slice(0, 16)
   const file = path.join(voiceDir(project), 'mix', `${key}.wav`)
   if (fs.existsSync(file)) return file
   fs.mkdirSync(path.dirname(file), { recursive: true })
+  const voice = `${file}.${process.pid}.voice.wav`
   const part = `${file}.${process.pid}.wav`
-  // The bed follows the lines' times (not a compressor on the voice's
-  // level), so it dips the same for every word and never pumps
-  await ffmpeg(['-i', music, '-i', voice, '-filter_complex',
-    `[0:a]volume='${curve}':eval=frame[bed];[bed][1:a]amix=inputs=2:normalize=0:duration=first,alimiter=limit=0.9[a]`,
-    '-map', '[a]', '-ar', '44100', part])
-  fs.renameSync(part, file)
+  try {
+    await renderTrack(project, lines, voice)
+    // The bed follows the lines' times (not a compressor on the voice's
+    // level), so it dips the same for every word and never pumps
+    await ffmpeg(['-i', music, '-i', voice, '-filter_complex',
+      `[0:a]volume='${curve}':eval=frame[bed];[bed][1:a]amix=inputs=2:normalize=0:duration=first,alimiter=limit=0.9[a]`,
+      '-map', '[a]', '-ar', '44100', part])
+    fs.renameSync(part, file)
+  } finally {
+    fs.rmSync(voice, { force: true })
+    fs.rmSync(part, { force: true })
+  }
   return file
 }
 
@@ -311,8 +325,7 @@ export async function withVoice(project, mode, clips, music, { strict = false } 
     const { clips: dressed, subs } = await dressClips(project, mode, clips, lines)
     const audio = await soundtrack(project, music, lines)
     // What the film plays now, for pruneVoice to keep
-    const track = await voiceTrack(project, lines)
-    writeJson(path.join(voiceDir(project), `used-${mode}.json`), [...dressed, audio, track, subs].filter(Boolean))
+    writeJson(path.join(voiceDir(project), `used-${mode}.json`), [...dressed, audio, subs].filter(Boolean))
     return { clips: dressed, audio }
   } catch (err) {
     if (strict) throw err

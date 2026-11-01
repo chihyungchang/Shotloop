@@ -121,7 +121,7 @@ flowchart LR
 - **계획을 평가하는 규칙.** 무엇이든 만들기 전에 자막의 길이와 화면에 머무는 시간을 검사합니다. 여러 샷에 반복되는 그림은 한 번만 그려 공유하므로 어디서나 똑같아 보입니다.
 - **출처가 있는 사실.** 문안은 각 사실 옆에 출처를 두고, 게시글은 문안에 있는 사실만 쓸 수 있습니다.
 - **커버.** AI가 영상 분위기에 맞는 커버를 디자인하고 렌더링 결과를 스스로 검사합니다. 템플릿으로 저장해 시리즈를 일관되게 유지하거나, 마음에 드는 커버를 올리면 AI가 그 디자인을 따릅니다.
-- **내 Mac에서 읽어 주는 내레이션.** 샷마다 대사가 있고, 컷은 내레이션을 따라갑니다. 샷의 길이는 대사 길이에 맞춰지고, 화면은 말에 맞춰 움직입니다. 영어와 중국어는 Kokoro가, 나머지 언어는 Supertonic이 읽으며 모두 오프라인으로 동작합니다. 말한 내용의 자막이 자동으로 붙고, 자막이 가리게 될 것(글자와 표시해 둔 피사체)을 검사로 나열하므로 가려진 영상은 절대 내보내지지 않습니다. 자막 카드만 쓰는 영상이라면 끌 수 있습니다.
+- **내 Mac에서 읽어 주는 내레이션.** 샷마다 대사가 있고, 컷은 내레이션을 따라갑니다. 샷의 길이는 대사 길이에 맞춰지고, 화면은 말에 맞춰 움직입니다. 영어는 Kokoro가, 중국어는 CosyVoice 2가, 나머지 언어는 Supertonic이 읽으며 모두 오프라인으로 동작합니다. 말한 내용의 자막이 자동으로 붙고, 자막이 가리게 될 것(글자와 표시해 둔 피사체)을 검사로 나열하므로 가려진 영상은 절대 내보내지지 않습니다. 자막 카드만 쓰는 영상이라면 끌 수 있습니다.
 - **편집에 맞춘 음악.** 합성 배경 음악은 컷이 박자에 떨어지도록 맞춰지고, 마지막 프레임까지 이어진 뒤 페이드아웃됩니다. 내레이션이 있으면 더 낮게 깔리고, 대사가 나오는 동안에는 한층 줄어듭니다.
 - **편집할 땐 빠르게, 내보낼 땐 최고 품질로.** 3D는 편집 중에는 빠른 미리보기를 보여 주고, 내보낼 때만 최고 품질로 렌더링합니다. 2D는 처음부터 끝까지 최고 품질입니다.
 - **3D 에셋 라이브러리.** 내 키로 [Poly Pizza](https://poly.pizza)와 [Smithsonian Open Access](https://www.si.edu/openaccess)에서 CC0 모델을 검색합니다. 모델은 한 번만 다운로드되며 어떤 3D 프로젝트에도 추가할 수 있습니다.
@@ -144,7 +144,7 @@ flowchart LR
 
 > **처음 실행할 때:** Shotloop은 아직 Apple 공증을 받지 않아 macOS가 개발자를 확인할 수 없다고 표시합니다. **시스템 설정 → 개인정보 보호 및 보안 → 그래도 열기**에서 한 번 열거나, 터미널에서 `xattr -dr com.apple.quarantine /Applications/Shotloop.app`을 실행하세요. 그다음부터는 평소처럼 열리고, 업데이트도 다시 묻지 않고 설치됩니다.
 
-Node.js, ffmpeg, 내레이션의 음성 엔진은 앱에 들어 있습니다. 음성 모델은 들어 있지 않습니다. 영상이 해당 언어로 처음 말할 때 진행 표시줄과 함께 다운로드되며(Kokoro 영어 132 MB, Kokoro 중국어 147 MB, 그 밖의 언어용 Supertonic 400 MB), 설정 → 의존성에서 미리 받아 둘 수도 있습니다. 설정 → 정보에는 모든 서드파티 구성 요소와 그 라이선스가 나와 있습니다. Shotloop은 GitHub에서 업데이트를 확인하고 그 자리에서 설치합니다. Apple silicon(M1 이상) Mac에서 실행됩니다.
+Node.js, ffmpeg, 내레이션의 음성 엔진은 앱에 들어 있습니다. 음성 모델은 들어 있지 않습니다. 영상이 해당 언어로 처음 말할 때 진행 표시줄과 함께 다운로드되며(영어용 Kokoro 132 MB, 실행에 쓰는 Python을 포함한 중국어용 CosyVoice 2 약 5 GB, 그 밖의 언어용 Supertonic 400 MB), 설정 → 의존성에서 미리 받아 둘 수도 있습니다. 설정 → 정보에는 모든 서드파티 구성 요소와 그 라이선스가 나와 있습니다. Shotloop은 GitHub에서 업데이트를 확인하고 그 자리에서 설치합니다. Apple silicon(M1 이상) Mac에서 실행됩니다.
 
 ## 소스에서 빌드
 
@@ -216,13 +216,24 @@ my-video/
 | --- | --- |
 | [`app/`](app/) | 데스크톱 앱: 렌더 대기열, 업데이터, 프로세스 관리를 맡는 Tauri 2(Rust) 셸과 React + TypeScript UI. |
 | [`engine/shotloop/`](engine/shotloop/) | 샷 엔진: 프로젝트 형식, 샷별 렌더 캐시, 2D(Chrome)·3D(Blender) 렌더링, 영상 조립, MP4 내보내기, 내레이션 타이밍, 자막과 그 검사, 음악, 에셋 라이브러리. 앱이 호출하는 CLI입니다. |
-| [`voice/`](voice/) | 내레이션의 텍스트 음성 변환(이 Mac에서 실행): sherpa-onnx를 통한 Kokoro와 ONNX Runtime 기반 Supertonic, 그리고 모델 다운로드. |
+| [`voice/`](voice/) | 내레이션의 텍스트 음성 변환(이 Mac에서 실행): sherpa-onnx를 통한 Kokoro, ONNX Runtime 기반 Supertonic, 로컬 Python 서버에서 실행되는 CosyVoice 2, 그리고 모델 다운로드. |
 | [`agent/`](agent/) | 에이전트: 계획, 제작, 평범한 말로 하는 수정, 체크리스트 검사, 게시글. API, CLI(MCP 경유), 로컬 모델을 지원합니다. |
 | [`examples/`](examples/) | 홈에서 제공하는 영어 예제: 비주얼 스타일마다 하나 이상(2D와 3D, 9:16과 16:9). |
 | [`fixtures/`](fixtures/) | 테스트와 터미널 실습용 프로젝트. |
 
 </details>
 
+## 감사의 말
+
+Shotloop은 오픈 소스의 성과 위에 서 있습니다. 다음 프로젝트를 만든 분들께 감사드립니다.
+
+- **내레이션:** hexgrad의 [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M)와 [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)(영어), FunAudioLLM의 [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice)와 이를 받쳐 주는 [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org), [Transformers](https://github.com/huggingface/transformers)(중국어), Supertone의 [Supertonic](https://huggingface.co/Supertone/supertonic-3)(그 밖의 언어), [ONNX Runtime](https://onnxruntime.ai), 중국어 음성을 실행하는 [uv](https://github.com/astral-sh/uv)와 [Python](https://www.python.org).
+- **렌더링과 영상:** [FFmpeg](https://ffmpeg.org), DevTools 프로토콜을 통한 [Google Chrome](https://www.google.com/chrome/), [Blender](https://www.blender.org), [Node.js](https://nodejs.org).
+- **앱:** [Tauri](https://tauri.app), [React](https://react.dev), [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript), [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
+- **에셋과 데이터:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), 그리고 [world-atlas](https://github.com/topojson/world-atlas)를 통한 [Natural Earth](https://www.naturalearthdata.com).
+
+설정 → 정보에는 모든 구성 요소가 버전, 라이선스와 함께 나와 있고, 자세한 내용은 [NOTICE](NOTICE)에 있습니다.
+
 ## 라이선스
 
-[Apache License 2.0](LICENSE). [NOTICE](NOTICE)도 참고하세요. 에셋 라이브러리의 모델은 각자의 라이선스를 따릅니다(CC0 또는 CC-BY, 출처 표기는 프로젝트에 기록됩니다). 음성 모델도 마찬가지입니다(Kokoro: Apache-2.0, Supertonic: OpenRAIL-M).
+[Apache License 2.0](LICENSE). [NOTICE](NOTICE)도 참고하세요. 에셋 라이브러리의 모델은 각자의 라이선스를 따릅니다(CC0 또는 CC-BY, 출처 표기는 프로젝트에 기록됩니다). 음성 모델도 마찬가지입니다(Kokoro와 CosyVoice 2: Apache-2.0, Supertonic: OpenRAIL-M).

@@ -399,6 +399,8 @@ export const vi: Record<Key, string> = {
   'oss.programsNote': 'Chạy thành tiến trình riêng bên trong ứng dụng.',
   'oss.models': 'Mô hình lồng tiếng',
   'oss.modelsNote': 'Không đi kèm: mỗi mô hình được tải khi ngôn ngữ của nó được dùng lần đầu.',
+  'oss.chineseVoice': 'Thành phần cho giọng tiếng Trung',
+  'oss.chineseVoiceNote': 'Được tải cùng giọng tiếng Trung vào thư mục riêng: CosyVoice 2 chạy trên PyTorch.',
   'oss.npm': 'Gói npm',
   'oss.crates': 'Crate Rust',
   'ai.cliIntro': 'Dùng một coding agent mà bạn đã đăng nhập trên máy Mac này. Nó chạy với công cụ riêng bị tắt và chỉ làm việc qua công cụ của Shotloop.',

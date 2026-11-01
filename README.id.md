@@ -121,7 +121,7 @@ flowchart LR
 - **Aturan untuk mengukur rencana.** Panjang teks dan lamanya tampil di layar diperiksa sebelum apa pun dibangun. Gambar yang muncul di beberapa adegan digambar sekali lalu dipakai bersama, jadi tampak sama di setiap adegan.
 - **Fakta dengan sumber.** Teks menyimpan setiap fakta di samping sumbernya, dan teks unggahan hanya boleh memakai fakta dari teks itu.
 - **Sampul.** AI mendesain sampul sesuai tampilan film dan memeriksa hasil rendernya sendiri. Simpan satu sebagai template agar seri tetap konsisten, atau unggah sampul yang Anda suka dan AI mengikuti desainnya.
-- **Sulih suara, diucapkan di Mac Anda.** Tiap adegan punya satu kalimat, dan suara memimpin potongan: adegan berlangsung selama kalimatnya, dan gambar jatuh tepat pada kata-katanya. Kokoro berbicara bahasa Inggris dan Mandarin, Supertonic bahasa lainnya, semuanya offline. Subtitel dari kata yang diucapkan ditambahkan otomatis, dan sebuah pemeriksaan mendaftar apa pun yang akan tertutup olehnya (teks dan subjek yang ditandai), jadi film yang tertutup tidak pernah diekspor. Matikan sulih suara untuk film yang hanya memakai teks layar.
+- **Sulih suara, diucapkan di Mac Anda.** Tiap adegan punya satu kalimat, dan suara memimpin potongan: adegan berlangsung selama kalimatnya, dan gambar jatuh tepat pada kata-katanya. Kokoro berbicara bahasa Inggris, CosyVoice 2 bahasa Mandarin, dan Supertonic bahasa lainnya, semuanya offline. Subtitel dari kata yang diucapkan ditambahkan otomatis, dan sebuah pemeriksaan mendaftar apa pun yang akan tertutup olehnya (teks dan subjek yang ditandai), jadi film yang tertutup tidak pernah diekspor. Matikan sulih suara untuk film yang hanya memakai teks layar.
 - **Musik yang pas dengan potongan.** Musik latar sintetis disetel agar potongan jatuh tepat di ketukannya, berjalan sampai bingkai terakhir, lalu memudar. Di bawah sulih suara, musik lebih pelan dan meredup saat sebuah kalimat diucapkan.
 - **Cepat saat menyunting, kualitas penuh saat ekspor.** 3D menampilkan pratinjau cepat saat Anda menyunting dan merender bingkai kualitas penuh hanya saat ekspor. 2D selalu bekerja dalam kualitas penuh.
 - **Pustaka aset untuk 3D.** Cari model CC0 di [Poly Pizza](https://poly.pizza) dan [Smithsonian Open Access](https://www.si.edu/openaccess) dengan kunci Anda sendiri. Setiap model diunduh sekali dan bisa ditambahkan ke proyek 3D mana pun.
@@ -144,7 +144,7 @@ Modelnya harus mendukung pemanggilan alat (tool calling), dan untuk pemeriksaan 
 
 > **Pembukaan pertama:** Shotloop belum dinotarisasi oleh Apple, jadi macOS menyatakan tidak dapat memverifikasi pengembangnya. Buka sekali lewat **Pengaturan Sistem → Privasi & Keamanan → Tetap Buka**, atau jalankan `xattr -dr com.apple.quarantine /Applications/Shotloop.app` di Terminal. Setelah itu aplikasi terbuka seperti biasa, dan pembaruan terpasang tanpa bertanya lagi.
 
-Node.js, ffmpeg, dan mesin ucapan untuk sulih suara sudah ada di dalam aplikasi. Model suaranya belum: masing-masing diunduh saat pertama kali sebuah film berbicara dalam bahasanya (Kokoro Inggris 132 MB, Kokoro Mandarin 147 MB, Supertonic untuk bahasa lainnya 400 MB), dengan bilah progres, atau lebih dulu di Pengaturan → Dependensi. Pengaturan → Tentang mendaftar setiap komponen pihak ketiga beserta lisensinya. Shotloop memeriksa pembaruan di GitHub dan memasangnya di tempat. Berjalan di Mac dengan Apple silicon (M1 dan yang lebih baru).
+Node.js, ffmpeg, dan mesin ucapan untuk sulih suara sudah ada di dalam aplikasi. Model suaranya belum: masing-masing diunduh saat pertama kali sebuah film berbicara dalam bahasanya (Kokoro untuk bahasa Inggris 132 MB; CosyVoice 2 untuk Mandarin sekitar 5 GB, beserta Python tempatnya berjalan; Supertonic untuk bahasa lainnya 400 MB), dengan bilah progres, atau lebih dulu di Pengaturan → Dependensi. Pengaturan → Tentang mendaftar setiap komponen pihak ketiga beserta lisensinya. Shotloop memeriksa pembaruan di GitHub dan memasangnya di tempat. Berjalan di Mac dengan Apple silicon (M1 dan yang lebih baru).
 
 ## Build dari kode sumber
 
@@ -216,13 +216,24 @@ my-video/
 | --- | --- |
 | [`app/`](app/) | Aplikasi desktop: shell Tauri 2 (Rust) dengan antrean render, updater, dan pengawasan proses, serta UI React + TypeScript. |
 | [`engine/shotloop/`](engine/shotloop/) | Engine adegan: format proyek, cache render per adegan, render 2D (Chrome) dan 3D (Blender), perakitan film, ekspor MP4, pengaturan waktu sulih suara, subtitel dan pemeriksaannya, musik, pustaka aset. CLI yang dipanggil aplikasi. |
-| [`voice/`](voice/) | Teks-ke-ucapan untuk sulih suara, di Mac ini: Kokoro lewat sherpa-onnx dan Supertonic di ONNX Runtime, beserta unduhan modelnya. |
+| [`voice/`](voice/) | Teks-ke-ucapan untuk sulih suara, di Mac ini: Kokoro lewat sherpa-onnx, Supertonic di ONNX Runtime, dan CosyVoice 2 di server Python lokal, beserta unduhan modelnya. |
 | [`agent/`](agent/) | Agen: perencanaan, pembangunan, perbaikan dengan bahasa sehari-hari, pemeriksaan terhadap daftar periksa, teks unggahan. Mendukung API, CLI (lewat MCP), dan model lokal. |
 | [`examples/`](examples/) | Contoh yang ditawarkan Beranda, dalam bahasa Inggris: minimal satu untuk setiap gaya visual (2D dan 3D, 9:16 dan 16:9). |
 | [`fixtures/`](fixtures/) | Proyek untuk pengujian dan panduan terminal. |
 
 </details>
 
+## Ucapan terima kasih
+
+Shotloop berdiri di atas karya open source. Terima kasih kepada orang-orang di balik:
+
+- **Sulih suara:** [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) dari hexgrad dan [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (Inggris); [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) dari FunAudioLLM dengan [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) dan [Transformers](https://github.com/huggingface/transformers) (Mandarin); [Supertonic](https://huggingface.co/Supertone/supertonic-3) dari Supertone (bahasa lainnya); [ONNX Runtime](https://onnxruntime.ai); [uv](https://github.com/astral-sh/uv) dan [Python](https://www.python.org), yang menjalankan suara Mandarin.
+- **Render dan film:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) lewat protokol DevTools, [Blender](https://www.blender.org) dan [Node.js](https://nodejs.org).
+- **Aplikasi:** [Tauri](https://tauri.app), [React](https://react.dev), [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) dan [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
+- **Aset dan data:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), dan [Natural Earth](https://www.naturalearthdata.com) lewat [world-atlas](https://github.com/topojson/world-atlas).
+
+Pengaturan → Tentang mendaftar setiap komponen beserta versi dan lisensinya, dan [NOTICE](NOTICE) memuat detailnya.
+
 ## Lisensi
 
-[Apache License 2.0](LICENSE); lihat [NOTICE](NOTICE). Model dari pustaka aset tetap memakai lisensinya sendiri (CC0 atau CC-BY, dengan kredit dicatat di proyek), begitu pula model suara (Kokoro: Apache-2.0; Supertonic: OpenRAIL-M).
+[Apache License 2.0](LICENSE); lihat [NOTICE](NOTICE). Model dari pustaka aset tetap memakai lisensinya sendiri (CC0 atau CC-BY, dengan kredit dicatat di proyek), begitu pula model suara (Kokoro dan CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).

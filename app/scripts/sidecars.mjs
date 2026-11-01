@@ -57,6 +57,13 @@ async function install(name, build, target, tmp) {
   const dest = path.join(OUT, `${name}-${target}`)
   fs.copyFileSync(path.join(tmp, build.file), dest)
   fs.chmodSync(dest, 0o755)
+  // Node's local symbols are a fifth of its size and only serve a
+  // debugger: stripped, then signed again ad hoc so it still runs here
+  // (the app's own signature covers it in the bundle)
+  if (name === 'node') {
+    execFileSync('strip', ['-x', dest])
+    execFileSync('codesign', ['--force', '--sign', '-', dest], { stdio: 'ignore' })
+  }
   // Downloaded files are quarantined; the app's signature covers them
   try { execFileSync('xattr', ['-d', 'com.apple.quarantine', dest], { stdio: 'ignore' }) } catch {}
   const version = execFileSync(dest, [name === 'node' ? '--version' : '-version'], { encoding: 'utf8' }).split('\n')[0]
@@ -68,7 +75,7 @@ const builds = BUILDS[target]
 if (!builds) throw new Error(`sidecars: no pinned builds for ${target}`)
 fs.mkdirSync(OUT, { recursive: true })
 const stamp = path.join(OUT, '.versions.json')
-const want = JSON.stringify({ target, node: NODE, ffmpeg: FFMPEG })
+const want = JSON.stringify({ target, node: NODE, ffmpeg: FFMPEG, stripped: true })
 const have = fs.existsSync(stamp) ? fs.readFileSync(stamp, 'utf8') : ''
 const present = Object.keys(builds).every(n => fs.existsSync(path.join(OUT, `${n}-${target}`)))
 if (have === want && present && !process.argv.includes('--force')) process.exit(0)

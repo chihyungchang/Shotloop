@@ -121,7 +121,7 @@ flowchart LR
 - **Reglas para medir un plan.** Antes de construir nada se comprueba la longitud de los subtítulos y el tiempo que permanecen en pantalla. Una imagen que se repite entre planos se dibuja una vez y se comparte, para que se vea igual en todos.
 - **Datos con fuentes.** El texto guarda cada dato junto a su fuente, y el texto de publicación solo puede usar datos del texto.
 - **Portadas.** La IA diseña una portada con el estilo de la película y revisa sus propios renders. Guarda una como plantilla para que una serie sea coherente, o sube una portada que te guste y la IA sigue su diseño.
-- **Una voz en off, generada en tu Mac.** Cada plano tiene una frase, y la voz marca el montaje: un plano dura lo que dura su frase, y la imagen cae sobre las palabras. Kokoro habla inglés y chino, Supertonic los demás idiomas, todo sin conexión. Los subtítulos de lo que se dice se añaden automáticamente, y una comprobación enumera todo lo que taparían (el texto y el sujeto marcado), así que nunca se exporta una película tapada. Desactívala para una película solo con rótulos.
+- **Una voz en off, generada en tu Mac.** Cada plano tiene una frase, y la voz marca el montaje: un plano dura lo que dura su frase, y la imagen cae sobre las palabras. Kokoro habla inglés, CosyVoice 2 chino y Supertonic los demás idiomas, todo sin conexión. Los subtítulos de lo que se dice se añaden automáticamente, y una comprobación enumera todo lo que taparían (el texto y el sujeto marcado), así que nunca se exporta una película tapada. Desactívala para una película solo con rótulos.
 - **Música a la medida del montaje.** La base sintetizada se ajusta para que los cortes caigan en sus tiempos, dura hasta el último fotograma y termina con un fundido. Bajo una voz en off suena más baja y se atenúa mientras se dice una frase.
 - **Rápido al editar, máxima calidad al exportar.** El 3D muestra vistas previas rápidas mientras editas y renderiza fotogramas en calidad completa solo al exportar. El 2D trabaja siempre en calidad completa.
 - **Biblioteca de recursos para 3D.** Busca modelos CC0 en [Poly Pizza](https://poly.pizza) y [Smithsonian Open Access](https://www.si.edu/openaccess) con tu propia clave. Cada modelo se descarga una vez y se puede añadir a cualquier proyecto 3D.
@@ -144,7 +144,7 @@ El modelo necesita llamadas a herramientas, y las comprobaciones necesitan uno q
 
 > **Primer arranque:** Shotloop aún no está notarizado por Apple, así que macOS dice que no puede verificar al desarrollador. Ábrelo una vez desde **Ajustes del Sistema → Privacidad y seguridad → Abrir igualmente**, o ejecuta `xattr -dr com.apple.quarantine /Applications/Shotloop.app` en Terminal. Después se abre con normalidad y las actualizaciones se instalan sin volver a preguntar.
 
-Node.js, ffmpeg y los motores de voz de la voz en off vienen dentro de la app. Los modelos de voz no: cada uno se descarga la primera vez que una película habla sus idiomas (Kokoro inglés 132 MB, Kokoro chino 147 MB, Supertonic para los demás idiomas 400 MB), con una barra de progreso, o por adelantado en Ajustes → Dependencias. Ajustes → Acerca de enumera cada componente de terceros con su licencia. Shotloop busca actualizaciones en GitHub y las instala en su sitio. Funciona en Macs con Apple silicon (M1 y posteriores).
+Node.js, ffmpeg y los motores de voz de la voz en off vienen dentro de la app. Los modelos de voz no: cada uno se descarga la primera vez que una película habla sus idiomas (Kokoro para inglés 132 MB; CosyVoice 2 para chino unos 5 GB, con el Python en el que se ejecuta; Supertonic para los demás idiomas 400 MB), con una barra de progreso, o por adelantado en Ajustes → Dependencias. Ajustes → Acerca de enumera cada componente de terceros con su licencia. Shotloop busca actualizaciones en GitHub y las instala en su sitio. Funciona en Macs con Apple silicon (M1 y posteriores).
 
 ## Compilar desde el código fuente
 
@@ -216,13 +216,24 @@ my-video/
 | --- | --- |
 | [`app/`](app/) | La app de escritorio: un contenedor Tauri 2 (Rust) con la cola de renderizado, el actualizador y la supervisión de procesos, y la interfaz en React + TypeScript. |
 | [`engine/shotloop/`](engine/shotloop/) | El motor de planos: formato de proyecto, caché de renderizado por plano, renders 2D (Chrome) y 3D (Blender), montaje de la película, exportación a MP4, sincronización de la voz en off, subtítulos y su comprobación, música, biblioteca de recursos. Una CLI a la que llama la app. |
-| [`voice/`](voice/) | La síntesis de voz de la voz en off, en este Mac: Kokoro a través de sherpa-onnx y Supertonic sobre ONNX Runtime, con las descargas de los modelos. |
+| [`voice/`](voice/) | La síntesis de voz de la voz en off, en este Mac: Kokoro a través de sherpa-onnx, Supertonic sobre ONNX Runtime y CosyVoice 2 en un servidor Python local, con las descargas de los modelos. |
 | [`agent/`](agent/) | El agente: planificación, construcción, correcciones en lenguaje normal, comprobaciones con la lista, texto de publicación. Admite API, CLI (a través de MCP) y modelos locales. |
 | [`examples/`](examples/) | Los ejemplos que ofrece Inicio, en inglés: al menos uno por estilo visual (2D y 3D, 9:16 y 16:9). |
 | [`fixtures/`](fixtures/) | Proyectos para las pruebas y los recorridos por terminal. |
 
 </details>
 
+## Agradecimientos
+
+Shotloop se apoya en trabajo de código abierto. Gracias a las personas detrás de:
+
+- **La voz en off:** [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) de hexgrad y [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (inglés); [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) de FunAudioLLM con [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) y [Transformers](https://github.com/huggingface/transformers) (chino); [Supertonic](https://huggingface.co/Supertone/supertonic-3) de Supertone (los demás idiomas); [ONNX Runtime](https://onnxruntime.ai); [uv](https://github.com/astral-sh/uv) y [Python](https://www.python.org), que ejecutan la voz en chino.
+- **El render y la película:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) a través del protocolo DevTools, [Blender](https://www.blender.org) y [Node.js](https://nodejs.org).
+- **La app:** [Tauri](https://tauri.app), [React](https://react.dev), el [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) y el [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
+- **Recursos y datos:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess) y [Natural Earth](https://www.naturalearthdata.com) a través de [world-atlas](https://github.com/topojson/world-atlas).
+
+Ajustes → Acerca de enumera cada componente con su versión y su licencia, y [NOTICE](NOTICE) tiene los detalles.
+
 ## Licencia
 
-[Apache License 2.0](LICENSE); consulta [NOTICE](NOTICE). Los modelos de la biblioteca de recursos mantienen sus propias licencias (CC0 o CC-BY, con el crédito escrito en el proyecto), y también los modelos de voz (Kokoro: Apache-2.0; Supertonic: OpenRAIL-M).
+[Apache License 2.0](LICENSE); consulta [NOTICE](NOTICE). Los modelos de la biblioteca de recursos mantienen sus propias licencias (CC0 o CC-BY, con el crédito escrito en el proyecto), y también los modelos de voz (Kokoro y CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).
