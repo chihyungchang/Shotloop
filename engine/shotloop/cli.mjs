@@ -47,6 +47,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { CHROME } from '../lib/chrome.mjs'
 import { exit, parseFlags } from '../lib/jsonl.mjs'
 import { editMode, prune, status, worldKey } from './cache.mjs'
 import { readJson, writeJson } from './files.mjs'
@@ -54,7 +55,7 @@ import { deliverCopy } from './deliver.mjs'
 import { emit, setJson } from './compose.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
 import { isStarterCover } from './starters.mjs'
-import { assemble, exportFilm, preview, renderCover, setCoverFrame } from './film.mjs'
+import { assemble, exportFilm, filmPreview, renderCover, setCoverFrame } from './film.mjs'
 import { finalSamples, findShot, loadProject } from './project.mjs'
 import { musicInfo, samplesInfo, setMusic, setSamples, setStyle, setTitle } from './settings.mjs'
 import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
@@ -139,24 +140,17 @@ function freeDir(parent, slug) {
   return dest
 }
 
-// A copied project's records name files by absolute path: point them at
-// the copy
-function relocate(dest, from) {
-  const latest = path.join(dest, 'out', 'latest.json')
-  if (fs.existsSync(latest)) fs.writeFileSync(latest, fs.readFileSync(latest, 'utf8').split(from).join(dest))
-  const state = path.join(dest, '.shotloop')
-  if (!fs.existsSync(state)) return
-  const walk = d => {
-    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-      const f = path.join(d, e.name)
-      if (e.isDirectory()) walk(f)
-      else if (e.name.endsWith('.json')) {
-        const text = fs.readFileSync(f, 'utf8')
-        if (text.includes(from)) fs.writeFileSync(f, text.split(JSON.stringify(from).slice(1, -1)).join(JSON.stringify(dest).slice(1, -1)).split(from).join(dest))
-      }
-    }
-  }
-  walk(state)
+// A moved project's last export names its files by absolute path (the
+// app opens them as they are): its out/ files now sit in the new place.
+// The cache's records need nothing: they are read in the project they
+// are in (project.mjs localPath)
+function relocateLatest(dest, from) {
+  const latest = readJson(path.join(dest, 'out', 'latest.json'), null)
+  if (!latest) return
+  const out = path.join(from, 'out') + path.sep
+  const moved = f => (typeof f === 'string' && f.startsWith(out) ? path.join(dest, 'out', f.slice(out.length)) : f)
+  writeJson(path.join(dest, 'out', 'latest.json'), { ...latest, cover: moved(latest.cover), publish: moved(latest.publish),
+    films: latest.films?.map(f => ({ ...f, file: moved(f.file) })) })
 }
 
 // The first `name` on PATH, as the shell would run it
@@ -164,7 +158,6 @@ const onPath = name =>
   (process.env.PATH ?? '').split(path.delimiter).map(d => path.join(d, name)).find(f => fs.existsSync(f)) ?? null
 
 function doctor() {
-  const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
   const version = (cmd, args) => {
     try {
       return execFileSync(cmd, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).split('\n')[0].trim()
@@ -314,7 +307,7 @@ try {
       const change = values.preset || values.shuffle || values.file || values.none || values.gain != null
       const info = change ? setMusic(project, { preset: values.preset, shuffle: values.shuffle, file: values.file, none: values.none, gain: values.gain }) : musicInfo(project)
       // --bed: the bed itself, to listen to (made now if needed)
-      result(values.bed ? { ...info, bed: musicBed(loadProject(args[0])) } : info)
+      result(values.bed ? { ...info, bed: await musicBed(loadProject(args[0])) } : info)
       break
     }
     case 'voice': {
@@ -324,7 +317,7 @@ try {
       // A new voice or speed speaks every line again, so the shots are fitted
       // to it (as when asked); a project without lines keeps its timing
       const refit = values.fit || values.on || values.voice || values.speed != null
-      const fitted = refit && project.shots.some(s => s.say?.trim()) && project.config.voice?.on ? await fitVoice(project) : null
+      const fitted = refit && voiceOn(project) ? await fitVoice(project) : null
       const sample = values.sample ? await sampleVoice(loadProject(args[0])) : null
       result({ ...(await voiceInfo(loadProject(args[0]))), ...(fitted ? { fit: fitted } : {}), ...(sample ? { sample } : {}) })
       break
@@ -352,7 +345,7 @@ try {
     case 'preview':
       {
         const project = loadProject(args[0])
-        result(await preview(project, { mode: values.final ? 'final' : values.draft ? 'draft' : editMode(project) }))
+        result(await filmPreview(project, { mode: values.final ? 'final' : values.draft ? 'draft' : editMode(project) }))
       }
       break
     case 'cover': {
@@ -393,7 +386,6 @@ try {
       if (!values.to) throw new Error('fork needs --to <folder>')
       const dest = freeDir(values.to, project.slug)
       fs.cpSync(project.root, dest, { recursive: true, filter: src => path.relative(project.root, src) !== 'out' })
-      relocate(dest, project.root)
       result({ root: dest })
       break
     }
@@ -405,7 +397,7 @@ try {
       const dest = freeDir(values.to, project.slug)
       fs.mkdirSync(values.to, { recursive: true })
       fs.cpSync(project.root, dest, { recursive: true })
-      relocate(dest, project.root)
+      relocateLatest(dest, project.root)
       fs.rmSync(project.root, { recursive: true, force: true })
       result({ root: dest })
       break

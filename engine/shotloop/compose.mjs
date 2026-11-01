@@ -118,26 +118,32 @@ export async function capture(page, { fast = false } = {}) {
   return Buffer.from(data, 'base64')
 }
 
+// A page drawn once per item into PNG files: window.render(item), then a
+// capture to fileOf(item, i); tick(n) after each when given. The page is
+// closed after, drawn through or not
+export async function renderPageFrames(page, items, fileOf, tick) {
+  try {
+    for (const [i, item] of items.entries()) {
+      await page.evaluate(`render(${JSON.stringify(item)})`)
+      fs.writeFileSync(fileOf(item, i), await capture(page))
+      tick?.(i + 1)
+    }
+  } finally {
+    await page.close()
+  }
+}
+
 // ---------------------------------------------------------------- clips
 
-const frameName = i => `${String(i).padStart(5, '0')}.png`
-export { frameName }
+export const frameName = i => `${String(i).padStart(5, '0')}.png`
 
 // Caption layer for a shot: one transparent PNG per frame, drawn at film
 // time (the caption page is written against the film's timeline)
 export async function renderCaptions(project, shot, mode, dir, frames) {
   fs.mkdirSync(dir, { recursive: true })
   const page = await openRenderPage(project.captions, pageGeometry(project, mode), { transparent: true })
-  const tick = progress({ shot: shot.id, stage: 'captions' }, frames.length)
-  try {
-    for (const [n, f] of frames.entries()) {
-      await page.evaluate(`render(${shot.start + (f - 1) / project.fps})`)
-      fs.writeFileSync(path.join(dir, frameName(f)), await capture(page))
-      tick(n + 1)
-    }
-  } finally {
-    await page.close()
-  }
+  await renderPageFrames(page, frames.map(f => shot.start + (f - 1) / project.fps), (t, i) => path.join(dir, frameName(frames[i])),
+    progress({ shot: shot.id, stage: 'captions' }, frames.length))
 }
 
 // Frames (+ caption layer) → silent H.264 clip

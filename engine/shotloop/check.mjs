@@ -14,12 +14,11 @@
 // marked, and big backgrounds (a globe, a grid, a glow) stay unmarked and
 // may pass under the subtitles.
 
-import { shotKey, subtitleFile } from './cache.mjs'
-import { writeJson } from './files.mjs'
+import { saveSubtitleResult } from './cache.mjs'
 import { emit, progress } from './compose.mjs'
 import { openShot } from './render2d.mjs'
 import { subtitleCss, subtitleCues, subtitleWindows } from './subtitles.mjs'
-import { timedLines, voiceOn } from './cues.mjs'
+import { timedLines, voiceLang, voiceOn } from './cues.mjs'
 
 const STEP = 0.1
 const MIN_OPACITY = 0.05
@@ -65,8 +64,9 @@ const COVERED = `(text => {
 // The voiced 2D shots (or the one asked for) checked, each result saved
 // with its shot: { checked, issues: [{ shot, from, to, what }] }, time
 // ranges in shot seconds. The times come from the fitted cues in
-// shotloop.json: no speech is made
-export async function checkSubtitles(project, { shot: only, mode = 'final' } = {}) {
+// shotloop.json: no speech is made. Shots are drawn in final quality, the
+// geometry the subtitles are laid out in
+export async function checkSubtitles(project, { shot: only } = {}) {
   if (project.track !== '2d' || !voiceOn(project)) return { checked: 0, issues: [] }
   const cues = subtitleCues(timedLines(project))
   const shots = project.shots.filter(s => (!only || s.id === only) && subtitleWindows(s, cues).length)
@@ -74,11 +74,11 @@ export async function checkSubtitles(project, { shot: only, mode = 'final' } = {
   for (const shot of shots) {
     const issues = []
     const windows = subtitleWindows(shot, cues)
-    const s = await openShot(project, shot, mode)
+    const s = await openShot(project, shot, 'final')
     try {
       await s.page.evaluate(`(() => {
         const style = document.createElement('style')
-        style.textContent = ${JSON.stringify(subtitleCss(project.size, project.config.lang ?? 'en', '__sl_'))} + ' #__sl_band { visibility: hidden; z-index: -1; }'
+        style.textContent = ${JSON.stringify(subtitleCss(project.size, voiceLang(project), '__sl_'))} + ' #__sl_band { visibility: hidden; z-index: -1; }'
         document.head.appendChild(style)
         const band = document.createElement('div')
         band.id = '__sl_band'
@@ -114,7 +114,7 @@ export async function checkSubtitles(project, { shot: only, mode = 'final' } = {
       await s.close()
     }
     issues.sort((a, b) => a.from - b.from)
-    writeJson(subtitleFile(project, shot), { key: shotKey(project, shot, 'final'), at: new Date().toISOString(), issues })
+    saveSubtitleResult(project, shot, issues)
     all.push(...issues)
   }
   return { checked: shots.length, issues: all }
@@ -124,9 +124,9 @@ export async function checkSubtitles(project, { shot: only, mode = 'final' } = {
 export const describeIssues = issues =>
   issues.map(i => `${i.shot} ${i.from.toFixed(1)}–${i.to.toFixed(1)} s: the subtitle covers ${i.what}`)
 
-// Fails with the list when a subtitle covers something
-export async function assertSubtitlesClear(project, opts) {
-  const { issues } = await checkSubtitles(project, opts)
+// Fails with the list when a subtitle covers something in the film
+export async function assertSubtitlesClear(project) {
+  const { issues } = await checkSubtitles(project)
   if (!issues.length) return
   const lines = describeIssues(issues)
   for (const l of lines) emit({ type: 'log', message: l })

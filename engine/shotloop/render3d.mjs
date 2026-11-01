@@ -6,38 +6,30 @@
 // world: it is rendered to an image sequence numbered by film frame,
 // which the world script finds through $SHOTLOOP_OUT/screen/.
 
-import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { ASSETS, KIT_3D } from './cache.mjs'
-import { capture, frameName, openRenderPage, progress, run } from './compose.mjs'
+import { ASSETS, KIT_3D, screenKey } from './cache.mjs'
+import { frameName, openRenderPage, progress, renderPageFrames, run } from './compose.mjs'
 import { finalSamples } from './project.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 export const BLENDER = process.env.BLENDER ?? '/Applications/Blender.app/Contents/MacOS/Blender'
 
+// The screen page's frames this shot needs, drawn once per version of
+// the page (cache.mjs screenKey) and numbered by film frame
 async function renderScreen(project, shot, frames) {
-  const file = path.join(project.world, 'screen.html')
-  if (!fs.existsSync(file)) return null
-  const key = crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0, 12)
+  const key = screenKey(project)
+  if (!key) return null
   const base = path.join(project.state, 'screen', key)
   const dir = path.join(base, 'screen')
   fs.mkdirSync(dir, { recursive: true })
   const first = Math.round(shot.start * project.fps)
   const wanted = frames.map(f => first + f).filter(f => !fs.existsSync(path.join(dir, frameName(f))))
   if (wanted.length) {
-    const page = await openRenderPage(file, { width: 1024, height: 640, scale: 1 })
-    const tick = progress({ shot: shot.id, stage: 'screen' }, wanted.length)
-    try {
-      for (const [n, f] of wanted.entries()) {
-        await page.evaluate(`render(${(f - 1) / project.fps})`)
-        fs.writeFileSync(path.join(dir, frameName(f)), await capture(page))
-        tick(n + 1)
-      }
-    } finally {
-      await page.close()
-    }
+    const page = await openRenderPage(path.join(project.world, 'screen.html'), { width: 1024, height: 640, scale: 1 })
+    await renderPageFrames(page, wanted.map(f => (f - 1) / project.fps), (t, i) => path.join(dir, frameName(wanted[i])),
+      progress({ shot: shot.id, stage: 'screen' }, wanted.length))
   }
   return base
 }

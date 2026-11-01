@@ -4,17 +4,15 @@
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
-import { addTake, entry, keyParts, recordError, subtitleResult } from './cache.mjs'
+import { addTake, cachedFile, entry, keyParts, recordError, STILLS, subtitleResult } from './cache.mjs'
 import { readJson, writeJson } from './files.mjs'
 import { musicBed } from './bed.mjs'
 import { composeStill, emit, encodeClip, ffmpeg, frameName, renderCaptions } from './compose.mjs'
-import { frameCount } from './project.mjs'
+import { frameCount, projectPath } from './project.mjs'
 import { renderFrames2d } from './render2d.mjs'
 import { renderFrames3d } from './render3d.mjs'
-import { withVoice } from './voice.mjs'
+import { dressFilm } from './voice.mjs'
 import { checkSubtitles, describeIssues } from './check.mjs'
-
-export const STILLS = ['start', 'middle', 'end']
 
 // Local frame numbers of the three review stills
 export function stillFrames(project, shot) {
@@ -50,12 +48,11 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
     if (capsDir) await renderCaptions(project, shot, mode, capsDir, frames)
 
     // Stills come with every render: they are what the checks look at
-    const [a, b, c] = stillFrames(project, shot)
-    for (const [name, f] of [[STILLS[0], a], [STILLS[1], b], [STILLS[2], c]]) {
+    for (const [i, f] of stillFrames(project, shot).entries()) {
       await composeStill(
         path.join(framesDir, frameName(f)),
         capsDir ? path.join(capsDir, frameName(f)) : null,
-        path.join(e.dir, 'stills', `${name}.jpg`)
+        path.join(e.dir, 'stills', `${STILLS[i]}.jpg`)
       )
     }
     if (!stills) {
@@ -119,15 +116,15 @@ async function outputs(project, shot, e, mode) {
 // The shot as the film plays it: its subtitles, the music and the voice
 async function preview(project, shot, clip, mode) {
   const clips = project.shots.map(s => (s.id === shot.id ? clip : null))
-  const { clips: dressed, audio } = await withVoice(project, mode, clips, musicBed(project))
-  if (!audio) return dressed[shot.index]
-  // Next to the shot's own clip, named by what went in
-  const out = path.join(path.dirname(clip), `preview-${createHash('sha256').update(`${dressed[shot.index]}:${path.basename(audio)}`).digest('hex').slice(0, 12)}.mp4`)
-  if (fs.existsSync(out)) return out
-  await ffmpeg([
-    '-i', dressed[shot.index], '-ss', String(shot.start), '-t', String(shot.duration), '-i', audio,
+  const { clips: dressed, audio } = await dressFilm(project, mode, clips, await musicBed(project), { record: false })
+  const video = dressed[shot.index]
+  if (!audio) return video
+  // Next to the shot's own clip, named by what went in (by their place in
+  // the project, so a copy of it finds the preview)
+  const key = createHash('sha256').update(`${projectPath(project, video)}:${path.basename(audio)}`).digest('hex').slice(0, 12)
+  return cachedFile(path.join(path.dirname(clip), `preview-${key}.mp4`), part => ffmpeg([
+    '-i', video, '-ss', String(shot.start), '-t', String(shot.duration), '-i', audio,
     '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k',
-    '-shortest', '-movflags', '+faststart', out
-  ])
-  return out
+    '-shortest', '-movflags', '+faststart', part
+  ]))
 }

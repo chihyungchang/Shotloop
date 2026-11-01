@@ -12,7 +12,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-const CHROME =
+export const CHROME =
   process.env.CHROME ??
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 

@@ -2,19 +2,24 @@
 // hash of every input that changes a pixel: the world, the shot's code,
 // the caption layer, the assets, the renderer and the render settings.
 // An unchanged shot reuses its frames; the film is assembled from them.
+// Keys hash files by their place in the project, never by absolute path,
+// so a copied project (an example opened as a draft) finds its cache.
 //
 //   .shotloop/shots/<id>/<mode>-<hash>/   frames/, clip.mp4, preview-*.mp4,
 //                                         stills/, meta.json
 //   .shotloop/shots/<id>/takes.json       every render of the shot
 //   .shotloop/shots/<id>/error.json       the last failed render
+//   .shotloop/music/<key>.wav             the music bed (bed.mjs)
+//   .shotloop/screen/<key>/               3D: the world's screen page (render3d.mjs)
 
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { voiceCues } from './cues.mjs'
+import { voiceCues, voiceLang } from './cues.mjs'
 import { readJson, writeJson } from './files.mjs'
-import { finalSamples } from './project.mjs'
+import { finalSamples, localPath, projectPath } from './project.mjs'
+import { cutTimes } from './score.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 export const ENGINE = path.resolve(HERE, '..')
@@ -22,9 +27,12 @@ export const KIT_3D = path.join(HERE, 'blender', 'kit')
 export const ASSETS = process.env.SHOTLOOP_ASSETS ?? path.join(ENGINE, 'assets')
 
 // Bump when a renderer change should invalidate every cached frame
-const RENDERER_VERSION = 1
+const RENDERER_VERSION = 2
 
 export const MODES = ['draft', 'final']
+
+// The three review stills of every render, in order
+export const STILLS = ['start', 'middle', 'end']
 
 // The quality the editor works in: 3D renders fast previews (half size,
 // few samples) and only an export renders final frames; 2D frames are
@@ -60,6 +68,21 @@ function hashFiles(h, root, files) {
   }
 }
 
+const digest = fill => {
+  const h = crypto.createHash('sha256')
+  fill(h)
+  return h.digest('hex').slice(0, 16)
+}
+
+// Engine files that shape an output beside the renderers (the music bed,
+// the subtitle layer), hashed once per process
+const codeKeys = new Map()
+export function engineCode(...files) {
+  const id = files.join('\0')
+  if (!codeKeys.has(id)) codeKeys.set(id, digest(h => hashFiles(h, HERE, files.map(f => path.join(HERE, f)))))
+  return codeKeys.get(id)
+}
+
 // Assets are large (Blender kits, HDRIs): key them by path, size and
 // modification time instead of content
 let assetsKey = null
@@ -81,63 +104,25 @@ export function worldKey(project) {
   return h.digest('hex').slice(0, 12)
 }
 
-export function shotKey(project, shot, mode) {
-  const h = crypto.createHash('sha256')
-  h.update(JSON.stringify({
-    v: RENDERER_VERSION,
-    track: project.track,
-    mode,
-    fps: project.fps,
-    size: project.size,
-    start: shot.start,
-    duration: shot.duration,
-    // 3D: the final render samples (2D keys stay as they were before it)
-    ...(project.track === '3d' ? { samples: mode === 'final' ? finalSamples(project) : null } : {}),
-    // 2D: the voice-over's timing, which the shot's code may follow (keys
-    // without a voice-over stay as they were)
-    ...voiceKey(project, shot)
-  }))
-  hashFiles(h, ENGINE, RENDERER_FILES[project.track].map(f => path.join(ENGINE, f)))
-  hashFiles(h, project.root, listFiles(project.world))
-  if (fs.existsSync(shot.code)) hashFiles(h, project.root, [shot.code])
-  if (project.captions) hashFiles(h, project.root, [project.captions])
-  if (project.track === '3d') {
-    hashFiles(h, ENGINE, listFiles(KIT_3D, { skip: n => n === 'README.md' }))
-    h.update(hashAssets())
-    // Models from the asset library, copied into the project
-    const own = path.join(project.root, 'assets')
-    if (fs.existsSync(own)) hashFiles(h, project.root, listFiles(own))
-  }
-  return h.digest('hex').slice(0, 16)
-}
-
-// A 2D shot's code sees its voice-over's sentences and times (ctx.voice)
-function voiceKey(project, shot) {
-  const cues = project.track === '2d' ? voiceCues(project, shot) : []
-  return cues.length ? { voice: cues } : {}
-}
-
-// What went into a shot's key, part by part, so a stale shot can say
-// what changed since its last render: its code, the shared scene (world,
-// and for 3D the project's models), the captions, its timing, or the
-// engine itself
+// What goes into a shot's frames, part by part: its code, the shared
+// scene (the world, and for 3D the models copied into the project), the
+// caption layer, its timing (with, in 2D, the voice-over's sentences and
+// times, which its code may follow: ctx.voice), and the engine (renderer,
+// mode and settings, and for 3D the kit and the assets). A stale shot
+// says which parts changed since its last render
 export function keyParts(project, shot, mode) {
-  const part = fill => {
-    const h = crypto.createHash('sha256')
-    fill(h)
-    return h.digest('hex').slice(0, 10)
-  }
+  const own = path.join(project.root, 'assets')
   return {
-    code: part(h => fs.existsSync(shot.code) && hashFiles(h, project.root, [shot.code])),
-    scene: part(h => {
+    code: digest(h => fs.existsSync(shot.code) && hashFiles(h, project.root, [shot.code])),
+    scene: digest(h => {
       hashFiles(h, project.root, listFiles(project.world))
-      const own = path.join(project.root, 'assets')
       if (project.track === '3d' && fs.existsSync(own)) hashFiles(h, project.root, listFiles(own))
     }),
-    captions: part(h => project.captions && hashFiles(h, project.root, [project.captions])),
-    timing: part(h => h.update(JSON.stringify([project.fps, project.size, shot.start, shot.duration, ...Object.values(voiceKey(project, shot))]))),
-    engine: part(h => {
-      h.update(JSON.stringify([RENDERER_VERSION, mode, project.track === '3d' && mode === 'final' ? finalSamples(project) : null]))
+    captions: digest(h => project.captions && hashFiles(h, project.root, [project.captions])),
+    timing: digest(h => h.update(JSON.stringify([project.fps, project.size, shot.start, shot.duration,
+      project.track === '2d' ? voiceCues(project, shot) : []]))),
+    engine: digest(h => {
+      h.update(JSON.stringify([RENDERER_VERSION, project.track, mode, project.track === '3d' && mode === 'final' ? finalSamples(project) : null]))
       hashFiles(h, ENGINE, RENDERER_FILES[project.track].map(f => path.join(ENGINE, f)))
       if (project.track === '3d') {
         hashFiles(h, ENGINE, listFiles(KIT_3D, { skip: n => n === 'README.md' }))
@@ -147,40 +132,78 @@ export function keyParts(project, shot, mode) {
   }
 }
 
+// A shot's frames' key: every part of it
+export const shotKey = (project, shot, mode) => digest(h => h.update(JSON.stringify(keyParts(project, shot, mode))))
+
 // The music bed's identity: its file (a music.json or an audio file), the
-// project's music volume, and the film's length (the bed is cut to it)
+// project's music volume, the film's length (the bed is cut to it), its
+// cuts (a synthesized bed is tuned to them) and the code that makes it
 export function musicKey(project) {
   if (!project.music) return null
-  // The cuts too: a synthesized bed is tuned to them (bed.mjs); bed2: the
-  // sections run to the end and the fade out eases
-  return crypto.createHash('sha256').update('bed2:').update(fs.readFileSync(project.music))
-    .update(String(project.config.musicGain ?? 1)).update(`:${project.duration}`)
-    .update(`:${project.shots.slice(1).map(s => s.start).join(',')}`).digest('hex').slice(0, 12)
+  return digest(h => h.update(engineCode('bed.mjs', 'score.mjs', 'synth.mjs')).update(fs.readFileSync(project.music))
+    .update(JSON.stringify([project.config.musicGain ?? 1, project.duration, cutTimes(project)])))
 }
 
-export const shotState = (project, shot) => path.join(project.state, 'shots', shot.id)
-export const entryDir = (project, shot, mode, key) => path.join(shotState(project, shot), `${mode}-${key}`)
+// A 3D world's screen page, rendered once per version of the page
+export function screenKey(project) {
+  const file = path.join(project.world, 'screen.html')
+  return fs.existsSync(file) ? digest(h => h.update(fs.readFileSync(file))) : null
+}
+
+const shotState = (project, shot) => path.join(project.state, 'shots', shot.id)
+const entryDir = (project, shot, mode, key) => path.join(shotState(project, shot), `${mode}-${key}`)
 
 // A shot's last subtitle check (check.mjs), kept with the shot and valid
-// while its frames' key is unchanged: the app marks the shot until its
-// code (or the voice) changes. Null when not checked since
-export const subtitleFile = (project, shot) => path.join(shotState(project, shot), 'subtitles.json')
-export function subtitleResult(project, shot, key = shotKey(project, shot, 'final')) {
+// while its frames, the subtitle layer and the language are unchanged:
+// the app marks the shot until its code (or the voice) changes. Null when
+// not checked since
+const subtitleFile = (project, shot) => path.join(shotState(project, shot), 'subtitles.json')
+const subtitleKey = (project, shot, finalKey) =>
+  digest(h => h.update(JSON.stringify([finalKey, engineCode('subtitles.mjs', 'cues.mjs', 'check.mjs'), voiceLang(project)])))
+
+export function subtitleResult(project, shot, finalKey = shotKey(project, shot, 'final')) {
   const r = readJson(subtitleFile(project, shot), null)
-  return r && r.key === key ? { at: r.at, issues: r.issues } : null
+  return r && r.key === subtitleKey(project, shot, finalKey) ? { at: r.at, issues: r.issues } : null
 }
 
-export const takes = (project, shot) => readJson(path.join(shotState(project, shot), 'takes.json'), [])
+export function saveSubtitleResult(project, shot, issues) {
+  writeJson(subtitleFile(project, shot), { key: subtitleKey(project, shot, shotKey(project, shot, 'final')), at: new Date().toISOString(), issues })
+}
+
+// A take's files are kept by their place in the project and read back
+// as paths in it, so a moved or copied project still finds them
+const TAKE_FILES = ['clip', 'preview', 'stills']
+const mapFiles = (take, f) => ({ ...take, ...Object.fromEntries(TAKE_FILES.filter(k => take[k]).map(k => [k, Array.isArray(take[k]) ? take[k].map(f) : f(take[k])])) })
+
+export const takes = (project, shot) =>
+  readJson(path.join(shotState(project, shot), 'takes.json'), []).map(t => mapFiles(t, p => localPath(project, p)))
 
 // A take is one render of a shot. Takes are numbered and timestamped so
 // the app always shows the latest one and never a stale file
 export function addTake(project, shot, take) {
-  const list = takes(project, shot)
+  const file = path.join(shotState(project, shot), 'takes.json')
+  const list = readJson(file, [])
   const entry = { take: (list.at(-1)?.take ?? 0) + 1, at: new Date().toISOString(), ...take }
-  list.push(entry)
-  writeJson(path.join(shotState(project, shot), 'takes.json'), list)
+  writeJson(file, [...list, mapFiles(entry, p => projectPath(project, p))])
   fs.rmSync(path.join(shotState(project, shot), 'error.json'), { force: true })
   return entry
+}
+
+// A file made once and kept: returned when it is there, else made by
+// make(part) under a temporary name and renamed into place, so a file cut
+// short (a crash, two processes at once) is never taken for a finished one
+export async function cachedFile(file, make) {
+  if (fs.existsSync(file)) return file
+  fs.mkdirSync(path.dirname(file), { recursive: true })
+  const ext = path.extname(file)
+  const part = `${file.slice(0, file.length - ext.length)}.${process.pid}.part${ext}`
+  try {
+    await make(part)
+    fs.renameSync(part, file)
+  } finally {
+    fs.rmSync(part, { recursive: true, force: true })
+  }
+  return file
 }
 
 export function recordError(project, shot, mode, error) {
@@ -197,7 +220,7 @@ export function entry(project, shot, mode, key = shotKey(project, shot, mode)) {
   const dir = entryDir(project, shot, mode, key)
   const meta = readJson(path.join(dir, 'meta.json'), null)
   // JPEG since 0.7; renders from before keep their PNGs
-  const stills = ['start', 'middle', 'end'].map(n => ['jpg', 'png'].map(x => path.join(dir, 'stills', `${n}.${x}`)).find(f => fs.existsSync(f)))
+  const stills = STILLS.map(n => ['jpg', 'png'].map(x => path.join(dir, 'stills', `${n}.${x}`)).find(f => fs.existsSync(f)))
   return {
     key,
     dir,
@@ -221,12 +244,13 @@ export function status(project, shot) {
         && readJson(path.join(base, d, 'meta.json'), null)?.clip)
     const state = e.clip ? 'cached' : older ? 'stale' : 'missing'
     // Stale: what changed since the last render in this mode that
-    // recorded its parts (older renders didn't: 'unknown')
+    // recorded its parts (older renders didn't: 'unknown'). Takes before
+    // 0.10 kept the first 10 digits of each part
     let changed = null
     if (state === 'stale') {
       const last = takes(project, shot).findLast(t => t.mode === mode)
       const now = keyParts(project, shot, mode)
-      changed = last?.parts ? Object.keys(now).filter(k => now[k] !== last.parts[k]) : ['unknown']
+      changed = last?.parts ? Object.keys(now).filter(k => !last.parts[k] || !now[k].startsWith(last.parts[k])) : ['unknown']
     }
     out[mode] = {
       key: e.key,
@@ -244,17 +268,29 @@ export function status(project, shot) {
   // The agent's fixes and checks of this shot, oldest first, with
   // before/after stills: the shot's conversation in the app
   const fixes = path.join(base, 'fixes')
+  // (the agent records its stills by absolute path: read in this project)
+  const here = p => localPath(project, p)
   out.fixes = (fs.existsSync(fixes) ? fs.readdirSync(fixes).sort() : [])
     .map(d => readJson(path.join(fixes, d, 'fix.json'), null))
     .filter(Boolean)
     .slice(-20)
+    .map(f => ({ ...f, before: f.before?.map(here) ?? null, after: f.after?.map(here) ?? null, record: f.record && here(f.record) }))
   out.fix = out.fixes.at(-1) ?? null
   return out
 }
 
-// Removes cache entries no take refers to and that are not current
+// Removes cache entries no take refers to and that are not current, and
+// music beds and screen renders the film no longer uses. Files younger
+// than ten minutes stay: a render may be writing them
 export function prune(project) {
-  let removed = 0
+  const recent = Date.now() - 10 * 60 * 1000
+  const sweep = (dir, keep) => {
+    if (!fs.existsSync(dir)) return 0
+    const old = fs.readdirSync(dir).filter(f => f !== keep && fs.statSync(path.join(dir, f)).mtimeMs < recent)
+    for (const f of old) fs.rmSync(path.join(dir, f), { recursive: true, force: true })
+    return old.length
+  }
+  let removed = sweep(path.join(project.state, 'music'), `${musicKey(project)}.wav`) + sweep(path.join(project.state, 'screen'), screenKey(project))
   for (const shot of project.shots) {
     const base = shotState(project, shot)
     if (!fs.existsSync(base)) continue

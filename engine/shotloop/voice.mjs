@@ -1,5 +1,5 @@
 // The voice-over: what each shot says (shotloop.json shots[].say), spoken
-// on this Mac (voice/, Kokoro or Supertonic) and laid on the film's
+// on this Mac (voice/: Kokoro, CosyVoice 2 or Supertonic) and laid on the film's
 // timeline. The voice leads the cut: a shot lasts as long as its line
 // needs (fitVoice), and its timing is written into shotloop.json
 // (shots[].cues, shot-local seconds per sentence), so renders, cache keys
@@ -18,11 +18,12 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { wav } from './synth.mjs'
-import { readJson, writeJson } from './files.mjs'
+import { cachedFile, MODES } from './cache.mjs'
+import { readJson, writeAtomic, writeJson } from './files.mjs'
 import { emit, ffmpeg, progress } from './compose.mjs'
 import { round } from './data.mjs'
-import { sentences, voiceOn } from './cues.mjs'
-import { loadProject, updateConfig } from './project.mjs'
+import { sentences, voiceLang, voiceOn } from './cues.mjs'
+import { loadProject, localPath, projectPath, updateConfig } from './project.mjs'
 import { isStarter } from './starters.mjs'
 import { dressClips } from './subtitles.mjs'
 
@@ -55,21 +56,21 @@ async function voicePackage() {
 
 const ceil1 = x => Math.ceil(x * 10 - 1e-6) / 10
 
-// The language spoken: the project's, else read from its lines
-export function voiceLang(project) {
-  if (project.config.lang) return project.config.lang
-  const text = project.shots.map(s => s.say ?? '').join(' ')
-  if (/[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(text)) return 'ja'
-  if (/\p{Script=Hangul}/u.test(text)) return 'ko'
-  if (/\p{Script=Han}/u.test(text)) return 'zh-CN'
-  if (/\p{Script=Cyrillic}/u.test(text)) return 'ru'
-  return 'en'
-}
-
-const voiceConfig = project => project.config.voice ?? null
-
 // The chosen voice when it speaks the language, else the language's first
 const voiceFor = (v, cfg, lang) => (cfg?.voice && v.voicesFor(lang).some(x => x.id === cfg.voice) ? cfg.voice : v.defaultVoice(lang))
+
+// What speaking the project's lines takes: the voice package, the
+// language, the voice that speaks it, and the voice-over's settings
+async function voiceSetup(project) {
+  const v = await voicePackage()
+  const cfg = project.config.voice ?? {}
+  const lang = voiceLang(project)
+  if (!v.speaks(lang)) throw new Error(`no voice for the language "${lang}"`)
+  return { v, lang, voice: voiceFor(v, cfg, lang), cfg }
+}
+
+// The speed a shot's line is spoken at: its fitted one, else the project's
+const shotSpeed = (shot, cfg) => shot.sayFast ?? cfg.speed ?? 1
 
 const lineKey = (text, lang, voice, speed) => createHash('sha256')
   .update(JSON.stringify([VOICE_VERSION, lang, voice, Math.round(speed * 1000), text])).digest('hex').slice(0, 16)
@@ -99,8 +100,9 @@ function trim(samples, rate) {
 
 const voiceDir = project => path.join(project.state, 'voice')
 
-// One sentence spoken (cached): { file, duration }
-export async function speak(project, text, { lang, voice, speed = 1 }) {
+// One sentence spoken (cached): { file, duration }. Its .json, written
+// last, marks it complete
+async function speak(project, text, { lang, voice, speed = 1 }) {
   const key = lineKey(text, lang, voice, speed)
   const file = path.join(voiceDir(project), `${key}.wav`)
   const meta = readJson(path.join(voiceDir(project), `${key}.json`), null)
@@ -118,9 +120,8 @@ export async function speak(project, text, { lang, voice, speed = 1 }) {
     }
   })
   const samples = trim(out.samples, out.sampleRate)
-  fs.mkdirSync(voiceDir(project), { recursive: true })
-  fs.writeFileSync(`${file}.${process.pid}`, wav({ L: samples, rate: out.sampleRate }))
-  fs.renameSync(`${file}.${process.pid}`, file)
+  // Written over any wav a cut-short run left without its .json
+  writeAtomic(file, wav({ L: samples, rate: out.sampleRate }))
   const duration = samples.length / out.sampleRate
   writeJson(path.join(voiceDir(project), `${key}.json`), { text, lang, voice, speed, duration, sampleRate: out.sampleRate })
   return { file, duration }
@@ -151,12 +152,8 @@ function cuesOf(parts) {
 // a longer one makes the shot longer. Returns the changes, and the words
 // the voice would drop (English names it can't read), for the person.
 export async function fitVoice(project) {
-  const cfg = voiceConfig(project)
-  if (!cfg?.on) throw new Error('the voice-over is off for this project')
-  const v = await voicePackage()
-  const lang = voiceLang(project)
-  if (!v.speaks(lang)) throw new Error(`no voice for the language "${lang}"`)
-  const voice = voiceFor(v, cfg, lang)
+  if (!project.config.voice?.on) throw new Error('the voice-over is off for this project')
+  const { v, lang, voice, cfg } = await voiceSetup(project)
   const base = cfg.speed ?? 1
   const spoken = project.shots.filter(s => s.say?.trim())
   const tick = progress({ stage: 'voice' }, spoken.length)
@@ -224,18 +221,12 @@ function syncStoryboard(root, shots) {
 // Every sentence of the film on its timeline: { shot, text, at, end, file }
 // (film seconds). Lines not spoken yet are spoken now; a shot whose
 // cues are missing or don't match its sentences is laid out on the spot
-export async function voiceLines(project) {
-  const cfg = voiceConfig(project)
-  const lang = voiceLang(project)
-  const v = await voicePackage()
-  const voice = voiceFor(v, cfg, lang)
+async function voiceLines(project) {
+  const { lang, voice, cfg } = await voiceSetup(project)
   const out = []
   for (const shot of project.shots) {
-    const texts = sentences(shot.say)
-    if (!texts.length) continue
-    const speed = shot.sayFast ?? cfg.speed ?? 1
-    const parts = []
-    for (const text of texts) parts.push({ text, ...(await speak(project, text, { lang, voice, speed })) })
+    if (!sentences(shot.say).length) continue
+    const { parts } = await speakShot(project, shot, { lang, voice, speed: shotSpeed(shot, cfg) })
     const cues = shot.cues?.length === parts.length ? shot.cues : cuesOf(parts)
     parts.forEach((p, i) => out.push({ shot: shot.id, text: p.text, at: shot.start + cues[i].at, end: shot.start + cues[i].at + p.duration, file: p.file }))
   }
@@ -244,11 +235,11 @@ export async function voiceLines(project) {
 
 // The voice track's identity: its lines and their places
 const trackKey = (project, lines) => createHash('sha256')
-  .update(JSON.stringify([2, lines.map(l => [path.basename(l.file), l.at]), voiceConfig(project).gain ?? 1, project.duration])).digest('hex').slice(0, 16)
+  .update(JSON.stringify([2, lines.map(l => [path.basename(l.file), l.at]), project.config.voice.gain ?? 1, project.duration])).digest('hex').slice(0, 16)
 
 // The voice track of the whole film (44.1 kHz stereo WAV) written to out
 async function renderTrack(project, lines, out) {
-  const gain = voiceConfig(project).gain ?? 1
+  const gain = project.config.voice.gain ?? 1
   const inputs = lines.flatMap(l => ['-i', l.file])
   const delays = lines.map((l, i) => `[${i}:a]aresample=44100,adelay=${Math.round(l.at * 1000)}:all=1[a${i}]`)
   // At a speech loudness for phones (-16 LUFS), whatever the model's level
@@ -257,15 +248,8 @@ async function renderTrack(project, lines, out) {
 }
 
 // The voice track kept as the film's sound (a film without music), cached
-async function voiceTrack(project, lines) {
-  const file = path.join(voiceDir(project), 'track', `${trackKey(project, lines)}.wav`)
-  if (fs.existsSync(file)) return file
-  fs.mkdirSync(path.dirname(file), { recursive: true })
-  const part = `${file}.${process.pid}.wav`
-  await renderTrack(project, lines, part)
-  fs.renameSync(part, file)
-  return file
-}
+const voiceTrack = (project, lines) =>
+  cachedFile(path.join(voiceDir(project), 'track', `${trackKey(project, lines)}.wav`), part => renderTrack(project, lines, part))
 
 // How loud the music sits under a voice-over: a little lower between
 // lines, far lower while a line is spoken (about 17 dB under the voice)
@@ -303,38 +287,34 @@ async function soundtrack(project, music, lines) {
   if (!music) return voiceTrack(project, lines)
   const curve = duckCurve(lines)
   const key = createHash('sha256').update(`4:${path.basename(music)}:${trackKey(project, lines)}:${curve}`).digest('hex').slice(0, 16)
-  const file = path.join(voiceDir(project), 'mix', `${key}.wav`)
-  if (fs.existsSync(file)) return file
-  fs.mkdirSync(path.dirname(file), { recursive: true })
-  const voice = `${file}.${process.pid}.voice.wav`
-  const part = `${file}.${process.pid}.wav`
-  try {
-    await renderTrack(project, lines, voice)
-    // The bed follows the lines' times (not a compressor on the voice's
-    // level), so it dips the same for every word and never pumps
-    await ffmpeg(['-i', music, '-i', voice, '-filter_complex',
-      `[0:a]volume='${curve}':eval=frame[bed];[bed][1:a]amix=inputs=2:normalize=0:duration=first,alimiter=limit=0.9[a]`,
-      '-map', '[a]', '-ar', '44100', part])
-    fs.renameSync(part, file)
-  } finally {
-    fs.rmSync(voice, { force: true })
-    fs.rmSync(part, { force: true })
-  }
-  return file
+  return cachedFile(path.join(voiceDir(project), 'mix', `${key}.wav`), async part => {
+    const voice = part.replace(/\.wav$/, '.voice.wav')
+    try {
+      await renderTrack(project, lines, voice)
+      // The bed follows the lines' times (not a compressor on the voice's
+      // level), so it dips the same for every word and never pumps
+      await ffmpeg(['-i', music, '-i', voice, '-filter_complex',
+        `[0:a]volume='${curve}':eval=frame[bed];[bed][1:a]amix=inputs=2:normalize=0:duration=first,alimiter=limit=0.9[a]`,
+        '-map', '[a]', '-ar', '44100', part])
+    } finally {
+      fs.rmSync(voice, { force: true })
+    }
+  })
 }
 
 // The film as it plays: each shot's clip with its subtitles, and the
 // sound (music ducked under the voice). clips: one per shot, in order
 // (null for a shot not wanted). strict: a voice-over that fails fails the
-// call (an export); else the film plays with its music alone, and says so
-export async function withVoice(project, mode, clips, music, { strict = false } = {}) {
+// call (an export); else the film plays with its music alone, and says so.
+// record: what the whole film plays is kept for pruneVoice (a single
+// shot's preview is not the film, so it doesn't replace that record)
+export async function dressFilm(project, mode, clips, music, { strict = false, record = true } = {}) {
   if (!voiceOn(project)) return { clips, audio: music }
   try {
     const lines = await voiceLines(project)
     const { clips: dressed, subs } = await dressClips(project, mode, clips, lines)
     const audio = await soundtrack(project, music, lines)
-    // What the film plays now, for pruneVoice to keep
-    writeJson(path.join(voiceDir(project), `used-${mode}.json`), [...dressed, audio, subs].filter(Boolean))
+    if (record) writeJson(path.join(voiceDir(project), `used-${mode}.json`), [...dressed, audio, subs].filter(Boolean).map(f => projectPath(project, f)))
     return { clips: dressed, audio }
   } catch (err) {
     if (strict) throw err
@@ -363,7 +343,7 @@ export async function voiceModels({ download } = {}) {
 // The voice-over's settings, and the voices of the project's language
 // (none when no voice speaks it), for the app
 export async function voiceInfo(project) {
-  const cfg = voiceConfig(project) ?? { on: false }
+  const cfg = project.config.voice ?? { on: false }
   const lang = voiceLang(project)
   let voices = []
   let available = false
@@ -398,10 +378,7 @@ const SAMPLE = {
   id: 'Beginilah suara video Anda.'
 }
 export async function sampleVoice(project) {
-  const cfg = voiceConfig(project) ?? {}
-  const lang = voiceLang(project)
-  const v = await voicePackage()
-  const voice = voiceFor(v, cfg, lang)
+  const { lang, voice, cfg } = await voiceSetup(project)
   const text = sentences(project.shots.find(s => s.say?.trim())?.say)[0] ?? SAMPLE[lang.split('-')[0]] ?? SAMPLE.en
   return (await speak(project, text, { lang, voice, speed: cfg.speed ?? 1 })).file
 }
@@ -409,21 +386,19 @@ export async function sampleVoice(project) {
 // Drops the voice-over's cached files the film no longer uses (older
 // lines, tracks, mixes, subtitle sets and dressed clips). Kept: what the
 // last preview or export in each mode played (used-<mode>.json, written by
-// withVoice) and the lines the film says now. Nothing is spoken or encoded
+// dressFilm) and the lines the film says now. Nothing is spoken or encoded
 // here, and files younger than ten minutes are left alone (a render may
 // be writing them)
 export async function pruneVoice(project) {
   const dir = voiceDir(project)
   if (!fs.existsSync(dir)) return 0
-  const keep = new Set(['draft', 'final'].flatMap(m => [path.join(dir, `used-${m}.json`), ...readJson(path.join(dir, `used-${m}.json`), [])]))
+  const used = m => path.join(dir, `used-${m}.json`)
+  const keep = new Set(MODES.flatMap(m => [used(m), ...readJson(used(m), []).map(f => localPath(project, f))]))
   if (voiceOn(project)) {
-    const v = await voicePackage()
-    const cfg = voiceConfig(project)
-    const lang = voiceLang(project)
-    const voice = voiceFor(v, cfg, lang)
+    const { lang, voice, cfg } = await voiceSetup(project)
     for (const shot of project.shots) {
       for (const text of sentences(shot.say)) {
-        const key = lineKey(text, lang, voice, shot.sayFast ?? cfg.speed ?? 1)
+        const key = lineKey(text, lang, voice, shotSpeed(shot, cfg))
         keep.add(path.join(dir, `${key}.wav`)).add(path.join(dir, `${key}.json`))
       }
     }

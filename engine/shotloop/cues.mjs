@@ -8,6 +8,18 @@
 // subtitle layer, subtitles.mjs, and the agent's rules read it here)
 export const SUBTITLE_BAND = { portrait: [0.68, 0.79], landscape: [0.72, 0.84] }
 
+// The language spoken (and written in the subtitles): the project's, else
+// read from its lines
+export function voiceLang(project) {
+  if (project.config.lang) return project.config.lang
+  const text = project.shots.map(s => s.say ?? '').join(' ')
+  if (/[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(text)) return 'ja'
+  if (/\p{Script=Hangul}/u.test(text)) return 'ko'
+  if (/\p{Script=Han}/u.test(text)) return 'zh-CN'
+  if (/\p{Script=Cyrillic}/u.test(text)) return 'ru'
+  return 'en'
+}
+
 // The voice-over plays: switched on, and at least one shot has a line
 export const voiceOn = project => !!project.config.voice?.on && project.shots.some(s => s.say?.trim())
 

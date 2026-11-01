@@ -95,6 +95,17 @@ export function updateConfig(root, fn) {
   return cfg
 }
 
+// The engine's records name the project's files by their place in it
+// (projectPath) and read them back as paths in it (localPath), so a moved
+// or copied project finds its files. Absolute paths written before (or by
+// the agent) into a .shotloop folder are read in this project's
+export const projectPath = (project, file) => path.relative(project.root, file)
+export function localPath(project, file) {
+  if (!path.isAbsolute(file)) return path.join(project.root, file)
+  const at = file.lastIndexOf(`${path.sep}.shotloop${path.sep}`)
+  return at >= 0 ? path.join(project.root, file.slice(at + 1)) : file
+}
+
 export function findShot(project, id) {
   const shot = project.shots.find(s => s.id === id)
   if (!shot) throw new Error(`no shot "${id}" (shots: ${project.shots.map(s => s.id).join(', ')})`)

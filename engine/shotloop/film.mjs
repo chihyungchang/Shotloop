@@ -10,25 +10,26 @@
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
-import { openPage } from '../lib/chrome.mjs'
-import { entry, takes } from './cache.mjs'
+import { cachedFile, entry, takes } from './cache.mjs'
 import { writeJson } from './files.mjs'
 import { musicBed } from './bed.mjs'
-import { emit, ffmpeg, pixelSize } from './compose.mjs'
-import { findShot, loadProject, updateConfig } from './project.mjs'
+import { emit, ffmpeg, openRenderPage, pixelSize, QUALITY } from './compose.mjs'
+import { findShot, loadProject, projectPath, updateConfig } from './project.mjs'
 import { renderShot, stillFrames } from './render.mjs'
-import { withVoice } from './voice.mjs'
+import { dressFilm } from './voice.mjs'
 import { assertSubtitlesClear } from './check.mjs'
 import { deliver } from './deliver.mjs'
 
-export const ASPECTS = { '9:16': [9, 16], '16:9': [16, 9] }
+const ASPECTS = { '9:16': [9, 16], '16:9': [16, 9] }
 
 const stamp = () => new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15)
 
 // Shots whose clip for this mode is missing or stale
-export function pendingShots(project, mode) {
-  return project.shots.filter(s => !entry(project, s, mode).clip)
+const pendingShots = (project, mode) => project.shots.filter(s => !entry(project, s, mode).clip)
+
+// Stops a film with shots that have no clip in this mode (shots: those)
+function assertRendered(shots, mode) {
+  if (shots.length) throw new Error(`not rendered (${mode}): ${shots.map(s => s.id).join(', ')}; render them first`)
 }
 
 // Output size for an aspect: the long side matches the project's
@@ -52,42 +53,45 @@ function fitFilter(src, dst) {
   ].join(';')
 }
 
-export async function assemble(project, { mode = 'draft', aspects = ['9:16', '16:9'] } = {}) {
-  const missing = pendingShots(project, mode)
-  if (missing.length) {
-    throw new Error(`not rendered (${mode}): ${missing.map(s => s.id).join(', ')}; render them first`)
+// The shots' clips joined into out as they are: they share codec and
+// settings (dressed with subtitles or not), so nothing is encoded again
+async function joinClips(clips, out) {
+  const list = `${out}.txt`
+  fs.writeFileSync(list, clips.map(c => `file '${c.replaceAll("'", "'\\''")}'`).join('\n') + '\n')
+  try {
+    emit({ type: 'log', message: `joining ${clips.length} shots` })
+    await ffmpeg(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', out])
+  } finally {
+    fs.rmSync(list, { force: true })
   }
+}
+
+export async function assemble(project, { mode = 'draft', aspects = ['9:16', '16:9'] } = {}) {
+  assertRendered(pendingShots(project, mode), mode)
   for (const a of aspects) if (!ASPECTS[a]) throw new Error(`unknown aspect ${a} (9:16 or 16:9)`)
-  fs.mkdirSync(project.out, { recursive: true })
   const work = path.join(project.state, `film-${process.pid}`)
   fs.mkdirSync(work, { recursive: true })
   const at = stamp()
 
   try {
-    // All shot clips (dressed with subtitles or not) share codec and
-    // settings, so they join without re-encoding. An export never leaves
-    // the voice-over out silently (strict)
-    const { clips, audio: music } = await withVoice(project, mode, project.shots.map(s => entry(project, s, mode).clip), musicBed(project), { strict: true })
-    const list = path.join(work, 'list.txt')
-    fs.writeFileSync(list, clips.map(c => `file '${c.replaceAll("'", "'\\''")}'`).join('\n') + '\n')
+    // An export never leaves the voice-over out silently (strict)
+    const { clips, audio: music } = await dressFilm(project, mode, project.shots.map(s => entry(project, s, mode).clip), await musicBed(project), { strict: true })
     const film = path.join(work, 'film.mp4')
-    emit({ type: 'log', message: `joining ${project.shots.length} shots` })
-    await ffmpeg(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', film])
+    await joinClips(clips, film)
 
     const src = pixelSize(project, mode)
     const files = []
     for (const [i, aspect] of aspects.entries()) {
       const dst = aspectSize(project, mode, aspect)
-      const out = path.join(project.out, `${project.slug}.${mode}.${aspect.replace(':', 'x')}.${at}.mp4`)
       emit({ type: 'progress', stage: 'export', done: i, total: aspects.length, eta: null })
-      await ffmpeg([
+      const out = await cachedFile(path.join(project.out, `${project.slug}.${mode}.${aspect.replace(':', 'x')}.${at}.mp4`), part => ffmpeg([
         '-i', film, ...(music ? ['-i', music] : []),
         '-filter_complex', fitFilter(src, dst), '-map', '[v]',
         ...(music ? ['-map', '1:a', '-c:a', 'aac', '-b:a', '160k'] : []),
         '-t', String(project.duration),
-        '-c:v', 'libx264', '-crf', mode === 'draft' ? '23' : '18', '-preset', mode === 'draft' ? 'veryfast' : 'slow',
-        '-movflags', '+faststart', out
-      ])
+        '-c:v', 'libx264', ...QUALITY[mode],
+        '-movflags', '+faststart', part
+      ]))
       files.push({ aspect, file: out })
     }
     emit({ type: 'progress', stage: 'export', done: aspects.length, total: aspects.length, eta: null })
@@ -103,7 +107,7 @@ export async function assemble(project, { mode = 'draft', aspects = ['9:16', '16
 // A shot whose frames are out of date plays its latest clip in this mode
 // (listed in `stale`), so watching never waits for renders; only a shot
 // with no clip at all stops it.
-export async function preview(project, { mode = 'draft' } = {}) {
+export async function filmPreview(project, { mode = 'draft' } = {}) {
   const stale = []
   const clips = project.shots.map(s => {
     const current = entry(project, s, mode).clip
@@ -112,40 +116,27 @@ export async function preview(project, { mode = 'draft' } = {}) {
     if (last) stale.push(s.id)
     return last ?? null
   })
-  const missing = project.shots.filter((s, i) => !clips[i])
-  if (missing.length) {
-    throw new Error(`not rendered (${mode}): ${missing.map(s => s.id).join(', ')}; render them first`)
-  }
-  const { clips: dressed, audio: music } = await withVoice(project, mode, clips, musicBed(project))
-  const key = createHash('sha256').update(JSON.stringify([dressed, music, project.duration])).digest('hex').slice(0, 16)
+  assertRendered(project.shots.filter((s, i) => !clips[i]), mode)
+  const { clips: dressed, audio: music } = await dressFilm(project, mode, clips, await musicBed(project))
+  // By the files' places in the project, so a copy of it finds the film
+  const key = createHash('sha256').update(JSON.stringify([...dressed, music].map(f => f && projectPath(project, f)).concat(project.duration))).digest('hex').slice(0, 16)
   const dir = path.join(project.state, 'film')
   const file = path.join(dir, `${mode}-${key}.mp4`)
   if (fs.existsSync(file)) return { mode, file, cached: true, stale }
 
-  fs.mkdirSync(dir, { recursive: true })
-  // Temporary files per process (two previews may run at once); the film
-  // gets its name only when complete, so a cut-short one is never "cached"
-  const list = path.join(dir, `.${mode}-list.${process.pid}.txt`)
-  const part = path.join(dir, `.${mode}-${key}.${process.pid}.mp4`)
-  fs.writeFileSync(list, dressed.map(c => `file '${c.replaceAll("'", "'\\''")}'`).join('\n') + '\n')
-  const joined = path.join(dir, `.${mode}-joined.${process.pid}.mp4`)
-  try {
-    emit({ type: 'log', message: `joining ${clips.length} shots` })
-    await ffmpeg(['-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', joined])
-    if (music) {
+  await cachedFile(file, async part => {
+    if (!music) return joinClips(dressed, part)
+    const joined = part.replace(/\.mp4$/, '.joined.mp4')
+    try {
+      await joinClips(dressed, joined)
       await ffmpeg(['-i', joined, '-i', music, '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k',
         '-t', String(project.duration), '-movflags', '+faststart', part])
-    } else {
-      fs.renameSync(joined, part)
+    } finally {
+      fs.rmSync(joined, { force: true })
     }
-    fs.renameSync(part, file)
-    // One preview per mode: older ones go
-    for (const f of fs.readdirSync(dir)) if (f.startsWith(`${mode}-`) && f !== path.basename(file)) fs.rmSync(path.join(dir, f), { force: true })
-  } finally {
-    fs.rmSync(list, { force: true })
-    fs.rmSync(joined, { force: true })
-    fs.rmSync(part, { force: true })
-  }
+  })
+  // One preview per mode: older ones go
+  for (const f of fs.readdirSync(dir)) if (f.startsWith(`${mode}-`) && f !== path.basename(file)) fs.rmSync(path.join(dir, f), { force: true })
   return { mode, file, cached: false, stale }
 }
 
@@ -171,11 +162,9 @@ export async function renderCover(project, { at = stamp(), mode = 'final', previ
   }
   const out = preview ? path.join(project.state, 'cover.png') : path.join(project.out, `${project.slug}.cover.${at}.png`)
   fs.mkdirSync(path.dirname(out), { recursive: true })
-  const page = await openPage({ width: 1080, height: 1920 })
+  // A fresh load (t): the page may have been rewritten since the last one
+  const page = await openRenderPage(project.cover, { width: 1080, height: 1920 }, { render: false, query: { t: Date.now() } })
   try {
-    // A fresh load: the page may have been rewritten since the last one
-    await page.goto(`${pathToFileURL(project.cover).href}?t=${Date.now()}`)
-    await page.evaluate('window.ready')
     await page.screenshot(out)
   } finally {
     await page.close()
@@ -209,7 +198,7 @@ export function setCoverFrame(project, frame) {
   return loadProject(project.root)
 }
 
-export function copyPublish(project, at = stamp()) {
+function copyPublish(project, at) {
   if (!project.publish) return null
   const out = path.join(project.out, `${project.slug}.publish.${at}.md`)
   fs.copyFileSync(project.publish, out)
@@ -233,7 +222,9 @@ export async function exportFilm(project, { mode = 'final', aspects, video = tru
   const cover = withCover ? await renderCover(project, { at: film.at, mode }) : null
   const written = fs.existsSync(path.join(project.root, 'publish.json'))
   const publish = withPublish && written ? copyPublish(project, film.at) : null
-  let result = { ...film, cover, publish, folder: null, rendered: missing.map(s => s.id) }
+  // The film's visual style (or 3d), for the app's usage counts
+  const style = project.track === '3d' ? '3d' : project.config.style ?? null
+  let result = { ...film, cover, publish, folder: null, rendered: missing.map(s => s.id), style }
   if (to) result = deliver(project, result, { to, name, lang })
   writeJson(path.join(project.out, 'latest.json'), result)
   emit({ type: 'done', what: 'export', ...result })

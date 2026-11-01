@@ -100,7 +100,8 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
 
 // A summary card per project: title, a one-line description (optional
 // "description" in shotloop.json), track, size, duration, a poster
-// (a still of the first shot that has one), last change
+// (a still of the first shot that has one), last change. A project that
+// can't be read comes back as { root, error }, for the app to show
 export function summaries(dirs) {
   return dirs.flatMap(dir => {
     if (!isProject(dir)) return []
@@ -123,8 +124,8 @@ export function summaries(dirs) {
         voice: voiceOn(p),
         duration: p.duration, shots: p.shots.length, poster, clip, changed: new Date(changed).toISOString()
       }]
-    } catch {
-      return []
+    } catch (err) {
+      return [{ root: path.resolve(dir), error: err.message }]
     }
   })
 }

@@ -11,8 +11,9 @@
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
-import { capture, ffmpeg, openRenderPage, pageGeometry, QUALITY } from './compose.mjs'
-import { SUBTITLE_BAND } from './cues.mjs'
+import { cachedFile, engineCode } from './cache.mjs'
+import { ffmpeg, openRenderPage, pageGeometry, QUALITY, renderPageFrames } from './compose.mjs'
+import { SUBTITLE_BAND, voiceLang } from './cues.mjs'
 import { cssSize } from './project.mjs'
 
 const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u
@@ -123,14 +124,14 @@ export function subtitleWindows(shot, cues) {
 }
 
 // Each chunk as a transparent PNG at the mode's size, cached by the texts,
-// their face and the size: text → file. Drawn in a folder of its own and
-// moved into place whole, so two renders at once never read a half-drawn
-// set
-export async function subtitleImages(project, mode, cues) {
+// their face, the size and this layer's code: text → file. Drawn in a
+// folder of its own and moved into place whole, so two renders at once
+// never read a half-drawn set
+async function subtitleImages(project, mode, cues) {
   const texts = [...new Set(cues.map(c => c.text))]
   const geo = pageGeometry(project, mode)
-  const lang = project.config.lang ?? 'en'
-  const key = createHash('sha256').update(JSON.stringify([2, geo, lang, texts])).digest('hex').slice(0, 16)
+  const lang = voiceLang(project)
+  const key = createHash('sha256').update(JSON.stringify([engineCode('subtitles.mjs', 'cues.mjs'), geo, lang, texts])).digest('hex').slice(0, 16)
   const dir = path.join(project.state, 'voice', 'subs', `${mode}-${key}`)
   const name = (d, i) => path.join(d, `${String(i).padStart(3, '0')}.png`)
   if (!fs.existsSync(dir)) {
@@ -140,14 +141,7 @@ export async function subtitleImages(project, mode, cues) {
       const html = path.join(tmp, 'subs.html')
       fs.writeFileSync(html, page(project.size, lang, texts))
       const p = await openRenderPage(html, geo, { transparent: true })
-      try {
-        for (let i = 0; i < texts.length; i++) {
-          await p.evaluate(`render(${i})`)
-          fs.writeFileSync(name(tmp, i), await capture(p))
-        }
-      } finally {
-        await p.close()
-      }
+      await renderPageFrames(p, texts.map((_, i) => i), i => name(tmp, i))
       // Another render may have finished the same set first: keep that one
       if (!fs.existsSync(dir)) fs.renameSync(tmp, dir)
     } finally {
@@ -159,25 +153,19 @@ export async function subtitleImages(project, mode, cues) {
 
 // A shot's clip with its subtitles burned in (the clip itself when it has
 // none), cached by the clip and its chunks
-export async function dressClip(project, shot, mode, clip, cues, images) {
+async function dressClip(project, shot, mode, clip, cues, images) {
   const windows = subtitleWindows(shot, cues)
   if (!windows.length) return clip
   const local = windows.map(c => ({ file: images.get(c.text), at: c.at, end: c.end }))
   // By the clip's place in the project, so a copy of the project (an
   // example opened as a draft) finds it
   const key = createHash('sha256').update(JSON.stringify([2, path.relative(project.root, clip), local.map(c => ({ ...c, file: path.relative(project.root, c.file) }))])).digest('hex').slice(0, 16)
-  const out = path.join(project.state, 'voice', 'clips', `${shot.id}-${mode}-${key}.mp4`)
-  if (fs.existsSync(out)) return out
-  fs.mkdirSync(path.dirname(out), { recursive: true })
-  const part = `${out}.${process.pid}.mp4`
   const chain = local.map((c, i) => `[v${i}][${i + 1}:v]overlay=0:0:enable='between(t,${c.at.toFixed(3)},${(c.end - 0.001).toFixed(3)})'[v${i + 1}]`)
-  await ffmpeg([
+  return cachedFile(path.join(project.state, 'voice', 'clips', `${shot.id}-${mode}-${key}.mp4`), part => ffmpeg([
     '-i', clip, ...local.flatMap(c => ['-i', c.file]),
     '-filter_complex', ['[0:v]null[v0]', ...chain, `[v${local.length}]format=yuv420p[out]`].join(';'),
     '-map', '[out]', '-c:v', 'libx264', ...QUALITY[mode], '-r', String(project.fps), '-movflags', '+faststart', part
-  ])
-  fs.renameSync(part, out)
-  return out
+  ]))
 }
 
 // Every shot's clip dressed for the film (clips: one per shot, in order),
