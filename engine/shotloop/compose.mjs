@@ -7,6 +7,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { openPage } from '../lib/chrome.mjs'
+import * as jsonl from '../lib/jsonl.mjs'
 
 // ---------------------------------------------------------------- events
 
@@ -16,11 +17,8 @@ let jsonMode = false
 export const setJson = on => (jsonMode = on)
 
 export function emit(event) {
-  if (jsonMode) {
-    process.stdout.write(JSON.stringify(event) + '\n')
-    return
-  }
-  if (event.type === 'progress') {
+  if (jsonMode) jsonl.emit(event)
+  else if (event.type === 'progress') {
     const eta = event.eta != null ? ` · ${Math.ceil(event.eta)} s left` : ''
     process.stdout.write(`\r${event.shot ?? ''} ${event.stage} ${event.done}/${event.total}${eta}      `)
     if (event.done === event.total) process.stdout.write('\n')

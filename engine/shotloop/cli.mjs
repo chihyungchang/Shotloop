@@ -47,7 +47,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parseArgs } from 'node:util'
+import { exit, parseFlags } from '../lib/jsonl.mjs'
 import { editMode, prune, status, worldKey } from './cache.mjs'
 import { readJson, writeJson } from './files.mjs'
 import { deliverCopy } from './deliver.mjs'
@@ -115,30 +115,9 @@ const OPTIONS = {
     json: { type: 'boolean' }
 }
 
-// A value that starts with "-" ("-5 tips", "- a list") would read as an
-// option: values of string options are joined to their flag first, and a
-// parse error still comes back as a JSON error event
-function parse(argv, options) {
-  const joined = []
-  for (let i = 0; i < argv.length; i++) {
-    const name = argv[i].startsWith('--') && !argv[i].includes('=') ? argv[i].slice(2) : null
-    if (name && options[name]?.type === 'string' && i + 1 < argv.length) joined.push(`--${name}=${argv[++i]}`)
-    else joined.push(argv[i])
-  }
-  try {
-    return parseArgs({ args: joined, allowPositionals: true, options })
-  } catch (err) {
-    console.log(JSON.stringify({ type: 'error', message: err.message }))
-    process.exit(1)
-  }
-}
-const { values, positionals } = parse(process.argv.slice(2), OPTIONS)
+const { values, positionals } = parseFlags(process.argv.slice(2), OPTIONS)
 setJson(!!values.json)
 const [cmd, ...args] = positionals
-
-// Exits once stdout is written out: process.exit drops what a pipe hasn't
-// taken yet, which cut long results (a status past 64 KB) short
-const exit = code => process.stdout.write('', () => process.exit(code))
 
 const result = value => {
   if (values.json) emit({ type: 'result', value })
