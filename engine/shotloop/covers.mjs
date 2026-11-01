@@ -14,7 +14,7 @@ import { ffmpeg } from './compose.mjs'
 import { safeId } from './files.mjs'
 import { renderCover } from './film.mjs'
 
-export const COVERS = process.env.SHOTLOOP_COVERS ?? path.join(os.homedir(), '.shotloop', 'covers')
+const COVERS = process.env.SHOTLOOP_COVERS ?? path.join(os.homedir(), '.shotloop', 'covers')
 
 const templateId = s => safeId(s, 'a template id')
 

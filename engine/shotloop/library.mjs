@@ -17,7 +17,7 @@ import path from 'node:path'
 import { POLY_CATEGORIES } from './data.mjs'
 import { safeId } from './files.mjs'
 
-export const LIBRARY = process.env.SHOTLOOP_LIBRARY ?? path.join(os.homedir(), '.shotloop', 'library')
+const LIBRARY = process.env.SHOTLOOP_LIBRARY ?? path.join(os.homedir(), '.shotloop', 'library')
 const SOURCES = ['polypizza', 'smithsonian']
 
 const UA = { 'user-agent': 'Shotloop (https://github.com/chihyungchang/Shotloop)' }
