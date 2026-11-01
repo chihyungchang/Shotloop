@@ -2,6 +2,11 @@
 //! of active jobs beside it, and a menu with the queue's state, Show
 //! Shotloop and Quit. The UI sends the menu's words in its language
 //! (set_tray_text); English until it does.
+//!
+//! The menu, icon and window calls here fail only once the app is closing
+//! and its menu or window is gone; there is no one left to tell, so their
+//! results are let go (`let _`). Without the app menu's item (app_menu),
+//! the tray's Check for Updates… still works.
 
 use std::sync::Mutex;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -112,7 +117,11 @@ pub fn batch_finished(app: &AppHandle, launch: &crate::queue::Launch, n: usize, 
     }
     if launch.notify_sound {
         let sound = if failed > 0 { "Basso" } else { "Glass" };
-        let _ = std::process::Command::new("afplay").arg(format!("/System/Library/Sounds/{sound}.aiff")).spawn();
+        match std::process::Command::new("/usr/bin/afplay").arg(format!("/System/Library/Sounds/{sound}.aiff")).spawn() {
+            // Waited for on its own thread, so it leaves no zombie behind
+            Ok(mut child) => drop(std::thread::spawn(move || child.wait())),
+            Err(e) => eprintln!("shotloop: could not play the alert sound: {e}"),
+        }
     }
     if launch.notify_desktop {
         let Some(t) = app.try_state::<Tray>() else { return };

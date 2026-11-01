@@ -101,12 +101,14 @@ pub fn node() -> Result<PathBuf, String> {
     if let Ok(path) = std::env::var("PATH") {
         candidates.extend(path.split(':').map(|d| Path::new(d).join("node")));
     }
-    // Last, whatever the user's own shell finds (any other version manager)
-    candidates.extend(shell_node());
+    let new_enough = |c: &PathBuf| c.exists() && node_version(c).is_some_and(|v| v >= 23);
     candidates
         .into_iter()
-        .filter(|c| c.exists())
-        .find(|c| node_version(c).is_some_and(|v| v >= 23))
+        .find(new_enough)
+        // Last, whatever the user's own shell finds (any other version
+        // manager): a login shell is slow to start, so only when nothing
+        // else matched
+        .or_else(|| shell_node().filter(new_enough))
         .ok_or_else(|| "Node.js 23 or newer not found (brew install node, or set SHOTLOOP_NODE)".into())
 }
 
