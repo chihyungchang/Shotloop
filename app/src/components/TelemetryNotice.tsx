@@ -4,10 +4,11 @@ import { t } from '../i18n'
 import { patchSettings, useSettings } from '../settings'
 
 // The first-launch notice about the anonymous usage counts (src/telemetry.ts):
-// they are on, here is what they hold, one click turns them off. Shown
-// until the answer is saved; nothing is sent before that. Settings that
-// can't be read show nothing here (the app's banner speaks for them)
-export function TelemetryNotice() {
+// what they are for in one line, the full list one click away (Settings →
+// General, `details`), one click turns them off. Shown until the answer is
+// saved; nothing is sent before that. Settings that can't be read show
+// nothing here (the app's banner speaks for them)
+export function TelemetryNotice({ details }: { details: () => void }) {
   const { settings } = useSettings()
   const [busy, setBusy] = useState(false)
   const { error, guard } = useErrorLine()
@@ -19,9 +20,9 @@ export function TelemetryNotice() {
     setBusy(false)
   }
   return (
-    <div className="dialog telemetry-notice" role="dialog" aria-label={t('telemetry.title')}>
-      <strong>{t('telemetry.title')}</strong>
-      <p className="hint">{t('telemetry.note')}</p>
+    <div className="dialog telemetry-notice" role="dialog" aria-label={t('telemetry.ask')}>
+      <strong>{t('telemetry.ask')}</strong>
+      <p className="hint">{t('telemetry.short')} <button className="link" onClick={details}>{t('telemetry.details')}</button></p>
       {error && <p className="small error">{error}</p>}
       <div className="dialog-actions">
         <button className="ghost" onClick={() => answer(true)} disabled={busy}>{t('telemetry.turnOff')}</button>
