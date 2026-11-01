@@ -12,10 +12,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { openPage } from '../lib/chrome.mjs'
-import { entry, takes, writeJson } from './cache.mjs'
+import { entry, takes } from './cache.mjs'
+import { writeJson } from './files.mjs'
 import { musicBed } from './bed.mjs'
 import { emit, ffmpeg, pixelSize } from './compose.mjs'
-import { findShot, loadProject, saveConfig } from './project.mjs'
+import { findShot, loadProject, updateConfig } from './project.mjs'
 import { renderShot, stillFrames } from './render.mjs'
 import { withVoice } from './voice.mjs'
 import { assertSubtitlesClear } from './check.mjs'
@@ -200,16 +201,11 @@ function coverSource(project, shot, time, mode) {
 
 // The cover's background frame: { shot, time } or null for none
 export function setCoverFrame(project, frame) {
-  const cfg = { ...project.config }
   if (frame) {
     findShot(project, frame.shot)
-    const time = Number(frame.time)
-    if (!(time >= 0)) throw new Error('the cover frame needs a time ≥ 0 within the shot')
-    cfg.coverFrame = { shot: frame.shot, time }
-  } else {
-    delete cfg.coverFrame
+    if (!(Number(frame.time) >= 0)) throw new Error('the cover frame needs a time ≥ 0 within the shot')
   }
-  saveConfig(project.root, cfg)
+  updateConfig(project.root, ({ coverFrame: _, ...cfg }) => (frame ? { ...cfg, coverFrame: { shot: frame.shot, time: Number(frame.time) } } : cfg))
   return loadProject(project.root)
 }
 

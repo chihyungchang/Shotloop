@@ -10,7 +10,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { captions, shot3d, WORLD_3D } from './create.mjs'
 import { DEFAULT_LOOK, lookById, lookPage, styleFiles, untouchedLook } from './looks.mjs'
-import { loadProject, saveConfig } from './project.mjs'
+import { writeJson } from './files.mjs'
+import { loadProject, updateConfig } from './project.mjs'
 import { styleById } from './styles.mjs'
 
 export const FILE = 'storyboard.json'
@@ -81,8 +82,7 @@ function toThreeD(project) {
   // Nothing is built yet: the 2D starter shots go, the plan's shots come as 3D
   for (const s of project.shots) fs.rmSync(path.dirname(s.code), { recursive: true, force: true })
   write('captions.html', captions(project.size, project.shots))
-  const { look, trackAuto, ...cfg } = project.config
-  saveConfig(project.root, { ...cfg, track: '3d', captions: 'captions.html' })
+  updateConfig(project.root, ({ look, trackAuto, ...cfg }) => ({ ...cfg, track: '3d', captions: 'captions.html' }))
   return loadProject(project.root)
 }
 
@@ -198,16 +198,16 @@ ${shots.map((s, i) => `| ${i + 1} | ${s.duration} s | ${cell(s.title)}: ${cell(s
     const old = before.get(s.id)
     return old?.cues && old.say === s.say && old.duration === s.duration ? { cues: old.cues, ...(old.sayFast ? { sayFast: old.sayFast } : {}) } : {}
   }
-  const cfg = {
-    ...project.config, shots: shots.map(s => ({ id: s.id, title: s.title, duration: s.duration, ...(s.say ? { say: s.say, ...timing(s) } : {}) })),
+  const fields = {
+    shots: shots.map(s => ({ id: s.id, title: s.title, duration: s.duration, ...(s.say ? { say: s.say, ...timing(s) } : {}) })),
     ...(typeof sb.lang === 'string' && sb.lang.trim() ? { lang: sb.lang.trim() } : {}),
     ...(look ? { look } : {}), ...(styleId ? { style: styleId } : {}), ...(project.track === '3d' ? { style: '3d' } : {})
   }
   if (project.captions && fs.readFileSync(project.captions, 'utf8').includes("film's timeline. (starter)")) {
     if (project.track === '3d') fs.writeFileSync(project.captions, captions(project.size, shots))
-    else cfg.captions = null
+    else fields.captions = null
   }
-  saveConfig(project.root, cfg)
+  updateConfig(project.root, cfg => ({ ...cfg, ...fields }))
   return { shots: shots.map(s => s.id), duration: film }
 }
 
@@ -254,6 +254,6 @@ export function deriveStoryboard(project) {
     copy: { idea: section(copy, 'Idea'), hook, body, facts },
     shots: shots.map(s => ({ ...s, show: placeholder(s.show) ? '' : s.show, text: placeholder(s.text) ? '' : s.text, motion: placeholder(s.motion) ? '' : s.motion }))
   }
-  fs.writeFileSync(path.join(project.root, FILE), JSON.stringify(sb, null, 2) + '\n')
+  writeJson(path.join(project.root, FILE), sb)
   return sb
 }

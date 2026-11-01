@@ -14,7 +14,8 @@
 // marked, and big backgrounds (a globe, a grid, a glow) stay unmarked and
 // may pass under the subtitles.
 
-import { shotKey, subtitleFile, writeJson } from './cache.mjs'
+import { shotKey, subtitleFile } from './cache.mjs'
+import { writeJson } from './files.mjs'
 import { emit, progress } from './compose.mjs'
 import { openShot } from './render2d.mjs'
 import { subtitleCss, subtitleCues, subtitleWindows } from './subtitles.mjs'

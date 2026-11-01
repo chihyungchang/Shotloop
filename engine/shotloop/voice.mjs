@@ -18,10 +18,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { wav } from '../video/music.mjs'
-import { readJson, writeJson } from './cache.mjs'
+import { readJson, writeJson } from './files.mjs'
 import { emit, ffmpeg, progress } from './compose.mjs'
 import { sentences, voiceOn } from './cues.mjs'
-import { loadProject, saveConfig } from './project.mjs'
+import { loadProject, updateConfig } from './project.mjs'
 import { isStarter } from './storyboard.mjs'
 import { dressClips } from './subtitles.mjs'
 
@@ -164,13 +164,12 @@ export async function fitVoice(project) {
   const changes = []
   const unspoken = []
   let n = 0
-  // shotloop.json's own shots, in order (project.shots adds paths and times)
-  const shots = []
-  for (const [i, own] of project.config.shots.entries()) {
-    const shot = project.shots[i]
-    const { cues, sayFast, ...rest } = own
+  // What the fit sets, per shot: its length and its line's timing (a shot
+  // without a line loses any timing it had)
+  const fitted = new Map()
+  for (const shot of project.shots) {
     if (!shot.say?.trim()) {
-      shots.push(rest)
+      fitted.set(shot.id, { say: shot.say, fit: { duration: shot.duration } })
       continue
     }
     const words = v.unspoken(shot.say, lang)
@@ -195,10 +194,20 @@ export async function fitVoice(project) {
       if (!fits(speech)) duration = Math.max(MIN_SHOT, ceil1(LEAD + speech + TAIL))
     }
     if (duration !== shot.duration) changes.push({ shot: shot.id, from: shot.duration, to: duration })
-    shots.push({ ...rest, duration, cues: cuesOf(parts), ...(speed !== base ? { sayFast: speed } : {}) })
+    fitted.set(shot.id, { say: shot.say, fit: { duration, cues: cuesOf(parts), ...(speed !== base ? { sayFast: speed } : {}) } })
     tick(++n)
   }
-  saveConfig(project.root, { ...project.config, lang, voice: { ...cfg, voice }, shots })
+  // Into shotloop.json as it is now: speaking took a while, and a shot
+  // whose line changed meanwhile keeps what it has (the next fit times it)
+  const { shots } = updateConfig(project.root, c => ({
+    ...c, lang, voice: { ...c.voice, voice },
+    shots: c.shots.map(s => {
+      const f = fitted.get(s.id)
+      if (!f || f.say !== s.say) return s
+      const { cues, sayFast, ...rest } = s
+      return { ...rest, ...f.fit }
+    })
+  }))
   syncStoryboard(project.root, shots)
   return { lang, voice, changes, unspoken, duration: round2(shots.reduce((t, s) => t + s.duration, 0)) }
 }
@@ -440,20 +449,17 @@ export async function pruneVoice(project) {
 
 // Turns the voice-over on or off, or changes its voice, speed or volume
 export function setVoice(project, { on, voice, speed, gain } = {}) {
-  const cur = voiceConfig(project) ?? { on: false }
-  const next = { ...cur }
-  if (on != null) next.on = !!on
-  if (voice != null) next.voice = String(voice)
+  const change = {}
+  if (on != null) change.on = !!on
+  if (voice != null) change.voice = String(voice)
   if (speed != null) {
-    const s = Number(speed)
-    if (!(s >= 0.8 && s <= 1.25)) throw new Error('speed must be 0.8–1.25')
-    next.speed = s
+    change.speed = Number(speed)
+    if (!(change.speed >= 0.8 && change.speed <= 1.25)) throw new Error('speed must be 0.8–1.25')
   }
   if (gain != null) {
-    const g = Number(gain)
-    if (!(g >= 0 && g <= 2)) throw new Error('gain must be 0–2')
-    next.gain = g
+    change.gain = Number(gain)
+    if (!(change.gain >= 0 && change.gain <= 2)) throw new Error('gain must be 0–2')
   }
-  saveConfig(project.root, { ...project.config, voice: next })
+  updateConfig(project.root, cfg => ({ ...cfg, voice: { on: false, ...cfg.voice, ...change } }))
   return loadProject(project.root)
 }

@@ -14,6 +14,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { readJson, writeJson } from './files.mjs'
 
 export const FILE = 'shotloop.json'
 
@@ -28,9 +29,8 @@ export function isProject(dir) {
 
 export function loadProject(dir) {
   const root = path.resolve(dir)
-  const file = path.join(root, FILE)
-  if (!fs.existsSync(file)) throw new Error(`not a Shotloop project (no ${FILE}): ${root}`)
-  const cfg = JSON.parse(fs.readFileSync(file, 'utf8'))
+  const cfg = readJson(path.join(root, FILE), null)
+  if (!cfg) throw new Error(`not a Shotloop project (no ${FILE}): ${root}`)
   validate(cfg)
 
   let t = 0
@@ -72,7 +72,16 @@ export function loadProject(dir) {
 
 export function saveConfig(root, cfg) {
   validate(cfg)
-  fs.writeFileSync(path.join(root, FILE), JSON.stringify(cfg, null, 2) + '\n')
+  writeJson(path.join(root, FILE), cfg)
+}
+
+// shotloop.json changed by fn, read afresh: a writer that ran for a while
+// (fitting the voice-over) changes only the fields it owns and keeps what
+// the app or another command wrote meanwhile. Returns what was written
+export function updateConfig(root, fn) {
+  const cfg = fn(readJson(path.join(root, FILE)))
+  saveConfig(root, cfg)
+  return cfg
 }
 
 export function findShot(project, id) {

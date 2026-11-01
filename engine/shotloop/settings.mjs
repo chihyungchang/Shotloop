@@ -1,11 +1,12 @@
 // Project settings the app changes: the title, and the music bed (a
 // synthesized preset, the person's own audio file, or none) with its
-// volume. Writes shotloop.json and music.json through saveConfig, so the
-// file keeps its shape.
+// volume. Each writes only its own fields of shotloop.json (updateConfig),
+// so the file keeps its shape and what another command wrote meanwhile.
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { saveConfig } from './project.mjs'
+import { writeJson } from './files.mjs'
+import { updateConfig } from './project.mjs'
 import { unbuilt } from './storyboard.mjs'
 import { composeBed, cutTimes, MOODS, newSeed } from './score.mjs'
 import { styleById } from './styles.mjs'
@@ -15,8 +16,7 @@ export const MUSIC_PRESETS = Object.keys(MOODS)
 
 // A new bed in a mood, written as the project's music.json
 export function writeBed(root, mood, project) {
-  const bed = composeBed(mood, { seed: newSeed(), duration: project.duration, cuts: cutTimes(project) })
-  fs.writeFileSync(path.join(root, 'music.json'), JSON.stringify(bed, null, 2) + '\n')
+  writeJson(path.join(root, 'music.json'), composeBed(mood, { seed: newSeed(), duration: project.duration, cuts: cutTimes(project) }))
 }
 
 // 3D final quality: EEVEE render samples per frame. 24 looks the same as
@@ -27,14 +27,9 @@ export const finalSamples = project => project.config.samples ?? DEFAULT_SAMPLES
 
 // samples: 4–512, or null for the default
 export function setSamples(project, samples) {
-  const cfg = { ...project.config }
-  if (samples == null) delete cfg.samples
-  else {
-    const n = Math.round(Number(samples))
-    if (!(n >= 4 && n <= 512)) throw new Error('samples must be 4–512')
-    cfg.samples = n
-  }
-  saveConfig(project.root, cfg)
+  const n = samples == null ? null : Math.round(Number(samples))
+  if (n != null && !(n >= 4 && n <= 512)) throw new Error('samples must be 4–512')
+  const cfg = updateConfig(project.root, ({ samples: _, ...cfg }) => (n == null ? cfg : { ...cfg, samples: n }))
   return { samples: cfg.samples ?? DEFAULT_SAMPLES, custom: cfg.samples != null, default: DEFAULT_SAMPLES }
 }
 
@@ -48,14 +43,14 @@ export function setStyle(project, id) {
     throw new Error('3D is only possible for a project made with Auto, before its shots are built')
   }
   if (style.track === '2d' && project.track === '3d') throw new Error('a 3D project has no 2D style')
-  saveConfig(project.root, { ...project.config, style: id, styleChosen: true })
+  updateConfig(project.root, cfg => ({ ...cfg, style: id, styleChosen: true }))
   return { style: id }
 }
 
 export function setTitle(project, title) {
   title = String(title ?? '').trim().slice(0, 120)
   if (!title) throw new Error('the title is empty')
-  saveConfig(project.root, { ...project.config, title })
+  updateConfig(project.root, cfg => ({ ...cfg, title }))
   return { title }
 }
 
@@ -63,24 +58,24 @@ export function setTitle(project, title) {
 // bed in the current mood; file: an audio file, copied into the project;
 // none: no music. gain: the bed's volume, 0–2
 export function setMusic(project, { preset, shuffle, file, none, gain }) {
-  const cfg = { ...project.config }
-  if (gain != null) cfg.musicGain = Math.min(2, Math.max(0, Number(gain)))
+  const own = {}
+  if (gain != null) own.musicGain = Math.min(2, Math.max(0, Number(gain)))
   if (none) {
-    cfg.music = null
+    own.music = null
   } else if (file) {
     if (!fs.existsSync(file)) throw new Error(`no such file: ${file}`)
     const dir = path.join(project.root, 'music')
     fs.mkdirSync(dir, { recursive: true })
     const name = path.basename(file).replace(/[^\w.-]+/g, '-')
     fs.copyFileSync(file, path.join(dir, name))
-    cfg.music = `music/${name}`
+    own.music = `music/${name}`
   } else if (preset || shuffle) {
     const mood = preset ?? musicInfo(project).preset
     if (!MOODS[mood]) throw new Error(`unknown music preset ${mood} (${MUSIC_PRESETS.join(', ')})`)
     writeBed(project.root, mood, project)
-    cfg.music = 'music.json'
+    own.music = 'music.json'
   }
-  saveConfig(project.root, cfg)
+  const cfg = updateConfig(project.root, cfg => ({ ...cfg, ...own }))
   return musicInfo({ ...project, config: cfg, music: cfg.music && path.join(project.root, cfg.music) })
 }
 

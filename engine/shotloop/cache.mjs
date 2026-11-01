@@ -13,6 +13,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { voiceCues } from './cues.mjs'
+import { readJson, writeJson } from './files.mjs'
 import { finalSamples } from './settings.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -159,22 +160,6 @@ export function musicKey(project) {
 
 export const shotState = (project, shot) => path.join(project.state, 'shots', shot.id)
 export const entryDir = (project, shot, mode, key) => path.join(shotState(project, shot), `${mode}-${key}`)
-
-export function readJson(file, fallback) {
-  try {
-    return JSON.parse(fs.readFileSync(file, 'utf8'))
-  } catch {
-    return fallback
-  }
-}
-
-export function writeJson(file, value) {
-  fs.mkdirSync(path.dirname(file), { recursive: true })
-  // Write then rename, so a reader never sees half a file
-  const tmp = `${file}.${process.pid}.tmp`
-  fs.writeFileSync(tmp, JSON.stringify(value, null, 2) + '\n')
-  fs.renameSync(tmp, file)
-}
 
 // A shot's last subtitle check (check.mjs), kept with the shot and valid
 // while its frames' key is unchanged: the app marks the shot until its
