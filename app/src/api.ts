@@ -229,6 +229,18 @@ export interface CoverTemplate {
   preview: string | null
 }
 
+// One entry of the AI's memory (engine/shotloop/memory.mjs): a note the
+// person wrote, or a lesson the AI kept while building
+export interface Memory {
+  id: string
+  by: 'user' | 'ai'
+  track: 'all' | '2d' | '3d'
+  text: string
+  // The title of the project a lesson was learned on
+  from: string | null
+  created: string | null
+}
+
 // What the new-project form sends (projects.rs NewProject)
 interface NewProject {
   dir: string
@@ -305,6 +317,10 @@ export const api = {
   coverReference: (project: string, file: string) => invoke<string>('covers', { action: 'reference', project, file }),
   // The cover page rendered as a preview (.shotloop/cover.png)
   coverPreview: (project: string) => invoke<string | null>('covers', { action: 'preview', project }),
+  // The AI's memory, read by every agent task
+  memory: () => invoke<Memory[]>('memory', { action: 'list' }),
+  addMemory: (text: string) => invoke<Memory>('memory', { action: 'add', text }),
+  removeMemory: (id: string) => invoke<void>('memory', { action: 'remove', id }),
   // The publish copy into an export's folder, written after the export
   deliverCopy: (path: string, folder: string, name: string) => invoke<string>('deliver_copy', { path, folder, name, lang: lang() }),
   defaultWorkspace: () => invoke<string>('default_workspace'),

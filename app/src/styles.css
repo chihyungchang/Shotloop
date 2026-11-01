@@ -223,6 +223,12 @@ h4 { margin: 0; font-size: 13px; font-weight: 600; color: var(--text-strong); }
 .pref-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--surface-2); border-radius: var(--r-md); }
 .pref-row > span { font-weight: 600; }
 .pref-row.boxed { background: transparent; border: 1px solid var(--border); }
+.memory-add { display: flex; gap: 8px; align-items: flex-end; }
+.memory-add textarea { flex: 1; min-width: 0; }
+.memory-row { align-items: flex-start; }
+.memory-row > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.memory-row p { overflow-wrap: anywhere; }
+.memory-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .about-row { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
 .about-row:last-of-type { border-bottom: 0; }
 .seg-control.wide { display: grid; grid-template-columns: repeat(3, 1fr); min-height: 40px; }

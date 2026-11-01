@@ -1,10 +1,10 @@
 // The third-party software Shotloop.app carries or fetches, with versions
 // and licenses, for Settings → About: the bundled programs (Node.js,
-// FFmpeg), the speech models and what the Chinese voice runs on
+// FFmpeg) and libraries (three.js, which 2D pages load), the speech models and what the Chinese voice runs on
 // (downloaded on first use), the npm packages of the app, the agent and
 // the voice-over, and the Rust crates of the shell. Read from the sources
-// of truth (scripts/sidecars.mjs, voice/src/models.mjs and cosyvoice.mjs,
-// pnpm, cargo), never written by hand.
+// of truth (scripts/sidecars.mjs, engine/shotloop/vendor/, voice/src/models.mjs
+// and cosyvoice.mjs, pnpm, cargo), never written by hand.
 //
 // Output: app/src/licenses.json. Run by `pnpm build` (tauri.bundle.json)
 // and by hand after a dependency changes.
@@ -24,6 +24,15 @@ const programs = [
   { name: 'Node.js', version: NODE, license: 'MIT', url: 'https://nodejs.org' },
   { name: 'FFmpeg', version: FFMPEG, license: 'GPL-3.0', url: 'https://ffmpeg.org' }
 ]
+
+// Copied into the engine, one folder per library, named <name>-<version>
+const VENDOR = path.join(REPO, 'engine', 'shotloop', 'vendor')
+const LIBRARIES = { three: { name: 'three.js', license: 'MIT', url: 'https://threejs.org' } }
+const libraries = fs.readdirSync(VENDOR).map(dir => {
+  const [, id, version] = dir.match(/^(.+)-(\d[\w.]*)$/) ?? []
+  if (!LIBRARIES[id]) throw new Error(`engine/shotloop/vendor/${dir}: add its license to LIBRARIES in licenses.mjs`)
+  return { ...LIBRARIES[id], version }
+})
 
 const models = Object.values(MODELS).map(m => ({ name: m.name, version: null, license: m.license, url: m.home }))
 
@@ -59,6 +68,7 @@ function crates() {
 const byName = (a, b) => a.name.localeCompare(b.name) || String(a.version).localeCompare(String(b.version))
 const groups = [
   { id: 'programs', items: programs },
+  { id: 'libraries', items: libraries },
   { id: 'models', items: models },
   { id: 'chineseVoice', items: CHINESE_VOICE },
   { id: 'npm', items: npm().sort(byName) },

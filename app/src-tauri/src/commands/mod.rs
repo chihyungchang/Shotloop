@@ -6,5 +6,6 @@ pub mod ai;
 pub mod app;
 pub mod library;
 pub mod media;
+pub mod memory;
 pub mod os;
 pub mod projects;

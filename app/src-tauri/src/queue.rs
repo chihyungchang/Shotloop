@@ -314,7 +314,7 @@ pub struct Launch {
     pub node: Option<PathBuf>,
     pub path: String,
     /// The settings' variables and the app's folders (examples, drafts,
-    /// library, voices, covers)
+    /// library, voices, covers, memory)
     pub env: Vec<(String, String)>,
     pub api_key: String,
     pub needs_key: bool,

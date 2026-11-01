@@ -116,7 +116,9 @@ export async function runCli(cli: CliId, { model, system, prompt, ctx, effort, m
       SHOTLOOP_WRITABLE: ctx.writable.join(','),
       SHOTLOOP_CHECKLIST: ctx.checklist,
       SHOTLOOP_SESSION: session,
-      ...(process.env.SHOTLOOP_ENGINE ? { SHOTLOOP_ENGINE: process.env.SHOTLOOP_ENGINE } : {})
+      ...(process.env.SHOTLOOP_ENGINE ? { SHOTLOOP_ENGINE: process.env.SHOTLOOP_ENGINE } : {}),
+      // remember writes the app's memory, not the default one in ~/.shotloop
+      ...(process.env.SHOTLOOP_MEMORY ? { SHOTLOOP_MEMORY: process.env.SHOTLOOP_MEMORY } : {})
     }
   }
   let last = ''

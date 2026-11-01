@@ -66,7 +66,8 @@ export const CODE_2D = `2D code rules:
 - Randomness comes from the kit's seeded hash(a, b), never Math.random(), so a frame always draws the same.
 - Don't animate the CSS transform of an SVG element that has a transform attribute (the CSS one replaces it and the element jumps): wrap it in a <g> that holds the position.
 - A clipPath's rectangle is in the user space of the element that uses it: clip the parent group, not rows that are themselves translated.
-- A little depth is fine with CSS 3D (perspective, transform-style: preserve-3d) on DOM elements; real geometry, light or a camera moving through space belongs in the 3D track.
+- A little depth is fine with CSS 3D (perspective, transform-style: preserve-3d) on DOM elements.
+- Only when a part can't be shown flat (gears that must mesh, a mechanism turning in space, motion seen from a frame that turns with it), draw that part with three.js; the rest of the shot stays DOM and SVG. const THREE = await ctx.three() in setup(), which also builds the scene once: a WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true }) whose canvas sits behind the stage, sized to the frame. It only has to read clearly, never to look real: simple geometry built in code (boxes, cylinders, extruded shapes, lathes), no model files. render(t) sets every position, rotation and the camera from t, by the mechanism's own math (a gear turned by its ratio, a piston by its crank), then calls renderer.render. Shade it in the look's colors (flat shading, EdgesGeometry lines for a drawn look). Labels and text stay in SVG or the DOM, placed each frame by projecting a point of the part (vector.project(camera)); report the part's projected extent with subtitles.keep.
 - Within a frame, keep caption, picture and source line from overlapping: give each its band of the safe area.`
 
 // The voice-over in a shot's code

@@ -2,6 +2,7 @@
 // caches across requests. A 2D project's prompts carry the 2D principles
 // (principles.ts).
 
+import type { Memory } from './enginelib.ts'
 import { CODE_2D, CODE_VOICE, PRINCIPLES_2D, PRINCIPLES_VOICE } from './principles.ts'
 
 type Track = '2d' | '3d'
@@ -139,7 +140,7 @@ ${voice ? `      "say": "<the voice-over: what the voice says over this shot, on
 How to plan:
 - 4 to 8 shots, one idea each. The first shot is the hook (3–4 s), the last an end card (2–3 s). ${voice ? 'The durations follow the lines (spoken and fitted after you plan) and add up to about the target: write as many words as the target holds.' : 'The durations add up to the target within half a second.'}
 - Pick the visual style first, from what the subject IS, using the list in the request (its "use when" and "avoid when"): a real thing or process you could film is a cinematic scene; numbers and their relations an infographic; places and routes a map; something on a screen an interface demo; how a machine works inside a blueprint; words themselves kinetic type (only then); an event that happened (a hack, a heist, a crash, a ruling), told as it unfolded, a news story; real geometry or a camera through space 3D (when offered). Look at the reference stills of each candidate (view_style) before deciding, and plan every shot in the style you picked, with its kit's devices.
-- Write for the track. 2D: animated typography, numbers, charts, diagrams, icons, lit scenes drawn in HTML, SVG and canvas. 3D: objects and places in a Blender scene, one camera move per shot.
+- Write for the track. 2D: animated typography, numbers, charts, diagrams, icons, lit scenes drawn in HTML, SVG and canvas, and, for a part no flat drawing can show (gears that mesh, a mechanism turning in space), that part in three.js inside the 2D frame. 3D: objects and places in a Blender scene, one camera move per shot.
 - Length "auto": as long as the content needs at the principles' reading pace, no padding: usually 20 to 45 s, never under 15 or over 60.
 - On-screen text is short: a headline or a number, never a paragraph. Write it, and the copy${voice ? ' and the spoken lines' : ''}, in the language of the idea.
 - 2D: plan by the 2D principles. Design each shot from what the viewer sees: its "show" is a picture in motion that fills the frame, built from the toolbox where one fits (name the device); its "text" is the one condensed caption; its "source" is the small source line. Alternate big-number shots with diagram shots, and give the story's turns their colors. ${voice ? 'Write each shot\'s "say" first (the voice-over rules), then the picture that shows it, and give the shot the time its line takes to speak' : 'Give each shot the time its captions need to be read (the principles\' reading time, plus about 0.5 s to enter)'}; when a beat needs more words, split it into two shots rather than crowd one. The plan is measured against these limits after you write it.
@@ -205,6 +206,18 @@ ${TYPE_RULES}
 - End with one sentence for the person about the shot. No headings, no lists.`
 }
 
+
+// The AI's memory for a task on this track: the person's notes, which are
+// rules, and the lessons of earlier videos. learn: the task builds or fixes
+// code, so it may keep a lesson of its own (the remember tool)
+export function memoryPrompt(entries: Memory[], track: Track, learn: boolean) {
+  const mine = entries.filter(m => m.by === 'user')
+  const lessons = entries.filter(m => m.by === 'ai' && (m.track === 'all' || m.track === track))
+  const list = (ms: Memory[]) => ms.map(m => `- [${m.id}]${m.track === 'all' ? '' : ` (${m.track.toUpperCase()})`} ${m.text}`).join('\n')
+  return (mine.length ? `\n\nThe person's notes (follow them in every video, unless this request says otherwise):\n${list(mine)}` : '')
+    + (lessons.length ? `\n\nLessons from earlier videos (what worked; use them where they fit):\n${list(lessons)}` : '')
+    + (learn ? `\n\nKeeping lessons: when something took more than one render to get right and what fixed it would help in another video, call remember with it before you end: one or two general sentences, what to do and why, naming nothing from this video. Not for this video's own slips, nor what the principles, the notes or the lessons already say. When it is close to a lesson above, pass that lesson's id as replaces with one merged text, so the memory stays short. At most two per task; most tasks keep none.` : '')
+}
 
 // The language of the publish posts: the app's UI language, the one the
 // person works and publishes in

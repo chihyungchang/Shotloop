@@ -10,15 +10,17 @@ import { privacyUrl } from '../telemetry'
 import type { useTheme } from '../theme/theme'
 import { AiSettings } from './AiSettings'
 import { Icon } from './Icon'
+import { MemorySettings } from './MemorySettings'
 import { Setup } from './Setup'
 import { ThemeToggle } from './ThemeToggle'
 import { VoiceDownload } from './VoiceDownload'
 import licenses from '../licenses.json'
 
-export type Section = 'ai' | 'assets' | 'general' | 'deps' | 'about'
+export type Section = 'ai' | 'memory' | 'assets' | 'general' | 'deps' | 'about'
 
 const SECTIONS: [Section, Key, Parameters<typeof Icon>[0]['name']][] = [
   ['ai', 'settings.ai', 'spark'],
+  ['memory', 'settings.memory', 'book'],
   ['assets', 'settings.assets', 'cube'],
   ['general', 'settings.general', 'settings'],
   ['deps', 'setup.deps', 'cpu'],
@@ -81,11 +83,12 @@ export function SettingsPage({ theme, language, jobs, back, start = 'ai', backLa
             </div>
           )}
           {/* Not read (yet, or at all: the app's banner says why) */}
-          {!settings && section !== 'about' && <p className="muted">{t('common.loading')}</p>}
+          {!settings && section !== 'about' && section !== 'memory' && <p className="muted">{t('common.loading')}</p>}
           {settings && section === 'ai' && <AiSettings settings={settings} update={update} />}
           {settings && section === 'general' && <General settings={settings} savePref={savePref} theme={theme} language={language} />}
           {settings && section === 'deps' && <><Setup settings={settings} update={update} /><VoiceModels jobs={jobs} /></>}
           {settings && section === 'assets' && <AssetSources settings={settings} update={update} />}
+          {section === 'memory' && <MemorySettings />}
           {section === 'about' && <AboutSection />}
         </div>
       </main>
@@ -226,6 +229,7 @@ function AboutSection() {
 const GROUPS: Record<string, { title: Key; note?: Key }> = {
   programs: { title: 'oss.programs', note: 'oss.programsNote' },
   models: { title: 'oss.models', note: 'oss.modelsNote' },
+  libraries: { title: 'oss.libraries', note: 'oss.librariesNote' },
   chineseVoice: { title: 'oss.chineseVoice', note: 'oss.chineseVoiceNote' },
   npm: { title: 'oss.npm' },
   crates: { title: 'oss.crates' }
@@ -238,7 +242,7 @@ function ThirdParty() {
       <p className="hint">{t('oss.intro')}</p>
       {error && <p className="error small">{error}</p>}
       {licenses.groups.map(g => (
-        <details key={g.id} className="oss-group" open={g.id === 'programs' || g.id === 'models' || g.id === 'chineseVoice'}>
+        <details key={g.id} className="oss-group" open={g.id === 'programs' || g.id === 'libraries' || g.id === 'models' || g.id === 'chineseVoice'}>
           <summary><strong>{t(GROUPS[g.id]?.title ?? 'oss.npm')}</strong> <span className="muted">{g.items.length}</span></summary>
           {GROUPS[g.id]?.note && <p className="hint">{t(GROUPS[g.id].note!)}</p>}
           <ul>

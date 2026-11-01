@@ -36,6 +36,7 @@
 //   shotloop music    <project> [--preset calm|bright|groove|tech|tense | --shuffle | --file <audio> | --none] [--gain 0–2] [--bed]
 //   shotloop covers   list | save <project> [--title <name>] | apply <project> <id> | remove <id>
 //                     | reference <project> --file <image>     cover templates, an image to design after
+//   shotloop memory   list | add --text "…" | remove <id>       the AI's memory: the person's notes, its lessons
 //   shotloop prune    <project>                          drop unused cache entries (shots and voice-over)
 //   shotloop doctor                                      Chrome, ffmpeg, Blender
 //
@@ -61,6 +62,7 @@ import { musicInfo, samplesInfo, setMusic, setSamples, setStyle, setTitle } from
 import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
 import * as covers from './covers.mjs'
 import * as library from './library.mjs'
+import * as memory from './memory.mjs'
 import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
 import { musicBed } from './bed.mjs'
@@ -102,6 +104,7 @@ const OPTIONS = {
     aspect: { type: 'string' },
     title: { type: 'string' },
     idea: { type: 'string' },
+    text: { type: 'string' },
     track: { type: 'string' },
     duration: { type: 'string' },
     look: { type: 'string' },
@@ -292,6 +295,14 @@ try {
       else if (sub === 'reference') result(await covers.reference(loadProject(a), values.file))
       else if (sub === 'remove') result(covers.remove(a))
       else throw new Error('covers list|save|apply|reference|remove')
+      break
+    }
+    case 'memory': {
+      const [sub, a] = args
+      if (sub === 'list') result(memory.list())
+      else if (sub === 'add') result(memory.add({ text: values.text }))
+      else if (sub === 'remove') result(memory.remove(a))
+      else throw new Error('memory list|add|remove')
       break
     }
     case 'storyboard':

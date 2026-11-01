@@ -24,10 +24,10 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { credits, head, ideaOf, looksBrief, read, recurring, shotBrief, stylesBrief, trackBrief, worldFiles } from './briefs.ts'
 import { engine, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
-import { parseFlags, STILLS } from './enginelib.ts'
+import { memory, parseFlags, STILLS, type Memory } from './enginelib.ts'
 import { emit, exit, reason, setJson, warn } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
-import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, planSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, TEMPLATE_RULES } from './prompts.ts'
+import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, memoryPrompt, planSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, TEMPLATE_RULES } from './prompts.ts'
 import { lintPlan, lintVoice } from './principles.ts'
 import { newContext, writeAtomic, type ToolContext } from './tools.ts'
 
@@ -52,6 +52,12 @@ setJson(!!values.json)
 // --model picks the model of the chosen backend (see providers.ts)
 if (values.model) process.env.SHOTLOOP_MODEL = values.model
 const [task, dir] = positionals
+
+// The memory as the task starts: lessons kept during it apply from the
+// next task, so agents working side by side share one system prompt (and
+// its cache)
+let MEMORY: Memory[] | undefined
+const remembered = (track: ProjectStatus['track'], learn: boolean) => memoryPrompt(MEMORY ??= memory.list(), track, learn)
 
 const stamp = () => new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15)
 const today = () => new Date().toISOString().slice(0, 10)
@@ -114,7 +120,7 @@ async function shotTask(kind: 'fix' | 'check') {
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent(kind === 'fix' ? 'code' : 'routine', {
     effort: kind === 'fix' ? 'high' : 'medium',
-    system: (kind === 'fix' ? fixSystem : checkSystem)(project.track, !!project.voiced) + replyLanguage(values.lang),
+    system: (kind === 'fix' ? fixSystem : checkSystem)(project.track, !!project.voiced) + remembered(project.track, !reviewOnly) + replyLanguage(values.lang),
     prompt: `${ask}\n\n${shotBrief(project, shot)}`,
     ctx
   })
@@ -163,7 +169,7 @@ async function planTask() {
   // The plan writes the lines when the voice-over is on (a new film has
   // none yet, so it isn't "voiced" until this plan)
   const speaks = !!project.voice?.on
-  const system = planSystem(project.track, speaks) + replyLanguage(values.lang)
+  const system = planSystem(project.track, speaks) + remembered(project.track, false) + replyLanguage(values.lang)
   const threeD = await threeDPossible(project)
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent('copy', {
@@ -276,7 +282,7 @@ async function buildWorld(project: ProjectStatus, b: Build) {
   const ctx = context(project.root, ['world/', 'captions.html'])
   await runAgent('code', {
     effort: 'high',
-    system: buildWorldSystem(project.track, !!project.voiced) + replyLanguage(values.lang),
+    system: buildWorldSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
     prompt: `Design the world of ${head(project)} from its plan.\n\ncopy.md:\n${b.copy}\n\n${worldFiles(project)}\n\n${project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')}`,
     ctx
   })
@@ -299,7 +305,7 @@ async function buildParts(project: ProjectStatus, b: Build): Promise<ShotStatus 
   try {
     const summary = await runAgent('code', {
       effort: 'high',
-      system: buildPartsSystem(!!project.voiced) + replyLanguage(values.lang),
+      system: buildPartsSystem(!!project.voiced) + remembered('2d', true) + replyLanguage(values.lang),
       prompt: `Draw the recurring pictures of ${head(project)} in world/parts.js, then build shot ${lead.id} with them.\n\nRecurring pictures:\n${parts.map(r => `- ${r.name} (shots ${r.shots.join(', ')}): ${r.design}`).join('\n')}\n\ncopy.md:\n${b.copy}\n\n${worldFiles(project)}\n\n${shotBrief(project, lead)}`,
       ctx
     })
@@ -324,7 +330,7 @@ async function buildShots(project: ProjectStatus, b: Build, lead: ShotStatus | u
     try {
       const summary = await runAgent('code', {
         effort: 'medium',
-        system: buildShotSystem(project.track, !!project.voiced) + replyLanguage(values.lang),
+        system: buildShotSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
         prompt: `Build shot ${shot.id} of ${head(project)} from its plan.\n\ncopy.md:\n${b.copy}\n\n${world}\n\n${shotBrief(project, shot)}`,
         ctx,
         maxTurns: 30
@@ -414,7 +420,7 @@ async function coverTask() {
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent('code', {
     effort: template ? 'medium' : 'high',
-    system: coverSystem() + replyLanguage(values.lang),
+    system: coverSystem() + remembered(project.track, false) + replyLanguage(values.lang),
     prompt: `${ask}${template}${values.template ? 'Fill the template for' : values.reference ? 'Recreate that design for' : 'Design the cover of'} ${head(project)}.\n\nShots:\n${shots}\n\n${docs}\n\n${page} now:\n${read(project.files.cover)}`,
     ctx
   })

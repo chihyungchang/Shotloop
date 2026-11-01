@@ -5,11 +5,14 @@
 //   export function setup(ctx) {}           optional, once per render
 //   export default function render(t, ctx)  t = 0 at the shot's first frame
 //
-// ctx = { window, document, world, start, duration, fps, id, voice }, where
+// ctx = { window, document, world, start, duration, fps, id, voice, three }, where
 // `world` is the page's own window.render (film time) if it defines one,
 // so a shot can delegate to it: world(ctx.start + t), and `voice` is the
 // shot's voice-over, one { text, at, end } per sentence in shot time (an
 // empty list without one), so the picture can land on the words.
+// ctx.three() loads three.js (the copy in vendor/), for a part a flat
+// drawing can't show (gears that mesh, motion seen from a turning frame):
+// const THREE = await ctx.three() in setup.
 //
 // The page also has window.subtitles.keep(x, y, w, h, name): canvas
 // drawing reports, each frame, a region the viewer must see (page CSS
@@ -20,6 +23,10 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { capture, frameName, openRenderPage, pageGeometry, progress } from './compose.mjs'
 import { voiceCues } from './cues.mjs'
+
+// Its version is in the folder's name, so a new one changes this file and
+// with it every 2D shot's cache key (cache.mjs, RENDERER_FILES)
+const THREE = pathToFileURL(path.join(import.meta.dirname, 'vendor', 'three-0.187.0', 'three.module.js')).href
 
 // The shot's page, ready to draw: openShot(...).draw(t) renders shot time t
 export async function openShot(project, shot, mode) {
@@ -36,7 +43,8 @@ export async function openShot(project, shot, mode) {
       const m = await import(${JSON.stringify(url)})
       if (typeof m.default !== 'function') throw new Error('shot.js must export default render(t, ctx)')
       const worldRender = typeof window.render === 'function' ? window.render : null
-      window.__shotloop = { render: m.default, ctx: { ...${ctx}, window, document, world: worldRender } }
+      const three = () => import(${JSON.stringify(THREE)})
+      window.__shotloop = { render: m.default, ctx: { ...${ctx}, window, document, world: worldRender, three } }
       await m.setup?.(window.__shotloop.ctx)
     })()`)
   } catch (err) {

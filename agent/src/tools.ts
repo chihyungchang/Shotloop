@@ -1,14 +1,14 @@
 // The agent's tools, deliberately narrow (docs/PRD.md §9): read and write
 // files inside the project, render stills through the engine, read the
-// checklist, report checks. No shell, no network, nothing outside the
-// project folder.
+// checklist, report checks, keep a lesson in the AI's memory. No shell, no
+// network, nothing else outside the project folder.
 
 import type Anthropic from '@anthropic-ai/sdk'
 import fs from 'node:fs'
 import path from 'node:path'
 import { renderCover, renderStills } from './engine.ts'
 import { emit, reason, warn } from './events.ts'
-import { STYLES, styleById, styleStills } from './enginelib.ts'
+import { memory, STYLES, styleById, styleStills } from './enginelib.ts'
 
 type Tool = Anthropic.Beta.BetaTool
 
@@ -199,6 +199,16 @@ export const TOOLS: Tool[] = [
       },
       summary: { type: 'string', description: 'One or two sentences for the person: what passed, what is left.' }
     }, ['shot', 'results', 'summary'])
+  },
+  {
+    name: 'remember',
+    description: 'Keep a lesson in Shotloop\'s memory, for every later video: what to do and why, in one or two general sentences. Pass the id of a lesson from the memory as replaces to merge into it.',
+    strict: true,
+    input_schema: object({
+      text: { type: 'string', description: 'The lesson, at most 500 characters, about no video in particular.' },
+      track: { type: 'string', enum: ['all', '2d', '3d'], description: 'The videos it applies to.' },
+      replaces: { type: 'string', description: 'Id of the lesson this one merges into and replaces; "" for a new one.' }
+    }, ['text', 'track', 'replaces'])
   }
 ]
 
@@ -338,6 +348,12 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
       const failed = results.filter(r => !r.pass).map(r => r.rule)
       emit({ type: 'tool', name, summary: `${shot}: ${failed.length ? `failed ${failed.join(', ')}` : 'all passed'}`, shot })
       return 'recorded'
+    }
+    case 'remember': {
+      const title = JSON.parse(fs.readFileSync(path.join(ctx.root, 'shotloop.json'), 'utf8')).title
+      const m = memory.add({ text: str('text'), by: 'ai', track: str('track'), from: typeof title === 'string' ? title : null, replaces: str('replaces') || null })
+      emit({ type: 'tool', name, summary: m.text })
+      return `kept as ${m.id}`
     }
     default:
       throw new Error(`unknown tool ${name}`)

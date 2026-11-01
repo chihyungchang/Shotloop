@@ -38,6 +38,8 @@ pub(crate) struct Dirs {
     voices: PathBuf,
     /// Cover templates
     covers: PathBuf,
+    /// The AI's memory: the person's notes and its lessons
+    memory: PathBuf,
 }
 
 impl Dirs {
@@ -48,6 +50,7 @@ impl Dirs {
             ("SHOTLOOP_LIBRARY", &self.library),
             ("SHOTLOOP_VOICES", &self.voices),
             ("SHOTLOOP_COVERS", &self.covers),
+            ("SHOTLOOP_MEMORY", &self.memory),
         ]
         .into_iter()
         .map(|(k, v)| (k.to_string(), v.display().to_string()))
@@ -141,7 +144,7 @@ pub fn run() {
             } else {
                 root.join("examples")
             };
-            let dirs = Dirs { examples, drafts: data.join("drafts"), library: data.join("library"), voices: data.join("voices"), covers: data.join("covers") };
+            let dirs = Dirs { examples, drafts: data.join("drafts"), library: data.join("library"), voices: data.join("voices"), covers: data.join("covers"), memory: data.join("memory") };
             // Drafts left from the last session are thrown away
             if let Err(e) = std::fs::remove_dir_all(&dirs.drafts) {
                 if e.kind() != std::io::ErrorKind::NotFound {
@@ -206,6 +209,7 @@ pub fn run() {
             commands::media::music,
             commands::media::voice,
             commands::media::voice_models,
+            commands::memory::memory,
             commands::library::library_search,
             commands::library::library,
             commands::ai::ai_detect,

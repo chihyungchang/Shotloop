@@ -18,6 +18,17 @@
    ]
   },
   {
+   "id": "libraries",
+   "items": [
+    {
+     "name": "three.js",
+     "license": "MIT",
+     "url": "https://threejs.org",
+     "version": "0.187.0"
+    }
+   ]
+  },
+  {
    "id": "models",
    "items": [
     {
