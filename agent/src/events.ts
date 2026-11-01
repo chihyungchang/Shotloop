@@ -58,6 +58,9 @@ export function emit(ev: AgentEvent) {
   }
 }
 
+// An error's message
+export const reason = (err: unknown) => (err instanceof Error ? err.message : String(err))
+
 // Something went wrong that the task survives: said, not swallowed
 export const warn = (message: string) => emit({ type: 'log', level: 'warning', message: `warning: ${message}` })
 

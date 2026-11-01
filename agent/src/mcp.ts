@@ -42,21 +42,19 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: TOOLS.map(t => ({ name: t.name, description: t.description, inputSchema: t.input_schema }))
 }))
 
+// A tool's output as MCP content: text, then each image after its label
 server.setRequestHandler(CallToolRequestSchema, async req => {
-  try {
-    const result = await runTool(ctx, req.params.name, (req.params.arguments ?? {}) as Record<string, unknown>)
-    saveSession(ctx, session)
-    const blocks = typeof result === 'string' || result == null ? [{ type: 'text', text: result ?? '' }] : result
-    return {
-      content: blocks.map(b => {
-        if (b.type === 'image' && 'source' in b && b.source.type === 'base64') {
-          return { type: 'image' as const, data: b.source.data, mimeType: b.source.media_type }
-        }
-        return { type: 'text' as const, text: 'text' in b ? String(b.text) : '' }
-      })
-    }
-  } catch (err) {
-    return { content: [{ type: 'text' as const, text: err instanceof Error ? err.message : String(err) }], isError: true }
+  const out = await runTool(ctx, req.params.name, (req.params.arguments ?? {}) as Record<string, unknown>)
+  saveSession(ctx, session)
+  return {
+    content: [
+      ...out.text.map(text => ({ type: 'text' as const, text })),
+      ...out.images.flatMap(i => [
+        ...(i.label ? [{ type: 'text' as const, text: `${i.label}:` }] : []),
+        { type: 'image' as const, data: i.data, mimeType: i.mediaType }
+      ])
+    ],
+    ...(out.isError ? { isError: true } : {})
   }
 })
 

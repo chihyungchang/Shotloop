@@ -7,10 +7,24 @@ import type Anthropic from '@anthropic-ai/sdk'
 import fs from 'node:fs'
 import path from 'node:path'
 import { renderCover, renderStills } from './engine.ts'
-import { emit } from './events.ts'
+import { emit, reason } from './events.ts'
 
 type Tool = Anthropic.Beta.BetaTool
-type ToolResult = Anthropic.Beta.BetaToolResultBlockParam['content']
+
+// What a tool call returns, in no backend's format: each backend (loop.ts,
+// local.ts, mcp.ts) maps it to its own. An image's label says what it is
+// ("start frame"); a failure is its message, with isError
+export interface ToolImage {
+  mediaType: 'image/png' | 'image/jpeg'
+  data: string
+  label?: string
+}
+export interface ToolOutput {
+  text: string[]
+  images: ToolImage[]
+  isError: boolean
+}
+type Output = string | { text?: string[]; images?: ToolImage[] }
 
 export interface CheckResult {
   rule: string
@@ -153,26 +167,33 @@ function listFiles(ctx: ToolContext, dir: string) {
   return out.join('\n') || '(empty)'
 }
 
-// A PNG or JPEG file as an image block (null for another kind of file)
-const imageType = (file: string): 'image/png' | 'image/jpeg' | null =>
+// A PNG or JPEG file's type (null for another kind of file)
+const imageType = (file: string): ToolImage['mediaType'] | null =>
   (/\.png$/i.test(file) ? 'image/png' : /\.jpe?g$/i.test(file) ? 'image/jpeg' : null)
-function imageBlock(file: string) {
-  const media_type = imageType(file)
-  if (!media_type) throw new Error(`${path.basename(file)} is not a PNG or JPEG image`)
-  return { type: 'image' as const, source: { type: 'base64' as const, media_type, data: fs.readFileSync(file).toString('base64') } }
+function image(file: string, label?: string): ToolImage {
+  const mediaType = imageType(file)
+  if (!mediaType) throw new Error(`${path.basename(file)} is not a PNG or JPEG image`)
+  return { mediaType, data: fs.readFileSync(file).toString('base64'), ...(label ? { label } : {}) }
 }
 
-function stillBlocks(files: string[]): ToolResult {
-  const names = ['start', 'middle', 'end']
-  const blocks: Exclude<ToolResult, string | undefined> = []
-  files.forEach((f, i) => {
-    blocks.push({ type: 'text', text: `${names[i]} frame:` })
-    blocks.push(imageBlock(f))
-  })
-  return blocks
+const STILL_NAMES = ['start', 'middle', 'end']
+
+// Runs one tool call; a failure comes back as its message (and is shown
+// in the activity log), for the model to read and recover from
+export async function runTool(ctx: ToolContext, name: string, input: Record<string, unknown>): Promise<ToolOutput> {
+  try {
+    const out = await execute(ctx, name, input)
+    return typeof out === 'string'
+      ? { text: [out], images: [], isError: false }
+      : { text: out.text ?? [], images: out.images ?? [], isError: false }
+  } catch (err) {
+    const message = reason(err)
+    emit({ type: 'tool', name, summary: `failed: ${message.split('\n')[0]}` })
+    return { text: [message], images: [], isError: true }
+  }
 }
 
-export async function runTool(ctx: ToolContext, name: string, input: Record<string, unknown>): Promise<ToolResult> {
+async function execute(ctx: ToolContext, name: string, input: Record<string, unknown>): Promise<Output> {
   const str = (k: string) => {
     if (typeof input[k] !== 'string') throw new Error(`${k} must be a string`)
     return input[k] as string
@@ -214,15 +235,13 @@ export async function runTool(ctx: ToolContext, name: string, input: Record<stri
       const r = await renderStills(ctx.root, shot)
       if (!r.stills) throw new Error('the render produced no stills')
       ctx.renders.set(shot, r.stills)
-      const blocks = stillBlocks(r.stills) as Exclude<ToolResult, string | undefined>
+      const images = r.stills.map((f, i) => image(f, `${STILL_NAMES[i]} frame`))
       // The subtitle check that ran before the render: the stills don't
       // show the subtitles, so what they would cover is said in words
-      if (r.subtitles) {
-        blocks.push({ type: 'text', text: r.subtitles.length
-          ? `Subtitle check: the voice-over's subtitles would cover\n${r.subtitles.map(i => `- ${i.from.toFixed(1)}–${i.to.toFixed(1)} s: ${i.what}`).join('\n')}\nMove it out of the subtitle band, or let it pass under only if it is background.`
-          : 'Subtitle check: nothing the viewer must see is under the subtitles.' })
-      }
-      return blocks
+      if (!r.subtitles) return { images }
+      return { images, text: [r.subtitles.length
+        ? `Subtitle check: the voice-over's subtitles would cover\n${r.subtitles.map(i => `- ${i.from.toFixed(1)}–${i.to.toFixed(1)} s: ${i.what}`).join('\n')}\nMove it out of the subtitle band, or let it pass under only if it is background.`
+        : 'Subtitle check: nothing the viewer must see is under the subtitles.'] }
     }
     case 'view_style': {
       const id = str('style')
@@ -233,11 +252,7 @@ export async function runTool(ctx: ToolContext, name: string, input: Record<stri
       const style = styleById(id)
       if (!style) throw new Error(`no style ${id} (scene, infographic, map, ui, blueprint, kinetic, news, 3d)`)
       emit({ type: 'tool', name, summary: id })
-      const blocks: Exclude<ToolResult, string | undefined> = [{ type: 'text', text: style.why }]
-      for (const f of styleStills(id)) {
-        blocks.push(imageBlock(f))
-      }
-      return blocks
+      return { text: [style.why], images: styleStills(id).map((f, i) => image(f, `${id} reference ${i + 1}`)) }
     }
     case 'view_image': {
       const { abs, rel } = resolve(ctx, str('path'))
@@ -245,7 +260,7 @@ export async function runTool(ctx: ToolContext, name: string, input: Record<stri
       if (!fs.existsSync(abs)) throw new Error(`${rel} does not exist`)
       if (fs.statSync(abs).size > 4 * 1024 * 1024) throw new Error(`${rel} is larger than 4 MB`)
       emit({ type: 'tool', name, summary: rel })
-      return [{ type: 'text', text: `${rel}:` }, imageBlock(abs)]
+      return { images: [image(abs, rel)] }
     }
     case 'render_cover': {
       // Only the cover task, which may write the cover page
@@ -256,7 +271,7 @@ export async function runTool(ctx: ToolContext, name: string, input: Record<stri
       emit({ type: 'tool', name, summary: shot ? `${shot} @ ${time} s` : 'no frame' })
       const file = await renderCover(ctx.root, shot ? { shot, time } : null)
       if (!file) throw new Error('this project has no cover page')
-      return [{ type: 'text', text: 'cover:' }, imageBlock(file)]
+      return { images: [image(file, 'cover')] }
     }
     case 'read_checklist':
       emit({ type: 'tool', name })

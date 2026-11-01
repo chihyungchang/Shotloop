@@ -16,6 +16,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { emit } from './events.ts'
+import { MODELS } from './loop.ts'
 import { failure, spawnLines, type Run } from './spawn.ts'
 import { codeOf, loadSession, type ToolContext } from './tools.ts'
 
@@ -25,7 +26,7 @@ export type CliId = 'claude' | 'codex' | 'gemini'
 // default when none is chosen) and how to install it
 export const CLIS: { id: CliId; name: string; bin: string; vendor: string; note?: string; models: string[]; install: string; url: string }[] = [
   { id: 'claude', name: 'Claude Code', bin: 'claude', vendor: 'Anthropic',
-    models: ['opus', 'sonnet', 'haiku', 'claude-opus-5-5', 'claude-sonnet-5-5'],
+    models: ['opus', 'sonnet', 'haiku', ...new Set(Object.values(MODELS))],
     install: 'npm install -g @anthropic-ai/claude-code', url: 'https://docs.anthropic.com/en/docs/claude-code' },
   { id: 'codex', name: 'Codex CLI', bin: 'codex', vendor: 'OpenAI', note: 'experimental',
     models: ['gpt-5.5', 'gpt-5.2'], install: 'npm install -g @openai/codex', url: 'https://github.com/openai/codex' },

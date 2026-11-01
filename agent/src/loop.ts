@@ -3,8 +3,8 @@
 // one user message.
 
 import Anthropic from '@anthropic-ai/sdk'
-import { emit } from './events.ts'
-import { runTool, TOOLS, type ToolContext } from './tools.ts'
+import { runTool, TOOLS, type ToolContext, type ToolOutput } from './tools.ts'
+import { MAX_TURNS, runTurns } from './turns.ts'
 
 export const MODELS = {
   // Planning and scene code
@@ -28,16 +28,30 @@ export interface AgentOptions {
   apiKey?: string
 }
 
+// A tool's output as a tool_result: text alone as a string, images each
+// after its label
+export function toToolResult(id: string, out: ToolOutput): Anthropic.Beta.BetaToolResultBlockParam {
+  const content = out.images.length
+    ? [
+        ...out.text.map(text => ({ type: 'text' as const, text })),
+        ...out.images.flatMap(i => [
+          ...(i.label ? [{ type: 'text' as const, text: `${i.label}:` }] : []),
+          { type: 'image' as const, source: { type: 'base64' as const, media_type: i.mediaType, data: i.data } }
+        ])
+      ]
+    : out.text.join('\n')
+  return { type: 'tool_result', tool_use_id: id, content, ...(out.isError ? { is_error: true } : {}) }
+}
+
 // Returns the agent's last text: its summary for the person
-export async function runAgent({ model, effort, system, prompt, ctx, maxTurns = 40, baseURL, apiKey }: AgentOptions): Promise<string> {
+export async function runAgent({ model, effort, system, prompt, ctx, maxTurns = MAX_TURNS, baseURL, apiKey }: AgentOptions): Promise<string> {
   // The user's own key, from the app; Anthropic-only request options are
   // sent to Anthropic's API only
   const client = new Anthropic({ ...(apiKey ? { apiKey } : {}), ...(baseURL ? { baseURL } : {}) })
   const official = !baseURL || new URL(baseURL).hostname.endsWith('anthropic.com')
   const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: 'user', content: prompt }]
-  let last = ''
 
-  for (let turn = 0; turn < maxTurns; turn++) {
+  return runTurns(maxTurns, async say => {
     const res = await client.beta.messages.create({
       model,
       max_tokens: 16000,
@@ -55,33 +69,18 @@ export async function runAgent({ model, effort, system, prompt, ctx, maxTurns = 
         : {})
     })
 
-    for (const block of res.content) {
-      if (block.type === 'text' && block.text.trim()) {
-        last = block.text.trim()
-        emit({ type: 'text', text: last })
-      }
-    }
+    for (const block of res.content) if (block.type === 'text') say(block.text)
     if (res.stop_reason === 'refusal') throw new Error('the request was declined by the model')
     if (res.stop_reason === 'max_tokens') throw new Error('the response hit max_tokens before finishing')
 
     messages.push({ role: 'assistant', content: res.content })
-    if (res.stop_reason === 'pause_turn') continue
+    if (res.stop_reason === 'pause_turn') return true
 
     const calls = res.content.filter((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === 'tool_use')
-    if (!calls.length) return last
-
+    if (!calls.length) return false
     const results: Anthropic.Beta.BetaToolResultBlockParam[] = []
-    for (const call of calls) {
-      try {
-        const content = await runTool(ctx, call.name, call.input as Record<string, unknown>)
-        results.push({ type: 'tool_result', tool_use_id: call.id, content })
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err)
-        emit({ type: 'tool', name: call.name, summary: `failed: ${message.split('\n')[0]}` })
-        results.push({ type: 'tool_result', tool_use_id: call.id, content: message, is_error: true })
-      }
-    }
+    for (const call of calls) results.push(toToolResult(call.id, await runTool(ctx, call.name, call.input as Record<string, unknown>)))
     messages.push({ role: 'user', content: results })
-  }
-  throw new Error(`stopped after ${maxTurns} turns without finishing`)
+    return true
+  })
 }
