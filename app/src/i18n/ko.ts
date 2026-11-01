@@ -184,6 +184,8 @@ export const ko: Record<Key, string> = {
   'pick.hint': '바꿀 요소를 클릭 · Esc로 취소',
   'pick.busy': '정지 화면을 분석하는 중…',
   'pick.nothing': '배경뿐입니다. 대상 위를 클릭하세요',
+  'pick.stale': '스틸이 이전 코드로 그려졌습니다. 다시 렌더링한 뒤 선택하세요',
+  'pick.failed': '스틸을 읽지 못했습니다(위 오류 참고)',
   'pick.scene': '3D 장면',
   'pick.canvas': '캔버스 그림',
   'pick.remove': '요소 제거',

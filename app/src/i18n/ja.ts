@@ -184,6 +184,8 @@ export const ja: Record<Key, string> = {
   'pick.hint': '変更したい要素をクリック · Esc でキャンセル',
   'pick.busy': '静止画を解析中…',
   'pick.nothing': 'そこは背景だけです。物の上をクリックしてください',
+  'pick.stale': '静止画が古いコードのままです。レンダリングし直してから選んでください',
+  'pick.failed': '静止画を読み取れませんでした（上のエラーを参照）',
   'pick.scene': '3D シーン',
   'pick.canvas': 'キャンバスの描画',
   'pick.remove': '要素を外す',

@@ -296,7 +296,7 @@ function AgentResizer({ keep }: { keep: (w: number | null) => void }) {
     const from = panel(handle).getBoundingClientRect().width - e.clientX
     handle.setPointerCapture(e.pointerId)
     document.body.classList.add('resizing')
-    let width = from + e.clientX
+    let width: number | null = null
     handle.onpointermove = ev => {
       width = clampWidth(from + ev.clientX)
       handle.parentElement!.style.setProperty('--agent-w', `${width}px`)
@@ -306,7 +306,8 @@ function AgentResizer({ keep }: { keep: (w: number | null) => void }) {
       handle.onpointermove = null
       handle.onlostpointercapture = null
       document.body.classList.remove('resizing')
-      keep(clampWidth(width))
+      // A click without a drag leaves the width as it was
+      if (width != null) keep(width)
     }
   }
   const step = (e: KeyboardEvent<HTMLDivElement>) => {

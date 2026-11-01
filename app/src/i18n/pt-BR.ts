@@ -184,6 +184,8 @@ export const ptBR: Record<Key, string> = {
   'pick.hint': 'Clique no que quer mudar · Esc para cancelar',
   'pick.busy': 'Lendo os quadros…',
   'pick.nothing': 'Ali só há fundo. Clique em um objeto',
+  'pick.stale': 'Os quadros mostram código antigo: renderize de novo para escolher',
+  'pick.failed': 'Não foi possível ler os quadros (veja o erro acima)',
   'pick.scene': 'Cena 3D',
   'pick.canvas': 'Desenho do canvas',
   'pick.remove': 'Remover o elemento',

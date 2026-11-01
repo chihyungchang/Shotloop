@@ -33,7 +33,7 @@ function tokens(source: string): Span[] {
 
 // The source as lines of spans: a comment or string over several lines
 // is split at its line breaks, so each line can be its own block
-export function highlightLines(source: string): Span[][] {
+function highlightLines(source: string): Span[][] {
   const lines: Span[][] = [[]]
   for (const span of tokens(source)) {
     span.text.split('\n').forEach((part, i) => {

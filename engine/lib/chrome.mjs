@@ -160,9 +160,24 @@ export async function openPage({
     },
     async close() {
       ws.close()
-      chrome.kill()
-      await sleep(200)
-      fs.rmSync(profile, { recursive: true, force: true })
+      // The profile goes once Chrome has exited: one still shutting down
+      // writes into it, and removing it then fails (ENOTEMPTY). Its helper
+      // processes may write a moment longer, so the removal retries
+      if (chrome.exitCode == null && chrome.signalCode == null) {
+        const exited = new Promise(r => chrome.once('exit', r))
+        chrome.kill()
+        // One that ignores the request is stopped outright
+        if ((await Promise.race([exited.then(() => true), sleep(5000).then(() => false)])) === false) {
+          chrome.kill('SIGKILL')
+          await exited
+        }
+      }
+      try {
+        fs.rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+      } catch {
+        // Left in the temp folder, which the system clears: the render (or
+        // its own error) is what matters to whoever closes the page
+      }
     }
   }
 }

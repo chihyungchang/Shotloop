@@ -184,6 +184,8 @@ export const es: Record<Key, string> = {
   'pick.hint': 'Haz clic en lo que quieres cambiar · Esc para cancelar',
   'pick.busy': 'Leyendo los fotogramas…',
   'pick.nothing': 'Ahí solo hay fondo. Haz clic en un objeto',
+  'pick.stale': 'Los fotogramas muestran código anterior: vuelve a renderizarlos para elegir',
+  'pick.failed': 'No se pudieron leer los fotogramas (mira el error de arriba)',
   'pick.scene': 'Escena 3D',
   'pick.canvas': 'Dibujo del canvas',
   'pick.remove': 'Quitar el elemento',

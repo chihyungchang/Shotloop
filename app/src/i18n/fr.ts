@@ -184,6 +184,8 @@ export const fr: Record<Key, string> = {
   'pick.hint': 'Cliquez sur ce qu’il faut changer · Échap pour annuler',
   'pick.busy': 'Lecture des images fixes…',
   'pick.nothing': 'Il n’y a que le fond ici. Cliquez sur un objet',
+  'pick.stale': 'Les images fixes montrent un code plus ancien : rendez-les à nouveau pour choisir',
+  'pick.failed': 'Impossible de lire les images fixes (voir l’erreur ci-dessus)',
   'pick.scene': 'Scène 3D',
   'pick.canvas': 'Dessin du canvas',
   'pick.remove': 'Retirer l’élément',

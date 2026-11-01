@@ -185,6 +185,8 @@ export const en = {
   'pick.hint': 'Click what to change · Esc to cancel',
   'pick.busy': 'Reading the stills…',
   'pick.nothing': 'Only background there. Click on a thing',
+  'pick.stale': 'The stills show older code: render them again to pick',
+  'pick.failed': 'Couldn’t read the stills (see the error above)',
   'pick.scene': '3D scene',
   'pick.canvas': 'Canvas drawing',
   'pick.remove': 'Remove the element',

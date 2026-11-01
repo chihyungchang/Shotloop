@@ -184,6 +184,8 @@ export const vi: Record<Key, string> = {
   'pick.hint': 'Nhấp vào thứ cần sửa · Esc để hủy',
   'pick.busy': 'Đang đọc các khung hình…',
   'pick.nothing': 'Chỗ đó chỉ có nền. Hãy nhấp vào một vật',
+  'pick.stale': 'Khung hình vẫn vẽ từ mã cũ: hãy kết xuất lại rồi chọn',
+  'pick.failed': 'Không đọc được khung hình (xem lỗi ở trên)',
   'pick.scene': 'Cảnh 3D',
   'pick.canvas': 'Hình vẽ trên canvas',
   'pick.remove': 'Bỏ phần tử',

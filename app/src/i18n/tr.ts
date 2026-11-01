@@ -184,6 +184,8 @@ export const tr: Record<Key, string> = {
   'pick.hint': 'Değişecek şeye tıkla · İptal için Esc',
   'pick.busy': 'Kareler okunuyor…',
   'pick.nothing': 'Orada yalnızca arka plan var. Bir nesneye tıkla',
+  'pick.stale': 'Kareler eski kodu gösteriyor: seçmek için yeniden işleyin',
+  'pick.failed': 'Kareler okunamadı (yukarıdaki hataya bakın)',
   'pick.scene': '3B sahne',
   'pick.canvas': 'Canvas çizimi',
   'pick.remove': 'Öğeyi kaldır',

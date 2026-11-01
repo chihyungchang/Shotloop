@@ -184,6 +184,8 @@ export const id: Record<Key, string> = {
   'pick.hint': 'Klik yang ingin diubah · Esc untuk batal',
   'pick.busy': 'Membaca bingkai diam…',
   'pick.nothing': 'Di situ hanya latar. Klik pada sebuah objek',
+  'pick.stale': 'Bingkai masih dari kode lama: render ulang dulu untuk memilih',
+  'pick.failed': 'Bingkai tidak bisa dibaca (lihat galat di atas)',
   'pick.scene': 'Adegan 3D',
   'pick.canvas': 'Gambar di canvas',
   'pick.remove': 'Hapus elemen',

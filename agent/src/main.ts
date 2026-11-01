@@ -194,7 +194,7 @@ ${trackBrief(project, threeD)} · frame ${size} · target length ${project.lengt
     return sb as { target?: number; shots: { title?: string; duration: number; text?: string; say?: string }[] }
   }
   let sb = load()
-  keepChosenLook(project, existing)
+  const aiLook = keepChosenLook(project, existing)
   sb = load()
   // 2D: measured against the principles; what breaks them goes back once
   // A bar of the music: no caption is up for less (the bed may be tuned
@@ -214,7 +214,7 @@ ${trackBrief(project, threeD)} · frame ${size} · target length ${project.lengt
       prompt: revisePlanPrompt(issues, speaks, Number(sb.target) || (project.lengthAuto ? null : project.duration), fs.readFileSync(file, 'utf8')),
       ctx
     })
-    keepChosenLook(project, existing)
+    keepChosenLook(project, existing, aiLook)
     sb = load()
     issues = lint()
   }
@@ -223,18 +223,23 @@ ${trackBrief(project, threeD)} · frame ${size} · target length ${project.lengt
 
 // The look the planner picked is the AI's (lookAi, offered on the plan
 // page as "AI picks"); a look the person chose, on the plan page before
-// this plan or on Home, is laid over it while its style can draw it
-function keepChosenLook(project: ProjectStatus, before: string | null) {
-  if (project.track !== '2d') return
+// this plan or on Home, is laid over it while its style can draw it.
+// After a revision, which sees the person's look in the file, the AI's
+// pick is the one it made first (earlier), unless it picked anew.
+// Gives back the AI's pick
+function keepChosenLook(project: ProjectStatus, before: string | null, earlier?: string) {
+  if (project.track !== '2d') return undefined
   const file = path.join(project.root, 'storyboard.json')
   const sb = JSON.parse(fs.readFileSync(file, 'utf8'))
   const prev = before ? JSON.parse(before) : null
   const home = (JSON.parse(read(path.join(project.root, 'shotloop.json'))) as { look?: string }).look
   const chosen = prev?.lookChosen ? prev.look : prev ? null : home
-  const next = { ...sb, lookAi: sb.look }
+  const ai = earlier && chosen && sb.look === chosen ? earlier : sb.look
+  const next = { ...sb, lookAi: ai }
   if (chosen && lookFits(sb.style, chosen)) Object.assign(next, { look: chosen, lookChosen: true })
   else delete next.lookChosen
   writeAtomic(file, JSON.stringify(next, null, 2) + '\n')
+  return ai
 }
 
 // 3D is a choice only for a project made with "auto" and a Mac with Blender

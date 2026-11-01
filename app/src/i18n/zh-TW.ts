@@ -184,6 +184,8 @@ export const zhTW: Record<Key, string> = {
   'pick.hint': '點擊要修改的元素 · Esc 取消',
   'pick.busy': '正在分析靜態影格…',
   'pick.nothing': '那裡只有背景，請點在具體的東西上',
+  'pick.stale': '靜態影格還是舊程式碼畫的，請先重新渲染再選',
+  'pick.failed': '無法讀取靜態影格（錯誤見上方）',
   'pick.scene': '3D 場景',
   'pick.canvas': '畫布繪製',
   'pick.remove': '移除這個元素',

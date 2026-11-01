@@ -184,6 +184,8 @@ export const de: Record<Key, string> = {
   'pick.hint': 'Klicke auf das, was sich ändern soll · Esc bricht ab',
   'pick.busy': 'Standbilder werden gelesen…',
   'pick.nothing': 'Dort ist nur Hintergrund. Klicke auf ein Objekt',
+  'pick.stale': 'Die Standbilder zeigen älteren Code: erst neu rendern, dann wählen',
+  'pick.failed': 'Standbilder konnten nicht gelesen werden (Fehler siehe oben)',
   'pick.scene': '3D-Szene',
   'pick.canvas': 'Canvas-Zeichnung',
   'pick.remove': 'Element entfernen',

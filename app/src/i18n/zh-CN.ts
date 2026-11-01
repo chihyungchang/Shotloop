@@ -179,6 +179,8 @@ export const zhCN: Record<Key, string> = {
   'pick.hint': '点击要修改的元素 · Esc 取消',
   'pick.busy': '正在分析静帧…',
   'pick.nothing': '那里只有背景，请点在具体的东西上',
+  'pick.stale': '静帧还是旧代码画的，先重新渲染静帧再选',
+  'pick.failed': '没能读取静帧（错误见上方）',
   'pick.scene': '3D 场景',
   'pick.canvas': '画布绘制',
   'pick.remove': '移除这个元素',

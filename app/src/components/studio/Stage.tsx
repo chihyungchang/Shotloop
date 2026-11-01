@@ -35,12 +35,16 @@ export function Stage({ project, shot, view, mode, refresh, picker }: {
   const { error, guard } = useErrorLine()
   const stage = useRef<HTMLDivElement>(null)
   const picking = !!picker?.picking && tab === 'stills'
-  // The pick map of the shot's code as it is now (its cache key), the
-  // thing under the pointer, and a click that found only the background
+  // The pick map of the shot's code as it is now (its cache key), one
+  // that could not be made (its key), the thing under the pointer, and a
+  // click that found only the background. Stills of older code (stale)
+  // aren't what the map describes: they are rendered again first
   const [map, setMap] = useState<{ key: string; map: PickMap } | null>(null)
+  const [failed, setFailed] = useState<string | null>(null)
   const [hover, setHover] = useState<Pick | null>(null)
   const [nothing, setNothing] = useState(false)
-  const ready = map?.key === shot.final.key ? map.map : null
+  const ready = !view.stale && map?.key === shot.final.key ? map.map : null
+  const mapFailed = failed === shot.final.key
   // Picking shows the latest stills: the map is of the shot's code as it
   // is now
   useEffect(() => {
@@ -62,19 +66,23 @@ export function Stage({ project, shot, view, mode, refresh, picker }: {
       window.removeEventListener('keydown', cancel)
       setHover(null)
       setNothing(false)
+      // Picking again tries a failed map again
+      setFailed(null)
     }
   }, [picking])
 
   // The map, made once per version of the shot's code while picking
   useEffect(() => {
-    if (!picking || ready) return
+    if (!picking || ready || view.stale || mapFailed) return
     const key = shot.final.key
     let left = false
     guard(api.pickMap(project.root, shot.id)).then(m => {
-      if (m && !left) setMap({ key, map: m })
+      if (left) return
+      if (m) setMap({ key, map: m })
+      else setFailed(key)
     })
     return () => void (left = true)
-  }, [picking, shot.final.key])
+  }, [picking, shot.final.key, view.stale, mapFailed])
 
   const pickedAt = (e: MouseEvent) => {
     const at = picking && ready ? framePoint(e.target, e.clientX, e.clientY) : null
@@ -178,7 +186,8 @@ export function Stage({ project, shot, view, mode, refresh, picker }: {
         {hover && <Highlight stage={stage} pick={hover} hover />}
         {picking && (
           <div className="stage-pick-note">
-            {!ready ? <><span className="spinner small" /> {t('pick.busy')}</> : t(nothing ? 'pick.nothing' : 'pick.hint')}
+            {view.stale ? t('pick.stale') : mapFailed ? t('pick.failed')
+              : !ready ? <><span className="spinner small" /> {t('pick.busy')}</> : t(nothing ? 'pick.nothing' : 'pick.hint')}
           </div>
         )}
         {tab === 'code' && <CodeTabs project={project} shot={shot} mode={mode} refresh={refresh} />}
