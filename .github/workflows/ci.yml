@@ -1,7 +1,9 @@
 # Checks every push and pull request: the TypeScript of the app and the
 # agent, the tests of the engine, the agent and the voice-over, and the
 # app shell's Rust tests. On macOS, the only platform Shotloop ships for.
-# The tests need no Chrome, ffmpeg, Blender or speech model.
+# The agent's tests render stills as the app does, with the runner's
+# Google Chrome and ffmpeg (installed here); no test needs Blender or a
+# speech model.
 
 name: CI
 
@@ -24,6 +26,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: brew install ffmpeg
       - run: pnpm typecheck
       - run: pnpm test
       - uses: dtolnay/rust-toolchain@stable
