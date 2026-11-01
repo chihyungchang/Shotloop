@@ -79,13 +79,18 @@ fn save(dir: &Path, u: &Usage) {
     }
 }
 
-/// The style a project's film is made in, from its shotloop.json
+/// The style a project's film is made in, from its shotloop.json. The
+/// site takes only lowercase letters and digits (up to 20) and refuses
+/// the whole report otherwise, which would keep this install's counts
+/// from ever being sent; any other name is counted as "other"
 fn style_of(project: &Path) -> String {
     let config: serde_json::Value = std::fs::read_to_string(project.join("shotloop.json")).ok().and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default();
     if config["track"] == "3d" {
         return "3d".into();
     }
-    config["style"].as_str().filter(|s| s.len() <= 20).unwrap_or("infographic").into()
+    let style = config["style"].as_str().unwrap_or("infographic");
+    let ok = (1..=20).contains(&style.len()) && style.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit());
+    if ok { style } else { "other" }.into()
 }
 
 /// A finished job: counted when the counts are on and it is one of
@@ -177,6 +182,26 @@ mod tests {
         assert_eq!(after.counts.jobs.get("export"), Some(&1));
         assert_eq!(after.counts.jobs.get("plan"), None);
         assert!(after.sent > 0);
+        std::fs::remove_dir_all(dir).ok();
+    }
+
+    #[test]
+    fn a_style_the_site_would_refuse_is_counted_as_other() {
+        let dir = temp("style");
+        let project = dir.join("film");
+        std::fs::create_dir_all(&project).unwrap();
+        for (config, want) in [
+            (r#"{"track":"2d","style":"news"}"#, "news"),
+            (r#"{"track":"3d","style":"news"}"#, "3d"),
+            (r#"{"track":"2d"}"#, "infographic"),
+            (r#"{"track":"2d","style":"kinetic-type"}"#, "other"),
+            (r#"{"track":"2d","style":"News"}"#, "other"),
+            (r#"{"track":"2d","style":""}"#, "other"),
+            (r#"{"track":"2d","style":"averyveryverylongstylename"}"#, "other"),
+        ] {
+            std::fs::write(project.join("shotloop.json"), config).unwrap();
+            assert_eq!(style_of(&project), want, "{config}");
+        }
         std::fs::remove_dir_all(dir).ok();
     }
 
