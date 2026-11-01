@@ -5,10 +5,18 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { test } from 'node:test'
+import { after, test } from 'node:test'
 import { newProject } from './create.mjs'
 
 const CLI = path.join(import.meta.dirname, 'cli.mjs')
+const made = []
+// Temporary folders, removed when the tests end
+function tmp() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-cli-'))
+  made.push(dir)
+  return dir
+}
+after(() => made.forEach(d => fs.rmSync(d, { recursive: true, force: true })))
 const PROTOCOL = fs.readFileSync(path.join(import.meta.dirname, 'protocol.d.ts'), 'utf8')
 
 // The fields of an interface in protocol.d.ts, by name
@@ -26,7 +34,7 @@ function run(...args) {
 
 test('status sends what the protocol types', () => {
   for (const track of ['2d', '3d']) {
-    const dir = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-cli-')), `film-${track}`)
+    const dir = path.join(tmp(), `film-${track}`)
     newProject(dir, { idea: 'How a zipper works', track, duration: 12 })
     const { result } = run('status', dir)
     assert.deepEqual(Object.keys(result).sort(), fields('StatusResult'))
@@ -38,7 +46,7 @@ test('status sends what the protocol types', () => {
 })
 
 test('list reports a project that can\'t be read instead of hiding it', () => {
-  const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-cli-'))
+  const parent = tmp()
   const good = path.join(parent, 'good')
   newProject(good, { idea: 'Coffee by country', duration: 12 })
   const broken = path.join(parent, 'broken')

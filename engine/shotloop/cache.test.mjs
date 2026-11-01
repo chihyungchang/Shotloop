@@ -2,12 +2,19 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { test } from 'node:test'
+import { after, test } from 'node:test'
 import { cachedFile, keyParts, shotKey } from './cache.mjs'
 import { newProject } from './create.mjs'
 import { loadProject, updateConfig } from './project.mjs'
 
-const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-test-'))
+const made = []
+// Temporary folders, removed when the tests end
+function tmp() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-test-'))
+  made.push(dir)
+  return dir
+}
+after(() => made.forEach(d => fs.rmSync(d, { recursive: true, force: true })))
 
 function starter() {
   const dir = path.join(tmp(), 'film')
