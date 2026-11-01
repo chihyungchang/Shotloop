@@ -493,6 +493,7 @@ export const ru: Record<Key, string> = {
   'music.bright': 'Яркая',
   'music.groove': 'Грув',
   'music.tech': 'Техно',
+  'music.tense': 'Напряжённо',
   'music.custom': 'Своя',
   'music.file': 'Свой файл…',
   'music.volume': 'Громкость',

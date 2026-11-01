@@ -493,6 +493,7 @@ export const tr: Record<Key, string> = {
   'music.bright': 'Neşeli',
   'music.groove': 'Ritmik',
   'music.tech': 'Tekno',
+  'music.tense': 'Gergin',
   'music.custom': 'Özel',
   'music.file': 'Kendi dosyanız…',
   'music.volume': 'Ses düzeyi',

@@ -493,6 +493,7 @@ export const id: Record<Key, string> = {
   'music.bright': 'Ceria',
   'music.groove': 'Groove',
   'music.tech': 'Teknologi',
+  'music.tense': 'Tegang',
   'music.custom': 'Khusus',
   'music.file': 'File musik Anda…',
   'music.volume': 'Volume',

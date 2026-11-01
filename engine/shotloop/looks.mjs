@@ -154,7 +154,7 @@ export function lookPage(id, { width, height }, style = 'infographic') {
   const headWidth = Math.round(tall ? safeRight - pad : w * 0.62)
   if (style === 'scene' && L.scene) return scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop, hue: HUES.dark })
   // The other 2D styles: this page plus their kit (extras.mjs)
-  const X = EXTRAS[style] ?? { doc: '', css: '', js: '', scripts: [] }
+  const X = EXTRAS[style] ?? { about: '', tools: '', css: '', js: '', scripts: [] }
   return `<!doctype html>
 <!--
   shotloop-look: ${L.id}${EXTRAS[style] ? `
@@ -206,7 +206,7 @@ export function lookPage(id, { width, height }, style = 'infographic') {
     arrow(x1, y1, x2, y2, { color, width })      SVG markup
     bars({ x, y, w, h, values, labels, colors, p }) SVG markup, bars grow with p
     card(t, { kicker, title, body, progress })  the starter title card
-${X.doc}
+${X.about}${X.tools}
 -->
 <html lang="en">
   <head>
@@ -404,10 +404,11 @@ export function untouchedLook(text, size) {
   return !!id && text === lookPage(id, size, style)
 }
 
-// Files a style's page loads beside it in world/ (the map's countries)
+// Files a style's page loads beside it in world/ (the map's countries,
+// for the map and the news)
 const WORLD_110M = fileURLToPath(new URL('world-110m.json', import.meta.url))
 export function styleFiles(style) {
-  if (style !== 'map') return {}
+  if (!EXTRAS[style]?.scripts?.includes('geo.data.js')) return {}
   return { 'geo.data.js': `// Natural Earth 1:110m countries (public domain), via world-atlas (ISC)\nwindow.GEO = ${fs.readFileSync(WORLD_110M, 'utf8')}\n` }
 }
 

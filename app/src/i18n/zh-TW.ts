@@ -493,6 +493,7 @@ export const zhTW: Record<Key, string> = {
   'music.bright': '明快',
   'music.groove': '律動',
   'music.tech': '科技感',
+  'music.tense': '緊張',
   'music.custom': '自訂',
   'music.file': '你的音樂檔案…',
   'music.volume': '音量',

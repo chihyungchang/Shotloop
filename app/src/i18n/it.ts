@@ -493,6 +493,7 @@ export const it: Record<Key, string> = {
   'music.bright': 'Allegra',
   'music.groove': 'Groove',
   'music.tech': 'Tech',
+  'music.tense': 'Teso',
   'music.custom': 'Propria',
   'music.file': 'Il tuo file…',
   'music.volume': 'Volume',

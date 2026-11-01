@@ -29,9 +29,9 @@ Sebuah ide menjadi teks, storyboard, lalu film yang tersusun dari adegan. Setiap
 
 ## Apa itu Shotloop
 
-Shotloop adalah aplikasi desktop untuk video pendek yang digambar dengan kode: promo produk, penjelasan sains, cerita data, dan animasi ala slide. Bisa 2D (halaman web yang dirender bingkai demi bingkai) atau 3D (adegan Blender), dalam tujuh gaya visual.
+Shotloop adalah aplikasi desktop untuk video pendek yang digambar dengan kode: promo produk, penjelasan sains, cerita data, dan animasi ala slide. Bisa 2D (halaman web yang dirender bingkai demi bingkai) atau 3D (adegan Blender), dalam delapan gaya visual.
 
-Anda mulai dengan satu kalimat. AI memilih cara menampilkannya (adegan sinematik, infografik, peta, demo antarmuka, cetak biru, tipografi kinetik, atau 3D) beserta temanya, kecuali Anda memilihnya sendiri. AI menulis hook, naskah, dan fakta beserta sumbernya, lalu membaginya menjadi storyboard, lengkap dengan kalimat yang diucapkan sulih suara di atas tiap adegan. Anda menyunting storyboard, dan AI membangun setiap adegan. Di Studio Anda melihat tiap adegan dan menyebutkan apa yang salah dengan bahasa sehari-hari, misalnya "teksnya terlalu kecil" atau "terlalu diam: tambahkan gerakan". AI mengubah adegan itu, merendernya, memeriksanya terhadap catatan, dan menampilkan perbandingan sebelum/sesudah. Saat film sudah pas, Ekspor menggabungkan adegan, memasang sulih suara beserta subtitelnya dan musik di bawahnya; AI mendesain sampul sesuai tampilan film (atau mengisi template seri Anda) dan menulis teks unggahan untuk tiap platform. Semuanya masuk ke foldernya sendiri.
+Anda mulai dengan satu kalimat. AI memilih cara menampilkannya (adegan sinematik, infografik, peta, demo antarmuka, cetak biru, tipografi kinetik, kisah berita, atau 3D) beserta temanya, kecuali Anda memilihnya sendiri. AI menulis hook, naskah, dan fakta beserta sumbernya, lalu membaginya menjadi storyboard, lengkap dengan kalimat yang diucapkan sulih suara di atas tiap adegan. Anda menyunting storyboard, dan AI membangun setiap adegan. Di Studio Anda melihat tiap adegan dan menyebutkan apa yang salah dengan bahasa sehari-hari, misalnya "teksnya terlalu kecil" atau "terlalu diam: tambahkan gerakan". AI mengubah adegan itu, merendernya, memeriksanya terhadap catatan, dan menampilkan perbandingan sebelum/sesudah. Saat film sudah pas, Ekspor menggabungkan adegan, memasang sulih suara beserta subtitelnya dan musik di bawahnya; AI mendesain sampul sesuai tampilan film (atau mengisi template seri Anda) dan menulis teks unggahan untuk tiap platform. Semuanya masuk ke foldernya sendiri.
 
 AI-nya adalah yang sudah Anda pakai: Claude Code atau agen coding lain yang sudah Anda masuki, API model dengan kunci Anda sendiri, atau model lokal.
 
@@ -49,7 +49,7 @@ Setiap bingkai di bawah dirender oleh Shotloop dari [contoh](examples/) yang dis
 </tr>
 </table>
 
-## Tujuh cara menampilkan ide
+## Delapan cara menampilkan ide
 
 AI memilih gaya yang cocok dengan topiknya dan menjelaskan alasannya; Anda bisa menggantinya di rencana, atau memilihnya di Beranda. Setiap gambar adalah bingkai dari contoh yang ditautkannya.
 
@@ -63,6 +63,7 @@ AI memilih gaya yang cocok dengan topiknya dan menjelaskan alasannya; Anda bisa 
 <tr>
 <td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Cetak biru" /></a><br/><sub><b>Cetak biru</b>: gambar garis di atas grid, tampilan urai, dan keterangan, untuk cara kerja mesin.</sub></td>
 <td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Tipografi kinetik" /></a><br/><sub><b>Tipografi kinetik</b>: huruf besar yang bergerak, untuk kutipan, kata, dan mitos.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Kisah berita" /></a><br/><sub><b>Kisah berita</b>: peristiwa terkini penuh ketegangan: jam yang terus berjalan, jejak uang, linimasa, siapa berkata apa.</sub></td>
 <td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: adegan Blender dengan cahaya nyata dan kamera yang melintasi ruang.</sub></td>
 </tr>
 </table>
@@ -117,7 +118,7 @@ flowchart LR
 
 - **Adegan, bukan satu render panjang.** Film adalah daftar adegan. Setiap adegan adalah program kecil: `shot.js` untuk halaman 2D, `shot.py` untuk gerakan kamera Blender. Masing-masing di-cache menurut hash inputnya, sehingga perbaikan merender ulang satu adegan dalam hitungan detik (2D) atau satu menit (3D), dan Ekspor hanya menggabungkan klip.
 - **Perbaikan dengan bahasa sehari-hari.** AI hanya menyentuh adegan yang sedang Anda buka, kecuali perbaikannya butuh dunia bersama. AI merender bingkai diam, memeriksanya terhadap daftar periksa (terbaca, tidak ada yang tertutup, di luar area teks, dan sebagainya), lalu melaporkan apa yang diubah.
-- **Tujuh gaya visual.** Adegan sinematik, infografik, peta, demo antarmuka, cetak biru, tipografi kinetik, atau 3D, masing-masing dengan kit dan bingkai referensinya sendiri yang dilihat AI sebelum memilih dan membangun ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Tema hanya mengatur latar dan huruf; gambar dan data tetap memakai warna yang dibutuhkan topiknya.
+- **Delapan gaya visual.** Adegan sinematik, infografik, peta, demo antarmuka, cetak biru, tipografi kinetik, kisah berita, atau 3D, masing-masing dengan kit dan bingkai referensinya sendiri yang dilihat AI sebelum memilih dan membangun ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Tema hanya mengatur latar dan huruf; gambar dan data tetap memakai warna yang dibutuhkan topiknya.
 - **Aturan untuk mengukur rencana.** Panjang teks dan lamanya tampil di layar diperiksa sebelum apa pun dibangun. Gambar yang muncul di beberapa adegan digambar sekali lalu dipakai bersama, jadi tampak sama di setiap adegan.
 - **Fakta dengan sumber.** Teks menyimpan setiap fakta di samping sumbernya, dan teks unggahan hanya boleh memakai fakta dari teks itu.
 - **Sampul.** AI mendesain sampul sesuai tampilan film dan memeriksa hasil rendernya sendiri. Simpan satu sebagai template agar seri tetap konsisten, atau unggah sampul yang Anda suka dan AI mengikuti desainnya.

@@ -29,9 +29,9 @@ Aus einer Idee werden Text, Storyboard und ein Film aus Shots. Jeder Shot hat se
 
 ## Was ist Shotloop
 
-Shotloop ist eine Desktop-App für kurze Videos, die mit Code gezeichnet werden: Produktvideos, Wissenschaftserklärungen, Datengeschichten und Animationen im Folienstil – in 2D (Webseiten, Bild für Bild gerendert) oder 3D (Blender-Szenen), in sieben visuellen Stilen.
+Shotloop ist eine Desktop-App für kurze Videos, die mit Code gezeichnet werden: Produktvideos, Wissenschaftserklärungen, Datengeschichten und Animationen im Folienstil – in 2D (Webseiten, Bild für Bild gerendert) oder 3D (Blender-Szenen), in acht visuellen Stilen.
 
-Du beginnst mit einem Satz. Die KI wählt, wie er gezeigt wird (filmische Szene, Infografik, Karte, Interface-Demo, Blaupause, Kinetic Type oder 3D), und ein Theme – außer du wählst selbst. Sie schreibt Hook, Skript und Fakten mit Quellen und teilt alles in ein Storyboard auf, mit dem Satz, den ein Sprecher über jeden Shot spricht. Du bearbeitest das Storyboard, die KI baut jeden Shot. Im Studio siehst du dir jeden Shot an und sagst in einfachen Worten, was nicht stimmt, etwa „die Schrift ist zu klein“ oder „zu statisch: bring etwas Bewegung rein“. Die KI ändert diesen Shot, rendert ihn, prüft ihn anhand der Notizen und zeigt dir einen Vorher-Nachher-Vergleich. Wenn der Film passt, fügt „Exportieren“ die Shots zusammen und legt den Sprecher mit seinen Untertiteln und darunter die Musik an. Die KI gestaltet ein Cover im Look des Films (oder füllt die Vorlage deiner Serie) und schreibt den Post für jede Plattform – alles in einem eigenen Ordner.
+Du beginnst mit einem Satz. Die KI wählt, wie er gezeigt wird (filmische Szene, Infografik, Karte, Interface-Demo, Blaupause, Kinetic Type, Nachrichtenstory oder 3D), und ein Theme – außer du wählst selbst. Sie schreibt Hook, Skript und Fakten mit Quellen und teilt alles in ein Storyboard auf, mit dem Satz, den ein Sprecher über jeden Shot spricht. Du bearbeitest das Storyboard, die KI baut jeden Shot. Im Studio siehst du dir jeden Shot an und sagst in einfachen Worten, was nicht stimmt, etwa „die Schrift ist zu klein“ oder „zu statisch: bring etwas Bewegung rein“. Die KI ändert diesen Shot, rendert ihn, prüft ihn anhand der Notizen und zeigt dir einen Vorher-Nachher-Vergleich. Wenn der Film passt, fügt „Exportieren“ die Shots zusammen und legt den Sprecher mit seinen Untertiteln und darunter die Musik an. Die KI gestaltet ein Cover im Look des Films (oder füllt die Vorlage deiner Serie) und schreibt den Post für jede Plattform – alles in einem eigenen Ordner.
 
 Die KI ist die, die du schon nutzt: Claude Code oder ein anderer Coding-Agent, bei dem du angemeldet bist, eine Modell-API mit eigenem Schlüssel oder ein lokales Modell.
 
@@ -49,7 +49,7 @@ Jedes Bild unten hat Shotloop aus den mitgelieferten [Beispielen](examples/) ger
 </tr>
 </table>
 
-## Sieben Arten, eine Idee zu zeigen
+## Acht Arten, eine Idee zu zeigen
 
 Die KI wählt den Stil, der zum Thema passt, und begründet ihn; du kannst im Plan wechseln oder auf der Startseite selbst einen wählen. Jedes Bild ist ein Frame aus dem verlinkten Beispiel.
 
@@ -63,6 +63,7 @@ Die KI wählt den Stil, der zum Thema passt, und begründet ihn; du kannst im Pl
 <tr>
 <td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Blaupause" /></a><br/><sub><b>Blaupause</b>: Strichzeichnung auf Raster, Explosionsansichten und Beschriftungen, dafür, wie eine Maschine funktioniert.</sub></td>
 <td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Kinetic Type" /></a><br/><sub><b>Kinetic Type</b>: riesige, bewegte Schrift, für Zitate, Wörter und Mythen.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Nachrichtenstory" /></a><br/><sub><b>Nachrichtenstory</b>: Eilmeldungen mit Spannung erzählt: laufende Uhr, Geldspur, Zeitleiste, wer was gesagt hat.</sub></td>
 <td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: Blender-Szenen mit echtem Licht und einer Kamera, die durch den Raum fliegt.</sub></td>
 </tr>
 </table>
@@ -117,7 +118,7 @@ flowchart LR
 
 - **Shots statt eines langen Renders.** Ein Film ist eine Liste von Shots. Jeder Shot ist ein kleines Programm: `shot.js` für eine 2D-Seite, `shot.py` für eine Blender-Kamerafahrt. Jeder wird über einen Hash seiner Eingaben gecacht, sodass eine Korrektur einen Shot in Sekunden (2D) oder einer Minute (3D) neu rendert und der Export nur noch Clips zusammenfügt.
 - **Korrekturen in einfachen Worten.** Die KI ändert nur den aktuellen Shot, außer die Korrektur betrifft die gemeinsame Welt. Sie rendert Standbilder, prüft sie anhand einer Checkliste (lesbar, nichts verdeckt, außerhalb der Untertitelzone usw.) und berichtet, was sie geändert hat.
-- **Sieben visuelle Stile.** Filmische Szene, Infografik, Karte, Interface-Demo, Blaupause, Kinetic Type oder 3D, jeder mit eigenem Kit und Referenzbildern, die die KI ansieht, bevor sie wählt und baut ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Ein Theme legt nur Hintergrund und Schrift fest; Bilder und Daten behalten die Farben, die ihr Thema braucht.
+- **Acht visuelle Stile.** Filmische Szene, Infografik, Karte, Interface-Demo, Blaupause, Kinetic Type, Nachrichtenstory oder 3D, jeder mit eigenem Kit und Referenzbildern, die die KI ansieht, bevor sie wählt und baut ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Ein Theme legt nur Hintergrund und Schrift fest; Bilder und Daten behalten die Farben, die ihr Thema braucht.
 - **Regeln, an denen ein Plan gemessen wird.** Untertitel werden auf Länge und Standzeit geprüft, bevor etwas gebaut wird. Ein Bild, das in mehreren Shots vorkommt, wird einmal gezeichnet und geteilt, damit es überall gleich aussieht.
 - **Fakten mit Quellen.** Der Text hält jede Tatsache neben ihrer Quelle, und der Post-Text darf nur Fakten aus dem Text verwenden.
 - **Cover.** Die KI gestaltet ein Cover im Look des Films und prüft ihre eigenen Renders. Speichere eines als Vorlage, damit eine Serie einheitlich bleibt, oder lade ein Cover hoch, das dir gefällt, und die KI folgt seinem Design.

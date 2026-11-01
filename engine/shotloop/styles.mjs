@@ -78,6 +78,17 @@ export const STYLES = [
     looks: LOOKS.map(l => l.id)
   },
   {
+    id: 'news',
+    track: '2d',
+    name: { en: 'News story', 'zh-CN': '新闻叙事', 'pt-BR': 'Narrativa jornalística' },
+    when: 'The subject is an event that happened: a hack or a heist, a crash, a raid, an arrest, a ruling, a collapse, a scandal; told as a story with dates, actors, money and consequences (who did what, when, how it unfolded, what happens next).',
+    avoid: 'Timeless explanations with no event (how something works, why the sky is blue); a single statistic with no story, which an infographic shows better.',
+    frames: 'A broadcast with tension: a BREAKING banner wipes in, a clock or timestamp keeps running, the story moves along a timeline; money drains from a wallet, splits down a trail into thousands of wallets and swirls through a mixer; agencies appear as badges, statements as typed quotes, headlines as clipped cards, documents with redactions lifting; a stamp lands on what is confirmed or alleged; red flashes and a shake on the hits, a beat of quiet before the reveal.',
+    example: 'bybit-heist-en',
+    why: 'Bybit heist: a BREAKING banner over a counter rolling to $1.5B, the cold wallet draining while a clock runs, the biggest crypto thefts as a bar race, the money splitting down a trail and swirling through a mixer into bitcoin, the FBI badge with its statement typed in and an ATTRIBUTED stamp; every beat has its date.',
+    looks: LOOKS.map(l => l.id)
+  },
+  {
     id: '3d',
     track: '3d',
     name: { en: '3D', 'zh-CN': '3D', 'pt-BR': '3D' },

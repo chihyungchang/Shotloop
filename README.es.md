@@ -29,9 +29,9 @@ Una idea se convierte en texto, guion gráfico y una película hecha de planos. 
 
 ## Qué es Shotloop
 
-Shotloop es una app de escritorio para videos cortos dibujados con código: promos de producto, divulgación científica, historias con datos y animaciones tipo diapositiva, en 2D (páginas web renderizadas fotograma a fotograma) o 3D (escenas de Blender), con siete estilos visuales.
+Shotloop es una app de escritorio para videos cortos dibujados con código: promos de producto, divulgación científica, historias con datos y animaciones tipo diapositiva, en 2D (páginas web renderizadas fotograma a fotograma) o 3D (escenas de Blender), con ocho estilos visuales.
 
-Empiezas con una frase. La IA elige cómo mostrarla (escena cinematográfica, infografía, mapa, demo de interfaz, plano técnico, tipografía cinética o 3D) y un tema, salvo que los elijas tú. Escribe el gancho, el guion y los datos con sus fuentes, y luego los divide en un guion gráfico, con la frase que dice la voz en off sobre cada plano. Tú editas el guion gráfico y la IA construye cada plano. En el editor revisas cada plano y dices qué falla con palabras normales, como "el texto es muy pequeño" o "está muy quieto: añade algo de movimiento". La IA cambia ese plano, lo renderiza, lo comprueba con las notas y te muestra un antes/después. Cuando la película funciona, Exportar une los planos y coloca la voz en off con sus subtítulos y la música por debajo; la IA diseña una portada con el estilo de la película (o rellena la plantilla de tu serie) y escribe la publicación para cada plataforma, todo en una carpeta propia.
+Empiezas con una frase. La IA elige cómo mostrarla (escena cinematográfica, infografía, mapa, demo de interfaz, plano técnico, tipografía cinética, relato informativo o 3D) y un tema, salvo que los elijas tú. Escribe el gancho, el guion y los datos con sus fuentes, y luego los divide en un guion gráfico, con la frase que dice la voz en off sobre cada plano. Tú editas el guion gráfico y la IA construye cada plano. En el editor revisas cada plano y dices qué falla con palabras normales, como "el texto es muy pequeño" o "está muy quieto: añade algo de movimiento". La IA cambia ese plano, lo renderiza, lo comprueba con las notas y te muestra un antes/después. Cuando la película funciona, Exportar une los planos y coloca la voz en off con sus subtítulos y la música por debajo; la IA diseña una portada con el estilo de la película (o rellena la plantilla de tu serie) y escribe la publicación para cada plataforma, todo en una carpeta propia.
 
 La IA es la que ya usas: Claude Code u otro agente de código con tu sesión iniciada, una API de modelos con tu propia clave o un modelo local.
 
@@ -49,7 +49,7 @@ Cada fotograma de abajo lo renderizó Shotloop a partir de los [ejemplos](exampl
 </tr>
 </table>
 
-## Siete formas de mostrar una idea
+## Ocho formas de mostrar una idea
 
 La IA elige el estilo que encaja con el tema y te explica por qué; puedes cambiarlo en el plan o elegir uno en Inicio. Cada imagen es un fotograma del ejemplo al que enlaza.
 
@@ -63,6 +63,7 @@ La IA elige el estilo que encaja con el tema y te explica por qué; puedes cambi
 <tr>
 <td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Plano técnico" /></a><br/><sub><b>Plano técnico</b>: dibujo lineal sobre cuadrícula, vistas explosionadas y anotaciones, para explicar cómo funciona una máquina.</sub></td>
 <td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Tipografía cinética" /></a><br/><sub><b>Tipografía cinética</b>: letras enormes que se mueven, para citas, palabras y mitos.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Relato informativo" /></a><br/><sub><b>Relato informativo</b>: sucesos de última hora contados con tensión: un reloj en marcha, el rastro del dinero, la cronología, quién dijo qué.</sub></td>
 <td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: escenas de Blender con luz real y una cámara que recorre el espacio.</sub></td>
 </tr>
 </table>
@@ -117,7 +118,7 @@ flowchart LR
 
 - **Planos, no un render largo.** Una película es una lista de planos. Cada plano es un pequeño programa: `shot.js` para una página 2D, `shot.py` para un movimiento de cámara en Blender. Cada uno se guarda en caché según un hash de sus entradas, así que una corrección vuelve a renderizar un plano en segundos (2D) o en un minuto (3D), y Exportar solo une clips.
 - **Correcciones en lenguaje normal.** La IA solo toca el plano en el que estás, salvo que la corrección necesite el mundo compartido. Renderiza fotogramas, los comprueba con una lista (legible, nada tapado, fuera de la zona de subtítulos, etc.) e informa de lo que cambió.
-- **Siete estilos visuales.** Escena cinematográfica, infografía, mapa, demo de interfaz, plano técnico, tipografía cinética o 3D, cada uno con su propio kit y fotogramas de referencia que la IA mira antes de elegir y construir ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Un tema solo define el fondo y la tipografía; las imágenes y los datos mantienen los colores que su tema necesita.
+- **Ocho estilos visuales.** Escena cinematográfica, infografía, mapa, demo de interfaz, plano técnico, tipografía cinética, relato informativo o 3D, cada uno con su propio kit y fotogramas de referencia que la IA mira antes de elegir y construir ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Un tema solo define el fondo y la tipografía; las imágenes y los datos mantienen los colores que su tema necesita.
 - **Reglas para medir un plan.** Antes de construir nada se comprueba la longitud de los subtítulos y el tiempo que permanecen en pantalla. Una imagen que se repite entre planos se dibuja una vez y se comparte, para que se vea igual en todos.
 - **Datos con fuentes.** El texto guarda cada dato junto a su fuente, y el texto de publicación solo puede usar datos del texto.
 - **Portadas.** La IA diseña una portada con el estilo de la película y revisa sus propios renders. Guarda una como plantilla para que una serie sea coherente, o sube una portada que te guste y la IA sigue su diseño.

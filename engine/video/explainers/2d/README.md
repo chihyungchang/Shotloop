@@ -65,6 +65,10 @@ this toolbox (all used in ep04) and keep adding to it:
 | Shared timeline | wildly different durations | 20 minutes as a sliver on a 45-day axis, a cursor running the days |
 | Waffle | small share of a big total | 1,000 squares, 32 lit |
 | Drawn fix | the defence | a request travelling to a phone; a lock snapping shut |
+| Running clock | time pressure | a timestamp ticking while the event unfolds, red flashing on the hits |
+| Money trail | where the money went | funds splitting into ever more wallets, coins running down the branches (illustrative) |
+| Event timeline | how it unfolded | the story's dates on one axis, landing in turn, the key beat glowing |
+| Attributed statement | who says so | an agency badge, its words typed in exactly, the date under it |
 
 Rhythm across the episode: alternate big-number shots with diagram
 shots, change the dominant colour as the story turns (gold = what

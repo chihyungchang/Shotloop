@@ -494,6 +494,7 @@ export const en = {
   'music.bright': 'Bright',
   'music.groove': 'Groove',
   'music.tech': 'Tech',
+  'music.tense': 'Tense',
   'music.custom': 'Custom',
   'music.file': 'Your music file…',
   'music.volume': 'Volume',

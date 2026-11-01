@@ -493,6 +493,7 @@ export const ko: Record<Key, string> = {
   'music.bright': '밝게',
   'music.groove': '그루브',
   'music.tech': '테크',
+  'music.tense': '긴장감',
   'music.custom': '사용자 설정',
   'music.file': '내 음악 파일…',
   'music.volume': '음량',

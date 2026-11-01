@@ -29,9 +29,9 @@ Bir fikir metne, senaryo taslağına ve çekimlerden oluşan bir filme dönüş�
 
 ## Shotloop nedir
 
-Shotloop, kodla çizilen kısa videolar için bir masaüstü uygulamasıdır: ürün tanıtımları, bilim anlatımları, veri hikâyeleri ve sunum tarzı animasyonlar. 2D (kare kare işlenen web sayfaları) veya 3D (Blender sahneleri) olarak, yedi görsel stilde.
+Shotloop, kodla çizilen kısa videolar için bir masaüstü uygulamasıdır: ürün tanıtımları, bilim anlatımları, veri hikâyeleri ve sunum tarzı animasyonlar. 2D (kare kare işlenen web sayfaları) veya 3D (Blender sahneleri) olarak, sekiz görsel stilde.
 
-Tek bir cümleyle başlarsınız. Siz seçmezseniz yapay zekâ fikrin nasıl gösterileceğini (sinematik sahne, infografik, harita, arayüz demosu, teknik çizim, kinetik tipografi veya 3D) ve bir temayı kendisi seçer. Açılış cümlesini, senaryoyu ve kaynaklı bilgileri yazar, ardından bunları, her çekimin üzerinde seslendirmenin söyleyeceği repliğiyle birlikte bir senaryo taslağına böler. Taslağı düzenlersiniz, yapay zekâ da her çekimi oluşturur. Studio'da her çekime bakar ve neyin yanlış olduğunu sade bir dille söylersiniz; örneğin "yazı çok küçük" ya da "çok durgun: biraz hareket ekle". Yapay zekâ o çekimi değiştirir, işler, notlarla karşılaştırarak denetler ve size önce/sonra görünümünü gösterir. Film doğru göründüğünde Dışa aktar çekimleri birleştirir, seslendirmeyi altyazılarıyla ve altına müziği yerleştirir; yapay zekâ filmin görünümünde bir kapak tasarlar (ya da serinizin şablonunu doldurur) ve her platform için paylaşım metnini yazar. Hepsi kendi klasörüne kaydedilir.
+Tek bir cümleyle başlarsınız. Siz seçmezseniz yapay zekâ fikrin nasıl gösterileceğini (sinematik sahne, infografik, harita, arayüz demosu, teknik çizim, kinetik tipografi, haber anlatısı veya 3D) ve bir temayı kendisi seçer. Açılış cümlesini, senaryoyu ve kaynaklı bilgileri yazar, ardından bunları, her çekimin üzerinde seslendirmenin söyleyeceği repliğiyle birlikte bir senaryo taslağına böler. Taslağı düzenlersiniz, yapay zekâ da her çekimi oluşturur. Studio'da her çekime bakar ve neyin yanlış olduğunu sade bir dille söylersiniz; örneğin "yazı çok küçük" ya da "çok durgun: biraz hareket ekle". Yapay zekâ o çekimi değiştirir, işler, notlarla karşılaştırarak denetler ve size önce/sonra görünümünü gösterir. Film doğru göründüğünde Dışa aktar çekimleri birleştirir, seslendirmeyi altyazılarıyla ve altına müziği yerleştirir; yapay zekâ filmin görünümünde bir kapak tasarlar (ya da serinizin şablonunu doldurur) ve her platform için paylaşım metnini yazar. Hepsi kendi klasörüne kaydedilir.
 
 Yapay zekâ zaten kullandığınız yapay zekâdır: oturum açtığınız Claude Code veya başka bir kodlama ajanı, kendi anahtarınızla bir model API'si ya da yerel bir model.
 
@@ -49,7 +49,7 @@ Aşağıdaki her kare, Shotloop'un birlikte geldiği [örneklerden](examples/) S
 </tr>
 </table>
 
-## Bir fikri göstermenin yedi yolu
+## Bir fikri göstermenin sekiz yolu
 
 Yapay zekâ konuya uyan stili seçer ve nedenini söyler; planda değiştirebilir ya da Ana Sayfa'da kendiniz seçebilirsiniz. Her görsel, bağlantı verdiği örnekten bir karedir.
 
@@ -63,6 +63,7 @@ Yapay zekâ konuya uyan stili seçer ve nedenini söyler; planda değiştirebili
 <tr>
 <td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Teknik çizim" /></a><br/><sub><b>Teknik çizim</b>: ızgara üzerinde çizgiler, patlatılmış görünümler ve açıklamalar; bir makinenin nasıl çalıştığı için.</sub></td>
 <td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Kinetik tipografi" /></a><br/><sub><b>Kinetik tipografi</b>: hareket eden dev yazılar; alıntılar, kelimeler ve efsaneler için.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Haber anlatısı" /></a><br/><sub><b>Haber anlatısı</b>: son dakika olaylar gerilimle: işleyen bir saat, paranın izi, zaman çizelgesi, kim ne dedi.</sub></td>
 <td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: gerçek ışık ve uzayda dolaşan kamerayla Blender sahneleri.</sub></td>
 </tr>
 </table>
@@ -117,7 +118,7 @@ flowchart LR
 
 - **Tek uzun işleme değil, çekimler.** Bir film, çekimlerden oluşan bir listedir. Her çekim küçük bir programdır: 2D sayfa için `shot.js`, Blender kamera hareketi için `shot.py`. Her biri girdilerinin hash'iyle önbelleğe alınır; böylece bir düzeltme tek bir çekimi saniyeler (2D) veya bir dakika (3D) içinde yeniden işler ve Dışa aktar yalnızca klipleri birleştirir.
 - **Sade dille düzeltmeler.** Düzeltme ortak dünyayı gerektirmedikçe yapay zekâ yalnızca bulunduğunuz çekime dokunur. Kareler işler, bunları bir kontrol listesine göre denetler (okunabilir, hiçbir şey örtülmemiş, altyazı alanının dışında vb.) ve neyi değiştirdiğini bildirir.
-- **Yedi görsel stil.** Sinematik sahne, infografik, harita, arayüz demosu, teknik çizim, kinetik tipografi veya 3D; her birinin kendi kiti ve yapay zekânın seçip oluşturmadan önce baktığı referans kareleri vardır ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Tema yalnızca zemini ve yazıyı belirler; görseller ve veriler konularının gerektirdiği renkleri korur.
+- **Sekiz görsel stil.** Sinematik sahne, infografik, harita, arayüz demosu, teknik çizim, kinetik tipografi, haber anlatısı veya 3D; her birinin kendi kiti ve yapay zekânın seçip oluşturmadan önce baktığı referans kareleri vardır ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Tema yalnızca zemini ve yazıyı belirler; görseller ve veriler konularının gerektirdiği renkleri korur.
 - **Planın ölçüldüğü kurallar.** Altyazıların uzunluğu ve ekranda kalma süresi, hiçbir şey oluşturulmadan önce denetlenir. Çekimler boyunca tekrar eden bir görsel bir kez çizilip paylaşılır, böylece her çekimde aynı görünür.
 - **Kaynaklı bilgiler.** Metin her bilgiyi kaynağının yanında tutar; paylaşım metni yalnızca metindeki bilgileri kullanabilir.
 - **Kapaklar.** Yapay zekâ filmin görünümünde bir kapak tasarlar ve kendi işlediklerini denetler. Bir seriyi tutarlı tutmak için birini şablon olarak kaydedin ya da beğendiğiniz bir kapağı yükleyin, yapay zekâ onun tasarımını izlesin.

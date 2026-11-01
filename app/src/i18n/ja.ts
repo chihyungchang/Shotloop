@@ -493,6 +493,7 @@ export const ja: Record<Key, string> = {
   'music.bright': '明るい',
   'music.groove': 'グルーヴ',
   'music.tech': 'テック',
+  'music.tense': '緊迫',
   'music.custom': 'カスタム',
   'music.file': '自分の音楽ファイル…',
   'music.volume': '音量',

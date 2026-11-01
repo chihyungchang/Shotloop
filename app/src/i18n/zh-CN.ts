@@ -493,6 +493,7 @@ export const zhCN: Record<Key, string> = {
   'music.bright': '明快',
   'music.groove': '律动',
   'music.tech': '科技感',
+  'music.tense': '紧张',
   'music.custom': '自定义',
   'music.file': '使用音乐文件…',
   'music.volume': '音量',

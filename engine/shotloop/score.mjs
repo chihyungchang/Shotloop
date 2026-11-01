@@ -1,5 +1,5 @@
 // A music bed composed for one film: the mood (calm, bright, groove,
-// tech) sets the range, and a seed picks this bed inside it — key,
+// tech, tense) sets the range, and a seed picks this bed inside it — key,
 // tempo, chord progression, bass, arp and drum patterns — then arranges
 // it to the film's cuts: a lighter intro up to the first cut, the full
 // bed, a break before a cut near the middle of a longer film, and an
@@ -37,7 +37,10 @@ const _ = null
 const BASS = {
   long: [[0, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], [0, _, _, _, _, _, _, _, 7, _, _, _, _, _, _, _], [0, _, _, _, _, _, _, _, 0, _, _, _, 12, _, _, _]],
   eighths: [[0, _, 0, _, 0, _, 0, _, 0, _, 0, _, 0, _, 0, _], [0, _, 0, _, 12, _, 0, _, 0, _, 0, _, 12, _, 7, _], [0, _, _, 0, _, _, 0, _, 0, _, _, 0, _, _, 7, _]],
-  syncopated: [[0, _, _, 0, _, _, 0, _, _, _, 0, _, 12, _, 0, _], [0, _, _, _, _, _, 0, _, 0, _, _, 12, _, _, 0, _], [0, _, 12, _, _, 0, _, _, 0, _, 7, _, _, 0, _, _]]
+  syncopated: [[0, _, _, 0, _, _, 0, _, _, _, 0, _, 12, _, 0, _], [0, _, _, _, _, _, 0, _, 0, _, _, 12, _, _, 0, _], [0, _, 12, _, _, 0, _, _, 0, _, 7, _, _, 0, _, _]],
+  // A driving sixteenth pulse on the root, leaning a semitone up at the
+  // end of the bar: the news bed's tension
+  pulse: [[0, _, 0, 0, 0, _, 0, 0, 0, _, 0, 0, 0, _, 1, _], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, _], [0, _, 0, 0, 12, _, 0, 0, 0, _, 0, 0, 1, _, 0, 0]]
 }
 const ARP = {
   slow: [{ rate: 1, order: [0, 1, 2, 1] }, { rate: 2, order: [0, 2, 1, 2] }, { rate: 2, order: [0, 1, 2, 3] }],
@@ -67,7 +70,10 @@ export const MOODS = {
   groove: { bpm: [108, 126], minor: 0.5, sevenths: 0.3, bass: ['syncopated', 'eighths'], arp: ['fast'], arpChance: 0.8, kick: ['four', 'broken'], hat: ['off', 'busy', 'eighths'], hatChance: 1,
     layers: ['pad', 'bass', 'arp', 'kick', 'hat'], intro: ['pad', 'hat'], riser: 0.7 },
   tech: { bpm: [88, 108], minor: 0.7, sevenths: 0.5, bass: ['long', 'syncopated'], arp: ['fast'], arpChance: 1, kick: ['half'], hat: ['busy', 'eighths'], hatChance: 1,
-    layers: ['pad', 'arp', 'hat'], intro: ['pad', 'arp'], riser: 0.6, bassChance: 0.5, kickChance: 0.4 }
+    layers: ['pad', 'arp', 'hat'], intro: ['pad', 'arp'], riser: 0.6, bassChance: 0.5, kickChance: 0.4 },
+  // Breaking news: always minor, a pulse that never lets go, risers into the cuts
+  tense: { bpm: [86, 100], minor: 1, sevenths: 0.2, bass: ['pulse'], arp: ['fast'], arpChance: 0.6, kick: ['half', 'broken'], hat: ['eighths', 'busy'], hatChance: 1,
+    layers: ['pad', 'bass', 'kick', 'hat'], intro: ['pad', 'bass'], riser: 0.9 }
 }
 
 export function composeBed(mood, { seed = newSeed(), duration, cuts = [] }) {

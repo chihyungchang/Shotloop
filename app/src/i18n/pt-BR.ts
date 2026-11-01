@@ -493,6 +493,7 @@ export const ptBR: Record<Key, string> = {
   'music.bright': 'Alegre',
   'music.groove': 'Ritmo',
   'music.tech': 'Tech',
+  'music.tense': 'Tenso',
   'music.custom': 'Própria',
   'music.file': 'Seu arquivo…',
   'music.volume': 'Volume',

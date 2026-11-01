@@ -493,6 +493,7 @@ export const de: Record<Key, string> = {
   'music.bright': 'Fröhlich',
   'music.groove': 'Groove',
   'music.tech': 'Tech',
+  'music.tense': 'Spannung',
   'music.custom': 'Eigene',
   'music.file': 'Eigene Datei …',
   'music.volume': 'Lautstärke',

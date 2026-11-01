@@ -493,6 +493,7 @@ export const vi: Record<Key, string> = {
   'music.bright': 'Sáng',
   'music.groove': 'Nhịp',
   'music.tech': 'Công nghệ',
+  'music.tense': 'Căng thẳng',
   'music.custom': 'Tùy chỉnh',
   'music.file': 'Tệp nhạc của bạn…',
   'music.volume': 'Âm lượng',

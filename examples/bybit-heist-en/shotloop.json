@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "title": "The $1.5B Bybit heist",
+  "description": "How $1.5B in crypto left Bybit, split into thousands of wallets and was pinned on North Korea.",
+  "lang": "en",
+  "slug": "bybit-heist-en",
+  "track": "2d",
+  "fps": 30,
+  "size": {
+    "width": 1080,
+    "height": 1920
+  },
+  "shots": [
+    {
+      "id": "01-hook-breaking-1-5b",
+      "title": "Hook: breaking, $1.5B gone",
+      "duration": 4.9,
+      "say": "Breaking: 1.5 billion dollars in crypto, gone in a single hack.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 4.35
+        }
+      ]
+    },
+    {
+      "id": "02-the-cold-wallet-drains",
+      "title": "The cold wallet drains",
+      "duration": 6.1,
+      "say": "One transfer emptied Bybit's cold wallet. About 401,000 ether, on the move.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 2.63
+        },
+        {
+          "at": 2.88,
+          "end": 5.63
+        }
+      ]
+    },
+    {
+      "id": "03-the-biggest-ever",
+      "title": "The biggest ever",
+      "duration": 5,
+      "say": "That makes it the biggest crypto theft ever, more than twice the old record.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 4.01
+        }
+      ]
+    },
+    {
+      "id": "04-split-swapped-into-bitcoin",
+      "title": "Split, swapped into bitcoin",
+      "duration": 6,
+      "say": "The thieves split it across thousands of addresses, and swapped some of it into bitcoin.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 4.28
+        }
+      ]
+    },
+    {
+      "id": "05-fbi-names-north-korea",
+      "title": "FBI names North Korea",
+      "duration": 6,
+      "say": "Five days later, the FBI said who was behind it: North Korea.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 3.94
+        }
+      ]
+    },
+    {
+      "id": "06-end-card-the-timeline",
+      "title": "End card: the timeline",
+      "duration": 4,
+      "say": "From hack to attribution: five days.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 2.37
+        }
+      ]
+    }
+  ],
+  "captions": null,
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md",
+  "look": "midnight",
+  "style": "news",
+  "styleChosen": true,
+  "voice": {
+    "on": true,
+    "voice": "af_heart"
+  }
+}

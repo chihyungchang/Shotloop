@@ -35,7 +35,7 @@ function planShots(duration) {
 
 // The music a new film starts with: a mood that suits its style (the
 // person changes it in Export), composed anew for this film
-const STYLE_MOOD = { scene: 'calm', map: 'calm', '3d': 'calm', infographic: 'bright', kinetic: 'groove', ui: 'tech', blueprint: 'tech' }
+const STYLE_MOOD = { scene: 'calm', map: 'calm', '3d': 'calm', infographic: 'bright', kinetic: 'groove', ui: 'tech', blueprint: 'tech', news: 'tense' }
 const startMood = style => STYLE_MOOD[style] ?? 'bright'
 
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])

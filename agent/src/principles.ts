@@ -31,6 +31,10 @@ Within them, make it rich: aim for the richest, most dynamic picture the shot al
 - Shared timeline: wildly different durations on one axis, a cursor running.
 - Waffle: a small share of a big total (1,000 squares, 32 lit).
 - Drawn fix: the defence; a request travelling, a lock snapping shut.
+- Running clock: time pressure; a timestamp that keeps ticking while the event unfolds, red flashing on the hits.
+- Money trail: funds splitting into ever more wallets, coins running down the branches (illustrative).
+- Event timeline: the story's dates on one axis, landing in turn, the beat that matters glowing.
+- Attributed statement: an agency badge, its words typed in exactly, the date under it.
 Color: the look sets only the ground and the type (background, text, headlines, the highlighted word, the source line). Pictures and data take the colors their subject needs, from the kit's C.hue: real-world colors (the sky blue, the sun gold, a leaf green) and colors with a meaning (one for what held or the good answer, another for what was lost or abused), never just the look's accents, always readable on its ground. Keep each meaning for the whole video.
 Rhythm across the video: alternate big-number shots with diagram shots; change the dominant color as the story turns. A picture that comes back in another shot keeps its design (same layout, colors and labels), so the viewer recognises it at once.`
 

@@ -29,9 +29,9 @@ Uma ideia vira texto, storyboard e um filme feito de cenas. Cada cena tem o seu 
 
 ## O que é o Shotloop
 
-O Shotloop é um app de desktop para vídeos curtos desenhados com código: promoções de produto, divulgação científica, histórias com dados e animações em estilo de slides, em 2D (páginas web renderizadas quadro a quadro) ou 3D (cenas do Blender), em sete estilos visuais.
+O Shotloop é um app de desktop para vídeos curtos desenhados com código: promoções de produto, divulgação científica, histórias com dados e animações em estilo de slides, em 2D (páginas web renderizadas quadro a quadro) ou 3D (cenas do Blender), em oito estilos visuais.
 
-Você começa com uma frase. A IA escolhe como mostrá-la (cena cinematográfica, infográfico, mapa, demonstração de interface, planta técnica, tipografia cinética ou 3D) e um tema, a menos que você escolha. Ela escreve o gancho, o roteiro e os fatos com as fontes, e depois divide tudo em um storyboard, com a fala que a narração diz sobre cada cena. Você edita o storyboard e a IA constrói cada cena. No editor, você olha cada cena e diz o que está errado com palavras simples, como "o texto está pequeno demais" ou "está muito parado: coloca um pouco de movimento". A IA altera aquela cena, renderiza, confere com as notas e mostra um antes/depois. Quando o filme estiver bom, Exportar junta as cenas e coloca a narração com as legendas e a música por baixo; a IA cria uma capa no visual do filme (ou preenche o modelo da sua série) e escreve o post de cada plataforma, tudo em uma pasta própria.
+Você começa com uma frase. A IA escolhe como mostrá-la (cena cinematográfica, infográfico, mapa, demonstração de interface, planta técnica, tipografia cinética, narrativa jornalística ou 3D) e um tema, a menos que você escolha. Ela escreve o gancho, o roteiro e os fatos com as fontes, e depois divide tudo em um storyboard, com a fala que a narração diz sobre cada cena. Você edita o storyboard e a IA constrói cada cena. No editor, você olha cada cena e diz o que está errado com palavras simples, como "o texto está pequeno demais" ou "está muito parado: coloca um pouco de movimento". A IA altera aquela cena, renderiza, confere com as notas e mostra um antes/depois. Quando o filme estiver bom, Exportar junta as cenas e coloca a narração com as legendas e a música por baixo; a IA cria uma capa no visual do filme (ou preenche o modelo da sua série) e escreve o post de cada plataforma, tudo em uma pasta própria.
 
 A IA é a que você já usa: Claude Code ou outro agente de código em que você está logado, uma API de modelos com a sua própria chave, ou um modelo local.
 
@@ -49,7 +49,7 @@ Cada quadro abaixo foi renderizado pelo Shotloop a partir dos [exemplos](example
 </tr>
 </table>
 
-## Sete jeitos de mostrar uma ideia
+## Oito jeitos de mostrar uma ideia
 
 A IA escolhe o estilo que combina com o assunto e explica por quê; você pode trocar no plano ou escolher um no Início. Cada imagem é um quadro do exemplo para o qual ela aponta.
 
@@ -63,6 +63,7 @@ A IA escolhe o estilo que combina com o assunto e explica por quê; você pode t
 <tr>
 <td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Planta técnica" /></a><br/><sub><b>Planta técnica</b>: desenho de linhas sobre uma grade, vistas explodidas e legendas, para mostrar como uma máquina funciona.</sub></td>
 <td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Tipografia cinética" /></a><br/><sub><b>Tipografia cinética</b>: letras enormes em movimento, para citações, palavras e mitos.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Narrativa jornalística" /></a><br/><sub><b>Narrativa jornalística</b>: acontecimentos urgentes contados com tensão: um relógio correndo, o rastro do dinheiro, a linha do tempo, quem disse o quê.</sub></td>
 <td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: cenas do Blender com luz real e uma câmera percorrendo o espaço.</sub></td>
 </tr>
 </table>
@@ -117,7 +118,7 @@ flowchart LR
 
 - **Cenas, não um render longo.** Um filme é uma lista de cenas. Cada cena é um pequeno programa: `shot.js` para uma página 2D, `shot.py` para um movimento de câmera no Blender. Cada uma fica em cache pelo hash das suas entradas, então uma correção renderiza de novo uma cena em segundos (2D) ou em um minuto (3D), e Exportar só junta os clipes.
 - **Correções em linguagem simples.** A IA só mexe na cena em que você está, a menos que a correção precise do mundo compartilhado. Ela renderiza quadros, confere com uma checklist (legível, nada encoberto, fora da área da legenda etc.) e informa o que mudou.
-- **Sete estilos visuais.** Cena cinematográfica, infográfico, mapa, demonstração de interface, planta técnica, tipografia cinética ou 3D, cada um com o seu kit e quadros de referência que a IA consulta antes de escolher e construir ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Um tema define só o fundo e a tipografia; imagens e dados mantêm as cores de que o assunto precisa.
+- **Oito estilos visuais.** Cena cinematográfica, infográfico, mapa, demonstração de interface, planta técnica, tipografia cinética, narrativa jornalística ou 3D, cada um com o seu kit e quadros de referência que a IA consulta antes de escolher e construir ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Um tema define só o fundo e a tipografia; imagens e dados mantêm as cores de que o assunto precisa.
 - **Regras para avaliar um plano.** Antes de construir qualquer coisa, as legendas são verificadas quanto ao tamanho e ao tempo que ficam na tela. Uma imagem que se repete entre cenas é desenhada uma vez e compartilhada, para ficar igual em todas.
 - **Fatos com fontes.** O texto guarda cada fato ao lado da fonte, e o texto de publicação só pode usar fatos do texto.
 - **Capas.** A IA cria uma capa no visual do filme e confere os próprios renders. Salve uma como modelo para manter uma série consistente, ou envie uma capa de que você gosta e a IA segue o design dela.

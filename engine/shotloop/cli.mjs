@@ -33,7 +33,7 @@
 //                     on this Mac or not; --download fetches one (progress in MB)
 //   shotloop check-subtitles <project> [--shot <id>]      what the voice-over's subtitles would cover
 //                     (text, data-keep elements, subtitles.keep regions); fails when it covers anything
-//   shotloop music    <project> [--preset calm|bright|groove|tech | --shuffle | --file <audio> | --none] [--gain 0–2] [--bed]
+//   shotloop music    <project> [--preset calm|bright|groove|tech|tense | --shuffle | --file <audio> | --none] [--gain 0–2] [--bed]
 //   shotloop covers   list | save <project> [--title <name>] | apply <project> <id> | remove <id>
 //                     | reference <project> --file <image>     cover templates, an image to design after
 //   shotloop prune    <project>                          drop unused cache entries (shots and voice-over)

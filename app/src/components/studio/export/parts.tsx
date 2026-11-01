@@ -10,7 +10,7 @@ import { VoiceDownload } from '../../VoiceDownload'
 // The export dialog's parts that keep their own state: the voice-over,
 // the music bed, 3D final quality and the publish copy
 
-const PRESETS = ['calm', 'bright', 'groove', 'tech'] as const
+const PRESETS = ['calm', 'bright', 'groove', 'tech', 'tense'] as const
 
 // The voice-over: off or on, and which voice, with a sample to listen to.
 // A new voice speaks every line again and the shots are fitted to it

@@ -9,6 +9,7 @@ import map from '../../engine/shotloop/styles/map/1.jpg'
 import ui from '../../engine/shotloop/styles/ui/1.jpg'
 import blueprint from '../../engine/shotloop/styles/blueprint/1.jpg'
 import kinetic from '../../engine/shotloop/styles/kinetic/1.jpg'
+import news from '../../engine/shotloop/styles/news/1.jpg'
 
 type Words = Record<Lang, string>
 
@@ -42,6 +43,11 @@ export const STYLES: readonly { id: string; track: '2d' | '3d'; name: Words; abo
     id: 'kinetic', track: '2d', name: { en: 'Kinetic type', 'zh-CN': '动态排版', 'pt-BR': 'Tipografia cinética', 'zh-TW': '動態文字', ja: 'モーションタイポ', ko: '키네틱 타이포', es: 'Tipografía cinética', fr: 'Typo animée', de: 'Kinetische Typo', it: 'Tipografia cinetica', ru: 'Кинетическая типографика', tr: 'Kinetik tipografi', vi: 'Chữ chuyển động', id: 'Tipografi kinetik' },
     about: { en: 'Quotes, words, myths: the text is the picture', 'zh-CN': '名言、词语、辟谣：文字就是画面', 'pt-BR': 'Citações, palavras, mitos: o texto é a imagem', 'zh-TW': '名言、字詞、破解迷思：文字就是畫面', ja: '名言、言葉、俗説：文字が絵になる', ko: '명언, 단어, 오해: 글자가 곧 그림', es: 'Citas, palabras, mitos: el texto es la imagen', fr: 'Citations, mots, idées reçues : le texte est l’image', de: 'Zitate, Wörter, Mythen: Der Text ist das Bild', it: 'Citazioni, parole, miti: il testo è l’immagine', ru: 'Цитаты, слова, мифы: текст и есть картинка', tr: 'Alıntılar, sözcükler, efsaneler: yazı görüntünün kendisi', vi: 'Trích dẫn, từ ngữ, ngộ nhận: chữ chính là hình', id: 'Kutipan, kata, mitos: teksnya adalah gambarnya' },
     still: kinetic, looks: null
+  },
+  {
+    id: 'news', track: '2d', name: { en: 'News story', 'zh-CN': '新闻叙事', 'pt-BR': 'Narrativa jornalística', 'zh-TW': '新聞敘事', ja: 'ニュース・ストーリー', ko: '뉴스 스토리', es: 'Relato informativo', fr: 'Récit d’actualité', de: 'Nachrichtenstory', it: 'Racconto di cronaca', ru: 'Новостная история', tr: 'Haber anlatısı', vi: 'Kể chuyện tin tức', id: 'Kisah berita' },
+    about: { en: 'Breaking events told with tension: hacks, heists, crashes', 'zh-CN': '有张力地讲突发事件：黑客、劫案、暴跌', 'pt-BR': 'Acontecimentos urgentes com tensão: ataques hacker, roubos, quedas', 'zh-TW': '有張力地講突發事件：駭客、劫案、暴跌', ja: '緊迫感で伝える速報：ハッキング、強奪、暴落', ko: '긴장감 있게 전하는 속보: 해킹, 강탈, 폭락', es: 'Sucesos de última hora contados con tensión: hackeos, robos, desplomes', fr: 'L’actualité racontée avec tension : piratages, braquages, krachs', de: 'Eilmeldungen mit Spannung erzählt: Hacks, Raubzüge, Crashs', it: 'Notizie dell’ultima ora raccontate con tensione: hacker, colpi, crolli', ru: 'Срочные события с напряжением: взломы, ограбления, обвалы', tr: 'Son dakika olaylar gerilimle: hackler, soygunlar, çöküşler', vi: 'Sự kiện nóng kể đầy kịch tính: hacker, trộm cắp, sụp đổ', id: 'Peristiwa terkini penuh ketegangan: peretasan, perampokan, anjlok' },
+    still: news, looks: null
   },
   {
     id: '3d', track: '3d', name: { en: '3D', 'zh-CN': '3D', 'pt-BR': '3D', 'zh-TW': '3D', ja: '3D', ko: '3D', es: '3D', fr: '3D', de: '3D', it: '3D', ru: '3D', tr: '3D', vi: '3D', id: '3D' },

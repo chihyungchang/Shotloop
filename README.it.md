@@ -29,9 +29,9 @@ Un’idea diventa testi, uno storyboard e un video fatto di inquadrature. Ogni i
 
 ## Cos’è Shotloop
 
-Shotloop è un’app desktop per video brevi disegnati con il codice: promo di prodotto, divulgazione scientifica, storie con i dati e animazioni in stile slide, in 2D (pagine web renderizzate fotogramma per fotogramma) o in 3D (scene Blender), in sette stili visivi.
+Shotloop è un’app desktop per video brevi disegnati con il codice: promo di prodotto, divulgazione scientifica, storie con i dati e animazioni in stile slide, in 2D (pagine web renderizzate fotogramma per fotogramma) o in 3D (scene Blender), in otto stili visivi.
 
-Si parte da una frase. L’IA sceglie come mostrarla (scena cinematografica, infografica, mappa, demo di interfaccia, disegno tecnico, tipografia animata o 3D) e un tema, a meno che non li scelga tu. Scrive il gancio, il copione e i fatti con le loro fonti, poi li divide in uno storyboard, con la battuta che una voce narrante dice su ogni inquadratura. Tu modifichi lo storyboard e l’IA genera ogni inquadratura. Nello Studio guardi ogni inquadratura e dici cosa non va con parole tue, come «il testo è troppo piccolo» o «è troppo statico: aggiungi un po’ di movimento». L’IA modifica quell’inquadratura, la renderizza, la verifica rispetto alle note e ti mostra un prima/dopo. Quando il video funziona, l’esportazione unisce le inquadrature, posa la voce narrante con i suoi sottotitoli e sotto la musica; l’IA progetta una copertina nello stile del video (o compila il modello della tua serie) e scrive il post per ogni piattaforma, tutto in una cartella dedicata.
+Si parte da una frase. L’IA sceglie come mostrarla (scena cinematografica, infografica, mappa, demo di interfaccia, disegno tecnico, tipografia animata, racconto di cronaca o 3D) e un tema, a meno che non li scelga tu. Scrive il gancio, il copione e i fatti con le loro fonti, poi li divide in uno storyboard, con la battuta che una voce narrante dice su ogni inquadratura. Tu modifichi lo storyboard e l’IA genera ogni inquadratura. Nello Studio guardi ogni inquadratura e dici cosa non va con parole tue, come «il testo è troppo piccolo» o «è troppo statico: aggiungi un po’ di movimento». L’IA modifica quell’inquadratura, la renderizza, la verifica rispetto alle note e ti mostra un prima/dopo. Quando il video funziona, l’esportazione unisce le inquadrature, posa la voce narrante con i suoi sottotitoli e sotto la musica; l’IA progetta una copertina nello stile del video (o compila il modello della tua serie) e scrive il post per ogni piattaforma, tutto in una cartella dedicata.
 
 L’IA è quella che usi già: Claude Code o un altro agente di programmazione a cui hai fatto l’accesso, un’API del modello con la tua chiave, o un modello locale.
 
@@ -49,7 +49,7 @@ Ogni fotogramma qui sotto è stato renderizzato da Shotloop a partire dagli [ese
 </tr>
 </table>
 
-## Sette modi per mostrare un’idea
+## Otto modi per mostrare un’idea
 
 L’IA sceglie lo stile adatto al tema e ti spiega perché; puoi cambiarlo nel piano, o sceglierne uno nella Home. Ogni immagine è un fotogramma dell’esempio a cui rimanda.
 
@@ -63,6 +63,7 @@ L’IA sceglie lo stile adatto al tema e ti spiega perché; puoi cambiarlo nel p
 <tr>
 <td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Disegno tecnico" /></a><br/><sub><b>Disegno tecnico</b>: linee su una griglia, esplosi e didascalie, per spiegare come funziona una macchina.</sub></td>
 <td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Tipografia animata" /></a><br/><sub><b>Tipografia animata</b>: testo enorme che si muove, per citazioni, parole e falsi miti.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Racconto di cronaca" /></a><br/><sub><b>Racconto di cronaca</b>: notizie dell’ultima ora raccontate con tensione: un orologio che corre, la pista del denaro, la cronologia, chi ha detto cosa.</sub></td>
 <td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: scene Blender con luce reale e una camera che attraversa lo spazio.</sub></td>
 </tr>
 </table>
@@ -117,7 +118,7 @@ flowchart LR
 
 - **Inquadrature, non un unico lungo render.** Un video è una lista di inquadrature. Ognuna è un piccolo programma: `shot.js` per una pagina 2D, `shot.py` per un movimento di camera in Blender. Ognuna è in cache secondo un hash dei suoi input, quindi una correzione renderizza una sola inquadratura in pochi secondi (2D) o un minuto (3D), e l’esportazione si limita a unire le clip.
 - **Correzioni a parole.** L’IA tocca solo l’inquadratura su cui ti trovi, a meno che la correzione non richieda di cambiare il mondo condiviso. Renderizza dei fotogrammi, li verifica con una checklist (leggibile, niente di coperto, fuori dalla zona delle didascalie e così via) e riferisce cosa ha cambiato.
-- **Sette stili visivi.** Scena cinematografica, infografica, mappa, demo di interfaccia, disegno tecnico, tipografia animata o 3D, ognuno con il suo kit e i fotogrammi di riferimento che l’IA guarda prima di scegliere e generare ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Un tema imposta solo lo sfondo e il carattere; immagini e dati mantengono i colori richiesti dal soggetto.
+- **Otto stili visivi.** Scena cinematografica, infografica, mappa, demo di interfaccia, disegno tecnico, tipografia animata, racconto di cronaca o 3D, ognuno con il suo kit e i fotogrammi di riferimento che l’IA guarda prima di scegliere e generare ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Un tema imposta solo lo sfondo e il carattere; immagini e dati mantengono i colori richiesti dal soggetto.
 - **Regole con cui si misura un piano.** Lunghezza delle didascalie e tempo a schermo vengono verificati prima di generare qualsiasi cosa. Un’immagine che ricorre in più inquadrature viene disegnata una volta e condivisa, così è uguale in ognuna.
 - **Fatti con fonte.** I testi tengono ogni fatto accanto alla sua fonte, e i testi di pubblicazione possono usare solo fatti presenti nei testi.
 - **Copertine.** L’IA progetta una copertina nello stile del video e controlla i propri render. Salvane una come modello per mantenere coerente una serie, oppure carica una copertina che ti piace e l’IA ne segue il design.
