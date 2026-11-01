@@ -137,10 +137,12 @@ pub async fn trash_project(handle: AppHandle, path: String) -> Result<(), String
 /// A project to open at launch: `shotloop <project dir>` or $SHOTLOOP_OPEN
 #[tauri::command]
 pub fn initial_project() -> Option<String> {
-    std::env::args()
+    let path = std::env::args()
         .skip(1)
         .find(|a| !a.starts_with('-') && Path::new(a).join("shotloop.json").exists())
-        .or_else(|| std::env::var("SHOTLOOP_OPEN").ok())
+        .or_else(|| std::env::var("SHOTLOOP_OPEN").ok())?;
+    // Absolute: the engine runs in the app's folder, not where `shotloop .` was typed
+    Some(Path::new(&path).canonicalize().map_or(path, |p| p.display().to_string()))
 }
 
 /// Where projects go when the person picks no folder: ~/Documents/Shotloop
