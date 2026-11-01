@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url'
 import { DEFAULT_SAMPLES, round } from './data.mjs'
 import { readJson, writeJson } from './files.mjs'
 
-export const FILE = 'shotloop.json'
+const FILE = 'shotloop.json'
 
 export const SIZES = {
   portrait: { width: 1080, height: 1920 },

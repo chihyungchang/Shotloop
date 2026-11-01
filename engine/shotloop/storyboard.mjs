@@ -14,17 +14,17 @@ import { untouchedLook } from './looks.mjs'
 import { loadProject, SHOT_ID, updateConfig } from './project.mjs'
 import { captions, isStarter, isStarterCaptions, unbuilt, writePlan, writeShots, writeWorld2d, writeWorld3d } from './starters.mjs'
 
-export const FILE = 'storyboard.json'
+export const STORYBOARD_FILE = 'storyboard.json'
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 4).join('-')
 
-export function readStoryboard(project) {
-  const file = path.join(project.root, FILE)
+function readStoryboard(project) {
+  const file = path.join(project.root, STORYBOARD_FILE)
   if (!fs.existsSync(file)) return null
   const sb = JSON.parse(fs.readFileSync(file, 'utf8'))
-  if (!Array.isArray(sb.shots) || !sb.shots.length) throw new Error(`${FILE} has no shots`)
+  if (!Array.isArray(sb.shots) || !sb.shots.length) throw new Error(`${STORYBOARD_FILE} has no shots`)
   for (const [i, s] of sb.shots.entries()) {
-    if (!String(s.title ?? '').trim()) throw new Error(`${FILE}: shot ${i + 1} has no title`)
-    if (!(s.duration >= 1 && s.duration <= 30)) throw new Error(`${FILE}: shot ${i + 1} must last 1–30 s`)
+    if (!String(s.title ?? '').trim()) throw new Error(`${STORYBOARD_FILE}: shot ${i + 1} has no title`)
+    if (!(s.duration >= 1 && s.duration <= 30)) throw new Error(`${STORYBOARD_FILE}: shot ${i + 1} must last 1–30 s`)
   }
   return sb
 }
@@ -46,7 +46,7 @@ function toThreeD(project) {
 
 export function applyStoryboard(project) {
   const sb = readStoryboard(project)
-  if (!sb) throw new Error(`no ${FILE} yet: plan the video first`)
+  if (!sb) throw new Error(`no ${STORYBOARD_FILE} yet: plan the video first`)
   // The visual style the plan picked (styles.mjs); 3D only while the
   // project may still change track
   let style = styleById(sb.style)
@@ -164,6 +164,6 @@ export function deriveStoryboard(project) {
     copy: { idea: section(copy, 'Idea'), hook, body, facts },
     shots: shots.map(s => ({ ...s, show: placeholder(s.show) ? '' : s.show, text: placeholder(s.text) ? '' : s.text, motion: placeholder(s.motion) ? '' : s.motion }))
   }
-  writeJson(path.join(project.root, FILE), sb)
+  writeJson(path.join(project.root, STORYBOARD_FILE), sb)
   return sb
 }

@@ -25,6 +25,7 @@ import { round } from './data.mjs'
 import { sentences, voiceLang, voiceOn } from './cues.mjs'
 import { loadProject, localPath, projectPath, updateConfig } from './project.mjs'
 import { isStarter } from './starters.mjs'
+import { STORYBOARD_FILE } from './storyboard.mjs'
 import { dressClips } from './subtitles.mjs'
 
 // The picture comes first: a line starts this far into its shot, and the
@@ -211,7 +212,7 @@ export async function fitVoice(project) {
 
 // The plan page shows storyboard.json: its durations follow the fit
 function syncStoryboard(root, shots) {
-  const file = path.join(root, 'storyboard.json')
+  const file = path.join(root, STORYBOARD_FILE)
   const sb = readJson(file, null)
   if (!sb?.shots || sb.shots.length !== shots.length) return
   sb.shots = sb.shots.map((s, i) => ({ ...s, duration: shots[i].duration, say: shots[i].say ?? s.say }))

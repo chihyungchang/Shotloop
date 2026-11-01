@@ -15,33 +15,38 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { POLY_CATEGORIES } from './data.mjs'
+import { safeId } from './files.mjs'
 
 export const LIBRARY = process.env.SHOTLOOP_LIBRARY ?? path.join(os.homedir(), '.shotloop', 'library')
-export const SOURCES = ['polypizza', 'smithsonian']
+const SOURCES = ['polypizza', 'smithsonian']
 
 const UA = { 'user-agent': 'Shotloop (https://github.com/chihyungchang/Shotloop)' }
-// An asset id as a folder name: word characters, dots and dashes, never
-// empty, "." or ".." (ids come from asset.json files, which may be edited)
-const safe = s => {
-  const id = String(s).replace(/[^\w.-]+/g, '-').replace(/^[-.]+|-+$/g, '').slice(0, 80)
-  if (!id || /^\.+$/.test(id)) throw new Error(`not an asset id: ${s}`)
-  return id
+const assetId = s => safeId(s, 'an asset id')
+
+// A request to a source, its failures as errors the person can act on:
+// no network, a refused API key, too many requests
+async function request(url, headers, timeout) {
+  const host = new URL(url).host
+  const res = await fetch(url, { headers: { ...UA, ...headers }, signal: AbortSignal.timeout(timeout) }).catch(e => {
+    throw new Error(`could not reach ${host} (${e.cause?.code ?? e.name}): check the network`)
+  })
+  if (res.status === 401 || res.status === 403) throw new Error(`${host}: the API key was refused (${res.status}); check it in Settings`)
+  if (res.status === 429) throw new Error(`${host}: too many requests; try again in a moment`)
+  if (!res.ok) throw new Error(`${host}: ${res.status} ${(await res.text()).slice(0, 200)}`)
+  return res
 }
 
-async function getJson(url, headers = {}) {
-  const res = await fetch(url, { headers: { ...UA, ...headers }, signal: AbortSignal.timeout(20000) }).catch(e => {
-    throw new Error(`could not reach ${new URL(url).host} (${e.cause?.code ?? e.name}): check the network`)
-  })
-  if (res.status === 401 || res.status === 403) throw new Error(`${new URL(url).host}: the API key was refused (${res.status}); check it in Settings`)
-  if (res.status === 429) throw new Error(`${new URL(url).host}: too many requests; try again in a moment`)
-  if (!res.ok) throw new Error(`${new URL(url).host}: ${res.status} ${(await res.text()).slice(0, 200)}`)
-  return res.json()
+const getJson = async (url, headers = {}) => (await request(url, headers, 20000)).json()
+
+async function fetchTo(url, file, headers = {}) {
+  const res = await request(url, headers, 180000)
+  fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()))
 }
 
 // One shape for every source's results
 function item(source, o) {
   return {
-    id: `${source}-${safe(o.id)}`, source, name: o.name || 'Untitled', thumb: o.thumb ?? null, license: o.license ?? '',
+    id: `${source}-${assetId(o.id)}`, source, name: o.name || 'Untitled', thumb: o.thumb ?? null, license: o.license ?? '',
     author: o.author ?? '', authorUrl: o.authorUrl ?? null, page: o.page ?? null, download: o.download,
     triangles: o.triangles ?? null, animated: !!o.animated, size: o.size ?? null
   }
@@ -86,6 +91,8 @@ async function cacheThumbs(results, key) {
       try {
         await fetchTo(it.thumb, file, { 'x-auth-token': key })
       } catch {
+        // A thumbnail that won't load leaves its result without a picture;
+        // the search itself still answers
         return { ...it, thumb: null }
       }
     }
@@ -151,20 +158,11 @@ export async function search(source, query, opts = {}) {
   return { ...v, results: poly ? await cacheThumbs(v.results, opts.key) : v.results }
 }
 
-async function fetchTo(url, file, headers = {}) {
-  const res = await fetch(url, { headers: { ...UA, ...headers }, signal: AbortSignal.timeout(180000) }).catch(e => {
-    throw new Error(`could not reach ${new URL(url).host} (${e.cause?.code ?? e.name}): check the network`)
-  })
-  if (res.status === 401 || res.status === 403) throw new Error(`${new URL(url).host} refused the download (${res.status}); check the API key in Settings`)
-  if (!res.ok) throw new Error(`download failed: ${res.status} ${url}`)
-  fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()))
-}
-
 // Downloads a search result into the library (once); Poly Pizza's files
 // need the key
 export async function download(it, key) {
   if (!it?.id || !it.download) throw new Error('nothing to download')
-  const dir = path.join(LIBRARY, safe(it.id))
+  const dir = path.join(LIBRARY, assetId(it.id))
   const meta = path.join(dir, 'asset.json')
   if (fs.existsSync(meta)) return JSON.parse(fs.readFileSync(meta, 'utf8'))
   fs.mkdirSync(dir, { recursive: true })
@@ -173,13 +171,15 @@ export async function download(it, key) {
     await fetchTo(it.download, path.join(dir, 'model.glb'), auth)
     // The thumbnail: the cached copy when the search fetched one
     if (it.thumb && fs.existsSync(it.thumb)) fs.copyFileSync(it.thumb, path.join(dir, 'thumb.jpg'))
+    // A model without its thumbnail is still the model: the library shows
+    // a placeholder
     else if (it.thumbUrl ?? it.thumb) await fetchTo(it.thumbUrl ?? it.thumb, path.join(dir, 'thumb.jpg'), auth).catch(() => {})
   } catch (e) {
     fs.rmSync(dir, { recursive: true, force: true })
     throw e
   }
   const asset = {
-    id: safe(it.id), name: it.name, source: it.source, license: it.license, author: it.author, authorUrl: it.authorUrl,
+    id: assetId(it.id), name: it.name, source: it.source, license: it.license, author: it.author, authorUrl: it.authorUrl,
     page: it.page, attribution: it.attribution ?? null, triangles: it.triangles, animated: it.animated, added: new Date().toISOString()
   }
   fs.writeFileSync(meta, JSON.stringify(asset, null, 2) + '\n')
@@ -199,6 +199,8 @@ function readAssets(base) {
     try {
       return [withFiles(JSON.parse(fs.readFileSync(meta, 'utf8')), path.join(base, d))]
     } catch {
+      // A folder whose asset.json is broken (edited by hand, cut short) is
+      // not an asset: the rest of the library still lists
       return []
     }
   }).sort((a, b) => String(b.added).localeCompare(String(a.added)))
@@ -212,7 +214,7 @@ export function importFile(file, { name, license = '', author = '', page = null 
   const base = path.basename(file, path.extname(file))
   // Named after the file and its content, so two "model.glb" files don't collide
   const hash = createHash('sha1').update(fs.readFileSync(file)).digest('hex').slice(0, 8)
-  const id = `local-${safe(base)}-${hash}`
+  const id = `local-${assetId(base)}-${hash}`
   const dir = path.join(LIBRARY, id)
   fs.mkdirSync(dir, { recursive: true })
   fs.copyFileSync(file, path.join(dir, 'model.glb'))
@@ -225,22 +227,22 @@ export const list = () => readAssets(LIBRARY)
 export const projectAssets = project => readAssets(path.join(project.root, 'assets'))
 
 export function remove(id) {
-  const dir = path.join(LIBRARY, safe(id))
+  const dir = path.join(LIBRARY, assetId(id))
   if (!fs.existsSync(dir)) throw new Error(`no asset ${id}`)
   fs.rmSync(dir, { recursive: true, force: true })
-  return { removed: safe(id) }
+  return { removed: assetId(id) }
 }
 
 // A library asset into the project (assets/<id>/), for its world to import
 export function use(project, id) {
-  const from = path.join(LIBRARY, safe(id))
+  const from = path.join(LIBRARY, assetId(id))
   if (!fs.existsSync(path.join(from, 'asset.json'))) throw new Error(`no asset ${id} in the library`)
-  const to = path.join(project.root, 'assets', safe(id))
+  const to = path.join(project.root, 'assets', assetId(id))
   fs.cpSync(from, to, { recursive: true })
-  return { ...withFiles(JSON.parse(fs.readFileSync(path.join(to, 'asset.json'), 'utf8')), to), path: `assets/${safe(id)}/model.glb` }
+  return { ...withFiles(JSON.parse(fs.readFileSync(path.join(to, 'asset.json'), 'utf8')), to), path: `assets/${assetId(id)}/model.glb` }
 }
 
 export function unuse(project, id) {
-  fs.rmSync(path.join(project.root, 'assets', safe(id)), { recursive: true, force: true })
-  return { removed: safe(id) }
+  fs.rmSync(path.join(project.root, 'assets', assetId(id)), { recursive: true, force: true })
+  return { removed: assetId(id) }
 }

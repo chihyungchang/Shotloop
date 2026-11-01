@@ -109,12 +109,12 @@ async function outputs(project, shot, e, mode) {
   return {
     stills: e.stills,
     clip: e.clip,
-    preview: e.clip ? await preview(project, shot, e.clip, mode) : null
+    preview: e.clip ? await shotPreview(project, shot, e.clip, mode) : null
   }
 }
 
 // The shot as the film plays it: its subtitles, the music and the voice
-async function preview(project, shot, clip, mode) {
+async function shotPreview(project, shot, clip, mode) {
   const clips = project.shots.map(s => (s.id === shot.id ? clip : null))
   const { clips: dressed, audio } = await dressFilm(project, mode, clips, await musicBed(project), { record: false })
   const video = dressed[shot.index]

@@ -162,6 +162,7 @@ function doctor() {
     try {
       return execFileSync(cmd, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).split('\n')[0].trim()
     } catch {
+      // Not installed, or not runnable: doctor reports it as missing
       return null
     }
   }

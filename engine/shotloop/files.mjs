@@ -35,3 +35,12 @@ export function writeAtomic(file, data) {
 }
 
 export const writeJson = (file, value) => writeAtomic(file, JSON.stringify(value, null, 2) + '\n')
+
+// An id as a folder name: word characters, dots and dashes, never empty,
+// "." or ".." (ids come from JSON files people may edit). what: the kind
+// of id, for the error
+export function safeId(s, what) {
+  const id = String(s).replace(/[^\w.-]+/g, '-').replace(/^[-.]+|-+$/g, '').slice(0, 80)
+  if (!id || /^\.+$/.test(id)) throw new Error(`not ${what}: ${s}`)
+  return id
+}

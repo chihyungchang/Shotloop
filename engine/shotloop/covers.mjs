@@ -11,15 +11,12 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { ffmpeg } from './compose.mjs'
+import { safeId } from './files.mjs'
 import { renderCover } from './film.mjs'
 
 export const COVERS = process.env.SHOTLOOP_COVERS ?? path.join(os.homedir(), '.shotloop', 'covers')
 
-const safe = s => {
-  const id = String(s).replace(/[^\w.-]+/g, '-').replace(/^[-.]+|-+$/g, '').slice(0, 80)
-  if (!id || /^\.+$/.test(id)) throw new Error(`not a template id: ${s}`)
-  return id
-}
+const templateId = s => safeId(s, 'a template id')
 
 function info(id) {
   const dir = path.join(COVERS, id)
@@ -38,8 +35,8 @@ export function list() {
     .sort((a, b) => String(b.created).localeCompare(String(a.created)))
 }
 
-export function get(id) {
-  const t = list().find(t => t.id === safe(id))
+function get(id) {
+  const t = list().find(t => t.id === templateId(id))
   if (!t) throw new Error(`no cover template ${id}`)
   return t
 }
@@ -90,8 +87,8 @@ export async function reference(project, file) {
 }
 
 export function remove(id) {
-  const dir = path.join(COVERS, safe(id))
+  const dir = path.join(COVERS, templateId(id))
   if (!fs.existsSync(dir)) throw new Error(`no cover template ${id}`)
   fs.rmSync(dir, { recursive: true, force: true })
-  return { removed: safe(id) }
+  return { removed: templateId(id) }
 }

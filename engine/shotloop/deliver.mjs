@@ -30,9 +30,9 @@ const WORDS = {
 const words = lang => WORDS[lang] ?? WORDS.en
 
 // A name safe as a file name on macOS and elsewhere
-const safe = s => String(s ?? '').replace(/[/\\:*?"<>|\u0000-\u001f]+/g, '-').replace(/^[\s.-]+|[\s.]+$/g, '').slice(0, 100) || 'Shotloop'
+const safeFileName = s => String(s ?? '').replace(/[/\\:*?"<>|\u0000-\u001f]+/g, '-').replace(/^[\s.-]+|[\s.]+$/g, '').slice(0, 100) || 'Shotloop'
 
-export const expandHome = p => (p === '~' || p.startsWith('~/') ? path.join(os.homedir(), p.slice(1)) : p)
+const expandHome = p => (p === '~' || p.startsWith('~/') ? path.join(os.homedir(), p.slice(1)) : p)
 
 const pad = n => String(n).padStart(2, '0')
 const when = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}.${pad(d.getMinutes())}`
@@ -51,7 +51,7 @@ function newFolder(to, name) {
 // The export's files (out/ paths) copied into a new folder; the same
 // result with the folder and the copies' paths
 export function deliver(project, result, { to, name, lang }) {
-  name = safe(name || project.title)
+  name = safeFileName(name || project.title)
   const w = words(lang)
   const folder = newFolder(path.resolve(expandHome(to)), name)
   const copy = (file, label, ext) => {
@@ -74,7 +74,7 @@ export function deliver(project, result, { to, name, lang }) {
 export function deliverCopy(project, folder, { name, lang }) {
   if (!project.publish || !fs.existsSync(project.publish)) throw new Error('no publish copy yet')
   if (!fs.existsSync(folder)) throw new Error(`no folder ${folder}`)
-  const out = path.join(folder, `${safe(name || project.title)} ${words(lang).copy}.md`)
+  const out = path.join(folder, `${safeFileName(name || project.title)} ${words(lang).copy}.md`)
   fs.copyFileSync(project.publish, out)
   return out
 }
