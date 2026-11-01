@@ -1,6 +1,7 @@
-# The desktop app, the agent sidecar and the voice-over (text to speech);
-# the engine (engine/) has no dependencies and runs from the root
+# The desktop app, the agent sidecar, the voice-over (text to speech) and
+# the engine (engine/: no dependencies, here for its tests)
 packages:
   - app
   - agent
   - voice
+  - engine

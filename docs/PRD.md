@@ -1,6 +1,6 @@
 # Shotloop — Product requirements
 
-Status: draft · Owner: Oliver Zhang · Last updated: 2026-10-29
+Status: draft · Owner: Oliver Zhang · Last updated: 2026-11-01
 
 ## 1. Summary
 
@@ -73,7 +73,7 @@ where the time goes:
 | Shot | A slice of the film with its own camera, timing and animation, written in shot-local time (0 = the shot's first frame). |
 | Take | One render of a shot. A shot keeps its takes; the person picks one. |
 | Draft / final | Draft: half resolution, few samples, ~0.3 s a frame. Final: full resolution, motion blur, ~2–4 s a frame. |
-| Checklist | The rules a shot must pass (sightline clear, subject readable, clear of the caption zone, something moves…). Seeded from `engine/video/explainers/3d/README.md`. |
+| Checklist | The rules a shot must pass (sightline clear, subject readable, clear of the caption zone, something moves…). Seeded from the 3D notes (`engine/shotloop/blender/kit/README.md`); `engine/shotloop/checklist.md`. |
 
 ## 6. Workflow
 
@@ -94,97 +94,94 @@ workflows map onto it:
 
 ## 7. Features
 
-### P0 — MVP
+### Built (0.9)
 
-1. **Shot-based project format** (§8) and a converter for the existing
-   episodes (ep01 2D, ep02 3D).
+1. **Shot-based project format** (§8): shot-local time, a shared world,
+   one code file and one notes file per shot.
 2. **Per-shot render with cache.** Each shot's frames are keyed by a hash
-   of its inputs (world code, shot code, assets, render settings). An
-   unchanged shot reuses its frames; the film is assembled from cached
-   shots.
-3. **Timeline view.** The film as a row of shots: thumbnail, duration,
-   state (cached, stale, rendering, failed), draft or final.
-4. **Shot view.** Stills at start, middle and end; the draft clip with
-   captions and music for that range; the shot's code; its takes.
-5. **Plain-language fixes.** The person writes what is wrong ("the cable
-   is hidden behind the building"); the agent edits only that shot (or
-   the world, if needed, and says which other shots that touches),
-   renders stills, and shows a before/after.
-6. **Automatic checks.** After every change the agent renders stills and
-   reviews them against the checklist, using vision; it fixes what it can
-   and reports the rest. Failed checks are shown on the shot.
-7. **Render queue.** Draft and final jobs, one shot at a time, with
-   progress and time estimates; final renders run in the background.
-8. **Captions and music.** The existing caption layer (`captions.html`,
-   transparent, composited) and music bed (`music.json` → `music.mjs`),
-   both aligned to shots.
-9. **Export.** MP4 (H.264 + AAC), 9:16 and 16:9.
-10. **Publish kit.** With every export: a cover (`thumb.html` → 1080×1920
-    PNG, text inside the 3:4 crop) and `publish.md`, the post for each
-    platform (YouTube Shorts title, description, tags; TikTok caption and
-    pinned comment; Reels caption), written from the copy's facts and
-    sources only, with each platform's AI-label setting.
+   of its inputs (§8). An unchanged shot reuses its frames; the film is
+   joined from cached shots. A stale shot says what changed (its code,
+   the scene, the captions, its timing or the engine).
+3. **Film strip and shot view.** The film as a row of shots with their
+   state; a shot's stills (start, middle, end), its clip with subtitles,
+   music and voice, its takes, its checks and fixes.
+4. **Plain-language fixes** and **automatic checks** against the
+   checklist, by the agent (§9), with before/after stills.
+5. **Plan.** Idea → copy and storyboard (storyboard.json) on a planning
+   page the person edits; applying it writes the shot list, each shot's
+   notes and starter code. Then the agent builds the world and every shot.
+6. **Visual styles and looks.** Eight styles (cinematic scene,
+   infographic, map, interface demo, blueprint, kinetic type, news story,
+   3D) with reference stills; for 2D, ten looks (palette and type) over
+   one page kit (engine/shotloop/data.mjs, looks.mjs).
+7. **Voice-over.** Each shot's line spoken on the Mac (Kokoro, CosyVoice 2
+   or Supertonic, downloaded on first use); the voice leads the cut (shots
+   are fitted to their lines), subtitles are burned in a band the shots
+   keep clear, and a subtitle check stops an export that would cover what
+   the viewer must see.
+8. **Music.** A bed composed per film in a mood (score.mjs, synthesized
+   by synth.mjs) and tuned to the cuts, or the person's own audio file;
+   ducked under the voice.
+9. **Render queue** in the app shell: renders, exports, agent jobs and
+   model downloads, with progress and estimates.
+10. **Export and publish kit.** MP4 (H.264 + AAC) at 9:16 and 16:9, a
+    cover (thumb.html, cover templates), and the publish copy per
+    platform, delivered into a folder named after the work.
+11. **3D asset library** (Poly Pizza, Smithsonian Open Access) copied
+    into the project that uses a model.
 
-### P1
+### Next
 
-- Step documents in the app: copy, script, storyboard, scene and shot
-  list, each generated by the agent and edited by the person.
-- New project from a template (2D explainer, 3D explainer, promo).
 - Takes side by side; pick one.
-- Asset library: CC0 packs (Kenney, Poly Haven, Quaternius) downloaded
-  on demand, with a manifest per project.
-- Caption languages: re-render only the caption layer per language.
+- Caption languages: re-render only the subtitle layer per language.
 - The checklist grows: when the person reports a new kind of mistake,
   the agent proposes a rule for it.
-
-### P2
-
-- Cost and time budget per project (API tokens, render minutes).
-- Windows support.
-- Share a review link for a draft.
-- Platform presets (Shorts, Reels, TikTok safe areas).
+- Cost and time budget per project; Windows support; a review link.
 
 ## 8. Project format
 
 ```
 my-video/
-  shotloop.json        # title, track, size, fps, duration, shot order
-  copy.md  script.md  storyboard.md  scene.md
-  world/               # 3D: world.py (sets, lights, assets); 2D: shared.js/css
-  shots/
-    01-room/
-      shot.py | shot.js  # camera, timing, animation in shot-local time
-      notes.md           # what the shot must show; review history
-  captions.html  music.json
-  .shotloop/           # cache: frames per shot and input hash, takes, logs
-  out/                 # exported films
+  shotloop.json        # title, track, size, fps, shot order and lengths, style,
+                       # look, language, voice-over and music settings
+  storyboard.json      # the plan the planning page edits
+  copy.md  script.md  storyboard.md   # the readable plan
+  world/               # 3D: world.py (+ screen.html); 2D: page.html (the look's kit),
+                       # parts.js (recurring pictures), style data
+  shots/<id>/          # shot.py | shot.js in shot-local time; notes.md
+  assets/<id>/         # 3D models from the asset library
+  captions.html        # 3D: the caption layer
+  music.json  thumb.html  publish.md
+  .shotloop/           # cache (engine/shotloop/cache.mjs): frames per shot and key,
+                       # takes, checks, fixes, music, voice and subtitles
+  out/                 # exports (timestamped); out/latest.json names the newest
 ```
 
 Rules:
 
 - A shot sees the world and its own code only. Anything two shots share
   lives in the world.
-- Shot time starts at 0; the assembler adds the offset.
-- The cache key covers every input that changes a pixel. A changed world
-  invalidates every shot that uses the changed part (v1: all shots).
-- Outputs are named with their take and a timestamp, and the app only
-  ever shows the latest take, so a stale file can't be mistaken for a
-  new one.
+- Shot time starts at 0; a shot's place is the sum of the lengths before it.
+- The cache key covers every input that changes a pixel: the world, the
+  shot's code, the captions, its timing and voice cues, the renderer, the
+  settings, and for 3D the kit and assets. A changed world invalidates
+  every shot. Keys and records name files by their place in the project,
+  so a copied project keeps its cache.
+- Writes go through a temporary file and a rename; shotloop.json writers
+  change only the fields they own.
+- Outputs are named with their mode and a timestamp, and the app shows
+  the latest take, so a stale file can't be mistaken for a new one.
 
 ## 9. Architecture
 
 | Layer | Choice | Role |
 | --- | --- | --- |
-| App shell | Tauri 2 (Rust) | Windows, file system, process supervision (Blender, ffmpeg, Chrome), render queue, cache. |
-| UI | React + TypeScript | Timeline, shot view, step documents, queue. |
-| Engine | Node scripts in `engine/` (today), then a library | Render a shot (2D: Chrome; 3D: Blender), captions, music, composite, assemble. |
-| Agent | Claude Agent SDK (TypeScript), run as a Node sidecar | Writes and edits documents and shot code, renders stills through engine tools, reviews them against the checklist. |
-| Models | `claude-opus-5-5` for planning and scene code; `claude-sonnet-5-5` for routine edits and checks | Chosen per task; the user's own API key. |
-| External | Blender (user-installed), ffmpeg, Chrome or a bundled headless shell | Detected on first run, with install instructions. |
-
-The agent's tools are narrow: read and write files inside the project,
-render stills or a range, read the checklist. It never runs arbitrary
-shell commands.
+| App shell | Tauri 2 (Rust) | Windows, file access, the job queue (one render lane, one agent lane, one voice lane), process supervision, updates, settings. |
+| UI | React + TypeScript | Home, planning page, studio (film strip, shot view), export, settings. |
+| Engine | Node, no dependencies (`engine/`) | Owns the project format and the cache. A CLI (`engine/shotloop/cli.mjs --json`, events typed in `protocol.d.ts`) the app and the agent run: render a shot (2D: Chrome; 3D: Blender), voice-over, subtitles and their check, music, film, export, cover, asset library. |
+| Voice | Node package (`voice/`), on-device models | Text to speech, models downloaded on first use. |
+| Agent | Node sidecar (`agent/`), TypeScript | Plans, builds, fixes and checks shots through narrow tools: files inside the project and engine renders, never shell commands. Its model is the person's choice: Anthropic's API (Opus for planning and code, Sonnet for routine checks by default), another hosted API (OpenAI-compatible), a CLI agent on the Mac (Claude Code, Codex, Gemini) or a local model server. |
+| External | Chrome (the user's), ffmpeg (bundled), Blender (user-installed, 3D only) | Detected (`shotloop doctor`), with install instructions. |
 
 ## 10. Milestones
 
