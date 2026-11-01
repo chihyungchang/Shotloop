@@ -24,11 +24,12 @@ export interface Style {
   why: string
   looks: string[]
 }
-export interface Look { id: string; about: string; scene?: unknown }
+export interface Look { id: string; about: string; mood: string; scene?: unknown }
 
-export const { STYLES, styleById, LOOKS, readTime } = await load<{
+export const { STYLES, styleById, lookFits, LOOKS, readTime } = await load<{
   STYLES: Style[]
   styleById: (id: string) => Style | null
+  lookFits: (style: string | null | undefined, look: string) => boolean
   LOOKS: Look[]
   readTime: (text: string) => number
 }>('data.mjs')

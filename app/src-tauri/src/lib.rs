@@ -204,6 +204,7 @@ pub fn run() {
             commands::projects::apply_storyboard,
             commands::projects::derive_storyboard,
             commands::projects::quality,
+            commands::projects::pick_map,
             commands::media::covers,
             commands::media::deliver_copy,
             commands::media::music,

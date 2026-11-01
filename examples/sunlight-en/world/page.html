@@ -163,7 +163,12 @@
         const q = prng(7)
         return Array.from({ length: 90 }, () => ({ a: q() * 6.283, d: Math.sqrt(q()) * 0.95, s: 0.1 + q() * 0.16, k: q() }))
       })()
+      // A round thing's extent this frame, named for the element picker
+      // (window.picker exists only while it maps the stills)
+      const part = (x, y, r, name) => window.picker?.part(x - r, y - r, 2 * r, 2 * r, name)
+
       function sun(t, x, y, r, { glow: gl = 1, streak = 1 } = {}) {
+        part(x, y, r, 'sun')
         c.globalCompositeOperation = 'lighter'
         const pulse = 1 + 0.03 * Math.sin(t * 1.7)
         c.fillStyle = radial(x, y, 0, r * 7 * pulse, [
@@ -228,6 +233,7 @@
         return Array.from({ length: 9 }, () => ({ a: q() * 6.283, d: q() * 0.75, w: 0.18 + q() * 0.3, h: 0.1 + q() * 0.18, rot: q() * 3 }))
       })()
       function planet(t, x, y, r, { light = Math.PI, kind = 'earth', spin = 0 } = {}) {
+        part(x, y, r, kind)
         const pal = {
           earth: { atm: '90, 160, 255', stops: [[0, '#bfe4ff'], [0.35, '#4a9bf0'], [0.75, '#1f5fc4'], [1, '#0b2a66']] },
           moon: { atm: '200, 205, 220', stops: [[0, '#f1f1f4'], [0.5, '#b9bcc6'], [1, '#6c7080']] },

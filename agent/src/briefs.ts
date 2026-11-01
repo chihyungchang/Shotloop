@@ -5,6 +5,7 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
+import type { PickedElement } from '../../engine/shotloop/protocol.d.ts'
 import type { ProjectStatus, ShotStatus } from './engine.ts'
 import { reason, warn } from './events.ts'
 import { creditsPrompt } from './prompts.ts'
@@ -76,6 +77,21 @@ function styleBrief(project: ProjectStatus) {
   return `\n\nVisual style: ${s.id} (${s.name.en}). ${s.frames} Reference: ${s.why} Look at its reference stills (view_style "${s.id}") before you build, and reach that quality.`
 }
 
+// The element the person picked in the frame (engine/shotloop/pick.mjs),
+// said so the agent can find it in the shot's code
+export function elementBrief(el: PickedElement) {
+  const at = `at ${el.t} s, at page point (${el.point.x}, ${el.point.y}) CSS px`
+  if (el.kind === 'three') return `They pointed at the shot's three.js scene (its WebGL canvas) as a whole, ${at}.`
+  if (el.kind === 'canvas') {
+    return el.name
+      ? `They pointed at "${el.name}", a part the shot names on its canvas (window.picker?.part or subtitles.keep) (${el.path}), ${at}.`
+      : `They pointed at what is drawn on the canvas (${el.path}) ${at}, the coordinates its drawing code uses.`
+  }
+  const name = el.name ? ` named "${el.name}"` : ''
+  const text = el.text ? `, showing "${el.text}"` : ''
+  return `They pointed at this element${name}: <${el.tag}> (${el.path} in the page)${text}, ${at}.`
+}
+
 export function shotBrief(project: ProjectStatus, shot: ShotStatus) {
   const rel = (f: string) => path.relative(project.root, f)
   const others = project.shots.map(s => `${s.id} (${s.start}–${s.start + s.duration} s)${s.id === shot.id ? ' ← this shot' : ''}`)
@@ -120,11 +136,13 @@ export function stylesBrief(project: ProjectStatus, threeD: boolean) {
 }
 
 // The looks a 2D plan picks from, or the one the person chose
+// The looks to pick from: the planner always picks its own, the AI's
+// choice the plan page offers; a look the person chose is laid over it
+// afterwards (main.ts planTask)
 export async function looksBrief(project: ProjectStatus) {
   if (project.track !== '2d') return ''
-  const chosen = (JSON.parse(read(path.join(project.root, 'shotloop.json'))) as { look?: string }).look
-  if (chosen) return `\nLook: "${chosen}" (chosen by the person; keep it unless the style you pick cannot use it).`
-  return `\nLooks (pick one for "look", one the style can use):\n${LOOKS.map(l => `- ${l.id}: ${l.about}${l.scene ? '' : ' (not for the cinematic scene)'}`).join('\n')}`
+  return `\nLooks: pick one for "look", one the style can use. Pick by mood: name the mood the subject carries (awe, tension, warmth, calm, urgency, trust…), then take the look whose mood matches it; "lookWhy" says that mood. One look for the whole video: every shot is drawn in it, no shot switches palette. A look changes only the ground and the type (background, text, accent); the structure stays the same whatever the look: layout, headline place, safe area, and the content colors pictures and data take. On that base you are free: shade the look for this subject with "lookTune" (its accents, its background), as long as the mood holds, the text stays easy to read on the ground, and the video keeps that one palette.
+${LOOKS.map(l => `- ${l.id}: ${l.about}; mood: ${l.mood}${l.scene ? '' : ' (not for the cinematic scene)'}`).join('\n')}`
 }
 
 // The world's text files (not folders such as __pycache__, not media, not

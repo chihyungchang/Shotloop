@@ -33,6 +33,8 @@
 //                     on this Mac or not; --download fetches one (progress in MB)
 //   shotloop check-subtitles <project> [--shot <id>]      what the voice-over's subtitles would cover
 //                     (text, data-keep elements, subtitles.keep regions); fails when it covers anything
+//   shotloop pick     <project> --shot <id>             what is where on a 2D shot's three stills,
+//                     for the person to point at what the agent should change
 //   shotloop music    <project> [--preset calm|bright|groove|tech|tense | --shuffle | --file <audio> | --none] [--gain 0–2] [--bed]
 //   shotloop covers   list | save <project> [--title <name>] | apply <project> <id> | remove <id>
 //                     | reference <project> --file <image>     cover templates, an image to design after
@@ -65,6 +67,7 @@ import * as library from './library.mjs'
 import * as memory from './memory.mjs'
 import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
+import { pickMap } from './pick.mjs'
 import { musicBed } from './bed.mjs'
 import { fitVoice, pruneVoice, sampleVoice, setVoice, voiceInfo, voiceModels } from './voice.mjs'
 import { voiceCues, voiceOn } from './cues.mjs'
@@ -344,6 +347,12 @@ try {
         emit({ type: 'error', message: `subtitles cover what the viewer must see:\n${describeIssues(issues).join('\n')}` })
         exit(1)
       }
+      break
+    }
+    case 'pick': {
+      const project = loadProject(args[0])
+      if (!values.shot) throw new Error('pick needs --shot <id>')
+      result(await pickMap(project, findShot(project, values.shot)))
       break
     }
     case 'quality': {

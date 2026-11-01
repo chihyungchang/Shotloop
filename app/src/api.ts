@@ -4,13 +4,13 @@
 import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type {
-  BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, PreviewResult, ProgressEvent, ProjectSummary,
+  BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, PickedElement, PickMap, PreviewResult, ProgressEvent, ProjectSummary,
   QualityResult, ShotStatus, StatusResult, Take, UsageEvent, UsageWindow, VoiceResult
 } from '../../engine/shotloop/protocol'
 import type { Protocol } from './ai/presets'
 import { lang } from './i18n'
 
-export type { BrokenProject, ExportResult, FixRecord, Mode, PreviewResult, ProjectSummary, Take, UsageWindow }
+export type { BrokenProject, ExportResult, FixRecord, Mode, PickedElement, PickMap, PreviewResult, ProjectSummary, Take, UsageWindow }
 export type Project = StatusResult
 export type Shot = ShotStatus
 export type VoiceInfo = VoiceResult
@@ -29,7 +29,7 @@ type Progress = Omit<ProgressEvent, 'type' | 'shot'> & { shot: string | null }
 type Spec =
   | { kind: 'render'; project: string; shot: string; mode: Mode; stills: boolean }
   | { kind: 'export'; project: string; mode: Mode; aspects: string[]; video?: boolean; cover?: boolean; publish?: boolean; to?: string; name?: string; lang?: string }
-  | { kind: 'fix'; project: string; shot: string; request: string; lang?: string }
+  | { kind: 'fix'; project: string; shot: string; request: string; element?: PickedElement; lang?: string }
   | { kind: 'check'; project: string; shot: string; lang?: string }
   | { kind: 'publish'; project: string; lang?: string }
   | { kind: 'cover'; project: string; request?: string; template?: string; reference?: boolean; lang?: string }
@@ -58,6 +58,8 @@ export interface Job {
   aspects: string[]
   // What the person asked for (a fix's, a plan's or a cover's request)
   request: string | null
+  // The element a fix is about, picked in the frame
+  element: PickedElement | null
   state: 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
   progress: Progress | null
   // A build's step, and each shot at its latest state: start, written
@@ -91,6 +93,11 @@ export interface Storyboard {
   styleWhy?: string
   styleAlt?: string
   look?: string | null
+  // The look the AI picked and why; lookChosen: the person picked look
+  // instead (agent/src/main.ts keepChosenLook)
+  lookAi?: string
+  lookWhy?: string
+  lookChosen?: boolean
   // The language spoken and written (a voiced plan names it)
   lang?: string
   copy: { idea?: string; hook: string; body: string; facts: { text: string; source: string }[] }
@@ -339,6 +346,8 @@ export const api = {
   voiceModels: () => invoke<{ dir: string; models: VoiceModel[] }>('voice_models'),
   // The music bed: read with no change, or set a preset, a file, none, a volume
   music: (path: string, change?: MusicChange) => invoke<MusicInfo>('music', { path, change }),
+  // What is where on a 2D shot's three stills, for the element picker
+  pickMap: (path: string, shot: string) => invoke<PickMap>('pick_map', { path, shot }),
   quality: (path: string, change: { samples?: number; reset?: boolean } = {}) => invoke<QualityResult>('quality', { path, ...change })
 }
 

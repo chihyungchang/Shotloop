@@ -27,10 +27,22 @@ const huesFor = L => HUES[darkGround(L) ? 'dark' : 'light']
 // that has scene colors. Its first comment documents the kit: the AI
 // reads it before writing shots. The comment also records a hash of the
 // page as written, so untouchedLook knows the page from any later one
-export const lookPage = (id, size, style = DEFAULT_STYLE) => stamp(templatePage(id, size, style))
+export const lookPage = (id, size, style = DEFAULT_STYLE, tune = null) => stamp(templatePage(id, size, style, tune))
 
-function templatePage(id, size, style) {
-  const L = lookById(id) ?? lookById(DEFAULT_LOOK)
+// The planner's shading of a look for one video (storyboard.json
+// lookTune): its accents and its ground, nothing that moves the layout.
+// Only well-formed values pass: a hex color, a background of colors and
+// gradients
+const TUNE = {
+  accent: v => /^#[0-9a-f]{6}$/i.test(v),
+  accent2: v => /^#[0-9a-f]{6}$/i.test(v),
+  accent3: v => /^#[0-9a-f]{6}$/i.test(v),
+  bg: v => v.length < 400 && /^[a-z0-9#(),.%\s-]+$/i.test(v)
+}
+const tuned = (L, tune) => ({ ...L, ...Object.fromEntries(Object.entries(tune ?? {}).filter(([k, v]) => typeof v === 'string' && TUNE[k]?.(v.trim()))) })
+
+function templatePage(id, size, style, tune) {
+  const L = tuned(lookById(id) ?? lookById(DEFAULT_LOOK), tune)
   const { width: w, height: h } = cssSize(size)
   const tall = h > w
   const pad = Math.round(w * (tall ? 0.056 : 0.045))

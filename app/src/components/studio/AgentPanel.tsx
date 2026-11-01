@@ -5,15 +5,23 @@ import { isActive } from '../../model'
 import { AgentError } from '../AgentError'
 import { Icon } from '../Icon'
 import { CompareStills } from './CompareStills'
+import { ElementChip, type PickerState } from './Picker'
 import type { Key } from '../../i18n/en'
 import { formatDate, t } from '../../i18n'
 
 // Plain-language fixes as a conversation with the agent, per shot
 // (docs/PRD.md §7.5, §7.6): what the person said, what the agent changed,
-// before/after stills and the checks, then the composer.
+// before/after stills and the checks, then the composer, where an
+// element picked in the frame (Picker.tsx) says what the request is about.
 const SUGGESTIONS: Key[] = ['agent.s1', 'agent.s2', 'agent.s3', 'agent.s4']
 
-export function AgentPanel({ project, shot, jobs, openSettings }: { project: Project; shot: Shot; jobs: Job[]; openSettings: () => void }) {
+export function AgentPanel({ project, shot, jobs, openSettings, picker }: {
+  project: Project
+  shot: Shot
+  jobs: Job[]
+  openSettings: () => void
+  picker: PickerState | null
+}) {
   const [request, setRequest] = useState('')
   const thread = useRef<HTMLDivElement>(null)
   const mine = jobs.filter(j => j.project === project.root && j.shot === shot.id && j.lane === 'agent')
@@ -30,7 +38,12 @@ export function AgentPanel({ project, shot, jobs, openSettings }: { project: Pro
   const send = async (text = request) => {
     if (!text.trim() || active) return
     // Kept in the box when it could not be queued, to send again
-    if ((await guard(api.enqueue({ kind: 'fix', project: project.root, shot: shot.id, request: text.trim() }))) != null) setRequest('')
+    const element = picker?.pick?.element
+    if ((await guard(api.enqueue({ kind: 'fix', project: project.root, shot: shot.id, request: text.trim(), ...(element ? { element } : {}) }))) != null) {
+      setRequest('')
+      picker?.setPick(null)
+      picker?.setPicking(false)
+    }
   }
   const check = () => guard(api.enqueue({ kind: 'check', project: project.root, shot: shot.id }))
 
@@ -57,7 +70,10 @@ export function AgentPanel({ project, shot, jobs, openSettings }: { project: Pro
         {shot.fixes.map((f, i) => <Exchange key={i} fix={f} />)}
         {active && (
           <>
-            <div className="bubble me">{active.kind === 'check' ? t('agent.runChecks') : active.request}</div>
+            <div className="bubble me">
+              {active.kind === 'check' ? t('agent.runChecks') : active.request}
+              {active.element && <ElementChip element={active.element} />}
+            </div>
             <div className="bubble agent working">
               <span className="status"><span className="spinner small" /> {t(active.state === 'queued' ? 'agent.queued' : 'agent.working')}</span>
               {active.log.slice(-5).map((l, i) => <div key={i} className="log-line">{l}</div>)}
@@ -93,7 +109,14 @@ export function AgentPanel({ project, shot, jobs, openSettings }: { project: Pro
         />
         <div className="composer-bar">
           <span className="chip static"><Icon name="film" size={12} /> {shot.id}</span>
+          {picker?.pick && <ElementChip element={picker.pick.element} onRemove={() => picker.setPick(null)} />}
           <div className="spacer" />
+          {picker && (
+            <button className={`chip-toggle${picker.picking ? ' on' : ''}`} onClick={() => picker.setPicking(!picker.picking)}
+              aria-pressed={picker.picking} aria-label={t('pick.start')} title={t('pick.start')}>
+              <Icon name="pick" size={16} />
+            </button>
+          )}
           <button className="send" onClick={() => send()} disabled={!request.trim() || !!active} aria-label={t('agent.send')}>
             <Icon name="send" size={16} />
           </button>
@@ -110,6 +133,7 @@ function Exchange({ fix }: { fix: FixRecord }) {
     <>
       <div className="bubble me">
         {fix.task === 'fix' ? fix.request : t('agent.runChecks')}
+        {fix.element && <ElementChip element={fix.element} />}
         {fix.at && <span className="time">{formatDate(fix.at, { hour: '2-digit', minute: '2-digit' })}</span>}
       </div>
       <div className="bubble agent">

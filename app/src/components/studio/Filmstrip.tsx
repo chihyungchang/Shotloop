@@ -33,7 +33,7 @@ export function Filmstrip({ project, views, mode, selected, onSelect }: {
               className={`frame state-${v.state}${shot.id === selected ? ' selected' : ''}`}
               style={{ flexGrow: shot.duration }}
               onClick={() => onSelect(shot.id)}
-              title={`${shot.id} · ${formatSeconds(shot.duration)} · ${LABEL(v.state)} (${t(`mode.${mode}`)})`}
+              title={`${shot.title ?? shot.id} · ${formatSeconds(shot.duration)} · ${LABEL(v.state)} (${t(`mode.${mode}`)})`}
             >
               <div className="frame-thumb">
                 {thumb
@@ -54,7 +54,7 @@ export function Filmstrip({ project, views, mode, selected, onSelect }: {
               </div>
               <div className="frame-meta">
                 <span className="dot" />
-                <span className="ellipsis">{shot.title ?? shot.id}</span>
+                <span className="frame-title">{shot.title ?? shot.id}</span>
                 <span className="muted">{formatSeconds(shot.duration)}</span>
               </div>
             </button>

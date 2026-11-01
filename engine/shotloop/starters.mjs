@@ -126,10 +126,10 @@ export function writeWorld3d(root, duration, size) {
 
 // The 2D world: a look's page in a style (looks.mjs), and the files the
 // style's page loads beside it
-export function writeWorld2d(root, look, size, style) {
+export function writeWorld2d(root, look, size, style, tune = null) {
   const dir = path.join(root, 'world')
   fs.mkdirSync(dir, { recursive: true })
-  fs.writeFileSync(path.join(dir, 'page.html'), lookPage(look ?? DEFAULT_LOOK, size, style))
+  fs.writeFileSync(path.join(dir, 'page.html'), lookPage(look ?? DEFAULT_LOOK, size, style, tune))
   for (const [name, text] of Object.entries(styleFiles(style))) fs.writeFileSync(path.join(dir, name), text)
 }
 

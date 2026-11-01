@@ -114,7 +114,9 @@ storyboard.json, exactly this shape (JSON, no comments):
   "style": "<the id of the visual style you pick from the list in the request; leave it out when there is no list>",
   "styleWhy": "<one sentence for the person: why this style fits this subject>",
   "styleAlt": "<the second-best style id from the list, or empty>",
-  "look": "<2D: the id of one look from the list in the request, one the style can use; 3D: leave it out>",${voice ? `
+  "look": "<2D: the id of one look from the list in the request, one the style can use; 3D: leave it out>",
+  "lookWhy": "<2D: one short sentence for the person: the mood of this subject, and how this look carries it>",
+  "lookTune": <2D, optional: { "accent": "#rrggbb", "accent2": "#rrggbb", "accent3": "#rrggbb", "bg": "<a CSS background: colors and gradients>" }, any of them, to shade the look for this subject; leave it out to take the look as it is>,${voice ? `
   "lang": "<the language the video speaks and writes, as a code: ${LANGUAGE_CODES.slice(0, -1).join(', ')} or ${LANGUAGE_CODES.at(-1)}>",` : ''}
   "copy": {
     "idea": "<the idea in one or two sentences>",

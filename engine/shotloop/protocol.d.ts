@@ -171,6 +171,8 @@ export interface FixRecord {
   task: 'fix' | 'check'
   shot: string
   request: string | null
+  // The element the request was about, picked in the frame
+  element?: PickedElement | null
   summary: string
   touched: string[]
   worldTouched: boolean
@@ -179,6 +181,35 @@ export interface FixRecord {
   before: string[] | null
   after: string[] | null
   record: string
+}
+
+// What the person picked on a 2D shot's still, for a fix: a target of
+// the pick map, with the point clicked (page CSS px) and the still's time
+// (shot seconds). kind 'three' is the shot's three.js scene as a whole,
+// 'canvas' a 2D canvas drawing (a region named there with
+// window.picker.part or subtitles.keep, or the point); the box is in
+// fractions of the frame
+export interface PickedElement {
+  kind: 'dom' | 'three' | 'canvas'
+  // data-name, data-keep or id
+  name: string | null
+  tag: string
+  text: string | null
+  path: string
+  box: { x: number; y: number; w: number; h: number }
+  point: { x: number; y: number }
+  t: number
+}
+
+// A thing on a still: the box of an unnamed canvas drawing is null (the
+// app outlines the point clicked)
+export type PickTarget = Omit<PickedElement, 'point' | 't' | 'box'> & { box: PickedElement['box'] | null }
+
+// shotloop pick: each of a 2D shot's three stills (start, middle, end)
+// hit-tested on a grid: cells, row by row, index targets (-1: background)
+export interface PickMap {
+  size: { width: number; height: number }
+  stills: { t: number; cols: number; rows: number; targets: PickTarget[]; cells: number[] }[]
 }
 
 export interface ShotStatus {

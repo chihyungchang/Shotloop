@@ -64,8 +64,8 @@ function Compare({ before, after, frame, setFrame, expand, close }: {
         }}
         onPointerMove={e => drag.current && move(e.clientX)}
         onPointerUp={() => (drag.current = false)}>
-        <img src={fileUrl(after[frame])} alt={t('agent.after')} draggable={false} />
-        <img src={fileUrl(before[frame])} alt={t('agent.before')} draggable={false} className="compare-before" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }} />
+        <img src={fileUrl(after[frame])} alt={t('agent.after')} />
+        <img src={fileUrl(before[frame])} alt={t('agent.before')} className="compare-before" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }} />
         <span className="compare-line" style={{ left: `${pos}%` }}><i /></span>
         <span className="compare-tag left">{t('agent.before')}</span>
         <span className="compare-tag right">{t('agent.after')}</span>

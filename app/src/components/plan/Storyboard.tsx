@@ -63,20 +63,32 @@ function StyleRow({ project, sb, planning, choose }: { project: Project; sb: Pla
   )
 }
 
-// The 2D look, each a frame it renders in the plan's style
+// The 2D look: the AI's pick (with why), or one the person picks, each
+// a frame it renders in the plan's style
 function LookRow({ sb, edit }: { sb: Plan; edit: (next: Plan) => void }) {
+  const auto = !sb.lookChosen
+  const aiLook = sb.lookAi ?? (auto ? sb.look : null)
   return (
-    <div className="look-row" role="radiogroup" aria-label={t('look.label')}>
-      <span className="small muted">{t('look.label')}</span>
-      {LOOKS.map(l => {
-        const fits = lookFits(sb.style, l.id)
-        return (
-          <button key={l.id} role="radio" aria-checked={sb.look === l.id} className={`look-card${sb.look === l.id ? ' on' : ''}`} disabled={!fits}
-            onClick={() => edit({ ...sb, look: l.id })} title={fits ? lookAbout(l.id) : t('style.lookNo', { name: styleName(sb.style ?? '') })}>
-            <img className="look-thumb" src={lookPreview(l.id, sb.style) ?? ''} alt="" /> <span>{lookName(l.id)}</span>
-          </button>
-        )
-      })}
+    <div className="style-row">
+      <div className="look-row" role="radiogroup" aria-label={t('look.label')}>
+        <span className="small muted">{t('look.label')}</span>
+        <button role="radio" aria-checked={auto} className={`look-card${auto ? ' on' : ''}`} title={t('look.autoAbout')}
+          onClick={() => !auto && edit({ ...sb, look: aiLook ?? sb.look, lookChosen: false })}>
+          <span className="look-thumb look-auto"><Icon name="spark" size={13} /></span>
+          <span>{t('look.autoName')}{aiLook && <span className="muted"> · {lookName(aiLook)}</span>}</span>
+        </button>
+        {LOOKS.map(l => {
+          const fits = lookFits(sb.style, l.id)
+          const on = !auto && sb.look === l.id
+          return (
+            <button key={l.id} role="radio" aria-checked={on} className={`look-card${on ? ' on' : ''}`} disabled={!fits}
+              onClick={() => edit({ ...sb, look: l.id, lookChosen: true })} title={fits ? lookAbout(l.id) : t('style.lookNo', { name: styleName(sb.style ?? '') })}>
+              <img className="look-thumb" src={lookPreview(l.id, sb.style) ?? ''} alt="" /> <span>{lookName(l.id)}</span>
+            </button>
+          )
+        })}
+      </div>
+      {auto && sb.lookWhy && <p className="small muted style-why"><Icon name="spark" size={12} /> {sb.lookWhy}</p>}
     </div>
   )
 }

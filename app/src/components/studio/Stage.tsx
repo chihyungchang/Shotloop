@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
-import { api, fileUrl, relPath, type Mode, type Project, type Shot, type Take } from '../../api'
+import { useEffect, useRef, useState, type KeyboardEvent as KeyEvent, type MouseEvent } from 'react'
+import { api, fileUrl, relPath, type Mode, type PickMap, type Project, type Shot, type Take } from '../../api'
 import { useErrorLine } from '../../hooks'
 import { estimate, formatSeconds, isWide, shotTime, stageName, STILL_NAMES, type ShotView } from '../../model'
 import { baseName } from '../../recent'
+import { CodeArea, Markdown } from './code'
+import { framePoint, Highlight, lookup, type Pick, type PickerState } from './Picker'
 import { VideoPlayer } from './VideoPlayer'
 import { Icon } from '../Icon'
 import { formatDate, t } from '../../i18n'
@@ -11,13 +13,16 @@ type Tab = 'preview' | 'stills' | 'code'
 
 // The shot on a dark stage: its clip with captions and music, its three
 // stills, or its code (docs/PRD.md §7.4); rendering is the studio's
-// "Render changed", or the button here when the shot has no clip yet
-export function Stage({ project, shot, view, mode, refresh }: {
+// "Render changed", or the button here when the shot has no clip yet.
+// While picking (on the latest stills), the thing under the pointer is
+// outlined and a click picks it; picking goes on until Esc or another tab
+export function Stage({ project, shot, view, mode, refresh, picker }: {
   project: Project
   shot: Shot
   view: ShotView
   mode: Mode
   refresh: () => void
+  picker: PickerState | null
 }) {
   const [tab, setTab] = useState<Tab>(view.clip ? 'preview' : 'stills')
   const [take, setTake] = useState<Take | null>(null)
@@ -28,6 +33,63 @@ export function Stage({ project, shot, view, mode, refresh }: {
   const wide = isWide(project.size)
   const takes = [...shot.takes].reverse()
   const { error, guard } = useErrorLine()
+  const stage = useRef<HTMLDivElement>(null)
+  const picking = !!picker?.picking && tab === 'stills'
+  // The pick map of the shot's code as it is now (its cache key), the
+  // thing under the pointer, and a click that found only the background
+  const [map, setMap] = useState<{ key: string; map: PickMap } | null>(null)
+  const [hover, setHover] = useState<Pick | null>(null)
+  const [nothing, setNothing] = useState(false)
+  const ready = map?.key === shot.final.key ? map.map : null
+  // Picking shows the latest stills: the map is of the shot's code as it
+  // is now
+  useEffect(() => {
+    if (!picker?.picking) return
+    setTab('stills')
+    setTake(null)
+  }, [picker?.picking])
+  // Leaving the stills ends picking
+  const show = (next: Tab) => {
+    setTab(next)
+    if (next !== 'stills') picker?.setPicking(false)
+  }
+
+  useEffect(() => {
+    if (!picking) return
+    const cancel = (e: KeyboardEvent) => e.key === 'Escape' && picker?.setPicking(false)
+    window.addEventListener('keydown', cancel)
+    return () => {
+      window.removeEventListener('keydown', cancel)
+      setHover(null)
+      setNothing(false)
+    }
+  }, [picking])
+
+  // The map, made once per version of the shot's code while picking
+  useEffect(() => {
+    if (!picking || ready) return
+    const key = shot.final.key
+    let left = false
+    guard(api.pickMap(project.root, shot.id)).then(m => {
+      if (m && !left) setMap({ key, map: m })
+    })
+    return () => void (left = true)
+  }, [picking, shot.final.key])
+
+  const pickedAt = (e: MouseEvent) => {
+    const at = picking && ready ? framePoint(e.target, e.clientX, e.clientY) : null
+    return at && lookup(ready!, at.still, at.x, at.y)
+  }
+  const pickClick = (e: MouseEvent) => {
+    if (!picking || !framePoint(e.target, e.clientX, e.clientY)) return
+    // The click picks: it doesn't open the still
+    e.preventDefault()
+    e.stopPropagation()
+    if (!ready) return
+    const found = pickedAt(e)
+    setNothing(!found)
+    if (found) picker!.setPick(found)
+  }
 
   const render = (m: Mode, stillsOnly: boolean) =>
     guard(api.enqueue({ kind: 'render', project: project.root, shot: shot.id, mode: m, stills: stillsOnly }))
@@ -36,9 +98,9 @@ export function Stage({ project, shot, view, mode, refresh }: {
     <div className="stage-wrap">
       <div className="stage-bar">
         <div className="segmented">
-          <button className={tab === 'preview' ? 'on' : ''} onClick={() => setTab('preview')}><Icon name="play" size={13} /> {t('stage.preview')}</button>
-          <button className={tab === 'stills' ? 'on' : ''} onClick={() => setTab('stills')}><Icon name="image" size={13} /> {t('stage.stills')}</button>
-          <button className={tab === 'code' ? 'on' : ''} onClick={() => setTab('code')}><Icon name="code" size={13} /> {t('stage.code')}</button>
+          <button className={tab === 'preview' ? 'on' : ''} onClick={() => show('preview')}><Icon name="play" size={13} /> {t('stage.preview')}</button>
+          <button className={tab === 'stills' ? 'on' : ''} onClick={() => show('stills')}><Icon name="image" size={13} /> {t('stage.stills')}</button>
+          <button className={tab === 'code' ? 'on' : ''} onClick={() => show('code')}><Icon name="code" size={13} /> {t('stage.code')}</button>
         </div>
         <span className="stage-shot">
           <strong>{shot.id}</strong> <span className="muted small">{shotTime(shot)}</span>
@@ -48,7 +110,10 @@ export function Stage({ project, shot, view, mode, refresh }: {
           <select
             className="take-select"
             value={take?.take ?? ''}
-            onChange={e => setTake(takes.find(t => t.take === Number(e.target.value)) ?? null)}
+            onChange={e => {
+              setTake(takes.find(t => t.take === Number(e.target.value)) ?? null)
+              picker?.setPicking(false)
+            }}
             aria-label={t('stage.takeAria')}
           >
             <option value="">{t(view.stale ? 'stage.latestStale' : 'stage.latest', { mode: t(`mode.${mode}`) })}</option>
@@ -61,7 +126,13 @@ export function Stage({ project, shot, view, mode, refresh }: {
         )}
       </div>
 
-      <div className={`stage${tab === 'code' ? ' code' : ''}`}>
+      <div ref={stage} className={`stage${tab === 'code' ? ' code' : ''}${picking ? ' picking' : ''}`} onClickCapture={pickClick}
+        onMouseMove={e => {
+          if (!picking) return
+          // A new outline only when the pointer reaches another thing
+          const next = pickedAt(e)
+          setHover(h => (h && next && h.still === next.still && JSON.stringify(h.element.box) === JSON.stringify(next.element.box) ? h : next))
+        }} onMouseLeave={() => setHover(null)}>
         {error && <pre className="stage-error">{error}</pre>}
         {view.state === 'failed' && shot.error && tab !== 'code' && (
           <pre className="stage-error">{t('stage.failed', { mode: t(`mode.${shot.error.mode}`), message: shot.error.message })}</pre>
@@ -76,7 +147,7 @@ export function Stage({ project, shot, view, mode, refresh }: {
           ? <div className={`stage-stills${wide ? ' wide' : ''}`}>
               {STILL_NAMES.map((name, i) => (
                 <figure key={name}>
-                  <img src={fileUrl(stills[i], version)} alt={t(name)} onClick={() => guard(api.openPath(stills[i]))} />
+                  <img src={fileUrl(stills[i], version)} alt={t(name)} data-still={i} onClick={() => guard(api.openPath(stills[i]))} />
                   <figcaption>{view.stale && !take ? t('stage.staleTag', { name: t(name) }) : t(name)}</figcaption>
                 </figure>
               ))}
@@ -103,6 +174,13 @@ export function Stage({ project, shot, view, mode, refresh }: {
               </div>
             </div>
           ))}
+        {tab === 'stills' && !take && picker?.pick && <Highlight stage={stage} pick={picker.pick} />}
+        {hover && <Highlight stage={stage} pick={hover} hover />}
+        {picking && (
+          <div className="stage-pick-note">
+            {!ready ? <><span className="spinner small" /> {t('pick.busy')}</> : t(nothing ? 'pick.nothing' : 'pick.hint')}
+          </div>
+        )}
         {tab === 'code' && <CodeTabs project={project} shot={shot} mode={mode} refresh={refresh} />}
         {view.job && view.state === 'rendering' && view.job.progress && (
           <div className="stage-progress">
@@ -122,7 +200,9 @@ function CodeTabs({ project, shot, mode, refresh }: { project: Project; shot: Sh
     <div className="code-pane">
       <div className="file-tabs">
         {files.map(f => (
-          <button key={f} className={file === f ? 'on' : ''} onClick={() => setFile(f)}>{baseName(f)}</button>
+          <button key={f} className={file === f ? 'on' : ''} onClick={() => setFile(f)}>
+            <Icon name={f.endsWith('.md') ? 'book' : 'code'} size={13} /> {baseName(f)}
+          </button>
         ))}
       </div>
       <Editor
@@ -140,9 +220,12 @@ function CodeTabs({ project, shot, mode, refresh }: { project: Project; shot: Sh
   )
 }
 
-// A plain text editor for the shot's files; saving changes the shot's
-// cache key, so the shot shows as stale until it is rendered again
+// The shot's files: the code coloured and editable in place, the notes
+// laid out to read, edited as text on demand. Saving the code changes the
+// shot's cache key, so the shot shows as stale until it is rendered again
 function Editor({ project, file, version, onSaved }: { project: Project; file: string; version: string; onSaved: () => Promise<unknown> }) {
+  const notes = file.endsWith('.md')
+  const [editing, setEditing] = useState(!notes)
   const [text, setText] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -167,6 +250,7 @@ function Editor({ project, file, version, onSaved }: { project: Project; file: s
       await api.writeText(project.root, file, text)
       setSaved(text)
       setClash(null)
+      if (notes) setEditing(false)
       await onSaved()
     } catch (e) {
       setError(String(e))
@@ -175,19 +259,17 @@ function Editor({ project, file, version, onSaved }: { project: Project; file: s
   // Not read: nothing to edit. A failed save keeps the edits on screen
   if (error && text == null) return <p className="error">{error}</p>
   if (text == null) return <CodeSkeleton />
+  const saveKey = (e: KeyEvent<HTMLTextAreaElement>) => {
+    if (e.key === 's' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      save()
+    }
+  }
   return (
     <div className="editor">
-      <textarea
-        spellCheck={false}
-        value={text}
-        onChange={e => setText(e.target.value)}
-        onKeyDown={e => {
-          if (e.key === 's' && (e.metaKey || e.ctrlKey)) {
-            e.preventDefault()
-            save()
-          }
-        }}
-      />
+      {!notes ? <CodeArea value={text} onChange={setText} onKeyDown={saveKey} />
+        : editing ? <textarea className="notes-input" spellCheck={false} value={text} onChange={e => setText(e.target.value)} onKeyDown={saveKey} autoFocus />
+          : <div className="notes-read"><Markdown source={text} /></div>}
       {clash != null && (
         <div className="editor-clash small">
           <span>{t('editor.clash')}</span>
@@ -197,7 +279,12 @@ function Editor({ project, file, version, onSaved }: { project: Project; file: s
       )}
       <div className="editor-bar">
         {error ? <span className="error small ellipsis" title={error}>{error}</span> : <span className="muted small">{file}</span>}
-        <button className="small" onClick={() => save()} disabled={!dirty}>{dirty ? t('editor.save') : t('common.saved')}</button>
+        {notes && !editing
+          ? <button className="small" onClick={() => setEditing(true)}><Icon name="edit" size={13} /> {t('editor.edit')}</button>
+          : <div className="editor-actions">
+              {notes && <button className="small ghost" onClick={() => { setText(saved); setEditing(false) }}>{t('editor.cancel')}</button>}
+              <button className="small" onClick={() => save()} disabled={!dirty}>{dirty ? t('editor.save') : t('common.saved')}</button>
+            </div>}
       </div>
     </div>
   )

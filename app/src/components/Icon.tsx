@@ -46,7 +46,9 @@ const PATHS = {
   more: 'M5 12h.01M12 12h.01M19 12h.01',
   // The AI's memory
   book: 'M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5zM5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3M9 7h6',
-  info: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 7.5h.01'
+  info: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 7.5h.01',
+  // The element picker: crosshairs on a point of the frame
+  pick: 'M12 19a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM12 2v4M12 18v4M2 12h4M18 12h4M12 12h.01'
 } as const
 
 export function Icon({ name, size = 16 }: { name: keyof typeof PATHS; size?: number }) {

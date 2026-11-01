@@ -5,11 +5,13 @@
 
 // Built-in looks for 2D projects (looks.mjs draws their pages): only the
 // tokens differ (palette, type, background); the scene colors are for the
-// cinematic scene style (scene.mjs)
+// cinematic scene style (scene.mjs). The mood is what the planner matches
+// to the subject's (agent/src/briefs.ts looksBrief)
 export const LOOKS = [
   {
     id: 'midnight',
     name: { en: 'Midnight' },
+    mood: 'curious, wondering, calm authority',
     about: 'dark navy, warm gold and teal accents; science and explainers',
     bg: 'radial-gradient(120% 80% at 50% 0%, #1b2d63 0%, #0d1736 55%, #080e24 100%)',
     text: '#f4f7ff', muted: '#9fb0d6', accent: '#ffb340', accent2: '#4fd1c5', accent3: '#ff6b8b',
@@ -22,6 +24,7 @@ export const LOOKS = [
   {
     id: 'paper',
     name: { en: 'Paper' },
+    mood: 'thoughtful, calm, quietly serious',
     about: 'warm off-white paper, black ink, blue and red accents; editorial and calm',
     bg: 'radial-gradient(130% 90% at 50% 30%, #f7f3ea 0%, #efe8da 70%, #e6dccb 100%)',
     text: '#1d1b17', muted: '#776f62', accent: '#2f6fed', accent2: '#e8553d', accent3: '#2a9d6f',
@@ -31,6 +34,7 @@ export const LOOKS = [
   {
     id: 'neon',
     name: { en: 'Neon' },
+    mood: 'exciting, edgy, playful',
     about: 'black with glowing magenta and cyan; tech, games, bold hooks',
     bg: 'radial-gradient(90% 60% at 15% 10%, rgba(255, 61, 154, 0.28), transparent 60%), radial-gradient(90% 60% at 90% 85%, rgba(46, 230, 255, 0.22), transparent 60%), #07070c',
     text: '#ffffff', muted: '#a7a7c7', accent: '#ff3d9a', accent2: '#2ee6ff', accent3: '#c4ff3d',
@@ -42,6 +46,7 @@ export const LOOKS = [
   {
     id: 'pastel',
     name: { en: 'Pastel' },
+    mood: 'friendly, light, cheerful',
     about: 'soft lavender and mint, rounded and friendly; lifestyle, kids, how-tos',
     bg: 'linear-gradient(165deg, #f7f0ff 0%, #f1f6ff 50%, #eaf8f2 100%)',
     text: '#2b2540', muted: '#7d7598', accent: '#7c5cff', accent2: '#ff8a65', accent3: '#21a99a',
@@ -51,6 +56,7 @@ export const LOOKS = [
   {
     id: 'mono',
     name: { en: 'Swiss' },
+    mood: 'factual, sober, urgent news',
     about: 'white, heavy black type, one red accent; data, facts, news',
     bg: '#ffffff',
     text: '#0a0a0a', muted: '#6b6b6b', accent: '#ff3b30', accent2: '#0a0a0a', accent3: '#8e8e93',
@@ -60,6 +66,7 @@ export const LOOKS = [
   {
     id: 'ocean',
     name: { en: 'Ocean' },
+    mood: 'calm, fresh, curious',
     about: 'deep sea blue-green, aqua and coral; nature, water, biology',
     bg: 'radial-gradient(120% 80% at 50% 0%, #0d4a5c 0%, #072a3a 55%, #041822 100%)',
     text: '#eefcff', muted: '#8fbac6', accent: '#3ee0d0', accent2: '#ff8a6b', accent3: '#ffd166',
@@ -71,6 +78,7 @@ export const LOOKS = [
   {
     id: 'ember',
     name: { en: 'Ember' },
+    mood: 'dramatic, tense, urgent',
     about: 'warm black with fire orange and red; history, drama, energy, danger',
     bg: 'radial-gradient(110% 80% at 50% 100%, #3a120a 0%, #1a0907 55%, #0c0505 100%)',
     text: '#fff4ec', muted: '#c79a86', accent: '#ff7a2f', accent2: '#ffc65c', accent3: '#ff3d3d',
@@ -82,6 +90,7 @@ export const LOOKS = [
   {
     id: 'forest',
     name: { en: 'Forest' },
+    mood: 'hopeful, natural, healthy',
     about: 'deep green with leaf lime and sun amber; nature, plants, climate, health',
     bg: 'radial-gradient(120% 80% at 50% 0%, #1d4a2c 0%, #0f2a19 55%, #08170e 100%)',
     text: '#f1fbf0', muted: '#9dbea1', accent: '#a8e05f', accent2: '#ffc94d', accent3: '#5fd0b8',
@@ -93,6 +102,7 @@ export const LOOKS = [
   {
     id: 'graphite',
     name: { en: 'Graphite' },
+    mood: 'precise, cool, rational',
     about: 'neutral graphite with electric blue; tech, products, engineering',
     bg: 'radial-gradient(120% 80% at 50% 0%, #2b2f36 0%, #1a1d22 55%, #101215 100%)',
     text: '#f5f7fa', muted: '#a3aab5', accent: '#4c9dff', accent2: '#f5f7fa', accent3: '#ffb547',
@@ -104,11 +114,100 @@ export const LOOKS = [
   {
     id: 'sand',
     name: { en: 'Sand' },
+    mood: 'warm, nostalgic, inviting',
     about: 'warm sand with terracotta and teal; travel, culture, food, history',
     bg: 'radial-gradient(130% 90% at 50% 30%, #f6ead6 0%, #eedcc0 70%, #e4ceab 100%)',
     text: '#2a2118', muted: '#86715a', accent: '#d2582f', accent2: '#1f8a83', accent3: '#e3a23b',
     line: 'rgba(42, 33, 24, 0.16)', panel: 'rgba(42, 33, 24, 0.05)',
     head: "'New York', 'Songti SC', Georgia, serif", headWeight: 700, glow: 'none'
+  },
+  {
+    id: 'sunset',
+    name: { en: 'Sunset' },
+    mood: 'warm, emotional, wistful',
+    about: 'dusk violet fading to coral, peach and rose; travel, lifestyle, stories with feeling',
+    bg: 'linear-gradient(180deg, #241640 0%, #4a1f4f 45%, #8a3550 80%, #c2574a 100%)',
+    text: '#fff5ef', muted: '#e0b9c4', accent: '#ffb37a', accent2: '#ff7a8a', accent3: '#b9a4ff',
+    line: 'rgba(255, 255, 255, 0.16)', panel: 'rgba(255, 255, 255, 0.08)',
+    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 2px 20px rgba(40, 10, 40, 0.45)',
+    scene: { sky: ['#1c1030', '#2a1236', '#120a1c'], clouds: [[0.8, 0.82, 0.8, '255, 120, 90', 0.2], [0.15, 0.2, 0.7, '150, 90, 200', 0.14]],
+      specks: ['255, 230, 220', '255, 200, 170'], light: '255, 170, 110', cool: '185, 164, 255' }
+  },
+  {
+    id: 'aurora',
+    name: { en: 'Aurora' },
+    mood: 'awe, magical, wonder',
+    about: 'polar night with glowing green and pink ribbons; space, wonders of nature, the sky',
+    bg: 'radial-gradient(90% 55% at 20% 15%, rgba(60, 230, 160, 0.22), transparent 65%), radial-gradient(80% 50% at 85% 30%, rgba(230, 90, 200, 0.16), transparent 60%), linear-gradient(180deg, #071526 0%, #050d1a 100%)',
+    text: '#effffa', muted: '#93b9b4', accent: '#4cf0b0', accent2: '#ff7ad9', accent3: '#7ab8ff',
+    line: 'rgba(255, 255, 255, 0.15)', panel: 'rgba(255, 255, 255, 0.06)',
+    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: '0 0 22px rgba(76, 240, 176, 0.3)',
+    scene: { sky: ['#06121f', '#050d18', '#02060c'], clouds: [[0.2, 0.15, 0.8, '60, 230, 160', 0.2], [0.85, 0.3, 0.7, '230, 90, 200', 0.14]],
+      specks: ['220, 255, 240', '255, 220, 245'], light: '170, 255, 210', cool: '76, 240, 176' }
+  },
+  {
+    id: 'royal',
+    name: { en: 'Royal' },
+    mood: 'grand, prestigious, weighty',
+    about: 'deep plum with gold and a serif headline; history, money, luxury, power',
+    bg: 'radial-gradient(120% 80% at 50% 0%, #3b1a52 0%, #24103a 55%, #150a24 100%)',
+    text: '#fbf5ff', muted: '#bfa8d6', accent: '#f2c14e', accent2: '#e59ad8', accent3: '#7fd6c2',
+    line: 'rgba(255, 255, 255, 0.15)', panel: 'rgba(255, 255, 255, 0.07)',
+    head: "'New York', 'Songti SC', Georgia, serif", headWeight: 700, glow: '0 2px 18px rgba(20, 6, 34, 0.5)',
+    scene: { sky: ['#140a22', '#1a0d2c', '#0a0514'], clouds: [[0.8, 0.2, 0.7, '120, 60, 170', 0.18], [0.15, 0.85, 0.75, '200, 150, 60', 0.1]],
+      specks: ['245, 230, 255', '255, 225, 170'], light: '255, 210, 120', cool: '229, 154, 216' }
+  },
+  {
+    id: 'terminal',
+    name: { en: 'Terminal' },
+    mood: 'suspense, technical, secretive',
+    about: 'black screen, phosphor green monospace, amber warnings; code, hacking, security, AI',
+    bg: 'radial-gradient(120% 80% at 50% 40%, #0b1a10 0%, #050c07 70%, #020503 100%)',
+    text: '#d6ffe0', muted: '#6fa982', accent: '#39ff88', accent2: '#ffb000', accent3: '#ff5577',
+    line: 'rgba(57, 255, 136, 0.18)', panel: 'rgba(57, 255, 136, 0.06)',
+    head: "'SF Mono', 'JetBrains Mono', Menlo, monospace", headWeight: 700, glow: '0 0 18px rgba(57, 255, 136, 0.35)',
+    scene: { sky: ['#030a05', '#040c06', '#010302'], clouds: [[0.8, 0.2, 0.7, '30, 160, 80', 0.14], [0.15, 0.85, 0.7, '20, 90, 60', 0.1]],
+      specks: ['190, 255, 210', '220, 255, 200'], light: '150, 255, 180', cool: '57, 255, 136' }
+  },
+  {
+    id: 'chalk',
+    name: { en: 'Chalkboard' },
+    mood: 'patient, teaching, clever',
+    about: 'slate green board, chalk white and yellow, hand-made feel; math, lessons, how things work',
+    bg: 'radial-gradient(130% 90% at 50% 40%, #2f4a3f 0%, #233a31 65%, #1a2c25 100%)',
+    text: '#f4f6ef', muted: '#b4c4b8', accent: '#ffe066', accent2: '#ff9e9e', accent3: '#8fd3ff',
+    line: 'rgba(244, 246, 239, 0.22)', panel: 'rgba(244, 246, 239, 0.06)',
+    head: "'Chalkboard SE', 'Marker Felt', 'PingFang SC', sans-serif", headWeight: 700, glow: 'none'
+  },
+  {
+    id: 'mint',
+    name: { en: 'Mint' },
+    mood: 'reassuring, clean, practical',
+    about: 'fresh white-mint with green and teal, clean and reassuring; health, money tips, how-tos',
+    bg: 'linear-gradient(170deg, #f3fbf7 0%, #e7f6ef 60%, #dcf1e8 100%)',
+    text: '#14302a', muted: '#5f7f77', accent: '#0f9d76', accent2: '#ff8a4c', accent3: '#3b82f6',
+    line: 'rgba(20, 48, 42, 0.14)', panel: 'rgba(15, 157, 118, 0.07)',
+    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: 'none'
+  },
+  {
+    id: 'blush',
+    name: { en: 'Blush' },
+    mood: 'tender, intimate, gentle',
+    about: 'soft blush pink with berry and peach, warm and gentle; beauty, relationships, self-care',
+    bg: 'linear-gradient(170deg, #fff4f4 0%, #fde8ea 60%, #f9dde1 100%)',
+    text: '#3a1e26', muted: '#93707a', accent: '#d6336c', accent2: '#f08c5a', accent3: '#7c6cd8',
+    line: 'rgba(58, 30, 38, 0.14)', panel: 'rgba(214, 51, 108, 0.06)',
+    head: "'New York', 'Songti SC', Georgia, serif", headWeight: 700, glow: 'none'
+  },
+  {
+    id: 'slate',
+    name: { en: 'Slate' },
+    mood: 'professional, confident, neutral',
+    about: 'light cool gray, navy type, one orange accent; business, products, finance, reports',
+    bg: 'linear-gradient(180deg, #f5f7fa 0%, #eceff4 100%)',
+    text: '#16233b', muted: '#66738a', accent: '#f26b1d', accent2: '#2457c5', accent3: '#14a38b',
+    line: 'rgba(22, 35, 59, 0.14)', panel: 'rgba(22, 35, 59, 0.05)',
+    head: "'PingFang SC', -apple-system, sans-serif", headWeight: 800, glow: 'none'
   }
 ]
 
@@ -226,6 +325,12 @@ export const STYLES = [
 export const DEFAULT_STYLE = 'infographic'
 
 export const styleById = id => STYLES.find(s => s.id === id) ?? null
+
+// Whether a look can draw a style (no style yet: every look)
+export const lookFits = (style, look) => {
+  const s = style ? styleById(style) : null
+  return !s || s.looks.includes(look)
+}
 
 // The moods a synthesized music bed is composed in (score.mjs): a tempo
 // range, how often it is in a minor key, and the patterns and layers it

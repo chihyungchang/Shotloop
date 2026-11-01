@@ -3,6 +3,7 @@
 // each can draw with; the app adds their names and what they suit in every
 // UI language, and a reference still from the example that defines each.
 import { STYLES as ENGINE_STYLES, styleById as engineStyle } from '../../engine/shotloop/data.mjs'
+export { lookFits } from '../../engine/shotloop/data.mjs'
 import type { ListEntry } from './api'
 import { lang, type Lang } from './i18n'
 import scene from '../../engine/shotloop/styles/scene/1.jpg'
@@ -66,11 +67,6 @@ export const styleStill = (id: string) => WORDS[id]?.still ?? null
 export const styleName = (id: string) => WORDS[id]?.name[lang()] ?? styleById(id)?.name.en ?? id
 export const styleAbout = (id: string) => WORDS[id]?.about[lang()] ?? ''
 
-// Whether a look can draw a style (no style yet: every look)
-export const lookFits = (style: string | null | undefined, look: string) => {
-  const s = styleById(style)
-  return !s || s.looks.includes(look)
-}
 
 // The examples (in English, for every UI language), grouped by visual
 // style in the styles' order

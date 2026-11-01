@@ -64,6 +64,7 @@ export const PRINCIPLES_VOICE = `The voice-over (this film has one; it changes p
 export const CODE_2D = `2D code rules:
 - No CSS animations or transitions, no setTimeout or requestAnimationFrame: the recorder steps time, and render(t) sets every opacity and transform itself.
 - Randomness comes from the kit's seeded hash(a, b), never Math.random(), so a frame always draws the same.
+- Name each part a person might point at: data-name="headline", "wallet", "arrow" on its element or group (data-keep names it too). On a canvas, name it each frame where it is drawn with window.picker?.part(x, y, w, h, 'name') (page CSS px; it exists only while the picker maps the stills, so it costs a render nothing), best inside the kit's drawing helper so every shot gets it. The person can pick a part in the frame to ask for a change, and the picker reports it by that name, so name parts after what they show and keep the names when you rewrite the markup.
 - Don't animate the CSS transform of an SVG element that has a transform attribute (the CSS one replaces it and the element jumps): wrap it in a <g> that holds the position.
 - A clipPath's rectangle is in the user space of the element that uses it: clip the parent group, not rows that are themselves translated.
 - A little depth is fine with CSS 3D (perspective, transform-style: preserve-3d) on DOM elements.

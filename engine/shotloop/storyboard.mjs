@@ -96,7 +96,8 @@ export function applyStoryboard(project) {
   if (styleId === 'scene' && !lookById(look ?? DEFAULT_LOOK)?.scene) look = DEFAULT_LOOK
   const page = path.join(project.root, 'world', 'page.html')
   if (twoD && (look || style) && (!fs.existsSync(page) || untouchedLook(fs.readFileSync(page, 'utf8')) || isStarterPage(page))) {
-    writeWorld2d(project.root, look, project.size, styleId)
+    // The AI's shading of its own pick; a look the person chose is used as it is
+    writeWorld2d(project.root, look, project.size, styleId, sb.lookChosen ? null : sb.lookTune)
   }
 
   // A shot whose line and length are unchanged keeps its voice timing

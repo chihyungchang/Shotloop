@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 import { api, type Job, type PreviewResult, type Project } from '../../api'
 import { useDismiss, useErrorLine } from '../../hooks'
 import { aspectOf, editMode, formatSeconds, isActive, shotView } from '../../model'
@@ -10,13 +10,22 @@ import { AssetsPanel } from './AssetsPanel'
 import { ChangesDialog } from './ChangesDialog'
 import { ExportDialog } from './export/ExportDialog'
 import { FilmPreview } from './FilmPreview'
+import type { Pick, PickerState } from './Picker'
 import { Filmstrip } from './Filmstrip'
 import { QueuePanel } from './QueuePanel'
 import { ShotNotes } from './ShotNotes'
 import { Stage } from './Stage'
 import { t } from '../../i18n'
+import { readStored, writeStored } from '../../storage'
 
 type Drawer = 'queue' | 'assets' | null
+
+// The agent panel's width, dragged by its edge and kept on this Mac; the
+// stylesheet also caps it by the window (.studio, --agent-w)
+const AGENT_WIDTH = 'shotloop.agentWidth'
+const AGENT_MIN = 280
+const AGENT_MAX = 560
+const clampWidth = (w: number) => Math.round(Math.min(AGENT_MAX, Math.max(AGENT_MIN, w)))
 
 // One project, full-window (open-design's Studio, for a film), with one
 // main line: pick a shot in the filmstrip, watch it, tell the agent what
@@ -38,6 +47,21 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
 }) {
   const mode = editMode(project)
   const [selected, setSelected] = useState(project.shots[0]?.id ?? '')
+  // null: the stylesheet's default for the window's size
+  const [agentWidth, setAgentWidth] = useState<number | null>(() => Number(readStored(AGENT_WIDTH)) || null)
+  const keepWidth = (w: number | null) => {
+    setAgentWidth(w)
+    writeStored(AGENT_WIDTH, w == null ? null : String(w))
+  }
+  // The element picker, for the selected shot: picking now, and what was
+  // picked for the next fix (2D only: a 3D frame is Blender's)
+  const [picking, setPicking] = useState(false)
+  const [pick, setPick] = useState<Pick | null>(null)
+  const picker: PickerState | null = project.track === '2d' ? { picking, setPicking, pick, setPick } : null
+  useEffect(() => {
+    setPicking(false)
+    setPick(null)
+  }, [selected])
   const [drawer, setDrawer] = useState<Drawer>(null)
   const [film, setFilm] = useState<PreviewResult | null>(null)
   // Asked for the whole film while shots were still out of date
@@ -108,7 +132,8 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   }, [wantFilm, pending.length, failed, active.length])
 
   return (
-    <div className={`studio${drawer ? ' with-drawer' : ''}`}>
+    <div className={`studio${drawer ? ' with-drawer' : ''}`}
+      style={agentWidth ? ({ '--agent-w': `${agentWidth}px` } as CSSProperties) : undefined}>
       <header className="studio-top">
         <button className="icon-button" onClick={close} title={t('studio.back')} aria-label={t('studio.back')}>
           <Icon name="back" />
@@ -124,13 +149,13 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         {save && (
           <span className="draft-save">
             <span className="tag warn" title={t('draft.note')}>{t('draft.tag')}</span>
-            <button className="primary" onClick={save} disabled={saving} title={t('draft.note')}>
+            <button onClick={save} disabled={saving} title={t('draft.note')}>
               {saving ? <span className="spinner small" /> : <Icon name="download" size={14} />} {t('draft.save')}
             </button>
           </span>
         )}
         {filmError && <span className="small error ellipsis" title={filmError}>{filmError}</span>}
-        <button onClick={openFilm} disabled={wantFilm || joining}>
+        <button className="ghost" onClick={openFilm} disabled={wantFilm || joining}>
           {wantFilm || joining ? <span className="spinner small" /> : <Icon name="play" size={14} />} {t(wantFilm ? 'film.rendering' : joining ? 'film.joining' : 'film.watch')}
         </button>
         {joining && (
@@ -139,11 +164,11 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
           </button>
         )}
         {project.track === '3d' && (
-          <button className={drawer === 'assets' ? 'on' : ''} onClick={() => toggle('assets')}>
+          <button className={drawer === 'assets' ? 'ghost on' : 'ghost'} onClick={() => toggle('assets')}>
             <Icon name="cube" size={14} /> {t('studio.assets')}
           </button>
         )}
-        <button className={drawer === 'queue' ? 'on' : ''} onClick={() => toggle('queue')}>
+        <button className={drawer === 'queue' ? 'ghost on' : 'ghost'} onClick={() => toggle('queue')}>
           <Icon name="queue" size={14} /> {t('studio.queue')}{active.length ? <span className="count">{active.length}</span> : null}
         </button>
         <button className="dark" onClick={() => setExportOpen(true)}>
@@ -161,12 +186,15 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
       </header>
 
       {shot && view ? (
-        <AgentPanel key={`agent-${shot.id}`} project={project} shot={shot} jobs={jobs} openSettings={openSettings} />
+        <AgentPanel key={`agent-${shot.id}`} project={project} shot={shot} jobs={jobs} openSettings={openSettings}
+          picker={picker} />
       ) : <aside className="agent" />}
+      <AgentResizer keep={keepWidth} />
 
       <section className="center">
         {shot && view
-          ? <Stage key={`stage-${shot.id}`} project={project} shot={shot} view={view} mode={mode} refresh={refresh} />
+          ? <Stage key={`stage-${shot.id}`} project={project} shot={shot} view={view} mode={mode} refresh={refresh}
+              picker={picker} />
           : <div className="stage empty">{t('studio.noShots')}</div>}
         <Filmstrip project={project} views={views} mode={mode} selected={selected} onSelect={setSelected} />
         {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} editPlan={openPlan}
@@ -259,3 +287,36 @@ export function Title({ project, refresh }: { project: Project; refresh: () => v
   )
 }
 
+// The agent panel's right edge: drag to resize, arrow keys in steps,
+// double-click for the default width
+function AgentResizer({ keep }: { keep: (w: number | null) => void }) {
+  const panel = (el: HTMLElement) => el.parentElement!.querySelector<HTMLElement>(':scope > .agent')!
+  const drag = (e: PointerEvent<HTMLDivElement>) => {
+    const handle = e.currentTarget
+    const from = panel(handle).getBoundingClientRect().width - e.clientX
+    handle.setPointerCapture(e.pointerId)
+    document.body.classList.add('resizing')
+    let width = from + e.clientX
+    handle.onpointermove = ev => {
+      width = clampWidth(from + ev.clientX)
+      handle.parentElement!.style.setProperty('--agent-w', `${width}px`)
+    }
+    // Released anywhere (even outside the window), the capture ends
+    handle.onlostpointercapture = () => {
+      handle.onpointermove = null
+      handle.onlostpointercapture = null
+      document.body.classList.remove('resizing')
+      keep(clampWidth(width))
+    }
+  }
+  const step = (e: KeyboardEvent<HTMLDivElement>) => {
+    const by = e.key === 'ArrowLeft' ? -16 : e.key === 'ArrowRight' ? 16 : 0
+    if (!by) return
+    e.preventDefault()
+    keep(clampWidth(panel(e.currentTarget).getBoundingClientRect().width + by))
+  }
+  return (
+    <div className="agent-resize" role="separator" aria-orientation="vertical" aria-label={t('studio.resizeAgent')} tabIndex={0}
+      onPointerDown={drag} onKeyDown={step} onDoubleClick={() => keep(null)} />
+  )
+}

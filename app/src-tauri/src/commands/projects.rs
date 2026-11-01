@@ -211,3 +211,9 @@ pub async fn derive_storyboard(handle: AppHandle, path: String) -> Result<Value,
 pub async fn quality(handle: AppHandle, path: String, samples: Option<u32>, reset: Option<bool>) -> Result<Value, String> {
     blocking(move || engine(&handle, Args::new(["quality", &path]).opt("--samples", samples).flag(reset == Some(true), "--reset"))).await
 }
+
+/// What is where on a 2D shot's three stills, for the element picker
+#[tauri::command]
+pub async fn pick_map(handle: AppHandle, path: String, shot: String) -> Result<Value, String> {
+    blocking(move || engine(&handle, Args::new(["pick", &path, "--shot", &shot]))).await
+}

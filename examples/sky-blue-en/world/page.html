@@ -240,7 +240,12 @@
       }
 
       // ---- A light source: bloom, rays, lens streak, hot core ----
+      // A round thing's extent this frame, named for the element picker
+      // (window.picker exists only while it maps the stills)
+      const part = (x, y, r, name) => window.picker?.part(x - r, y - r, 2 * r, 2 * r, name)
+
       function light(t, x, y, r, { color = C.rgb.light, glow: gl = 1, rays = 1, streak = 1 } = {}) {
+        part(x, y, r, 'sun')
         c.globalCompositeOperation = 'lighter'
         const pulse = 1 + 0.03 * Math.sin(t * 1.7)
         c.fillStyle = radial(x, y, 0, r * 7 * pulse, [[0, 'rgba(' + color + ', ' + 0.32 * gl + ')'], [0.25, 'rgba(' + color + ', ' + 0.12 * gl + ')'], [1, 'rgba(' + color + ', 0)']])
@@ -287,6 +292,7 @@
         return 'rgb(' + f(r) + ', ' + f(g) + ', ' + f(b) + ')'
       }
       function sphere(t, x, y, r, { color = C.accent2, atmosphere = null, light: la = Math.PI, spin = 0, bands = 0 } = {}) {
+        part(x, y, r, 'sphere')
         const lx = Math.cos(la), ly = Math.sin(la)
         const atm = atmosphere ?? rgbOf(color)
         halo(x, y, r * 1.7, atm, 0.3)

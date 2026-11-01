@@ -66,6 +66,9 @@ function runAgent(args: string[], baseURL: string) {
   })
 }
 
+// A pick result (engine/shotloop/pick.mjs) for the element the fix is about
+const ELEMENT = { kind: 'dom', name: 'follow', tag: 'div', text: 'Follow for more ↗', path: 'div#follow', box: { x: 0.1, y: 0.8, w: 0.8, h: 0.05 }, point: { x: 360, y: 1050 }, t: 2 }
+
 const use = (id: string, name: string, input: Block) => ({ type: 'tool_use', id, name, input })
 
 test('fix: reads, edits only the shot, renders, reports checks, keeps before/after', async () => {
@@ -96,12 +99,15 @@ test('fix: reads, edits only the shot, renders, reports checks, keeps before/aft
   ])
   try {
     const { code: exit, events } = await runAgent(
-      ['fix', project, '--shot', SHOT, '--request', 'show "Follow for more" from the start'], api.url)
+      ['fix', project, '--shot', SHOT, '--request', 'show "Follow for more" from the start', '--element', JSON.stringify(ELEMENT)], api.url)
     assert.equal(exit, 0, JSON.stringify(events.filter(e => e.type === 'error')))
     const result = events.find(e => e.type === 'result').value
 
     // The request carries the stable system prompt, the narrow tools and the fallback
     const first = api.requests[0]
+    // and the element the person picked, said in words and kept with the fix
+    assert.match(JSON.stringify(first.messages[0].content), /pointed at this element named \\"follow\\": <div> \(div#follow in the page\)/)
+    assert.deepEqual(result.element, ELEMENT)
     assert.equal(first.model, 'claude-opus-5-5')
     assert.deepEqual(first.tools.map((t: any) => t.name),
       ['list_files', 'read_file', 'write_file', 'edit_file', 'render_stills', 'view_style', 'view_image', 'render_cover', 'read_checklist', 'report_checks', 'remember'])

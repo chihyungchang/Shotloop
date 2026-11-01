@@ -172,9 +172,7 @@
   --info-soft: color-mix(in srgb, var(--info) 12%, transparent);
   /* Scrim for labels over frames, the same in both themes */
   --scrim: rgb(0 0 0 / 0.6);
-  /* A two-level grid (24 px, a stronger line every 96 px) and a hairline
-     around every frame, so dark frames show their edge */
-  --stage-grid: rgb(255 255 255 / 0.075);
-  --stage-grid-major: rgb(255 255 255 / 0.16);
+  /* A hairline around every frame on the stage, so dark frames show
+     their edge */
   --stage-frame: rgb(255 255 255 / 0.28);
 }

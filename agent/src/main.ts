@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Shotloop agent sidecar (docs/PRD.md §7.5, §7.6, §7.10).
 //
-//   shotloop-agent fix     <project> --shot <id> --request "the cable is hidden"
+//   shotloop-agent fix     <project> --shot <id> --request "the cable is hidden" [--element '<pick result>']
 //   shotloop-agent check   <project> --shot <id> [--review-only]
 //   shotloop-agent publish <project>
 //   shotloop-agent cover   <project> [--request "…"] [--template <id> | --reference]
@@ -22,9 +22,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { credits, head, ideaOf, looksBrief, read, recurring, shotBrief, stylesBrief, trackBrief, worldFiles } from './briefs.ts'
+import { credits, elementBrief, head, ideaOf, looksBrief, read, recurring, shotBrief, stylesBrief, trackBrief, worldFiles } from './briefs.ts'
+import type { PickedElement } from '../../engine/shotloop/protocol.d.ts'
 import { engine, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
-import { memory, parseFlags, STILLS, type Memory } from './enginelib.ts'
+import { lookFits, memory, parseFlags, STILLS, type Memory } from './enginelib.ts'
 import { emit, exit, reason, setJson, warn } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
 import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, memoryPrompt, planSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, TEMPLATE_RULES } from './prompts.ts'
@@ -34,6 +35,7 @@ import { newContext, writeAtomic, type ToolContext } from './tools.ts'
 const OPTIONS = {
     shot: { type: 'string' },
     request: { type: 'string' },
+    element: { type: 'string' },
     template: { type: 'string' },
     reference: { type: 'boolean' },
     model: { type: 'string' },
@@ -105,6 +107,8 @@ async function shotTask(kind: 'fix' | 'check') {
   if (!shot) throw new Error(`no shot ${values.shot}`)
 
   const reviewOnly = kind === 'check' && !!values['review-only']
+  // What the person picked in the frame (engine pick), when they did
+  const element: PickedElement | null = values.element ? JSON.parse(values.element) : null
   const record = path.join(project.root, '.shotloop', 'shots', shot.id, 'fixes', stamp())
   // The before stills, in the editor's quality (3D previews, 2D final),
   // the same the agent's renders make; rendered if needed
@@ -113,7 +117,7 @@ async function shotTask(kind: 'fix' | 'check') {
 
   const ctx = context(project.root, reviewOnly ? [] : [`shots/${shot.id}/`, 'world/', 'captions.html'])
   const ask = kind === 'fix'
-    ? `The person says about shot ${shot.id}: "${values.request}"\n\nFix it, then check the shot.`
+    ? `The person says about shot ${shot.id}: "${values.request}"${element ? `\n${elementBrief(element)}` : ''}\n\nFix it, then check the shot.`
     : reviewOnly
       ? `Review shot ${shot.id} against the checklist and report. Do not edit files.`
       : `Check shot ${shot.id} against the checklist. Fix what you can, then report the rest.`
@@ -135,6 +139,7 @@ async function shotTask(kind: 'fix' | 'check') {
     task: kind,
     shot: shot.id,
     request: values.request ?? null,
+    element,
     summary,
     touched,
     worldTouched,
@@ -189,6 +194,8 @@ ${trackBrief(project, threeD)} · frame ${size} · target length ${project.lengt
     return sb as { target?: number; shots: { title?: string; duration: number; text?: string; say?: string }[] }
   }
   let sb = load()
+  keepChosenLook(project, existing)
+  sb = load()
   // 2D: measured against the principles; what breaks them goes back once
   // A bar of the music: no caption is up for less (the bed may be tuned
   // up to 12% faster to land the cuts, engine/shotloop/bed.mjs)
@@ -207,10 +214,27 @@ ${trackBrief(project, threeD)} · frame ${size} · target length ${project.lengt
       prompt: revisePlanPrompt(issues, speaks, Number(sb.target) || (project.lengthAuto ? null : project.duration), fs.readFileSync(file, 'utf8')),
       ctx
     })
+    keepChosenLook(project, existing)
     sb = load()
     issues = lint()
   }
   return { task: 'plan', summary: final, shots: sb.shots.length, warnings: issues }
+}
+
+// The look the planner picked is the AI's (lookAi, offered on the plan
+// page as "AI picks"); a look the person chose, on the plan page before
+// this plan or on Home, is laid over it while its style can draw it
+function keepChosenLook(project: ProjectStatus, before: string | null) {
+  if (project.track !== '2d') return
+  const file = path.join(project.root, 'storyboard.json')
+  const sb = JSON.parse(fs.readFileSync(file, 'utf8'))
+  const prev = before ? JSON.parse(before) : null
+  const home = (JSON.parse(read(path.join(project.root, 'shotloop.json'))) as { look?: string }).look
+  const chosen = prev?.lookChosen ? prev.look : prev ? null : home
+  const next = { ...sb, lookAi: sb.look }
+  if (chosen && lookFits(sb.style, chosen)) Object.assign(next, { look: chosen, lookChosen: true })
+  else delete next.lookChosen
+  writeAtomic(file, JSON.stringify(next, null, 2) + '\n')
 }
 
 // 3D is a choice only for a project made with "auto" and a Mac with Blender

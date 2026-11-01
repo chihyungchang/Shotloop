@@ -47,7 +47,8 @@ pub enum Spec {
         name: Option<String>,
         lang: Option<String>,
     },
-    Fix { project: String, shot: String, request: String, lang: Option<String> },
+    /// `element`: what the person picked in the frame (engine pick)
+    Fix { project: String, shot: String, request: String, element: Option<Value>, lang: Option<String> },
     Check { project: String, shot: String, lang: Option<String> },
     Publish { project: String, lang: Option<String> },
     /// The cover page (thumb.html), designed in the video's look, filled
@@ -145,9 +146,12 @@ impl Spec {
                     .opt("--lang", lang.as_ref())
                     .flag(mode == "draft", "--draft"),
             ),
-            Spec::Fix { project, shot, request, lang } => {
-                (Script::Agent, Args::new(["fix", project, "--shot", shot, "--request", request]).opt("--lang", lang.as_ref()))
-            }
+            Spec::Fix { project, shot, request, element, lang } => (
+                Script::Agent,
+                Args::new(["fix", project, "--shot", shot, "--request", request])
+                    .opt("--element", element.as_ref())
+                    .opt("--lang", lang.as_ref()),
+            ),
             Spec::Check { project, shot, lang } => (Script::Agent, Args::new(["check", project, "--shot", shot]).opt("--lang", lang.as_ref())),
             Spec::Publish { project, lang } => (Script::Agent, Args::new(["publish", project]).opt("--lang", lang.as_ref())),
             Spec::Cover { project, request, template, reference, lang } => (
@@ -216,6 +220,8 @@ pub struct Job {
     pub aspects: Vec<String>,
     /// What the person asked for (a fix, a plan's or a cover's request)
     pub request: Option<String>,
+    /// The element a fix is about, picked in the frame
+    pub element: Option<Value>,
     pub state: String,
     pub progress: Option<Progress>,
     /// The agent's step, as it last reported it
@@ -263,6 +269,10 @@ impl Job {
             request: match &spec {
                 Spec::Fix { request, .. } => Some(request.clone()),
                 Spec::Plan { request, .. } | Spec::Cover { request, .. } => request.clone(),
+                _ => None,
+            },
+            element: match &spec {
+                Spec::Fix { element, .. } => element.clone(),
                 _ => None,
             },
             state: "queued".into(),
@@ -654,6 +664,8 @@ mod tests {
         assert_eq!(args, ["cover", "/p", "--request", "bold", "--reference"]);
         let (_, args) = spec(serde_json::json!({ "kind": "fix", "project": "/p", "shot": "s2", "request": "slower", "lang": "zh-CN" })).command();
         assert_eq!(args, ["fix", "/p", "--shot", "s2", "--request", "slower", "--lang", "zh-CN"]);
+        let (_, args) = spec(serde_json::json!({ "kind": "fix", "project": "/p", "shot": "s2", "request": "slower", "element": { "kind": "three" } })).command();
+        assert_eq!(args, ["fix", "/p", "--shot", "s2", "--request", "slower", "--element", r#"{"kind":"three"}"#]);
         let (_, args) = spec(serde_json::json!({ "kind": "preview", "project": "/p", "mode": "final" })).command();
         assert_eq!(args, ["preview", "/p", "--final"]);
     }

@@ -57,6 +57,46 @@ const WORDS: Record<string, { swatch: string; name: Words; about: Words }> = {
     swatch: '#f1e3cb',
     name: { en: 'Sand', 'zh-CN': '沙丘', 'pt-BR': 'Areia', 'zh-TW': '沙丘', ja: 'サンド', ko: '샌드', es: 'Arena', fr: 'Sable', de: 'Sand', it: 'Sabbia', ru: 'Песок', tr: 'Kum', vi: 'Cát', id: 'Pasir' },
     about: { en: 'Travel, culture, food', 'zh-CN': '旅行、文化、美食', 'pt-BR': 'Viagem, cultura, comida', 'zh-TW': '旅行、文化、美食', ja: '旅、文化、食', ko: '여행, 문화, 음식', es: 'Viajes, cultura, comida', fr: 'Voyage, culture, cuisine', de: 'Reisen, Kultur, Essen', it: 'Viaggi, cultura, cibo', ru: 'Путешествия, культура, еда', tr: 'Seyahat, kültür, yemek', vi: 'Du lịch, văn hóa, ẩm thực', id: 'Perjalanan, budaya, kuliner' }
+  },
+  sunset: {
+    swatch: '#4a1f4f',
+    name: { en: 'Sunset', 'zh-CN': '日落', 'pt-BR': 'Pôr do sol', 'zh-TW': '日落', ja: 'サンセット', ko: '선셋', es: 'Atardecer', fr: 'Coucher de soleil', de: 'Sonnenuntergang', it: 'Tramonto', ru: 'Закат', tr: 'Gün batımı', vi: 'Hoàng hôn', id: 'Senja' },
+    about: { en: 'Travel, lifestyle, feeling', 'zh-CN': '旅行、生活、情感', 'pt-BR': 'Viagem, estilo de vida, emoção', 'zh-TW': '旅行、生活、情感', ja: '旅、暮らし、エモーショナル', ko: '여행, 라이프스타일, 감성', es: 'Viajes, estilo de vida, emoción', fr: 'Voyage, lifestyle, émotion', de: 'Reisen, Lifestyle, Gefühl', it: 'Viaggi, lifestyle, emozione', ru: 'Путешествия, жизнь, чувства', tr: 'Seyahat, yaşam, duygu', vi: 'Du lịch, đời sống, cảm xúc', id: 'Perjalanan, gaya hidup, perasaan' }
+  },
+  aurora: {
+    swatch: '#071526',
+    name: { en: 'Aurora', 'zh-CN': '极光', 'pt-BR': 'Aurora', 'zh-TW': '極光', ja: 'オーロラ', ko: '오로라', es: 'Aurora', fr: 'Aurore', de: 'Polarlicht', it: 'Aurora', ru: 'Сияние', tr: 'Kutup ışığı', vi: 'Cực quang', id: 'Aurora' },
+    about: { en: 'Space, wonders of nature', 'zh-CN': '太空、自然奇观', 'pt-BR': 'Espaço, maravilhas da natureza', 'zh-TW': '太空、自然奇觀', ja: '宇宙、自然の神秘', ko: '우주, 자연의 경이', es: 'Espacio, maravillas naturales', fr: 'Espace, merveilles de la nature', de: 'Weltraum, Naturwunder', it: 'Spazio, meraviglie della natura', ru: 'Космос, чудеса природы', tr: 'Uzay, doğa harikaları', vi: 'Vũ trụ, kỳ quan thiên nhiên', id: 'Antariksa, keajaiban alam' }
+  },
+  royal: {
+    swatch: '#2a1240',
+    name: { en: 'Royal', 'zh-CN': '皇家紫金', 'pt-BR': 'Real', 'zh-TW': '皇家紫金', ja: 'ロイヤル', ko: '로열', es: 'Real', fr: 'Royal', de: 'Royal', it: 'Reale', ru: 'Королевский', tr: 'Kraliyet', vi: 'Hoàng gia', id: 'Royal' },
+    about: { en: 'History, money, luxury', 'zh-CN': '历史、财经、奢华', 'pt-BR': 'História, dinheiro, luxo', 'zh-TW': '歷史、財經、奢華', ja: '歴史、お金、ラグジュアリー', ko: '역사, 돈, 럭셔리', es: 'Historia, dinero, lujo', fr: 'Histoire, argent, luxe', de: 'Geschichte, Geld, Luxus', it: 'Storia, denaro, lusso', ru: 'История, деньги, роскошь', tr: 'Tarih, para, lüks', vi: 'Lịch sử, tiền bạc, xa xỉ', id: 'Sejarah, uang, kemewahan' }
+  },
+  terminal: {
+    swatch: '#050c07',
+    name: { en: 'Terminal', 'zh-CN': '终端', 'pt-BR': 'Terminal', 'zh-TW': '終端機', ja: 'ターミナル', ko: '터미널', es: 'Terminal', fr: 'Terminal', de: 'Terminal', it: 'Terminale', ru: 'Терминал', tr: 'Terminal', vi: 'Terminal', id: 'Terminal' },
+    about: { en: 'Code, hacking, security, AI', 'zh-CN': '编程、黑客、安全、AI', 'pt-BR': 'Código, hacking, segurança, IA', 'zh-TW': '程式、駭客、資安、AI', ja: 'コード、ハッキング、セキュリティ、AI', ko: '코드, 해킹, 보안, AI', es: 'Código, hacking, seguridad, IA', fr: 'Code, hacking, sécurité, IA', de: 'Code, Hacking, Sicherheit, KI', it: 'Codice, hacking, sicurezza, IA', ru: 'Код, хакинг, безопасность, ИИ', tr: 'Kod, hackleme, güvenlik, YZ', vi: 'Lập trình, hack, bảo mật, AI', id: 'Kode, peretasan, keamanan, AI' }
+  },
+  chalk: {
+    swatch: '#2b453a',
+    name: { en: 'Chalkboard', 'zh-CN': '黑板', 'pt-BR': 'Lousa', 'zh-TW': '黑板', ja: '黒板', ko: '칠판', es: 'Pizarra', fr: 'Tableau noir', de: 'Tafel', it: 'Lavagna', ru: 'Доска', tr: 'Kara tahta', vi: 'Bảng đen', id: 'Papan tulis' },
+    about: { en: 'Math, lessons, how things work', 'zh-CN': '数学、课堂、原理讲解', 'pt-BR': 'Matemática, aulas, como funciona', 'zh-TW': '數學、課堂、原理講解', ja: '数学、授業、しくみ', ko: '수학, 수업, 원리', es: 'Matemáticas, clases, cómo funciona', fr: 'Maths, cours, comment ça marche', de: 'Mathe, Unterricht, wie es funktioniert', it: 'Matematica, lezioni, come funziona', ru: 'Математика, уроки, как это работает', tr: 'Matematik, dersler, nasıl çalışır', vi: 'Toán, bài giảng, cách hoạt động', id: 'Matematika, pelajaran, cara kerja' }
+  },
+  mint: {
+    swatch: '#e3f5ec',
+    name: { en: 'Mint', 'zh-CN': '薄荷', 'pt-BR': 'Menta', 'zh-TW': '薄荷', ja: 'ミント', ko: '민트', es: 'Menta', fr: 'Menthe', de: 'Minze', it: 'Menta', ru: 'Мята', tr: 'Nane', vi: 'Bạc hà', id: 'Mint' },
+    about: { en: 'Health, money tips, how-tos', 'zh-CN': '健康、理财小技巧、教程', 'pt-BR': 'Saúde, dicas de dinheiro, tutoriais', 'zh-TW': '健康、理財小技巧、教學', ja: '健康、お金のコツ、ハウツー', ko: '건강, 돈 관리 팁, 사용법', es: 'Salud, consejos de dinero, tutoriales', fr: 'Santé, conseils d’argent, tutos', de: 'Gesundheit, Geldtipps, Anleitungen', it: 'Salute, consigli sui soldi, tutorial', ru: 'Здоровье, советы о деньгах, инструкции', tr: 'Sağlık, para ipuçları, nasıl yapılır', vi: 'Sức khỏe, mẹo tài chính, hướng dẫn', id: 'Kesehatan, tips keuangan, tutorial' }
+  },
+  blush: {
+    swatch: '#fbe3e6',
+    name: { en: 'Blush', 'zh-CN': '樱粉', 'pt-BR': 'Rosé', 'zh-TW': '櫻粉', ja: 'ブラッシュ', ko: '블러시', es: 'Rubor', fr: 'Rose poudré', de: 'Rosé', it: 'Cipria', ru: 'Румянец', tr: 'Allık', vi: 'Hồng phấn', id: 'Blush' },
+    about: { en: 'Beauty, relationships, self-care', 'zh-CN': '美妆、情感关系、自我关怀', 'pt-BR': 'Beleza, relacionamentos, autocuidado', 'zh-TW': '美妝、情感關係、自我照顧', ja: '美容、人間関係、セルフケア', ko: '뷰티, 관계, 셀프케어', es: 'Belleza, relaciones, autocuidado', fr: 'Beauté, relations, bien-être', de: 'Beauty, Beziehungen, Selbstfürsorge', it: 'Bellezza, relazioni, cura di sé', ru: 'Красота, отношения, забота о себе', tr: 'Güzellik, ilişkiler, öz bakım', vi: 'Làm đẹp, các mối quan hệ, chăm sóc bản thân', id: 'Kecantikan, hubungan, merawat diri' }
+  },
+  slate: {
+    swatch: '#eceff4',
+    name: { en: 'Slate', 'zh-CN': '商务灰', 'pt-BR': 'Ardósia', 'zh-TW': '商務灰', ja: 'スレート', ko: '슬레이트', es: 'Pizarra gris', fr: 'Ardoise', de: 'Schiefer', it: 'Ardesia', ru: 'Сланец', tr: 'Arduvaz', vi: 'Xám đá', id: 'Batu tulis' },
+    about: { en: 'Business, products, finance', 'zh-CN': '商业、产品、财经', 'pt-BR': 'Negócios, produtos, finanças', 'zh-TW': '商業、產品、財經', ja: 'ビジネス、製品、金融', ko: '비즈니스, 제품, 금융', es: 'Negocios, productos, finanzas', fr: 'Business, produits, finance', de: 'Business, Produkte, Finanzen', it: 'Business, prodotti, finanza', ru: 'Бизнес, продукты, финансы', tr: 'İş, ürünler, finans', vi: 'Kinh doanh, sản phẩm, tài chính', id: 'Bisnis, produk, keuangan' }
   }
 }
 
