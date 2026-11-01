@@ -59,8 +59,8 @@ export async function openPage({
       // (code sign clone); started by Shotloop, macOS counts that as
       // Shotloop modifying another app and asks for App Management
       '--disable-features=MacAppCodeSignClone',
-      // Pages opened from file:// may import ES modules from disk
-      // (three.js for 3D video pages); off by default in Chrome
+      // Pages opened from file:// may import ES modules from disk (a 2D
+      // shot's shot.js); off by default in Chrome
       '--allow-file-access-from-files',
       'about:blank'
     ],

@@ -1,5 +1,5 @@
 // The music bed for the whole film, made once per music and volume: a
-// music.json synthesized (engine/video/music.mjs), or the person's own
+// music.json synthesized (synth.mjs), or the person's own
 // audio file cut to the film with short fades. Shot previews and the
 // film play it (under the voice-over when there is one, voice.mjs).
 // A synthesized bed is tuned so the cuts land on its beats, and on its
@@ -8,7 +8,7 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import { render as renderMusic, wav } from '../video/music.mjs'
+import { render as renderMusic, wav } from './synth.mjs'
 import { musicKey } from './cache.mjs'
 import { composeBed, cutTimes } from './score.mjs'
 

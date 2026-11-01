@@ -68,7 +68,7 @@ L’IA choisit le style adapté au sujet et vous explique pourquoi ; vous pouvez
 </tr>
 </table>
 
-Les vidéos 2D suivent un ensemble fixe de principes : le visuel d’abord, une légende condensée par plan, chaque ligne affichée assez longtemps pour être lue, chaque chiffre en mouvement, honnêteté sur ce qui est montré, sources en petit à l’écran. Ils sont décrits dans [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md) et repris dans chaque prompt 2D.
+Les vidéos 2D suivent un ensemble fixe de principes : le visuel d’abord, une légende condensée par plan, chaque ligne affichée assez longtemps pour être lue, chaque chiffre en mouvement, honnêteté sur ce qui est montré, sources en petit à l’écran. Ils sont décrits dans [agent/src/principles.ts](agent/src/principles.ts) et repris dans chaque prompt 2D.
 
 ## Visite guidée
 
@@ -204,7 +204,7 @@ my-video/
   out/                 les exports du moteur (horodatés) ; l’application copie chacun dans un nouveau dossier à l’endroit choisi
 ```
 
-- **3D** : `world.py` construit le monde partagé avec `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` s’exécute dans l’espace de noms du monde et crée une caméra ; `at(t)` convertit les secondes locales du plan en temps du film.
+- **3D** : `world.py` construit le monde partagé avec `kit` ([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)). `shot.py` s’exécute dans l’espace de noms du monde et crée une caméra ; `at(t)` convertit les secondes locales du plan en temps du film.
 - **2D** : `shot.js` exporte par défaut `render(t, ctx)`, qui dessine `world/page.html` au temps local `t` du plan. `ctx.voice` contient les phrases dites dans le plan avec leurs temps, pour que l’image tombe sur les mots ; marquez le sujet avec `data-keep` (ou `subtitles.keep()` sur un canvas) pour que la vérification des sous-titres le laisse dégagé.
 - **Cache** : la clé d’un plan est un hash du monde, de son code, des légendes, des assets, du moteur de rendu et des réglages. Les plans inchangés sont réutilisés.
 

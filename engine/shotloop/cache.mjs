@@ -18,8 +18,8 @@ import { finalSamples } from './project.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 export const ENGINE = path.resolve(HERE, '..')
-export const KIT_3D = path.join(ENGINE, 'video', 'explainers', '3d', 'lib')
-export const ASSETS = process.env.SHOTLOOP_ASSETS ?? path.join(ENGINE, 'video', 'assets')
+export const KIT_3D = path.join(HERE, 'blender', 'kit')
+export const ASSETS = process.env.SHOTLOOP_ASSETS ?? path.join(ENGINE, 'assets')
 
 // Bump when a renderer change should invalidate every cached frame
 const RENDERER_VERSION = 1
@@ -102,7 +102,7 @@ export function shotKey(project, shot, mode) {
   if (fs.existsSync(shot.code)) hashFiles(h, project.root, [shot.code])
   if (project.captions) hashFiles(h, project.root, [project.captions])
   if (project.track === '3d') {
-    hashFiles(h, ENGINE, listFiles(KIT_3D))
+    hashFiles(h, ENGINE, listFiles(KIT_3D, { skip: n => n === 'README.md' }))
     h.update(hashAssets())
     // Models from the asset library, copied into the project
     const own = path.join(project.root, 'assets')
@@ -140,7 +140,7 @@ export function keyParts(project, shot, mode) {
       h.update(JSON.stringify([RENDERER_VERSION, mode, project.track === '3d' && mode === 'final' ? finalSamples(project) : null]))
       hashFiles(h, ENGINE, RENDERER_FILES[project.track].map(f => path.join(ENGINE, f)))
       if (project.track === '3d') {
-        hashFiles(h, ENGINE, listFiles(KIT_3D))
+        hashFiles(h, ENGINE, listFiles(KIT_3D, { skip: n => n === 'README.md' }))
         h.update(hashAssets())
       }
     })

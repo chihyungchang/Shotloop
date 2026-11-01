@@ -1,8 +1,6 @@
-// A small deterministic synth that writes a music bed as WAV, so every
-// video in engine/video ships original, license-free audio that lands
-// on its cuts. No samples, no downloads: oscillators, noise and a filter.
-//
-//   node engine/video/music.mjs <music.json> <out.wav>
+// A small deterministic synth that renders a music bed (bed.mjs) as WAV,
+// so every film ships original, license-free audio that lands on its
+// cuts. No samples, no downloads: oscillators, noise and a filter.
 //
 // music.json:
 //   bpm, duration (s), chords: [[midi, ...], ...] one per bar, looped
@@ -10,20 +8,17 @@
 //   hits: [s, ...]      an impact on a cut
 //   risers: [[from, to], ...]  a noise sweep that resolves at `to`
 //   fadeIn, fadeOut (s), gain (master, default 1)
-//   optional rhythms, one bar of sixteenths each (engine/shotloop/score.mjs
-//   writes them; without them a bed plays as it always has):
+//   optional rhythms, one bar of sixteenths each (score.mjs writes them;
+//   without them a bed plays as it always has):
 //   bass: [semitones above the root, or null to let the note ring] × 16
 //   arp: { rate: notes per beat, order: [chord tone; +3 is an octave up] }
 //   kick, hat: [1 or 0] × 16
-
-import fs from 'node:fs'
-import { pathToFileURL } from 'node:url'
 
 const RATE = 44100
 const TAU = Math.PI * 2
 const mtof = m => 440 * 2 ** ((m - 69) / 12)
 
-// Deterministic noise: the same file every run
+// Deterministic noise: the same bed every render (render() starts it over)
 let seed = 1
 const noise = () => {
   seed = (seed * 16807) % 2147483647
@@ -34,6 +29,7 @@ const saw = p => 2 * (p - Math.floor(p + 0.5))
 const square = p => (p % 1 < 0.5 ? 1 : -1)
 
 export function render(cfg) {
+  seed = 1
   const n = Math.ceil(cfg.duration * RATE)
   const L = new Float32Array(n)
   const R = new Float32Array(n)
@@ -250,16 +246,4 @@ export function wav({ L, R, norm = 1, rate = RATE }) {
     if (R) buf.writeInt16LE(pcm(R[i]), 46 + i * 4)
   }
   return buf
-}
-
-// Compare as URLs: a raw path with spaces never equals import.meta.url
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const [config, out] = process.argv.slice(2)
-  if (!config || !out) {
-    console.error('usage: music.mjs <music.json> <out.wav>')
-    process.exit(1)
-  }
-  const cfg = JSON.parse(fs.readFileSync(config, 'utf8'))
-  fs.writeFileSync(out, wav(render(cfg)))
-  console.log(`${out} (${cfg.duration}s at ${cfg.bpm} bpm)`)
 }

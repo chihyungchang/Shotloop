@@ -68,7 +68,7 @@ AI は題材に合うスタイルを選び、その理由を伝えます。プ�
 </tr>
 </table>
 
-2D 動画は決まった原則に従います。映像が先、ショットごとに短くまとめた字幕を 1 つ、どの行も読み切れるだけ表示、数字は必ず動かす、見せるものに正直に、出典は画面に小さく。原則は [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md) と、すべての 2D プロンプトに含まれています。
+2D 動画は決まった原則に従います。映像が先、ショットごとに短くまとめた字幕を 1 つ、どの行も読み切れるだけ表示、数字は必ず動かす、見せるものに正直に、出典は画面に小さく。原則は [agent/src/principles.ts](agent/src/principles.ts) と、すべての 2D プロンプトに含まれています。
 
 ## 画面ツアー
 
@@ -204,7 +204,7 @@ my-video/
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
-- **3D**：`world.py` が `kit`（[`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)）で共有のワールドを構築します。`shot.py` はワールドの名前空間で実行され、カメラを 1 台作ります。`at(t)` はショット内の秒数を動画全体の時間に変換します。
+- **3D**：`world.py` が `kit`（[`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)）で共有のワールドを構築します。`shot.py` はワールドの名前空間で実行され、カメラを 1 台作ります。`at(t)` はショット内の秒数を動画全体の時間に変換します。
 - **2D**：`shot.js` は `render(t, ctx)` をデフォルトエクスポートし、ショット内の時刻 `t` における `world/page.html` を描画します。`ctx.voice` にはショットで話す文とそのタイミングが入っているので、映像を言葉に合わせられます。被写体を `data-keep`（canvas なら `subtitles.keep()`）でマークすると、字幕チェックがそこを避けます。
 - **キャッシュ**：ショットのキーは、ワールド、コード、字幕、アセット、レンダラー、設定のハッシュです。変更のないショットは再利用されます。
 

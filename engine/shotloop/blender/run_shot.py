@@ -44,7 +44,7 @@ FPS = int(a['fps'])
 width, height = (int(x) for x in a['size'].split('x'))
 frames = [int(f) for f in a['shot-frames'].split(',')]
 
-# The world imports kit (engine/video/explainers/3d/lib) and may import
+# The world imports kit (blender/kit/) and may import
 # helpers that live next to it
 sys.path.insert(0, a['kit'])
 sys.path.insert(0, os.path.dirname(world_path))

@@ -2,7 +2,7 @@
 
 The rules every shot must pass, checked on the stills at the start,
 middle and end of the shot (docs/PRD.md §7.6). Seeded from the mistakes
-of ep02 (engine/video/explainers/3d/README.md, "Checking a shot"). A
+of ep02 (engine/shotloop/blender/kit/README.md, "Checking a shot"). A
 project can replace this list with its own `checklist.md` (shotloop.json
 `checklist`).
 

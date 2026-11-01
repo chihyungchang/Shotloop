@@ -68,7 +68,7 @@ A IA escolhe o estilo que combina com o assunto e explica por quê; você pode t
 </tr>
 </table>
 
-Os vídeos 2D seguem um conjunto fixo de princípios: o visual primeiro, uma legenda condensada por cena, cada linha na tela tempo suficiente para ser lida, cada número em movimento, honestidade sobre o que se mostra e as fontes pequenas na tela. Eles estão em [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md) e em todo prompt 2D.
+Os vídeos 2D seguem um conjunto fixo de princípios: o visual primeiro, uma legenda condensada por cena, cada linha na tela tempo suficiente para ser lida, cada número em movimento, honestidade sobre o que se mostra e as fontes pequenas na tela. Eles estão em [agent/src/principles.ts](agent/src/principles.ts) e em todo prompt 2D.
 
 ## Tour pelo app
 
@@ -204,7 +204,7 @@ my-video/
   out/                 as exportações do motor (com data e hora); o app copia cada uma para uma pasta nova onde você escolher
 ```
 
-- **3D**: `world.py` constrói o mundo compartilhado com `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` roda no namespace do mundo e cria uma câmera; `at(t)` converte os segundos locais da cena em tempo do filme.
+- **3D**: `world.py` constrói o mundo compartilhado com `kit` ([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)). `shot.py` roda no namespace do mundo e cria uma câmera; `at(t)` converte os segundos locais da cena em tempo do filme.
 - **2D**: `shot.js` exporta por padrão `render(t, ctx)`, que desenha `world/page.html` no tempo local da cena `t`. `ctx.voice` traz as frases faladas da cena com os seus tempos, para que a imagem caia sobre as palavras; marque o objeto com `data-keep` (ou `subtitles.keep()` em um canvas) para que a verificação de legendas o deixe livre.
 - **Cache**: a chave de uma cena é um hash do mundo, do código dela, das legendas, dos assets, do renderizador e das configurações. Cenas sem mudança são reaproveitadas.
 

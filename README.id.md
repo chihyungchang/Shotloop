@@ -68,7 +68,7 @@ AI memilih gaya yang cocok dengan topiknya dan menjelaskan alasannya; Anda bisa 
 </tr>
 </table>
 
-Video 2D mengikuti prinsip yang tetap: visual dulu, satu teks ringkas per adegan, setiap baris tampil cukup lama untuk dibaca, setiap angka bergerak, jujur tentang apa yang ditampilkan, sumber ditulis kecil di layar. Prinsip ini ada di [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md) dan di setiap prompt 2D.
+Video 2D mengikuti prinsip yang tetap: visual dulu, satu teks ringkas per adegan, setiap baris tampil cukup lama untuk dibaca, setiap angka bergerak, jujur tentang apa yang ditampilkan, sumber ditulis kecil di layar. Prinsip ini ada di [agent/src/principles.ts](agent/src/principles.ts) dan di setiap prompt 2D.
 
 ## Tur produk
 
@@ -204,7 +204,7 @@ my-video/
   out/                 ekspor engine (bercap waktu); aplikasi menyalin tiap ekspor ke folder baru di tempat pilihan Anda
 ```
 
-- **3D**: `world.py` membangun dunia bersama dengan `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` berjalan di namespace dunia dan membuat satu kamera; `at(t)` memetakan detik lokal adegan ke waktu film.
+- **3D**: `world.py` membangun dunia bersama dengan `kit` ([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)). `shot.py` berjalan di namespace dunia dan membuat satu kamera; `at(t)` memetakan detik lokal adegan ke waktu film.
 - **2D**: `shot.js` mengekspor default `render(t, ctx)`, yang menggambar `world/page.html` pada waktu lokal adegan `t`. `ctx.voice` berisi kalimat yang diucapkan dalam adegan beserta waktunya, agar gambar bisa jatuh tepat pada kata-katanya; tandai subjek dengan `data-keep` (atau `subtitles.keep()` pada canvas) agar pemeriksaan subtitel menjaganya tetap terlihat.
 - **Cache**: kunci sebuah adegan adalah hash dari dunia, kodenya, teks, aset, renderer, dan pengaturan. Adegan yang tidak berubah dipakai ulang.
 

@@ -68,7 +68,7 @@ The AI picks the style that fits the subject and tells you why; you can switch o
 </tr>
 </table>
 
-2D videos follow a fixed set of principles: visual first, one condensed caption per shot, every line up long enough to read, every number moving, honest about what it shows, sources small on screen. They are in [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md) and in every 2D prompt.
+2D videos follow a fixed set of principles: visual first, one condensed caption per shot, every line up long enough to read, every number moving, honest about what it shows, sources small on screen. They are in [agent/src/principles.ts](agent/src/principles.ts) and in every 2D prompt.
 
 ## Product tour
 
@@ -204,7 +204,7 @@ my-video/
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
-- **3D**: `world.py` builds the shared world with `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` runs in the world's namespace and creates one camera; `at(t)` maps shot-local seconds to film time.
+- **3D**: `world.py` builds the shared world with `kit` ([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)). `shot.py` runs in the world's namespace and creates one camera; `at(t)` maps shot-local seconds to film time.
 - **2D**: `shot.js` default-exports `render(t, ctx)`, which draws `world/page.html` at shot-local time `t`. `ctx.voice` holds the shot's spoken sentences with their times, so the picture can land on the words; mark the subject with `data-keep` (or `subtitles.keep()` on a canvas) so the subtitle check keeps it clear.
 - **Cache**: a shot's key hashes the world, its code, the captions, the assets, the renderer and the settings. Unchanged shots are reused.
 

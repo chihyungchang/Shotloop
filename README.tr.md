@@ -68,7 +68,7 @@ Yapay zekâ konuya uyan stili seçer ve nedenini söyler; planda değiştirebili
 </tr>
 </table>
 
-2D videolar sabit ilkelere uyar: önce görsel, her çekimde tek bir yoğun altyazı, her satır okunacak kadar ekranda kalır, her sayı hareket eder, gösterdiği şey konusunda dürüsttür, kaynaklar ekranda küçük yazılır. Bu ilkeler [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md) dosyasında ve her 2D isteminde yer alır.
+2D videolar sabit ilkelere uyar: önce görsel, her çekimde tek bir yoğun altyazı, her satır okunacak kadar ekranda kalır, her sayı hareket eder, gösterdiği şey konusunda dürüsttür, kaynaklar ekranda küçük yazılır. Bu ilkeler [agent/src/principles.ts](agent/src/principles.ts) dosyasında ve her 2D isteminde yer alır.
 
 ## Ürün turu
 
@@ -204,7 +204,7 @@ my-video/
   out/                 motorun dışa aktarımları (zaman damgalı); uygulama her birini seçtiğiniz yerde yeni bir klasöre kopyalar
 ```
 
-- **3D**: `world.py`, ortak dünyayı `kit` ile kurar ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` dünyanın ad alanında çalışır ve tek bir kamera oluşturur; `at(t)`, çekim içi saniyeleri film zamanına çevirir.
+- **3D**: `world.py`, ortak dünyayı `kit` ile kurar ([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)). `shot.py` dünyanın ad alanında çalışır ve tek bir kamera oluşturur; `at(t)`, çekim içi saniyeleri film zamanına çevirir.
 - **2D**: `shot.js`, varsayılan olarak `render(t, ctx)` dışa aktarır; bu fonksiyon `world/page.html` sayfasını çekim içi `t` anında çizer. `ctx.voice`, çekimde söylenen cümleleri zamanlarıyla birlikte tutar; böylece görüntü sözcüklere denk gelebilir. Altyazı denetiminin özneyi açıkta bırakması için onu `data-keep` ile (canvas üzerinde `subtitles.keep()` ile) işaretleyin.
 - **Önbellek**: bir çekimin anahtarı dünyanın, kodunun, altyazıların, varlıkların, işleyicinin ve ayarların hash'idir. Değişmeyen çekimler yeniden kullanılır.
 

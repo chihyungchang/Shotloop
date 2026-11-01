@@ -68,7 +68,7 @@ L’IA sceglie lo stile adatto al tema e ti spiega perché; puoi cambiarlo nel p
 </tr>
 </table>
 
-I video 2D seguono un insieme fisso di principi: prima le immagini, una didascalia condensata per inquadratura, ogni riga a schermo abbastanza a lungo da essere letta, ogni numero in movimento, onestà su ciò che si mostra, fonti in piccolo sullo schermo. Sono in [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md) e in ogni prompt 2D.
+I video 2D seguono un insieme fisso di principi: prima le immagini, una didascalia condensata per inquadratura, ogni riga a schermo abbastanza a lungo da essere letta, ogni numero in movimento, onestà su ciò che si mostra, fonti in piccolo sullo schermo. Sono in [agent/src/principles.ts](agent/src/principles.ts) e in ogni prompt 2D.
 
 ## Tour del prodotto
 
@@ -204,7 +204,7 @@ my-video/
   out/                 le esportazioni del motore (con data e ora); l'app copia ognuna in una nuova cartella dove scegli
 ```
 
-- **3D**: `world.py` costruisce il mondo condiviso con `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` gira nel namespace del mondo e crea una camera; `at(t)` converte i secondi locali dell’inquadratura nel tempo del video.
+- **3D**: `world.py` costruisce il mondo condiviso con `kit` ([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)). `shot.py` gira nel namespace del mondo e crea una camera; `at(t)` converte i secondi locali dell’inquadratura nel tempo del video.
 - **2D**: `shot.js` esporta di default `render(t, ctx)`, che disegna `world/page.html` al tempo locale `t` dell’inquadratura. `ctx.voice` contiene le frasi dette nell’inquadratura con i loro tempi, così l’immagine può cadere sulle parole; marca il soggetto con `data-keep` (o `subtitles.keep()` su un canvas) perché il controllo dei sottotitoli lo lasci libero.
 - **Cache**: la chiave di un’inquadratura è un hash del mondo, del suo codice, delle didascalie, degli asset, del renderer e delle impostazioni. Le inquadrature non modificate vengono riutilizzate.
 

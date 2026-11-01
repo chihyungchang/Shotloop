@@ -40,9 +40,9 @@ on first use, each under its own license:
   Node.js example (https://github.com/supertone-inc/supertonic).
 
 Third-party material that projects may use is not part of this
-distribution: the CC0 asset packs listed in engine/video/assets/README.md
+distribution: the CC0 asset packs listed in engine/assets/README.md
 (Kenney, Poly Haven, Quaternius) are downloaded, not committed, and keep
-their own licenses. Music beds are synthesized by engine/video/music.mjs
+their own licenses. Music beds are synthesized by engine/shotloop/synth.mjs
 and contain no samples.
 
 Map data: engine/shotloop/world-110m.json (the countries the map style

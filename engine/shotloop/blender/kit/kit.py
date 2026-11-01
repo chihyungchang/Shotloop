@@ -1,11 +1,9 @@
-"""Blender helpers for the 3D explainer track (see ../README.md).
+"""Blender helpers for 3D Shotloop projects (see README.md here).
 
-An episode's scene.py imports this, builds its world in real metres,
-and declares its shots with the camera helpers below, which enforce the
-camera rules: one move per shot, eased, a fixed lens per shot.
-
-Run by engine/video/blender.mjs as
-  blender -b -P scene.py -- --out <dir> [--frames a-b] [--stills f1,f2]
+A project's world/world.py imports this and builds its world in real
+metres; each shots/<id>/shot.py declares its camera with the helpers
+below, which enforce the camera rules: one move per shot, eased, a fixed
+lens per shot. ../run_shot.py runs both for one shot.
 """
 
 import math

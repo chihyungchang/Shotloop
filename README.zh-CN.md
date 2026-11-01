@@ -68,7 +68,7 @@ AI 会按题目挑选最合适的画面方式并说明理由；你可以在策�
 </tr>
 </table>
 
-2D 视频遵循一套固定原则：画面优先；每个镜头一句概括字幕；每句字幕都停留到读得完；每个数字都会动；如实呈现；来源以小字放在画面上。完整规则见 [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md)，每个 2D 提示词里也都带着。
+2D 视频遵循一套固定原则：画面优先；每个镜头一句概括字幕；每句字幕都停留到读得完；每个数字都会动；如实呈现；来源以小字放在画面上。完整规则见 [agent/src/principles.ts](agent/src/principles.ts)，每个 2D 提示词里也都带着。
 
 ## 功能一览
 

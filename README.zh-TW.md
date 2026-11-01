@@ -68,7 +68,7 @@ AI 會依題材挑選合適的風格並說明理由；你可以在規劃頁切�
 </tr>
 </table>
 
-2D 影片遵循一套固定原則：畫面優先；每個鏡頭一句精簡字幕；每句字幕停留到讀得完；每個數字都會動；如實呈現；來源以小字標在畫面上。完整內容見 [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md)，每個 2D 提示詞裡也都有。
+2D 影片遵循一套固定原則：畫面優先；每個鏡頭一句精簡字幕；每句字幕停留到讀得完；每個數字都會動；如實呈現；來源以小字標在畫面上。完整內容見 [agent/src/principles.ts](agent/src/principles.ts)，每個 2D 提示詞裡也都有。
 
 ## 功能導覽
 
@@ -204,7 +204,7 @@ my-video/
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
-- **3D**：`world.py` 用 `kit`（[`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)）建構共用場景。`shot.py` 在場景的命名空間中執行並建立一台攝影機；`at(t)` 把鏡頭內的秒數換算成影片時間。
+- **3D**：`world.py` 用 `kit`（[`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)）建構共用場景。`shot.py` 在場景的命名空間中執行並建立一台攝影機；`at(t)` 把鏡頭內的秒數換算成影片時間。
 - **2D**：`shot.js` 預設匯出 `render(t, ctx)`，在鏡頭內時間 `t` 繪製 `world/page.html`。`ctx.voice` 存有這個鏡頭說出的句子和各自的時間，讓畫面能落在字詞上；用 `data-keep`（canvas 上則用 `subtitles.keep()`）標記主體，字幕檢查就會避開它。
 - **快取**：鏡頭的鍵值由場景、程式碼、字幕、素材、渲染器和設定雜湊而成。沒變動的鏡頭會直接重用。
 

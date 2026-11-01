@@ -68,7 +68,7 @@ AI chọn phong cách hợp với chủ đề và giải thích lý do; bạn c�
 </tr>
 </table>
 
-Video 2D theo một bộ nguyên tắc cố định: hình ảnh trước tiên, mỗi cảnh một phụ đề cô đọng, mỗi dòng ở lại đủ lâu để đọc, mọi con số đều chuyển động, trung thực về những gì được thể hiện, nguồn ghi nhỏ trên màn hình. Xem trong [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md) và trong mọi prompt 2D.
+Video 2D theo một bộ nguyên tắc cố định: hình ảnh trước tiên, mỗi cảnh một phụ đề cô đọng, mỗi dòng ở lại đủ lâu để đọc, mọi con số đều chuyển động, trung thực về những gì được thể hiện, nguồn ghi nhỏ trên màn hình. Xem trong [agent/src/principles.ts](agent/src/principles.ts) và trong mọi prompt 2D.
 
 ## Tham quan sản phẩm
 
@@ -204,7 +204,7 @@ my-video/
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
-- **3D**: `world.py` dựng thế giới dùng chung bằng `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` chạy trong namespace của thế giới và tạo một máy quay; `at(t)` đổi giây tính theo cảnh sang thời gian của video.
+- **3D**: `world.py` dựng thế giới dùng chung bằng `kit` ([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)). `shot.py` chạy trong namespace của thế giới và tạo một máy quay; `at(t)` đổi giây tính theo cảnh sang thời gian của video.
 - **2D**: `shot.js` default-export `render(t, ctx)`, hàm vẽ `world/page.html` tại thời điểm `t` tính theo cảnh. `ctx.voice` chứa các câu được đọc trong cảnh cùng thời điểm của chúng, để hình ảnh khớp với lời; đánh dấu chủ thể bằng `data-keep` (hoặc `subtitles.keep()` trên canvas) để bước kiểm tra phụ đề giữ nó không bị che.
 - **Cache**: khóa của một cảnh là hash của thế giới, code của cảnh, phụ đề, tài nguyên, renderer và cài đặt. Cảnh không đổi sẽ được dùng lại.
 

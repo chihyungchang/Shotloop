@@ -68,7 +68,7 @@ La IA elige el estilo que encaja con el tema y te explica por qué; puedes cambi
 </tr>
 </table>
 
-Los videos 2D siguen un conjunto fijo de principios: lo visual primero, un subtítulo condensado por plano, cada línea en pantalla el tiempo suficiente para leerla, cada número en movimiento, honestidad sobre lo que se muestra y las fuentes en pequeño en pantalla. Están en [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md) y en cada prompt 2D.
+Los videos 2D siguen un conjunto fijo de principios: lo visual primero, un subtítulo condensado por plano, cada línea en pantalla el tiempo suficiente para leerla, cada número en movimiento, honestidad sobre lo que se muestra y las fuentes en pequeño en pantalla. Están en [agent/src/principles.ts](agent/src/principles.ts) y en cada prompt 2D.
 
 ## Recorrido por la app
 
@@ -204,7 +204,7 @@ my-video/
   out/                 las exportaciones del motor (con marca de tiempo); la app copia cada una a una carpeta nueva donde elijas
 ```
 
-- **3D**: `world.py` construye el mundo compartido con `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` se ejecuta en el espacio de nombres del mundo y crea una cámara; `at(t)` convierte los segundos locales del plano en tiempo de la película.
+- **3D**: `world.py` construye el mundo compartido con `kit` ([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)). `shot.py` se ejecuta en el espacio de nombres del mundo y crea una cámara; `at(t)` convierte los segundos locales del plano en tiempo de la película.
 - **2D**: `shot.js` exporta por defecto `render(t, ctx)`, que dibuja `world/page.html` en el tiempo local del plano `t`. `ctx.voice` contiene las oraciones habladas del plano con sus tiempos, para que la imagen caiga sobre las palabras; marca el sujeto con `data-keep` (o `subtitles.keep()` en un canvas) para que la comprobación de subtítulos lo deje despejado.
 - **Caché**: la clave de un plano es un hash del mundo, su código, los subtítulos, los recursos, el renderizador y los ajustes. Los planos sin cambios se reutilizan.
 

@@ -1,11 +1,11 @@
-# 3D explainers
+# 3D kit
 
-For spatial subjects: a journey (a request crossing the world), objects
-you turn around, the inside of a machine. Rendered in **Blender** from a
-Python script, captions composited from HTML, music from `music.mjs`.
-
-Steps and shared rules: [../README.md](../README.md). Start from
-[`_template/`](_template/).
+How a 3D Shotloop project is built in **Blender**: `world/world.py`
+builds the shared world with `kit.py` (this folder), each
+`shots/<id>/shot.py` creates one camera, and `../run_shot.py` runs both
+for one shot's frames. Captions are composited from HTML, music comes
+from `../../synth.mjs`. These notes were learned on the first 3D
+explainer (ep02, in git history before the move to Shotloop projects).
 
 ## Why Blender
 
@@ -14,19 +14,7 @@ flicker where faces overlap, flat light, blown-out glows, crude props,
 no lens. Blender gives real assets, global illumination and ambient
 occlusion, a real camera (focal length, depth of field, motion blur)
 and F-curve easing, and still renders the same frames every time from
-a script. The cost is render time (tens of minutes per episode).
-
-## Pipeline
-
-| # | Step | File | Notes |
-| --- | --- | --- | --- |
-| 1–3 | Copy, script, storyboard | `copy.md`, `script.md`, `storyboard.md` | As in ../README.md. |
-| 3½ | Scene | `scene.md` | Literal check, locations, **shot list** (lens, move, duration per shot), lights, scale table. |
-| 4a | Scene code | `scene.py` | Builds the world and cameras in Blender from `scene.md`. Uses `lib/kit.py`. |
-| 4b | Captions | `captions.html` | Only the caption layer, transparent; same `render(t)` contract as 2D. |
-| 4c | Music | `music.json` | `engine/video/music.mjs`. |
-| 5 | Render | `out/frames/`, `out/*.mp4` | `node engine/video/blender.mjs <episode>`: renders frames, captions, composites, muxes. Iterate with `--stills` (a few frames) and `--draft` (half resolution, ~0.3 s a frame: a 48 s preview in ~7 min); the full render (~1.7–4 s a frame, about an hour) runs once, in the background. |
-| 6 | Publish | `thumb.html` → `out/thumbnail.png`, `publish.md` | As in ../README.md: the cover (a raw frame from `out/frames/` under the hook) and the post for each platform. |
+a script. The cost is render time.
 
 ## Make it literal
 
@@ -35,7 +23,7 @@ person at a desk, the cable out of the wall, the provider's building,
 the cable on the seabed, the data centre, the chips.
 
 - **Every step of the story gets a physical stand-in**, written in
-  `scene.md`'s literal check before any code. No object, no step.
+  the shot notes before any code. No object, no step.
 - **Follow the real path, in order**, so the viewer could retell it.
 - **People make scale and stakes**: show who types, presses, approves.
 - **Abstraction only on top of a literal base**: a glow on the real
@@ -60,13 +48,13 @@ a CPU), the picture follows that structure, simplified but not wrong:
   cooling on the roof. A chip: package, die, memory stacks beside it,
   heat sink.
 - Check the drawing against a reference (a paper figure, a vendor
-  photo) and name the reference in `scene.md`.
+  photo) and name the reference in the shot's notes.
 
 ## Look
 
 - **Style**: a clean stylised diorama (tidy low-poly or voxel), built
   from CC0 asset packs plus our own modelling, with bevelled edges and
-  proper materials. Coherent: one family of packs per episode. No
+  proper materials. Coherent: one family of packs per film. No
   characters, logos or UI from any existing game.
 - **Light**: an HDRI for sky and fill, one key sun, ambient occlusion,
   soft shadows. Underwater and interiors get their own HDRI or world.
@@ -79,8 +67,8 @@ a CPU), the picture follows that structure, simplified but not wrong:
 
 ## Scale
 
-Everything in real metres, written in `scene.md`'s scale table, and the
-same object keeps its size for the whole episode. When a traveller (a
+Everything in real metres, written down with the world, and the
+same object keeps its size for the whole film. When a traveller (a
 data packet) must be readable from far away, show it with a light
 trail or a glow on the cable, not by inflating the object between
 shots.
@@ -98,7 +86,7 @@ shots.
 
 ## Camera
 
-Each shot is written in `scene.md` as lens, move, duration:
+Each shot's notes give its lens, move and duration:
 
 - **One move per shot**: dolly, truck, pedestal, orbit, or crane; or a
   locked-off frame. Never position, aim and focal length changing at
@@ -122,7 +110,8 @@ draft:
 
 - **Stills at the start, middle and end of every shot**, not one still in
   the middle. A traveller can be in view at mid-shot and hidden at the
-  end. Iterate on one shot with `--draft --range a-b`.
+  end. Iterate on one shot with draft stills
+  (`shotloop render <project> --shot <id> --draft --stills`).
 - **Sightline**: across the whole move, nothing stands between the camera
   and the subject. Furniture and buildings next to the path are the
   usual blockers: move the prop, or move the camera, before adding more.
@@ -154,7 +143,7 @@ draft:
   at the origin, silently.
 - **Keys tween by default.** A light switched at 21.6 s, keyed only there
   and at 0 s, fades over the whole 21 s. Make step changes `CONSTANT`
-  (`constant()` in ep02's scene.py), and only on the F-curve you mean:
+  (`constant()` in ep02's scene.py, in git history), and only on the F-curve you mean:
   setting every curve of an action to constant also freezes its motion.
 - **Moving subject, moving camera**: an eased camera and an eased
   traveller with different key times drift apart (the seabed pulse was
@@ -166,9 +155,6 @@ draft:
 - **Through the water surface** a camera sees a white sheet. Keep the
   crane above the water and cut to an underwater shot, which gets its
   own world (deep blue) and a volume.
-- **Stale outputs**: an interrupted or earlier render leaves its mp4 in
-  `out/` under the same name. Before sharing a file, check its time is
-  after the last change to `scene.py`.
 - **Text** extrudes to both sides of its plane: offset it from a panel by
   the extrude plus 1 cm.
 - **Many thin glowing lines add up** to a white wall: keep the base
@@ -185,12 +171,7 @@ contract as the 2D track, so the type stays the site's.
 ## Assets
 
 CC0 only (Kenney, Quaternius, Poly Haven, ambientCG, Poly Pizza CC0).
-Downloads live in `engine/video/assets/` (not committed); what each
-episode uses is listed in `engine/video/assets/README.md` with source
-URL, licence and size, so a fresh checkout can fetch them again.
-
-## Episodes
-
-| # | Topic |
-| --- | --- |
-| [02](ep02-claude-code-enter/) | What happens when you press Enter in Claude Code? Being rebuilt in Blender. Earlier cuts (abstract three.js, then three.js voxels) are in git history. |
+Downloads live in `engine/assets/` (not committed); what is used is
+listed in `engine/assets/README.md` with source URL, licence and size,
+so a fresh checkout can fetch them again. Models from the asset library
+are copied into the project's own `assets/` folder.

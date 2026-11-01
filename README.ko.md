@@ -68,7 +68,7 @@ AI가 주제에 맞는 스타일을 고르고 이유를 알려 줍니다. 계획
 </tr>
 </table>
 
-2D 영상은 고정된 원칙을 따릅니다. 시각 우선, 샷마다 압축된 자막 하나, 모든 문장은 읽을 수 있을 만큼 화면에 머물고, 모든 숫자는 움직이며, 보여 주는 내용에 정직하고, 출처는 화면에 작게 표시합니다. 원칙은 [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md)와 모든 2D 프롬프트에 들어 있습니다.
+2D 영상은 고정된 원칙을 따릅니다. 시각 우선, 샷마다 압축된 자막 하나, 모든 문장은 읽을 수 있을 만큼 화면에 머물고, 모든 숫자는 움직이며, 보여 주는 내용에 정직하고, 출처는 화면에 작게 표시합니다. 원칙은 [agent/src/principles.ts](agent/src/principles.ts)와 모든 2D 프롬프트에 들어 있습니다.
 
 ## 둘러보기
 
@@ -204,7 +204,7 @@ my-video/
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
-- **3D**: `world.py`는 `kit`([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py))으로 공유 월드를 만듭니다. `shot.py`는 월드의 네임스페이스에서 실행되며 카메라 하나를 만듭니다. `at(t)`는 샷 기준 초를 영상 시간으로 변환합니다.
+- **3D**: `world.py`는 `kit`([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py))으로 공유 월드를 만듭니다. `shot.py`는 월드의 네임스페이스에서 실행되며 카메라 하나를 만듭니다. `at(t)`는 샷 기준 초를 영상 시간으로 변환합니다.
 - **2D**: `shot.js`는 `render(t, ctx)`를 default export하며, 샷 기준 시간 `t`의 `world/page.html`을 그립니다. `ctx.voice`에는 샷에서 말하는 문장과 그 시간이 담겨 있어 화면을 말에 맞출 수 있습니다. 피사체를 `data-keep`(canvas라면 `subtitles.keep()`)으로 표시하면 자막 검사가 그 부분을 비워 둡니다.
 - **캐시**: 샷의 키는 월드, 샷 코드, 자막, 에셋, 렌더러, 설정을 해시한 값입니다. 바뀌지 않은 샷은 재사용됩니다.
 

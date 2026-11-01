@@ -68,7 +68,7 @@ Die KI wählt den Stil, der zum Thema passt, und begründet ihn; du kannst im Pl
 </tr>
 </table>
 
-2D-Videos folgen festen Prinzipien: Bild zuerst, eine verdichtete Untertitelzeile pro Shot, jede Zeile lange genug sichtbar zum Lesen, jede Zahl in Bewegung, ehrlich in dem, was gezeigt wird, Quellen klein im Bild. Sie stehen in [engine/video/explainers/2d/README.md](engine/video/explainers/2d/README.md) und in jedem 2D-Prompt.
+2D-Videos folgen festen Prinzipien: Bild zuerst, eine verdichtete Untertitelzeile pro Shot, jede Zeile lange genug sichtbar zum Lesen, jede Zahl in Bewegung, ehrlich in dem, was gezeigt wird, Quellen klein im Bild. Sie stehen in [agent/src/principles.ts](agent/src/principles.ts) und in jedem 2D-Prompt.
 
 ## Rundgang
 
@@ -204,7 +204,7 @@ my-video/
   out/                 Exporte der Engine (mit Zeitstempel); die App kopiert jeden in einen neuen Ordner deiner Wahl
 ```
 
-- **3D**: `world.py` baut die gemeinsame Welt mit `kit` ([`engine/video/explainers/3d/lib/kit.py`](engine/video/explainers/3d/lib/kit.py)). `shot.py` läuft im Namespace der Welt und erzeugt eine Kamera; `at(t)` bildet Shot-lokale Sekunden auf die Filmzeit ab.
+- **3D**: `world.py` baut die gemeinsame Welt mit `kit` ([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)). `shot.py` läuft im Namespace der Welt und erzeugt eine Kamera; `at(t)` bildet Shot-lokale Sekunden auf die Filmzeit ab.
 - **2D**: `shot.js` exportiert standardmäßig `render(t, ctx)`, das `world/page.html` zur Shot-lokalen Zeit `t` zeichnet. `ctx.voice` enthält die gesprochenen Sätze des Shots mit ihren Zeiten, damit das Bild die Worte trifft; markiere das Motiv mit `data-keep` (oder `subtitles.keep()` auf einem Canvas), damit die Untertitel-Prüfung es frei hält.
 - **Cache**: Der Schlüssel eines Shots hasht Welt, Code, Untertitel, Assets, Renderer und Einstellungen. Unveränderte Shots werden wiederverwendet.
 

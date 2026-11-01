@@ -1,7 +1,8 @@
-# Video assets
+# 3D assets
 
-Downloaded third-party assets for the video workflows. The files are
-not committed (see `.gitignore`); this list is how a fresh checkout
+Downloaded third-party assets the 3D track's worlds may load (Blender
+sees this folder as $SHOTLOOP_ASSETS; engine/shotloop/cache.mjs). The
+files are not committed (see `.gitignore`); this list is how a fresh checkout
 gets them back. **CC0 only**: check the licence on the asset's page and
 in its bundled licence file before using it, and note it here.
 
@@ -23,7 +24,7 @@ folder named below.
 
 ```bash
 # Poly Haven files can be fetched directly
-curl -fsSL -o engine/video/assets/hdri/<name>_2k.hdr \
+curl -fsSL -o engine/assets/hdri/<name>_2k.hdr \
   https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/<name>_2k.hdr
 ```
 

@@ -4,7 +4,7 @@
 // it to the film's cuts: a lighter intro up to the first cut, the full
 // bed, a break before a cut near the middle of a longer film, and an
 // outro that thins out. The same seed gives the same bed; a new seed,
-// another one in the same mood. engine/video/music.mjs plays it.
+// another one in the same mood. synth.mjs plays it.
 
 import { MOODS, round } from './data.mjs'
 

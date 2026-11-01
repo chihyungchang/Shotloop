@@ -19,9 +19,7 @@ const OUT = path.join(TAURI, 'bundle-resources')
 const ENGINE = [
   'engine/shotloop',
   'engine/lib',
-  'engine/video/music.mjs',
-  'engine/video/explainers/3d/lib',
-  'engine/video/assets/README.md'
+  'engine/assets/README.md'
 ]
 // Never shipped: renders, exports and OS litter
 const SKIP = new Set(['out', '.DS_Store', '__pycache__', 'node_modules'])
