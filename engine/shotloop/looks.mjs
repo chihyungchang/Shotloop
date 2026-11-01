@@ -4,10 +4,12 @@
 // planner picks a look, the person can change it on the plan, and the
 // build starts from it, so the AI writes shots instead of a design system.
 
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { DEFAULT_LOOK, DEFAULT_STYLE, HUES, lookById } from './data.mjs'
 import { EXTRAS } from './extras.mjs'
+import { KIT_CORE } from './pagekit.mjs'
 import { cssSize } from './project.mjs'
 import { scenePage } from './scene.mjs'
 
@@ -23,8 +25,11 @@ const huesFor = L => HUES[darkGround(L) ? 'dark' : 'light']
 // The page for a look at the project's size, in a style (styles.mjs): the
 // infographic page below, or the cinematic scene (scene.mjs) for a look
 // that has scene colors. Its first comment documents the kit: the AI
-// reads it before writing shots
-export function lookPage(id, size, style = DEFAULT_STYLE) {
+// reads it before writing shots. The comment also records a hash of the
+// page as written, so untouchedLook knows the page from any later one
+export const lookPage = (id, size, style = DEFAULT_STYLE) => stamp(templatePage(id, size, style))
+
+function templatePage(id, size, style) {
   const L = lookById(id) ?? lookById(DEFAULT_LOOK)
   const { width: w, height: h } = cssSize(size)
   const tall = h > w
@@ -133,39 +138,7 @@ ${(X.scripts ?? []).map(f => `    <script src="${f}"></script>\n`).join('')}    
       }
       C.series = [C.hue.blue, C.hue.orange, C.hue.green, C.hue.violet, C.hue.gray]
       const FONT = "'PingFang SC', -apple-system, sans-serif", HEAD_FONT = ${JSON.stringify(L.head)}
-      const clamp = x => Math.min(1, Math.max(0, x))
-      const lerp = (a, b, p) => a + (b - a) * p
-      const ease = p => { p = clamp(p); return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2 }
-      // 0 → 1 over [a, a + d], eased out
-      const rise = (t, a, d = 0.4) => 1 - Math.pow(1 - clamp((t - a) / d), 3)
-      // Eased out with a small overshoot, for things that land
-      const pop = (t, a, d = 0.5) => {
-        const p = clamp((t - a) / d), c = 1.7
-        return p <= 0 ? 0 : 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2)
-      }
-      // Item i of a group, revealed step seconds after the one before
-      const stagger = (t, i, a, step = 0.12, d = 0.4) => rise(t, a + i * step, d)
-      // 0 → 1 → 0: on screen from a to b, fading in and out over d
-      const hold = (t, a, b, d = 0.3) => Math.min(rise(t, a, d), 1 - rise(t, b - d, d))
-      // Gentle idle motion (px) for things at rest
-      const float = (t, amp = 4, period = 3, phase = 0) => amp * Math.sin((t / period + phase) * Math.PI * 2)
-      // Seconds a caption must stay fully on screen: 1 s, plus 0.3 s per
-      // word, 0.15 s per Chinese character (agent/src/principles.ts)
-      function readTime(text) {
-        const cjk = /[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}]/gu
-        const chars = (String(text).match(cjk) || []).length
-        const words = String(text).replace(cjk, ' ').split(/\\s+/).filter(w => /[\\p{L}\\p{N}]/u.test(w)).length
-        return chars + words ? 1 + 0.3 * words + 0.15 * chars : 0
-      }
-      // A seeded random number in [0, 1): the same for the same a and b
-      function hash(a, b = 0) {
-        let h = Math.imul(Math.round(a * 1000) ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(Math.round(b * 1000), 0xc2b2ae35)
-        h ^= h >>> 13
-        h = Math.imul(h, 0x27d4eb2f)
-        h ^= h >>> 16
-        return (h >>> 0) / 4294967296
-      }
-      const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+${KIT_CORE}
 
       // Headline lines typed in by character; untyped text keeps its place
       function typeLines(lines, typed) {
@@ -224,7 +197,6 @@ ${(X.scripts ?? []).map(f => `    <script src="${f}"></script>\n`).join('')}    
         el.style.strokeDashoffset = len * (1 - clamp(p))
         return el
       }
-      const count = (p, from, to, digits = 0) => lerp(from, to, clamp(p)).toFixed(digits)
       // The stage's camera: zoom s around (x, y)
       function view({ x = W / 2, y = H / 2, s = 1 } = {}) {
         const vw = W / s, vh = H / s
@@ -282,12 +254,19 @@ ${X.js}
 `
 }
 
-// A world page the AI hasn't changed: still exactly a look's template in
-// its style (or the old starter), so a new look or style may replace it
-export function untouchedLook(text, size) {
-  const id = text.match(/shotloop-look: ([a-z0-9-]+)/)?.[1]
-  const style = text.match(/shotloop-style: ([a-z0-9-]+)/)?.[1] ?? DEFAULT_STYLE
-  return !!id && text === lookPage(id, size, style)
+const HASH_LINE = /\n {2}shotloop-page-hash: ([0-9a-f]{16})/
+const pageHash = text => createHash('sha256').update(text.replace(HASH_LINE, '')).digest('hex').slice(0, 16)
+const stamp = page => page.replace(/shotloop-look: [a-z0-9-]+/, m => `${m}\n  shotloop-page-hash: ${pageHash(page)}`)
+
+// Pages written before the hash was recorded (Shotloop 0.9 and earlier),
+// known by the hash of the whole page: every look in every style and size
+const LEGACY = new Set(JSON.parse(fs.readFileSync(new URL('legacy-pages.json', import.meta.url), 'utf8')))
+
+// A world page the AI hasn't changed: still the page as a look wrote it,
+// so a new look or style may replace it
+export function untouchedLook(text) {
+  const recorded = text.match(HASH_LINE)?.[1]
+  return recorded ? recorded === pageHash(text) : LEGACY.has(pageHash(text))
 }
 
 // Files a style's page loads beside it in world/ (the map's countries,

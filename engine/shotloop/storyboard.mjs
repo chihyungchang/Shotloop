@@ -95,7 +95,7 @@ export function applyStoryboard(project) {
   let look = twoD ? (lookById(sb.look) ? sb.look : project.config.look ?? null) : null
   if (styleId === 'scene' && !lookById(look ?? DEFAULT_LOOK)?.scene) look = DEFAULT_LOOK
   const page = path.join(project.root, 'world', 'page.html')
-  if (twoD && (look || style) && (!fs.existsSync(page) || untouchedLook(fs.readFileSync(page, 'utf8'), project.size) || isStarterPage(page))) {
+  if (twoD && (look || style) && (!fs.existsSync(page) || untouchedLook(fs.readFileSync(page, 'utf8')) || isStarterPage(page))) {
     writeWorld2d(project.root, look, project.size, styleId)
   }
 

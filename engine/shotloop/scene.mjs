@@ -4,6 +4,8 @@
 // depths and drift with parallax, a camera moves through it all, and a
 // vignette closes the frame. The look gives the colors (looks.mjs, scene).
 
+import { KIT_CORE } from './pagekit.mjs'
+
 export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop, hue }) {
   const S = L.scene
   return `<!doctype html>
@@ -39,7 +41,7 @@ export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
                                     blue, a loss red), not the look's accents
     rgb(hex) → 'r, g, b'            for the glow functions: halo(x, y, r, rgb(C.hue.red), a)
     c                               the canvas 2D context, in CSS px, camera applied
-    clamp, lerp, ease(p), rise(t, a, d = 0.6), fall(t, a, d = 0.4), pop(t, a, d = 0.5)
+    clamp, lerp, ease(p), rise(t, a, d = 0.4), fall(t, a, d = 0.4), pop(t, a, d = 0.5)
     stagger(t, i, a, step = 0.12, d = 0.4), hold(t, a, b, d = 0.3),
     float(t, amp = 4, period = 3, phase = 0), readTime(text), hash(a, b), prng(seed),
     count(p, from, to, digits = 0), fmt(x, digits = 0)  (grouped thousands)
@@ -128,32 +130,7 @@ export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
       const ui = document.getElementById('ui')
 
       // ---- Time ----
-      const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x))
-      const lerp = (a, b, p) => a + (b - a) * p
-      const ease = p => { p = clamp(p); return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2 }
-      const rise = (t, a, d = 0.6) => 1 - Math.pow(1 - clamp((t - a) / d), 3)
-      const fall = (t, a, d = 0.4) => 1 - ease((t - a) / d)
-      const pop = (t, a, d = 0.5) => {
-        const p = clamp((t - a) / d), k = 1.7
-        return p <= 0 ? 0 : 1 + (k + 1) * Math.pow(p - 1, 3) + k * Math.pow(p - 1, 2)
-      }
-      const stagger = (t, i, a, step = 0.12, d = 0.4) => rise(t, a + i * step, d)
-      const hold = (t, a, b, d = 0.3) => Math.min(rise(t, a, d), 1 - rise(t, b - d, d))
-      const float = (t, amp = 4, period = 3, phase = 0) => amp * Math.sin((t / period + phase) * Math.PI * 2)
-      // Seconds a caption must stay fully on screen (agent/src/principles.ts)
-      function readTime(text) {
-        const cjk = /[\\p{Script=Han}\\p{Script=Hiragana}\\p{Script=Katakana}\\p{Script=Hangul}]/gu
-        const chars = (String(text).match(cjk) || []).length
-        const words = String(text).replace(cjk, ' ').split(/\\s+/).filter(w => /[\\p{L}\\p{N}]/u.test(w)).length
-        return chars + words ? 1 + 0.3 * words + 0.15 * chars : 0
-      }
-      function hash(a, b = 0) {
-        let h = Math.imul(Math.round(a * 1000) ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(Math.round(b * 1000), 0xc2b2ae35)
-        h ^= h >>> 13
-        h = Math.imul(h, 0x27d4eb2f)
-        h ^= h >>> 16
-        return (h >>> 0) / 4294967296
-      }
+${KIT_CORE}      const fall = (t, a, d = 0.4) => 1 - ease((t - a) / d)
       function prng(seed) {
         return () => {
           seed |= 0; seed = (seed + 0x6d2b79f5) | 0
@@ -162,7 +139,6 @@ export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
           return ((r ^ (r >>> 14)) >>> 0) / 4294967296
         }
       }
-      const count = (p, from, to, digits = 0) => lerp(from, to, clamp(p)).toFixed(digits)
       const fmt = (x, d = 0) => x.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })
 
       // ---- Drawing helpers ----
@@ -416,7 +392,6 @@ export function scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
       }
 
       // ---- Type ----
-      const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
       const show = (p, dy = 26) => 'opacity:' + clamp(p).toFixed(3) + ';transform:translateY(' + ((1 - clamp(p)) * dy).toFixed(1) + 'px);filter:blur(' + ((1 - clamp(p)) * 8).toFixed(1) + 'px)'
       function add(html) {
         parts.push(html)
