@@ -8,15 +8,13 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { captions, shot3d, WORLD_3D } from './create.mjs'
-import { DEFAULT_LOOK, DEFAULT_STYLE, lookById, styleById } from './data.mjs'
-import { lookPage, styleFiles, untouchedLook } from './looks.mjs'
+import { DEFAULT_LOOK, DEFAULT_STYLE, lookById, round, styleById } from './data.mjs'
 import { writeJson } from './files.mjs'
-import { loadProject, updateConfig } from './project.mjs'
+import { untouchedLook } from './looks.mjs'
+import { loadProject, SHOT_ID, updateConfig } from './project.mjs'
+import { captions, isStarter, isStarterCaptions, unbuilt, writePlan, writeShots, writeWorld2d, writeWorld3d } from './starters.mjs'
 
 export const FILE = 'storyboard.json'
-
-const round1 = x => Math.round(x * 10) / 10
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 4).join('-')
 
 export function readStoryboard(project) {
@@ -31,57 +29,17 @@ export function readStoryboard(project) {
   return sb
 }
 
-// A 2D starter that already says the shot's text, on the starter page's card
-function starter2d(shot, i, n, film) {
-  return `// ${shot.id}: ${shot.title}. Starter shot from the storyboard: a title card to replace.
-// Shot-local time: t = 0 is this shot's first frame.
-
-export default function render(t, { window, start }) {
-  window.kit?.card?.(t, {
-    kicker: ${JSON.stringify(`${String(i + 1).padStart(2, '0')} / ${String(n).padStart(2, '0')}`)},
-    title: ${JSON.stringify(shot.text || shot.title)},
-    body: ${JSON.stringify(shot.show ?? '')},
-    progress: (start + t) / ${film}
-  })
-}
-`
-}
-
-function notes(shot) {
-  return `# ${shot.id} · ${shot.title}
-
-## Must show
-
-${shot.show?.trim() || '(what this shot must show)'}
-${shot.say?.trim() ? `\n## Voice-over\n\n${shot.say.trim()}\n` : ''}
-## On screen
-
-${shot.text?.trim() || '(no text)'}
-
-## Motion
-
-${shot.motion?.trim() || '(the move)'}
-${shot.source?.trim() ? `\n## Source line\n\n${shot.source.trim()}\n` : ''}`
-}
-
 // The 2D starter page of projects made before looks
 const isStarterPage = file => fs.existsSync(file) && fs.readFileSync(file, 'utf8').includes('Shots draw it from shots/*/shot.js')
-
-// Code nobody has touched yet: the starter the engine wrote
-export const isStarter = file => fs.readFileSync(file, 'utf8').split('\n', 1)[0].includes('Starter shot')
-
-// Nothing built yet: every shot is still its starter
-export const unbuilt = project => project.shots.every(s => !fs.existsSync(s.code) || isStarter(s.code))
 
 // A project made with track "auto" becomes 3D when the plan picks the 3D
 // style, while nothing is built yet: the world and the starters change
 function toThreeD(project) {
-  const write = (rel, text) => fs.writeFileSync(path.join(project.root, rel), text)
-  write('world/world.py', WORLD_3D.replace('{{DURATION}}', String(project.duration)).replace('{{W}}', project.size.width).replace('{{H}}', project.size.height))
+  writeWorld3d(project.root, project.duration, project.size)
   fs.rmSync(path.join(project.root, 'world', 'page.html'), { force: true })
   // Nothing is built yet: the 2D starter shots go, the plan's shots come as 3D
   for (const s of project.shots) fs.rmSync(path.dirname(s.code), { recursive: true, force: true })
-  write('captions.html', captions(project.size, project.shots))
+  fs.writeFileSync(path.join(project.root, 'captions.html'), captions(project.size, project.shots))
   updateConfig(project.root, ({ look, trackAuto, ...cfg }) => ({ ...cfg, track: '3d', captions: 'captions.html' }))
   return loadProject(project.root)
 }
@@ -100,7 +58,7 @@ export function applyStoryboard(project) {
   // Shots read back from the project keep their folders: their ids are
   // reserved first. A new shot gets an id from its place and title that
   // no kept shot and no folder on disk has, so it never inherits code
-  const valid = id => typeof id === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(id)
+  const valid = id => typeof id === 'string' && SHOT_ID.test(id)
   const kept = new Set()
   for (const s of sb.shots) if (valid(s.id) && !kept.has(s.id)) kept.add(s.id)
   const used = new Set()
@@ -114,22 +72,9 @@ export function applyStoryboard(project) {
     }
     used.add(id)
     const say = String(s.say ?? '').trim()
-    return { id, title: String(s.title).trim().slice(0, 80), duration: round1(s.duration), show: s.show, text: s.text, motion: s.motion, ...(say ? { say } : {}) }
+    return { id, title: String(s.title).trim().slice(0, 80), duration: round(s.duration, 1), show: s.show, text: s.text, motion: s.motion, source: s.source, ...(say ? { say } : {}) }
   })
-  const film = round1(shots.reduce((t, s) => t + s.duration, 0))
-  const today = new Date().toISOString().slice(0, 10)
-
-  shots.forEach((s, i) => {
-    const dir = path.join(project.root, 'shots', s.id)
-    fs.mkdirSync(dir, { recursive: true })
-    const code = path.join(dir, project.track === '3d' ? 'shot.py' : 'shot.js')
-    if (!fs.existsSync(code) || isStarter(code)) fs.writeFileSync(code, project.track === '3d' ? shot3d(s, i) : starter2d(s, i, shots.length, film))
-    // New notes from the plan; the review history carries over
-    const file = path.join(dir, 'notes.md')
-    const old = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : ''
-    const history = old.match(/## Review history\n[\s\S]*$/)?.[0]?.trim() ?? '## Review history'
-    fs.writeFileSync(file, `${notes(s)}\n${history}\n- ${today}: planned in the storyboard.\n`)
-  })
+  const film = writeShots(project.root, project.track, shots, 'planned in the storyboard')
 
   // Shots the plan dropped go if they are still starters; edited ones stay
   // on disk, out of the shot list
@@ -138,41 +83,8 @@ export function applyStoryboard(project) {
     fs.rmSync(path.dirname(old.code), { recursive: true, force: true })
   }
 
-  const c = sb.copy ?? {}
-  const facts = (c.facts ?? []).filter(f => f?.text)
-  fs.writeFileSync(path.join(project.root, 'copy.md'), `# ${project.title}
-
-## Idea
-
-${c.idea ?? project.config.idea ?? ''}
-
-## Hook
-
-${c.hook ?? ''}
-
-## Copy
-
-${c.body ?? ''}
-
-## Facts
-
-${facts.map(f => `- ${f.text}${f.source ? ` (source: ${f.source})` : ''}`).join('\n') || '(none)'}
-`)
-
-  // script.md and storyboard.md, the readable plan, in the examples' form:
-  // one numbered line per shot, and a table of what each shot shows
-  const line = s => String(s ?? '').replace(/\s*\n\s*/g, ' ').trim()
-  const cell = s => line(s).replace(/\|/g, '\\|')
-  fs.writeFileSync(path.join(project.root, 'script.md'), `# ${project.title} · Script
-
-${shots.map((s, i) => `${i + 1}. ${line(s.say) || line(s.text) || line(s.title)}`).join('\n')}
-`)
-  fs.writeFileSync(path.join(project.root, 'storyboard.md'), `# ${project.title} · Storyboard
-
-| # | Time | Shot | Motion |
-| --- | --- | --- | --- |
-${shots.map((s, i) => `| ${i + 1} | ${s.duration} s | ${cell(s.title)}: ${cell(s.show)} | ${cell(s.motion)} |`).join('\n')}
-`)
+  const copy = sb.copy ?? {}
+  writePlan(project.root, project.title, shots, { ...copy, idea: copy.idea ?? project.config.idea ?? '' })
 
   // 2D: the plan's look in its style becomes the world, while the AI
   // hasn't changed it. The scene style needs a look with scene colors
@@ -184,13 +96,9 @@ ${shots.map((s, i) => `| ${i + 1} | ${s.duration} s | ${cell(s.title)}: ${cell(s
   if (styleId === 'scene' && !lookById(look ?? DEFAULT_LOOK)?.scene) look = DEFAULT_LOOK
   const page = path.join(project.root, 'world', 'page.html')
   if (twoD && (look || style) && (!fs.existsSync(page) || untouchedLook(fs.readFileSync(page, 'utf8'), project.size) || isStarterPage(page))) {
-    fs.mkdirSync(path.dirname(page), { recursive: true })
-    fs.writeFileSync(page, lookPage(look ?? DEFAULT_LOOK, project.size, styleId))
-    for (const [name, text] of Object.entries(styleFiles(styleId))) fs.writeFileSync(path.join(path.dirname(page), name), text)
+    writeWorld2d(project.root, look, project.size, styleId)
   }
 
-  // The starter caption layer follows the plan: 3D shows each shot's
-  // text; 2D draws its text in the frame, so the layer goes
   // A shot whose line and length are unchanged keeps its voice timing
   // (voice.mjs fitVoice), so its frames stay valid; others are timed again
   const before = new Map(project.shots.map(s => [s.id, s]))
@@ -203,7 +111,9 @@ ${shots.map((s, i) => `| ${i + 1} | ${s.duration} s | ${cell(s.title)}: ${cell(s
     ...(typeof sb.lang === 'string' && sb.lang.trim() ? { lang: sb.lang.trim() } : {}),
     ...(look ? { look } : {}), ...(styleId ? { style: styleId } : {}), ...(project.track === '3d' ? { style: '3d' } : {})
   }
-  if (project.captions && fs.readFileSync(project.captions, 'utf8').includes("film's timeline. (starter)")) {
+  // The starter caption layer follows the plan: 3D shows each shot's
+  // text; 2D draws its text in the frame, so the layer goes
+  if (project.captions && isStarterCaptions(project.captions)) {
     if (project.track === '3d') fs.writeFileSync(project.captions, captions(project.size, shots))
     else fields.captions = null
   }
@@ -233,7 +143,7 @@ export function deriveStoryboard(project) {
       ...(section(notes, 'Source line') ? { source: section(notes, 'Source line') } : {})
     }
   })
-  const starter = project.shots.every(s => !fs.existsSync(s.code) || isStarter(s.code)) && shots.every(s => placeholder(s.show))
+  const starter = unbuilt(project) && shots.every(s => placeholder(s.show))
   if (starter) return null
   const copy = read(path.join(project.root, 'copy.md'))
   // One fact per bullet, its wrapped lines joined

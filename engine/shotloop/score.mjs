@@ -6,6 +6,8 @@
 // outro that thins out. The same seed gives the same bed; a new seed,
 // another one in the same mood. engine/video/music.mjs plays it.
 
+import { MOODS, round } from './data.mjs'
+
 // Seeded random (mulberry32)
 function random(seed) {
   let a = seed >>> 0
@@ -57,23 +59,6 @@ const HAT = {
   eighths: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
   busy: [0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1],
   sparse: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0]
-}
-
-// Each mood: a tempo range, how often it is in a minor key, and the
-// patterns and layers it draws from. intro: the layers before the
-// first cut
-export const MOODS = {
-  calm: { bpm: [64, 84], minor: 0.4, sevenths: 0.5, bass: ['long'], arp: ['slow'], arpChance: 0.5, kick: [], hat: ['sparse'], hatChance: 0.3,
-    layers: ['pad', 'bass'], intro: ['pad'], riser: 0 },
-  bright: { bpm: [98, 120], minor: 0.15, sevenths: 0.2, bass: ['eighths', 'long'], arp: ['fast', 'slow'], arpChance: 1, kick: [], hat: ['off', 'eighths'], hatChance: 1,
-    layers: ['pad', 'bass', 'arp', 'hat'], intro: ['pad', 'arp'], riser: 0.5 },
-  groove: { bpm: [108, 126], minor: 0.5, sevenths: 0.3, bass: ['syncopated', 'eighths'], arp: ['fast'], arpChance: 0.8, kick: ['four', 'broken'], hat: ['off', 'busy', 'eighths'], hatChance: 1,
-    layers: ['pad', 'bass', 'arp', 'kick', 'hat'], intro: ['pad', 'hat'], riser: 0.7 },
-  tech: { bpm: [88, 108], minor: 0.7, sevenths: 0.5, bass: ['long', 'syncopated'], arp: ['fast'], arpChance: 1, kick: ['half'], hat: ['busy', 'eighths'], hatChance: 1,
-    layers: ['pad', 'arp', 'hat'], intro: ['pad', 'arp'], riser: 0.6, bassChance: 0.5, kickChance: 0.4 },
-  // Breaking news: always minor, a pulse that never lets go, risers into the cuts
-  tense: { bpm: [86, 100], minor: 1, sevenths: 0.2, bass: ['pulse'], arp: ['fast'], arpChance: 0.6, kick: ['half', 'broken'], hat: ['eighths', 'busy'], hatChance: 1,
-    layers: ['pad', 'bass', 'kick', 'hat'], intro: ['pad', 'bass'], riser: 0.9 }
 }
 
 export function composeBed(mood, { seed = newSeed(), duration, cuts = [] }) {
@@ -134,5 +119,3 @@ export function composeBed(mood, { seed = newSeed(), duration, cuts = [] }) {
   bed.risers = bed.risers.map(([a, b]) => [round(a), round(b)])
   return bed
 }
-
-const round = x => Math.round(x * 1000) / 1000

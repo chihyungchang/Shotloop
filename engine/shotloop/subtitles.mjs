@@ -13,6 +13,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { capture, ffmpeg, openRenderPage, pageGeometry, QUALITY } from './compose.mjs'
 import { SUBTITLE_BAND } from './cues.mjs'
+import { cssSize } from './project.mjs'
 
 const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u
 // Longest chunk on screen: two lines of about 21 characters, or 18 CJK
@@ -67,9 +68,8 @@ const fontFor = lang => `'${FONT[lang] ?? 'PingFang SC'}', -apple-system, 'Helve
 // The subtitle band and box in page CSS px (the project's page, 2/3 of
 // its pixel size): ids prefixed so another page can lay one out too (the
 // subtitle check measures the box in the shot's own page)
-export function subtitleCss({ width, height }, lang, id = '') {
-  const w = Math.round(width / 1.5)
-  const h = Math.round(height / 1.5)
+export function subtitleCss(frame, lang, id = '') {
+  const { width: w, height: h } = cssSize(frame)
   const tall = h > w
   const pad = Math.round(w * (tall ? 0.056 : 0.045))
   const right = tall ? Math.round(w * 0.861) : w - pad
@@ -88,8 +88,7 @@ export function subtitleCss({ width, height }, lang, id = '') {
 // The page that draws one chunk at a time (window.render(i)), on the
 // project's page size like the caption layer
 function page(size, lang, texts) {
-  const w = Math.round(size.width / 1.5)
-  const h = Math.round(size.height / 1.5)
+  const { width: w, height: h } = cssSize(size)
   return `<!doctype html>
 <html>
   <head>

@@ -14,7 +14,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { DEFAULT_SAMPLES } from './data.mjs'
+import { DEFAULT_SAMPLES, round } from './data.mjs'
 import { readJson, writeJson } from './files.mjs'
 
 export const FILE = 'shotloop.json'
@@ -23,6 +23,16 @@ export const SIZES = {
   portrait: { width: 1080, height: 1920 },
   landscape: { width: 1920, height: 1080 }
 }
+
+// A shot id, which is also its folder's name
+export const SHOT_ID = /^[a-z0-9][a-z0-9-]*$/
+
+// A shot's code file on each track
+export const codeFile = track => (track === '3d' ? 'shot.py' : 'shot.js')
+
+// Pages (world, captions, subtitles) are laid out in CSS px at 2/3 of the
+// film's pixel size (720×1280 for 1080×1920) and captured at 1.5x
+export const cssSize = size => ({ width: Math.round(size.width / 1.5), height: Math.round(size.height / 1.5) })
 
 export function isProject(dir) {
   return fs.existsSync(path.join(dir, FILE))
@@ -42,7 +52,7 @@ export function loadProject(dir) {
       start: round(t),
       end: round(t + s.duration),
       dir: path.join(root, 'shots', s.id),
-      code: path.join(root, 'shots', s.id, cfg.track === '3d' ? 'shot.py' : 'shot.js'),
+      code: path.join(root, 'shots', s.id, codeFile(cfg.track)),
       notes: path.join(root, 'shots', s.id, 'notes.md')
     }
     t += s.duration
@@ -108,11 +118,9 @@ function validate(cfg) {
   if (!Array.isArray(cfg.shots) || !cfg.shots.length) fail('shots must be a non-empty array')
   const ids = new Set()
   for (const s of cfg.shots) {
-    if (!/^[a-z0-9][a-z0-9-]*$/.test(s.id ?? '')) fail(`bad shot id "${s.id}" (use a-z, 0-9, -)`)
+    if (!SHOT_ID.test(s.id ?? '')) fail(`bad shot id "${s.id}" (use a-z, 0-9, -)`)
     if (ids.has(s.id)) fail(`duplicate shot id "${s.id}"`)
     ids.add(s.id)
     if (!(s.duration > 0)) fail(`shot "${s.id}" needs a positive duration`)
   }
 }
-
-const round = x => Math.round(x * 1000) / 1000

@@ -8,6 +8,7 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { openPage } from '../lib/chrome.mjs'
 import * as jsonl from '../lib/jsonl.mjs'
+import { cssSize } from './project.mjs'
 
 // ---------------------------------------------------------------- events
 
@@ -75,10 +76,10 @@ export function pixelSize(project, mode) {
   return { width: even(project.size.width), height: even(project.size.height) }
 }
 
-// Pages are laid out in CSS px at 2/3 of the final size (720×1280 for
-// 1080×1920) and captured at a device scale that gives the mode's size
+// A page at its CSS size (project.mjs cssSize), captured at the device
+// scale that gives the mode's pixel size
 export function pageGeometry(project, mode) {
-  const css = { width: Math.round(project.size.width / 1.5), height: Math.round(project.size.height / 1.5) }
+  const css = cssSize(project.size)
   return { ...css, scale: pixelSize(project, mode).width / css.width }
 }
 

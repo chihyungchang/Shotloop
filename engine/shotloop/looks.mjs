@@ -8,6 +8,7 @@ import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { DEFAULT_LOOK, DEFAULT_STYLE, HUES, lookById } from './data.mjs'
 import { EXTRAS } from './extras.mjs'
+import { cssSize } from './project.mjs'
 import { scenePage } from './scene.mjs'
 
 export { DEFAULT_LOOK, HUES, LOOKS, lookById } from './data.mjs'
@@ -23,10 +24,9 @@ const huesFor = L => HUES[darkGround(L) ? 'dark' : 'light']
 // infographic page below, or the cinematic scene (scene.mjs) for a look
 // that has scene colors. Its first comment documents the kit: the AI
 // reads it before writing shots
-export function lookPage(id, { width, height }, style = DEFAULT_STYLE) {
+export function lookPage(id, size, style = DEFAULT_STYLE) {
   const L = lookById(id) ?? lookById(DEFAULT_LOOK)
-  const w = Math.round(width / 1.5)
-  const h = Math.round(height / 1.5)
+  const { width: w, height: h } = cssSize(size)
   const tall = h > w
   const pad = Math.round(w * (tall ? 0.056 : 0.045))
   // The safe area (engine/shotloop/checklist.md, safe-area): on a tall

@@ -20,9 +20,10 @@ import { fileURLToPath } from 'node:url'
 import { wav } from '../video/music.mjs'
 import { readJson, writeJson } from './files.mjs'
 import { emit, ffmpeg, progress } from './compose.mjs'
+import { round } from './data.mjs'
 import { sentences, voiceOn } from './cues.mjs'
 import { loadProject, updateConfig } from './project.mjs'
-import { isStarter } from './storyboard.mjs'
+import { isStarter } from './starters.mjs'
 import { dressClips } from './subtitles.mjs'
 
 // The picture comes first: a line starts this far into its shot, and the
@@ -52,7 +53,6 @@ async function voicePackage() {
   return pkg
 }
 
-const round2 = x => Math.round(x * 100) / 100
 const ceil1 = x => Math.ceil(x * 10 - 1e-6) / 10
 
 // The language spoken: the project's, else read from its lines
@@ -138,7 +138,7 @@ async function speakShot(project, shot, opts) {
 function cuesOf(parts) {
   let t = LEAD
   return parts.map(p => {
-    const cue = { at: round2(t), end: round2(t + p.duration) }
+    const cue = { at: round(t, 2), end: round(t + p.duration, 2) }
     t += p.duration + GAP
     return cue
   })
@@ -188,7 +188,7 @@ export async function fitVoice(project) {
       // line still doesn't fit (speed isn't linear), the shot grows
       const room = duration - LEAD - TAIL
       if (speech / MAX_SPEEDUP <= room) {
-        speed = round2(base * Math.min(MAX_SPEEDUP, speech / room) + 0.005)
+        speed = round(base * Math.min(MAX_SPEEDUP, speech / room) + 0.005, 2)
         ;({ parts, speech } = await speakShot(project, shot, { lang, voice, speed }))
       }
       if (!fits(speech)) duration = Math.max(MIN_SHOT, ceil1(LEAD + speech + TAIL))
@@ -209,7 +209,7 @@ export async function fitVoice(project) {
     })
   }))
   syncStoryboard(project.root, shots)
-  return { lang, voice, changes, unspoken, duration: round2(shots.reduce((t, s) => t + s.duration, 0)) }
+  return { lang, voice, changes, unspoken, duration: round(shots.reduce((t, s) => t + s.duration, 0), 2) }
 }
 
 // The plan page shows storyboard.json: its durations follow the fit

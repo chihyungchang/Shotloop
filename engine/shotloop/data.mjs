@@ -1,9 +1,7 @@
 // The data the engine shares with the app's frontend and the agent: the
 // looks, the visual styles, the music moods and the small rules they all
-// follow. No Node imports here (nor of a module that has them), so the
-// app's browser bundle can import this file as it is.
-
-import { MOODS } from './score.mjs'
+// follow. It imports nothing (no Node module above all), so the app's
+// browser bundle can import this file as it is.
 
 // Built-in looks for 2D projects (looks.mjs draws their pages): only the
 // tokens differ (palette, type, background); the scene colors are for the
@@ -229,7 +227,22 @@ export const DEFAULT_STYLE = 'infographic'
 
 export const styleById = id => STYLES.find(s => s.id === id) ?? null
 
-// The moods a synthesized music bed is composed in (score.mjs)
+// The moods a synthesized music bed is composed in (score.mjs): a tempo
+// range, how often it is in a minor key, and the patterns and layers it
+// draws from. intro: the layers before the first cut
+export const MOODS = {
+  calm: { bpm: [64, 84], minor: 0.4, sevenths: 0.5, bass: ['long'], arp: ['slow'], arpChance: 0.5, kick: [], hat: ['sparse'], hatChance: 0.3,
+    layers: ['pad', 'bass'], intro: ['pad'], riser: 0 },
+  bright: { bpm: [98, 120], minor: 0.15, sevenths: 0.2, bass: ['eighths', 'long'], arp: ['fast', 'slow'], arpChance: 1, kick: [], hat: ['off', 'eighths'], hatChance: 1,
+    layers: ['pad', 'bass', 'arp', 'hat'], intro: ['pad', 'arp'], riser: 0.5 },
+  groove: { bpm: [108, 126], minor: 0.5, sevenths: 0.3, bass: ['syncopated', 'eighths'], arp: ['fast'], arpChance: 0.8, kick: ['four', 'broken'], hat: ['off', 'busy', 'eighths'], hatChance: 1,
+    layers: ['pad', 'bass', 'arp', 'kick', 'hat'], intro: ['pad', 'hat'], riser: 0.7 },
+  tech: { bpm: [88, 108], minor: 0.7, sevenths: 0.5, bass: ['long', 'syncopated'], arp: ['fast'], arpChance: 1, kick: ['half'], hat: ['busy', 'eighths'], hatChance: 1,
+    layers: ['pad', 'arp', 'hat'], intro: ['pad', 'arp'], riser: 0.6, bassChance: 0.5, kickChance: 0.4 },
+  // Breaking news: always minor, a pulse that never lets go, risers into the cuts
+  tense: { bpm: [86, 100], minor: 1, sevenths: 0.2, bass: ['pulse'], arp: ['fast'], arpChance: 0.6, kick: ['half', 'broken'], hat: ['eighths', 'busy'], hatChance: 1,
+    layers: ['pad', 'bass', 'kick', 'hat'], intro: ['pad', 'bass'], riser: 0.9 }
+}
 export const MUSIC_MOODS = Object.keys(MOODS)
 
 // Poly Pizza's categories, in the order of its API's numbers (library.mjs)
@@ -249,6 +262,10 @@ export function firstLine(idea, max = 60) {
   const space = cut.lastIndexOf(' ')
   return (space > max / 2 ? cut.slice(0, space) : cut).replace(/[\s,;:–-]+$/, '') + '…'
 }
+
+// x rounded to `digits` decimals (times and lengths: 0.001 s, cues 0.01 s,
+// plans 0.1 s)
+export const round = (x, digits = 3) => Math.round(x * 10 ** digits) / 10 ** digits
 
 // Seconds a caption must stay fully on screen: 1 s, plus 0.3 s per word,
 // 0.15 s per Chinese character (the 2D principles, agent/src/principles.ts).

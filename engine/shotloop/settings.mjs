@@ -7,7 +7,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { writeJson } from './files.mjs'
 import { loadProject, updateConfig } from './project.mjs'
-import { unbuilt } from './storyboard.mjs'
+import { unbuilt } from './starters.mjs'
 import { DEFAULT_SAMPLES, MUSIC_MOODS, styleById } from './data.mjs'
 import { composeBed, cutTimes, newSeed } from './score.mjs'
 
