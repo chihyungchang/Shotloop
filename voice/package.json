@@ -7,7 +7,7 @@
   "description": "Shotloop's voice-over: text to speech on this Mac (Kokoro through sherpa-onnx, CosyVoice 2 in its own Python install, Supertonic through ONNX Runtime)",
   "main": "src/index.mjs",
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test \"test/*.test.mjs\""
   },
   "engines": {
     "node": ">=22.18"
