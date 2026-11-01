@@ -1,17 +1,19 @@
 import { api, type Job, type Project } from '../../api'
-import { agentNow, buildProgress, formatEta, formatSeconds, jobEstimate, jobLabel, stageName } from '../../model'
+import { useErrorLine, useTick } from '../../hooks'
+import { agentNow, buildProgress, formatEta, formatSeconds, isActive, jobEstimate, jobLabel, stageName } from '../../model'
+import { baseName } from '../../recent'
 import { Icon } from '../Icon'
-import { useEffect, useState } from 'react'
-import { t } from '../../i18n'
+import { formatDate, t } from '../../i18n'
 
 // The render queue (docs/PRD.md §7.7): renders one shot at a time,
 // agent work alongside; progress and time estimates per job
 export function QueuePanel({ project, jobs }: { project: Project; jobs: Job[] }) {
-  const active = jobs.filter(j => j.state === 'running' || j.state === 'queued')
-  const finished = jobs.filter(j => !(j.state === 'running' || j.state === 'queued')).reverse()
+  const active = jobs.filter(isActive)
+  const finished = jobs.filter(j => !isActive(j)).reverse()
   const left = active.filter(j => j.lane === 'render').reduce((t, j) => t + (jobEstimate(project, j) ?? 0), 0)
   useTick(active.length > 0)
-  const doneAt = new Date(Date.now() + left * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const doneAt = formatDate(Date.now() + left * 1000, { hour: '2-digit', minute: '2-digit' })
+  const { error, guard } = useErrorLine()
 
   return (
     <div className="queue">
@@ -24,12 +26,13 @@ export function QueuePanel({ project, jobs }: { project: Project; jobs: Job[] })
           </div>
         )
         : <p className="muted small">{t('queue.idle')}</p>}
-      {active.map(j => <JobRow key={j.id} job={j} project={project} />)}
+      {error && <pre className="error-box small">{error}</pre>}
+      {active.map(j => <JobRow key={j.id} job={j} project={project} cancel={() => guard(api.cancel(j.id))} />)}
       {finished.length > 0 && (
         <>
           <div className="row between">
             <h3>{t('queue.done')}</h3>
-            <button className="link" onClick={() => api.clearJobs()}>{t('queue.clear')}</button>
+            <button className="link" onClick={() => guard(api.clearJobs())}>{t('queue.clear')}</button>
           </div>
           {finished.slice(0, 30).map(j => <JobRow key={j.id} job={j} project={project} />)}
         </>
@@ -38,21 +41,11 @@ export function QueuePanel({ project, jobs }: { project: Project; jobs: Job[] })
   )
 }
 
-// While a job runs, a tick a second for its elapsed time
-function useTick(on: boolean) {
-  const [, set] = useState(0)
-  useEffect(() => {
-    if (!on) return
-    const id = setInterval(() => set(n => n + 1), 1000)
-    return () => clearInterval(id)
-  }, [on])
-}
-
 const ABOUT: Partial<Record<Job['kind'], 'act.about.build' | 'act.about.plan' | 'act.about.fix'>> = {
   build: 'act.about.build', plan: 'act.about.plan', fix: 'act.about.fix'
 }
 
-function JobRow({ job, project }: { job: Job; project: Project }) {
+function JobRow({ job, project, cancel }: { job: Job; project: Project; cancel?: () => void }) {
   const running = job.state === 'running'
   const queued = job.state === 'queued'
   useTick(running)
@@ -72,7 +65,7 @@ function JobRow({ job, project }: { job: Job; project: Project }) {
         {job.state === 'done' && <span className="job-ok"><Icon name="check" size={13} /></span>}
         <span className="job-name">
           {agent && <span className="lane agent">{t('lane.agent')}</span>}
-          <span className="ellipsis">{jobLabel(job)}{other && <span className="muted small"> · {job.project.split('/').at(-1)}</span>}</span>
+          <span className="ellipsis">{jobLabel(job)}{other && job.project && <span className="muted small"> · {baseName(job.project)}</span>}</span>
         </span>
         <span className="job-side small muted">
           {running && pct != null && `${pct}%`}
@@ -80,8 +73,8 @@ function JobRow({ job, project }: { job: Job; project: Project }) {
           {job.state === 'done' && (job.result?.cached ? t('queue.cachedShort') : formatSeconds(elapsed))}
           {job.state === 'cancelled' && t('queue.cancelled')}
         </span>
-        {(running || queued) && (
-          <button className="icon-button job-x" onClick={() => api.cancel(job.id)} title={t(running ? 'queue.stop' : 'queue.remove')} aria-label={t(running ? 'queue.stop' : 'queue.remove')}>
+        {cancel && (
+          <button className="icon-button job-x" onClick={cancel} title={t(running ? 'queue.stop' : 'queue.remove')} aria-label={t(running ? 'queue.stop' : 'queue.remove')}>
             <Icon name="x" size={12} />
           </button>
         )}

@@ -582,7 +582,6 @@ export const en = {
   'build.usual': 'usually 3–10 min',
   'build.writing': 'Writing code',
   'build.rendering': 'Rendering stills',
-  'build.checking': 'Checking',
   'build.written': 'Code written',
   'build.waiting': 'Up next',
   'build.readyCount': '{done} of {total} shots ready',
@@ -648,7 +647,27 @@ export const en = {
   'activity.idle': 'Nothing running',
   'activity.more': 'and {n} more',
   'activity.alertsNote': 'A sound and a notification when the queue finishes',
-  'activity.try': 'Try it'
+  'activity.try': 'Try it',
+  'job.preview': 'Preview the film ({mode})',
+  'settings.unreadable': 'Your settings could not be read: {error}',
+  'settings.useDefaults': 'Continue with the defaults',
+  'common.notSaved': 'Not saved: {error}',
+  'projects.broken': 'Can’t be read',
+  'projects.forget': 'Remove from the list',
+  'about.macos': 'macOS',
+  'about.appleSilicon': 'arm64 (Apple silicon)',
+  'unit.mb': '{n} MB',
+  'tile.ai': 'AI',
+  'filter.audio': 'Audio',
+  'filter.image': 'Image',
+  'filter.glb': 'glTF binary',
+  'filter.app': 'Application',
+  'pub.tab.youtube': 'YouTube',
+  'pub.tab.tiktok': 'TikTok',
+  'pub.tab.reels': 'Reels',
+  'export.copyFailed': 'Couldn’t copy',
+  'studio.renameFailed': 'Not renamed',
+  'xd.copyNotDelivered': 'The publish copy could not be added to the folder: {error}'
 }
 
 export type Key = keyof typeof en

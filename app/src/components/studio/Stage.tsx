@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
 import { api, fileUrl, relPath, type Mode, type Project, type Shot, type Take } from '../../api'
-import { estimate, formatSeconds, shotTime, type ShotView } from '../../model'
+import { useErrorLine } from '../../hooks'
+import { estimate, formatSeconds, isWide, shotTime, stageName, STILL_NAMES, type ShotView } from '../../model'
+import { baseName } from '../../recent'
 import { VideoPlayer } from './VideoPlayer'
 import { Icon } from '../Icon'
-import type { Key } from '../../i18n/en'
 import { formatDate, t } from '../../i18n'
-import { stageName } from '../../model'
 
 type Tab = 'preview' | 'stills' | 'code'
-
-const STILLS: Key[] = ['stage.start', 'stage.middle', 'stage.end']
 
 // The shot on a dark stage: its clip with captions and music, its three
 // stills, or its code (docs/PRD.md §7.4); rendering is the studio's
@@ -27,11 +25,12 @@ export function Stage({ project, shot, view, mode, refresh }: {
   const busy = view.state === 'rendering' || view.state === 'queued'
   const clip = take ? take.preview ?? take.clip : view.clip
   const version = take?.take ?? view.take?.take
-  const wide = project.size.width > project.size.height
+  const wide = isWide(project.size)
   const takes = [...shot.takes].reverse()
+  const { error, guard } = useErrorLine()
 
   const render = (m: Mode, stillsOnly: boolean) =>
-    api.enqueue({ kind: 'render', project: project.root, shot: shot.id, mode: m, stills: stillsOnly })
+    guard(api.enqueue({ kind: 'render', project: project.root, shot: shot.id, mode: m, stills: stillsOnly }))
 
   return (
     <div className="stage-wrap">
@@ -63,6 +62,7 @@ export function Stage({ project, shot, view, mode, refresh }: {
       </div>
 
       <div className={`stage${tab === 'code' ? ' code' : ''}`}>
+        {error && <pre className="stage-error">{error}</pre>}
         {view.state === 'failed' && shot.error && tab !== 'code' && (
           <pre className="stage-error">{t('stage.failed', { mode: t(`mode.${shot.error.mode}`), message: shot.error.message })}</pre>
         )}
@@ -74,9 +74,9 @@ export function Stage({ project, shot, view, mode, refresh }: {
             </div>)}
         {tab === 'stills' && (stills
           ? <div className={`stage-stills${wide ? ' wide' : ''}`}>
-              {STILLS.map((name, i) => (
+              {STILL_NAMES.map((name, i) => (
                 <figure key={name}>
-                  <img src={fileUrl(stills[i], version)} alt={t(name)} onClick={() => api.openPath(stills[i])} />
+                  <img src={fileUrl(stills[i], version)} alt={t(name)} onClick={() => guard(api.openPath(stills[i]))} />
                   <figcaption>{view.stale && !take ? t('stage.staleTag', { name: t(name) }) : t(name)}</figcaption>
                 </figure>
               ))}
@@ -84,7 +84,7 @@ export function Stage({ project, shot, view, mode, refresh }: {
           : (
             // Where the three stills will be, with the way to get them
             <div className={`stage-stills placeholder${wide ? ' wide' : ''}${busy ? ' busy' : ''}`}>
-              {STILLS.map(name => (
+              {STILL_NAMES.map(name => (
                 <figure key={name}>
                   {/* A transparent image of the frame's shape, laid out like a still */}
                   <img className="still-ph" src={wide ? SPACER_WIDE : SPACER_TALL} alt="" />
@@ -122,7 +122,7 @@ function CodeTabs({ project, shot, mode, refresh }: { project: Project; shot: Sh
     <div className="code-pane">
       <div className="file-tabs">
         {files.map(f => (
-          <button key={f} className={file === f ? 'on' : ''} onClick={() => setFile(f)}>{f.split('/').at(-1)}</button>
+          <button key={f} className={file === f ? 'on' : ''} onClick={() => setFile(f)}>{baseName(f)}</button>
         ))}
       </div>
       <Editor
@@ -130,10 +130,10 @@ function CodeTabs({ project, shot, mode, refresh }: { project: Project; shot: Sh
         project={project}
         file={file}
         version={`${shot.fixes.length}-${shot.draft.key}-${shot.final.key}`}
-        onSaved={() => {
-          // New code, new stills: the person sees the change right away
-          if (file === files[0]) api.enqueue({ kind: 'render', project: project.root, shot: shot.id, mode, stills: true })
+        onSaved={async () => {
           refresh()
+          // New code, new stills: the person sees the change right away
+          if (file === files[0]) await api.enqueue({ kind: 'render', project: project.root, shot: shot.id, mode, stills: true })
         }}
       />
     </div>
@@ -142,7 +142,7 @@ function CodeTabs({ project, shot, mode, refresh }: { project: Project; shot: Sh
 
 // A plain text editor for the shot's files; saving changes the shot's
 // cache key, so the shot shows as stale until it is rendered again
-function Editor({ project, file, version, onSaved }: { project: Project; file: string; version: string; onSaved: () => void }) {
+function Editor({ project, file, version, onSaved }: { project: Project; file: string; version: string; onSaved: () => Promise<unknown> }) {
   const [text, setText] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -160,18 +160,20 @@ function Editor({ project, file, version, onSaved }: { project: Project; file: s
 
   const save = async (force = false) => {
     if (text == null) return
+    setError(null)
     try {
       const disk = await api.readText(project.root, file)
       if (!force && disk !== saved) return setClash(disk)
       await api.writeText(project.root, file, text)
       setSaved(text)
       setClash(null)
-      onSaved()
+      await onSaved()
     } catch (e) {
       setError(String(e))
     }
   }
-  if (error) return <p className="error">{error}</p>
+  // Not read: nothing to edit. A failed save keeps the edits on screen
+  if (error && text == null) return <p className="error">{error}</p>
   if (text == null) return <CodeSkeleton />
   return (
     <div className="editor">
@@ -194,7 +196,7 @@ function Editor({ project, file, version, onSaved }: { project: Project; file: s
         </div>
       )}
       <div className="editor-bar">
-        <span className="muted small">{file}</span>
+        {error ? <span className="error small ellipsis" title={error}>{error}</span> : <span className="muted small">{file}</span>}
         <button className="small" onClick={() => save()} disabled={!dirty}>{dirty ? t('editor.save') : t('common.saved')}</button>
       </div>
     </div>

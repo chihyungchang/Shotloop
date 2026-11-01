@@ -1,40 +1,22 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useEffect, useState } from 'react'
 import { api, fileUrl, type ExportResult, type Job, type Mode, type Project } from '../../../api'
+import { useErrorLine, useEscape } from '../../../hooks'
 import { t } from '../../../i18n'
 import type { Key } from '../../../i18n/en'
-import { estimate, formatSeconds } from '../../../model'
+import { estimate, formatSeconds, isActive, sizeText } from '../../../model'
+import { baseName, tildePath } from '../../../recent'
 import { Icon } from '../../Icon'
 import { ChangesDialog } from '../ChangesDialog'
-import { CoverEditor, coverSource, useCover } from './CoverEditor'
-import { CopySummary, Music, Publish, Samples, Voice } from './parts'
+import { rename } from '../Studio'
+import { COVER_SIZE, CoverEditor, coverSource, useCover } from './CoverEditor'
+import { CopySummary, Music, Publish, Samples, usePublishCopy, Voice } from './parts'
+import { readExportPrefs, readExportTo, saveExportPrefs, saveExportTo, type Parts } from './prefs'
 
 const ASPECTS: { id: string; label: Key; note: Key }[] = [
   { id: '9:16', label: 'export.portrait', note: 'export.portraitFor' },
   { id: '16:9', label: 'export.landscape', note: 'export.landscapeFor' }
 ]
-
-// What to export, ticked like CapCut's export dialog
-type Parts = { video: boolean; cover: boolean; copy: boolean }
-type Prefs = { aspects?: string[]; parts?: Parts }
-const LAST = 'shotloop.export.last'
-// Where exports go, for every project: a folder per export is made in it
-const TO = 'shotloop.export.to'
-const DEFAULT_TO = '~/Movies/Shotloop'
-const readTo = () => {
-  try {
-    return localStorage.getItem(TO) || DEFAULT_TO
-  } catch {
-    return DEFAULT_TO
-  }
-}
-const readPrefs = (key: string): Prefs | null => {
-  try {
-    return JSON.parse(localStorage.getItem(key) ?? 'null')
-  } catch {
-    return null
-  }
-}
 
 // Export (docs/PRD.md §7.9, §7.10), a dialog over the studio: the cover
 // on the left (its editor a view of the same dialog), and on the right
@@ -51,59 +33,40 @@ export function ExportDialog({ project, jobs, refresh, openSettings, close }: {
 }) {
   const mine = jobs.filter(j => j.project === project.root)
   const exportJob = mine.filter(j => j.kind === 'export').at(-1)
-  const exporting = !!exportJob && (exportJob.state === 'running' || exportJob.state === 'queued')
-  const renders = mine.filter(j => j.kind === 'render' && (j.state === 'running' || j.state === 'queued'))
+  const exporting = !!exportJob && isActive(exportJob)
+  const renders = mine.filter(j => j.kind === 'render' && isActive(j))
   const cover = useCover(project, mine)
   // Opened while an export runs, or after one finished in the background
   // this session: its run and files first
   const [view, setView] = useState<'setup' | 'cover' | 'copy' | 'run'>(exportJob && exportJob.state !== 'cancelled' ? 'run' : 'setup')
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      if (view === 'cover' || view === 'copy') setView('setup')
-      else close()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [view, close])
+  useEscape(() => (view === 'cover' || view === 'copy' ? setView('setup') : close()))
 
-  // The last choices: this project's, else the last export's anywhere
-  const prefsKey = `shotloop.export.${project.root}`
-  const saved = readPrefs(prefsKey) ?? readPrefs(LAST)
-  const [aspects, setAspects] = useState<string[]>(saved?.aspects?.length ? saved.aspects : ['9:16'])
-  const [parts, setParts] = useState<Parts>(saved?.parts ?? { video: true, cover: true, copy: true })
-  useEffect(() => {
-    try {
-      const v = JSON.stringify({ aspects, parts })
-      localStorage.setItem(prefsKey, v)
-      localStorage.setItem(LAST, v)
-    } catch {
-      // storage unavailable: the choices last while the dialog is open
-    }
-  }, [prefsKey, aspects, parts])
+  const [saved] = useState(() => readExportPrefs(project.root))
+  const [aspects, setAspects] = useState<string[]>(saved.aspects)
+  const [parts, setParts] = useState<Parts>(saved.parts)
+  useEffect(() => saveExportPrefs(project.root, { aspects, parts }), [project.root, aspects, parts])
 
   // The work's name: the project's title, renamed here; the export's
   // folder and files are named after it
   const [name, setName] = useState(project.title)
   useEffect(() => setName(project.title), [project.title])
-  const rename = async () => {
+  const { error, setError, guard } = useErrorLine()
+  const renameTo = async () => {
     const v = name.trim()
     if (!v || v === project.title) return setName(project.title)
-    await api.setTitle(project.root, v).catch(() => setName(project.title))
-    refresh()
+    await rename(project, v, refresh, e => {
+      setName(project.title)
+      setError(e)
+    })
   }
 
-  const [to, setTo] = useState(readTo)
+  const [to, setTo] = useState(readExportTo)
   const chooseTo = async () => {
     const dir = await pick({ directory: true, title: t('xd.toDialog') })
     if (typeof dir !== 'string') return
     setTo(dir)
-    try {
-      localStorage.setItem(TO, dir)
-    } catch {
-      // storage unavailable: the folder lasts while the dialog is open
-    }
+    saveExportTo(dir)
   }
 
   // Exports are final; the editor's previews are never exported
@@ -113,16 +76,13 @@ export function ExportDialog({ project, jobs, refresh, openSettings, close }: {
 
   // The publish copy already written: exporting keeps it
   const publishJob = mine.filter(j => j.kind === 'publish').at(-1)
-  const [hasCopy, setHasCopy] = useState(false)
-  useEffect(() => {
-    api.readText(project.root, 'publish.json').then(() => setHasCopy(true), () => setHasCopy(false))
-  }, [project.root, publishJob?.state])
+  const [copy] = usePublishCopy(project, publishJob)
 
   // What the run started with, for its rows (none: opened while exporting)
   const [started, setStarted] = useState<Parts | null>(null)
   const [batch, setBatch] = useState(0)
   const [ask, setAsk] = useState(false)
-  const run = () => {
+  const run = async () => {
     setAsk(false)
     setStarted(parts)
     setView('run')
@@ -131,15 +91,19 @@ export function ExportDialog({ project, jobs, refresh, openSettings, close }: {
     // everything into a new folder named after the work
     const shots = parts.video ? pending : []
     setBatch(shots.length)
-    for (const s of shots) api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false })
-    api.enqueue({
-      kind: 'export', project: project.root, mode, aspects,
-      video: parts.video, cover: parts.cover, publish: parts.copy, to, name: name.trim() || project.title
-    })
-    // The copy, written alongside; one finished after the export is added
-    // to its folder (Run)
-    const writing = publishJob?.state === 'running' || publishJob?.state === 'queued'
-    if (parts.copy && !hasCopy && !writing) api.enqueue({ kind: 'publish', project: project.root })
+    const queued = await guard((async () => {
+      for (const s of shots) await api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false })
+      await api.enqueue({
+        kind: 'export', project: project.root, mode, aspects,
+        video: parts.video, cover: parts.cover, publish: parts.copy, to, name: name.trim() || project.title
+      })
+      // The copy, written alongside; one finished after the export is added
+      // to its folder (Run)
+      if (parts.copy && !copy && !(publishJob && isActive(publishJob))) await api.enqueue({ kind: 'publish', project: project.root })
+      return true
+    })())
+    // Nothing queued: back to the settings, with the error
+    if (!queued && !exportJob) setView('setup')
   }
   const go = () => (parts.video && pending.length ? setAsk(true) : run())
 
@@ -172,11 +136,11 @@ export function ExportDialog({ project, jobs, refresh, openSettings, close }: {
                     {cover.busy ? <span className="spinner small" /> : <Icon name="edit" size={12} />} {t(cover.busy ? 'cover.designing' : 'xd.editCover')}
                   </button>
                 </div>
-                <span className="xd-cover-note">{[coverSource(project), '1080×1920'].filter(Boolean).join(' · ')}</span>
+                <span className="xd-cover-note">{[coverSource(project), sizeText(COVER_SIZE)].filter(Boolean).join(' · ')}</span>
               </div>
               {view === 'setup'
                 ? (
-                  <Setup project={project} jobs={mine} refresh={refresh} name={name} setName={setName} rename={rename} parts={parts} tick={tick} aspects={aspects} setAspects={setAspects}
+                  <Setup project={project} jobs={mine} refresh={refresh} name={name} setName={setName} rename={renameTo} parts={parts} tick={tick} aspects={aspects} setAspects={setAspects}
                     to={to} chooseTo={chooseTo} editCopy={() => setView('copy')} openSettings={openSettings} />
                 )
                 : view === 'copy'
@@ -188,6 +152,7 @@ export function ExportDialog({ project, jobs, refresh, openSettings, close }: {
           )}
 
         <div className="xd-foot">
+          {error && <span className="small error ellipsis" title={error}>{error}</span>}
           {view === 'setup' && (
             <>
               <div className="meta">
@@ -257,7 +222,7 @@ function Setup({ project, jobs, refresh, name, setName, rename, parts, tick, asp
         <span className="xrow-label">{t('xd.to')}</span>
         <div className="path-col">
           <div className="path">
-            <input value={to.replace(/^\/Users\/[^/]+/, '~')} readOnly title={to} aria-label={t('xd.to')} onClick={chooseTo} />
+            <input value={tildePath(to)} readOnly title={to} aria-label={t('xd.to')} onClick={chooseTo} />
             <button className="small" onClick={chooseTo}><Icon name="folder" size={12} /> {t('xd.choose')}</button>
           </div>
           <span className="small muted">{t('xd.folderNote', { name: name.trim() || project.title })}</span>
@@ -324,10 +289,13 @@ function Run({ project, jobs, started, exportJob, renders, batch, openSettings }
   batch: number
   openSettings: () => void
 }) {
-  const exporting = !!exportJob && (exportJob.state === 'running' || exportJob.state === 'queued')
+  const exporting = !!exportJob && isActive(exportJob)
   const [latest, setLatest] = useState<ExportResult | null>(null)
+  const { error, guard } = useErrorLine()
+  const delivery = useErrorLine()
   useEffect(() => {
-    api.readText(project.root, 'out/latest.json').then(text => setLatest(JSON.parse(text)), () => setLatest(null))
+    // No export yet: nothing to list
+    api.readText(project.root, 'out/latest.json').then(text => JSON.parse(text) as ExportResult).then(setLatest, () => setLatest(null))
   }, [project.root, exportJob?.state])
 
   // Opened again while exporting: the video is what runs
@@ -353,8 +321,7 @@ function Run({ project, jobs, started, exportJob, renders, batch, openSettings }
   const folder = exported?.folder
   useEffect(() => {
     if (!started?.copy || !folder || exported?.publish || publishJob?.state !== 'done') return
-    api.deliverCopy(project.root, folder, project.title)
-      .then(file => setLatest(l => (l ? { ...l, publish: file } : l)), () => {})
+    delivery.guard(api.deliverCopy(project.root, folder, project.title).then(file => setLatest(l => (l ? { ...l, publish: file } : l))))
   }, [started?.copy, folder, exported?.publish, publishJob?.state])
 
   return (
@@ -363,12 +330,14 @@ function Run({ project, jobs, started, exportJob, renders, batch, openSettings }
         <div className="xrun-folder">
           <Icon name="folder" size={16} />
           <div className="xrun-folder-text">
-            <strong className="ellipsis">{folder.split('/').pop()}</strong>
-            <span className="small muted ellipsis" title={folder}>{folder.replace(/^\/Users\/[^/]+/, '~')}</span>
+            <strong className="ellipsis">{baseName(folder)}</strong>
+            <span className="small muted ellipsis" title={folder}>{tildePath(folder)}</span>
           </div>
-          <button className="small" onClick={() => api.openPath(folder)}>{t('xd.openFolder')}</button>
+          <button className="small" onClick={() => guard(api.openPath(folder))}>{t('xd.openFolder')}</button>
         </div>
       )}
+      {delivery.error && <pre className="error-box small">{t('xd.copyNotDelivered', { error: delivery.error })}</pre>}
+      {error && <pre className="error-box small">{error}</pre>}
       {failed && <pre className="error-box small">{exportJob!.error}</pre>}
       {video && (
         <section className="xrun">
@@ -390,10 +359,10 @@ function Run({ project, jobs, started, exportJob, renders, batch, openSettings }
                 <div key={f.file} className="latest-file">
                   <span className={`aspect-shape small a${f.aspect.replace(':', '')}`} />
                   <strong>{f.aspect}</strong>
-                  <span className="small muted ellipsis">{f.file.split('/').pop()}</span>
+                  <span className="small muted ellipsis">{baseName(f.file)}</span>
                   <span className="spacer" />
-                  <button className="small" onClick={() => api.openPath(f.file)}><Icon name="play" size={12} /> {t('export.open')}</button>
-                  <button className="small ghost" onClick={() => api.reveal(f.file)}>{t('export.show')}</button>
+                  <button className="small" onClick={() => guard(api.openPath(f.file))}><Icon name="play" size={12} /> {t('export.open')}</button>
+                  <button className="small ghost" onClick={() => guard(api.reveal(f.file))}>{t('export.show')}</button>
                 </div>
               ))}
             </div>
@@ -406,11 +375,11 @@ function Run({ project, jobs, started, exportJob, renders, batch, openSettings }
             <RunState state={failed ? 'failed' : coverOut ? 'done' : 'running'} />
             <strong>{t('export.cover')}</strong>
             <span className="spacer" />
-            {coverOut && <button className="small ghost" onClick={() => api.reveal(coverOut)}>{t('export.show')}</button>}
+            {coverOut && <button className="small ghost" onClick={() => guard(api.reveal(coverOut))}>{t('export.show')}</button>}
           </div>
           {coverOut && (
-            <button className="xrun-file" onClick={() => api.openPath(coverOut)}>
-              <img src={fileUrl(coverOut)} alt="" /> <span className="small muted ellipsis">{coverOut.split('/').pop()}</span>
+            <button className="xrun-file" onClick={() => guard(api.openPath(coverOut))}>
+              <img src={fileUrl(coverOut)} alt="" /> <span className="small muted ellipsis">{baseName(coverOut)}</span>
             </button>
           )}
         </section>

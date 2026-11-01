@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { api, type FixRecord, type Job, type Project, type Shot } from '../../api'
-import { agentError } from '../../ai/errors'
+import { useErrorLine } from '../../hooks'
+import { isActive } from '../../model'
+import { AgentError } from '../AgentError'
 import { Icon } from '../Icon'
 import { CompareStills } from './CompareStills'
 import type { Key } from '../../i18n/en'
@@ -15,21 +17,22 @@ export function AgentPanel({ project, shot, jobs, openSettings }: { project: Pro
   const [request, setRequest] = useState('')
   const thread = useRef<HTMLDivElement>(null)
   const mine = jobs.filter(j => j.project === project.root && j.shot === shot.id && j.lane === 'agent')
-  const active = mine.find(j => j.state === 'running' || j.state === 'queued') ?? null
+  const active = mine.find(isActive) ?? null
+  const { error, guard } = useErrorLine()
   // Failures are not in the shot's fix records: show the latest one here
-  const lastDone = shot.fixes.at(-1)?.at ? Date.parse(shot.fixes.at(-1)!.at!) : 0
+  const lastDone = shot.fixes.at(-1)?.at ? Date.parse(shot.fixes.at(-1)!.at) : 0
   const failed = mine.filter(j => j.state === 'failed' && (j.finishedAt ?? 0) > lastDone).at(-1) ?? null
 
   useEffect(() => {
     thread.current?.scrollTo({ top: thread.current.scrollHeight })
   }, [shot.fixes.length, active?.log.length, failed?.id])
 
-  const send = (text = request) => {
+  const send = async (text = request) => {
     if (!text.trim() || active) return
-    api.enqueue({ kind: 'fix', project: project.root, shot: shot.id, request: text.trim() })
-    setRequest('')
+    // Kept in the box when it could not be queued, to send again
+    if ((await guard(api.enqueue({ kind: 'fix', project: project.root, shot: shot.id, request: text.trim() }))) != null) setRequest('')
   }
-  const check = () => api.enqueue({ kind: 'check', project: project.root, shot: shot.id })
+  const check = () => guard(api.enqueue({ kind: 'check', project: project.root, shot: shot.id }))
 
   return (
     <aside className="agent">
@@ -54,20 +57,15 @@ export function AgentPanel({ project, shot, jobs, openSettings }: { project: Pro
         {shot.fixes.map((f, i) => <Exchange key={i} fix={f} />)}
         {active && (
           <>
-            <div className="bubble me">{active.kind === 'check' ? t('agent.runChecks') : active.label.replace(/^Fix [^:]+: /, '')}</div>
+            <div className="bubble me">{active.kind === 'check' ? t('agent.runChecks') : active.request}</div>
             <div className="bubble agent working">
               <span className="status"><span className="spinner small" /> {t(active.state === 'queued' ? 'agent.queued' : 'agent.working')}</span>
               {active.log.slice(-5).map((l, i) => <div key={i} className="log-line">{l}</div>)}
             </div>
           </>
         )}
-        {failed && !active && (
-          <div className="bubble agent failed">
-            <span className="status">{t('agent.failed')}</span>
-            <div className="small">{agentError(failed.error).text}</div>
-            {agentError(failed.error).setup && <button className="small" onClick={openSettings}><Icon name="settings" size={13} /> {t('agent.openSettings')}</button>}
-          </div>
-        )}
+        {!active && <AgentError job={failed} openSettings={openSettings} className="bubble agent failed" title={t('agent.failed')} />}
+        {error && <div className="bubble agent failed"><div className="small">{error}</div></div>}
       </div>
 
       {shot.fixes.length === 0 && !active && (

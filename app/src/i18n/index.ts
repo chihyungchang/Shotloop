@@ -4,6 +4,7 @@
 // language, so changing it re-renders the app from the top (useLanguage).
 
 import { useEffect, useState } from 'react'
+import { readStored, writeStored } from '../storage'
 import { en, type Key } from './en'
 import { de } from './de'
 import { es } from './es'
@@ -70,12 +71,8 @@ let current: Lang = 'en'
 export const lang = () => current
 
 function readPref(): LangPref {
-  try {
-    const v = localStorage.getItem(KEY)
-    return isLang(v) ? v : 'system'
-  } catch {
-    return 'system'
-  }
+  const v = readStored(KEY)
+  return isLang(v) ? v : 'system'
 }
 
 function resolve(pref: LangPref): Lang {
@@ -115,11 +112,7 @@ export function useLanguage() {
     pref,
     lang: resolved,
     setPref: (p: LangPref) => {
-      try {
-        localStorage.setItem(KEY, p)
-      } catch {
-        // storage unavailable: the choice lasts this session
-      }
+      writeStored(KEY, p)
       resolve(p)
       setPref(p)
     }

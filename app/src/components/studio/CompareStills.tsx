@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { fileUrl } from '../../api'
+import { useEscape } from '../../hooks'
 import { t } from '../../i18n'
-import type { Key } from '../../i18n/en'
+import { STILL_NAMES } from '../../model'
 import { Icon } from '../Icon'
-
-const FRAMES: Key[] = ['stage.start', 'stage.middle', 'stage.end']
 
 // Before and after an agent's change, one frame at a time: the two
 // stills stacked, a divider to drag between them, the frame picked below.
@@ -39,10 +38,10 @@ function Compare({ before, after, frame, setFrame, expand, close }: {
   const drag = useRef(false)
   const n = Math.min(before.length, after.length)
 
+  useEscape(() => close?.(), !!close)
   useEffect(() => {
     if (!close) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') close()
       if (e.key === 'ArrowLeft') setFrame(Math.max(0, frame - 1))
       if (e.key === 'ArrowRight') setFrame(Math.min(n - 1, frame + 1))
     }
@@ -73,7 +72,7 @@ function Compare({ before, after, frame, setFrame, expand, close }: {
       </div>
       <div className="compare-bar">
         <div className="seg-control small" role="radiogroup">
-          {FRAMES.slice(0, n).map((k, i) => (
+          {STILL_NAMES.slice(0, n).map((k, i) => (
             <button key={k} role="radio" aria-checked={frame === i} className={frame === i ? 'on' : ''} onClick={() => setFrame(i)}>{t(k)}</button>
           ))}
         </div>

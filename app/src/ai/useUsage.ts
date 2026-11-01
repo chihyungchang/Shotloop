@@ -13,9 +13,10 @@ export function useUsage(): Usage | null {
     listeners.add(setU)
     if (!started) {
       started = true
+      // No usage saved yet, or unreadable: the meter waits for the next run
       api.aiUsage().then(v => {
         if (v && (!last || v.at > last.at)) listeners.forEach(l => l((last = v)))
-      }, () => {})
+      }, () => undefined)
       onUsage(v => listeners.forEach(l => l((last = v))))
     }
     return () => {

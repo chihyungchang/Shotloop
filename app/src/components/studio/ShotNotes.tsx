@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { api, relPath, type Project, type Shot } from '../../api'
+import { useErrorLine } from '../../hooks'
 import { formatDate, t } from '../../i18n'
+import { readStored, writeStored } from '../../storage'
 import { Icon } from '../Icon'
 
 const OPEN = 'shotloop.notes.open'
@@ -12,11 +14,15 @@ const OPEN = 'shotloop.notes.open'
 export function ShotNotes({ project, shot, editPlan, busy }: { project: Project; shot: Shot; editPlan: () => void; busy: boolean }) {
   const [must, setMust] = useState<string | null>(null)
   const index = project.shots.findIndex(s => s.id === shot.id)
+  const { error, setError, guard } = useErrorLine()
 
   useEffect(() => {
     api.readText(project.root, relPath(project, shot.notes)).then(
       t => setMust(t.match(/## Must show\s*\n([\s\S]*?)(\n## |$)/)?.[1].trim() ?? null),
-      () => setMust(null)
+      e => {
+        setMust(null)
+        setError(String(e))
+      }
     )
   }, [project, shot.notes, shot.fixes.length])
 
@@ -24,20 +30,10 @@ export function ShotNotes({ project, shot, editPlan, busy }: { project: Project;
   const passed = checks?.results.filter(r => r.pass).length ?? 0
   const failing = checks ? checks.results.length - passed : 0
   // Folded or open, remembered on this Mac for every shot
-  const [open, setOpen] = useState(() => {
-    try {
-      return localStorage.getItem(OPEN) !== '0'
-    } catch {
-      return true
-    }
-  })
+  const [open, setOpen] = useState(() => readStored(OPEN) !== '0')
   const toggle = () => {
     setOpen(!open)
-    try {
-      localStorage.setItem(OPEN, open ? '0' : '1')
-    } catch {
-      // storage unavailable: folded for this visit only
-    }
+    writeStored(OPEN, open ? '0' : '1')
   }
 
   return (
@@ -56,7 +52,8 @@ export function ShotNotes({ project, shot, editPlan, busy }: { project: Project;
           <div className="notes-col">
             <span className="section-label">{t('notes.must')}</span>
             <p className="small">{must || <span className="muted">{t('notes.empty')}</span>}</p>
-            {project.voice?.on && (
+            {error && <p className="small error">{error}</p>}
+            {project.voiced && (
               <>
                 <span className="section-label notes-voice-label">
                   <Icon name="mic" size={11} /> {t('notes.voice')}
@@ -100,10 +97,10 @@ export function ShotNotes({ project, shot, editPlan, busy }: { project: Project;
                 </ul>
                 <div className="subs-actions">
                   <span className="muted">{t('subs.howTo')}</span>
-                  <button className="link" disabled={busy} onClick={() => api.enqueue({
+                  <button className="link" disabled={busy} onClick={() => guard(api.enqueue({
                     kind: 'fix', project: project.root, shot: shot.id,
                     request: t('subs.request', { list: shot.subtitles!.issues.map(i => `${i.from.toFixed(1)}–${i.to.toFixed(1)} s: ${i.what}`).join('; ') })
-                  })}>{t('subs.askAi')}</button>
+                  }))}>{t('subs.askAi')}</button>
                 </div>
               </div>
             )}

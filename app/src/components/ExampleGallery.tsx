@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { fileUrl, type ProjectSummary } from '../api'
 import { t } from '../i18n'
-import { formatSeconds } from '../model'
+import { formatSeconds, isWide } from '../model'
 import { STYLES, styleName } from '../styles'
 import { Icon } from './Icon'
 
@@ -39,12 +39,13 @@ export function ExampleGallery({ examples, open, pickStyle }: {
 function Poster({ p, open, pickStyle }: { p: ProjectSummary; open: () => void; pickStyle: (style: string) => void }) {
   const video = useRef<HTMLVideoElement>(null)
   const [playing, setPlaying] = useState(false)
-  const wide = p.size.width > p.size.height
+  const wide = isWide(p.size)
   const enter = () => {
     const v = video.current
     if (!v) return
     v.currentTime = 0
-    v.play().then(() => setPlaying(true), () => {})
+    // Refused (the poster left before it loaded): the poster stays, which is all hover promises
+    v.play().then(() => setPlaying(true), () => setPlaying(false))
   }
   const leave = () => {
     video.current?.pause()

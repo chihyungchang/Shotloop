@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
 import type { Mode, Project, Shot } from '../../api'
+import { useEscape } from '../../hooks'
 import { t } from '../../i18n'
 import type { Key } from '../../i18n/en'
 import { estimate, formatEta } from '../../model'
@@ -30,11 +30,7 @@ export function ChangesDialog({ project, shots, mode, failed = [], title, note, 
   actions: { label: string; onClick: () => void; primary?: boolean; disabled?: boolean; hint?: string }[]
   close: () => void
 }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close()
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [close])
+  useEscape(close)
   const time = shots.reduce((s, x) => s + estimate(project, x, mode), 0)
   const hint = actions.find(a => a.disabled && a.hint)?.hint
   return (

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { SAVED } from '../ai/useSettings'
-import { api, EMPTY_SETTINGS, type About, type Job, type Settings, type Machine, type VoiceModel } from '../api'
+import { api, KEY_PAGES, type About, type Job, type Settings, type Machine, type VoiceModel } from '../api'
 import { checkForUpdate, installUpdate, useUpdate } from '../update'
 import { LANGS, t, type LangPref, type useLanguage } from '../i18n'
 import type { Key } from '../i18n/en'
+import { formatMB, isActive } from '../model'
+import { patchSettings, useSettings } from '../settings'
+import { useErrorLine } from '../hooks'
 import type { useTheme } from '../theme/theme'
 import { AiSettings } from './AiSettings'
 import { Icon } from './Icon'
@@ -22,9 +24,14 @@ const SECTIONS: [Section, Key, Parameters<typeof Icon>[0]['name']][] = [
   ['about', 'settings.about', 'info']
 ]
 
+type Patch = Partial<Settings>
+type SavePref = (patch: Patch) => void
+
 // Settings, after open-design's: the whole window, a back link and a
 // section list on the ground, one section at a time on the card.
-// General applies at once; the AI backend and tool paths save together.
+// General applies at once; the AI backend, tool paths and asset keys are
+// edits kept here until Save, which saves only the fields edited (a
+// General switch saved meanwhile stays as it is).
 export function SettingsPage({ theme, language, jobs, back, start = 'ai', backLabel = 'settings.back' }: {
   theme: ReturnType<typeof useTheme>
   language: ReturnType<typeof useLanguage>
@@ -35,31 +42,22 @@ export function SettingsPage({ theme, language, jobs, back, start = 'ai', backLa
   backLabel?: Key
 }) {
   const [section, setSection] = useState<Section>(start)
-  const [settings, setSettings] = useState<Settings>(EMPTY_SETTINGS)
-  const [saved, setSaved] = useState<Settings | null>(null)
+  const { settings: saved } = useSettings()
+  const [edits, setEdits] = useState<Patch>({})
+  const [saving, setSaving] = useState(false)
+  const { error, guard } = useErrorLine()
 
-  useEffect(() => {
-    api.getSettings().then(s => {
-      const full = { ...EMPTY_SETTINGS, ...s }
-      setSettings(full)
-      setSaved(full)
-    })
-  }, [])
-
-  const update = (s: Partial<Settings>) => setSettings(cur => ({ ...cur, ...s }))
-  const dirty = saved != null && JSON.stringify(settings) !== JSON.stringify(saved)
-  const persist = async (next: Settings) => {
-    await api.saveSettings(next)
-    setSaved(next)
-    window.dispatchEvent(new Event(SAVED))
+  const update = (s: Patch) => setEdits(cur => ({ ...cur, ...s }))
+  const dirty = !!saved && Object.entries(edits).some(([k, v]) => JSON.stringify(v) !== JSON.stringify(saved[k as keyof Settings]))
+  const save = async () => {
+    setSaving(true)
+    if (await guard(patchSettings(edits))) setEdits({})
+    setSaving(false)
   }
-  // A General switch: saved at once, without the AI edits not yet saved
-  const savePref = async (patch: Partial<Settings>) => {
-    if (!saved) return
-    update(patch)
-    await persist({ ...saved, ...patch })
-  }
+  // A General switch: saved at once, on its own
+  const savePref = (patch: Patch) => void guard(patchSettings(patch))
 
+  const settings = saved && { ...saved, ...edits }
   return (
     <div className="settings-shell">
       <nav className="settings-nav" aria-label={t('settings.title')}>
@@ -72,16 +70,21 @@ export function SettingsPage({ theme, language, jobs, back, start = 'ai', backLa
       </nav>
       <main className="settings-card">
         <div className="settings-body">
-          {(section === 'ai' || section === 'deps' || section === 'assets') && (
+          {error && <p className="error banner">{error}</p>}
+          {settings && (section === 'ai' || section === 'deps' || section === 'assets') && (
             <div className="settings-savebar">
               <span className="muted small">{dirty ? t('settings.unsaved') : ''}</span>
-              <button className="primary" onClick={() => persist(settings)} disabled={!dirty}>{dirty ? t('setup.save') : t('common.saved')}</button>
+              <button className="primary" onClick={save} disabled={!dirty || saving}>
+                {saving && <span className="spinner small" />} {dirty ? t('setup.save') : t('common.saved')}
+              </button>
             </div>
           )}
-          {section === 'ai' && <AiSettings settings={settings} update={update} />}
-          {section === 'general' && <General settings={settings} savePref={savePref} theme={theme} language={language} />}
-          {section === 'deps' && <><Setup settings={settings} update={update} /><VoiceModels jobs={jobs} /></>}
-          {section === 'assets' && <AssetSources settings={settings} update={update} />}
+          {/* Not read (yet, or at all: the app's banner says why) */}
+          {!settings && section !== 'about' && <p className="muted">{t('common.loading')}</p>}
+          {settings && section === 'ai' && <AiSettings settings={settings} update={update} />}
+          {settings && section === 'general' && <General settings={settings} savePref={savePref} theme={theme} language={language} />}
+          {settings && section === 'deps' && <><Setup settings={settings} update={update} /><VoiceModels jobs={jobs} /></>}
+          {settings && section === 'assets' && <AssetSources settings={settings} update={update} />}
           {section === 'about' && <AboutSection />}
         </div>
       </main>
@@ -91,10 +94,11 @@ export function SettingsPage({ theme, language, jobs, back, start = 'ai', backLa
 
 function General({ settings, savePref, theme, language }: {
   settings: Settings
-  savePref: (patch: Partial<Settings>) => void
+  savePref: SavePref
   theme: ReturnType<typeof useTheme>
   language: ReturnType<typeof useLanguage>
 }) {
+  const { error, guard } = useErrorLine()
   const toggle = (key: 'notifySound' | 'notifyDesktop', label: Key) => (
     <div className="pref-row">
       <span>{t(label)}</span>
@@ -126,7 +130,8 @@ function General({ settings, savePref, theme, language }: {
         <p className="hint">{t('settings.alertsNote')}</p>
         {toggle('notifySound', 'settings.sound')}
         {toggle('notifyDesktop', 'settings.desktop')}
-        <button className="link try" onClick={() => api.testAlert()}><Icon name="play" size={11} /> {t('activity.try')}</button>
+        <button className="link try" onClick={() => guard(api.testAlert())}><Icon name="play" size={11} /> {t('activity.try')}</button>
+        {error && <p className="error small">{error}</p>}
       </section>
       <section className="settings-block">
         <h3>{t('telemetry.title')}</h3>
@@ -144,9 +149,10 @@ function General({ settings, savePref, theme, language }: {
 }
 
 // How many shots the AI builds at once: auto (by this Mac) or 1–5
-function Parallel({ settings, savePref }: { settings: Settings; savePref: (patch: Partial<Settings>) => void }) {
+function Parallel({ settings, savePref }: { settings: Settings; savePref: SavePref }) {
   const [m, setM] = useState<Machine | null>(null)
   useEffect(() => {
+    // Without the machine's numbers, auto shows the usual 3
     api.machine().then(setM, () => setM(null))
   }, [])
   const value = settings.parallel >= 1 && settings.parallel <= 5 ? settings.parallel : 0
@@ -179,15 +185,17 @@ function Parallel({ settings, savePref }: { settings: Settings; savePref: (patch
 
 function AboutSection() {
   const [about, setAbout] = useState<About | null>(null)
+  const { error, guard } = useErrorLine()
   useEffect(() => {
-    api.about().then(setAbout, () => setAbout(null))
-  }, [])
+    guard(api.about()).then(a => a && setAbout(a))
+  }, [guard])
+  if (error && !about) return <p className="error">{error}</p>
   if (!about) return <p className="muted">{t('common.loading')}</p>
   const rows: [Key, string][] = [
     ['about.version', about.version],
     ['about.runtime', t(about.bundled ? 'about.bundled' : 'about.source')],
-    ['about.platform', about.os === 'macos' ? 'macOS' : about.os],
-    ['about.arch', about.arch === 'aarch64' ? 'arm64 (Apple silicon)' : about.arch],
+    ['about.platform', about.os === 'macos' ? t('about.macos') : about.os],
+    ['about.arch', about.arch === 'aarch64' ? t('about.appleSilicon') : about.arch],
     ['about.engine', about.root]
   ]
   return (
@@ -200,9 +208,10 @@ function AboutSection() {
       {about.data && (
         <div className="pref-row boxed">
           <div><strong>{t('about.data')}</strong><p className="hint">{about.data}</p></div>
-          <button className="small" onClick={() => api.reveal(about.data!)}>{t('studio.finder')}</button>
+          <button className="small" onClick={() => guard(api.reveal(about.data!))}>{t('studio.finder')}</button>
         </div>
       )}
+      {error && <p className="error small">{error}</p>}
       <ThirdParty />
     </section>
   )
@@ -218,10 +227,12 @@ const GROUPS: Record<string, { title: Key; note?: Key }> = {
   crates: { title: 'oss.crates' }
 }
 function ThirdParty() {
+  const { error, guard } = useErrorLine()
   return (
     <div className="oss">
       <h4>{t('oss.title')}</h4>
       <p className="hint">{t('oss.intro')}</p>
+      {error && <p className="error small">{error}</p>}
       {licenses.groups.map(g => (
         <details key={g.id} className="oss-group" open={g.id === 'programs' || g.id === 'models' || g.id === 'chineseVoice'}>
           <summary><strong>{t(GROUPS[g.id]?.title ?? 'oss.npm')}</strong> <span className="muted">{g.items.length}</span></summary>
@@ -230,7 +241,7 @@ function ThirdParty() {
             {g.items.map(i => (
               <li key={`${i.name}@${i.version}`}>
                 <span className="ellipsis">{i.name}{i.version && <span className="muted"> {i.version}</span>}</span>
-                <button className="link" onClick={() => api.openUrl(i.url)}>{i.license}</button>
+                <button className="link" onClick={() => guard(api.openUrl(i.url))}>{i.license}</button>
               </li>
             ))}
           </ul>
@@ -245,10 +256,12 @@ function ThirdParty() {
 // here, ahead of time), then works offline
 function VoiceModels({ jobs }: { jobs: Job[] }) {
   const [list, setList] = useState<{ dir: string; models: VoiceModel[] } | null>(null)
+  const { error, guard } = useErrorLine()
   const load = useCallback(() => {
-    api.voiceModels().then(setList, () => setList(null))
-  }, [])
+    guard(api.voiceModels()).then(l => l && setList(l))
+  }, [guard])
   useEffect(load, [load])
+  if (error && !list) return <p className="error small">{error}</p>
   if (!list) return null
   return (
     <section className="settings-block">
@@ -259,36 +272,39 @@ function VoiceModels({ jobs }: { jobs: Job[] }) {
           <div>
             <strong>{m.name}</strong>
             <p className="hint">{m.langs.map(l => LANGS.find(x => x.id === l)?.name ?? l).join(' · ')}</p>
-            <p className="hint">{Math.round(m.bytes / 1e6)} MB · <button className="link" onClick={() => api.openUrl(m.home)}>{m.license}</button></p>
+            <p className="hint">{formatMB(m.bytes)} · <button className="link" onClick={() => guard(api.openUrl(m.home))}>{m.license}</button></p>
           </div>
-          {m.installed && !jobs.some(j => j.kind === 'voiceModel' && j.model === m.id && j.state === 'running')
+          {m.installed && !jobs.some(j => j.kind === 'voiceModel' && j.model === m.id && isActive(j))
             ? <span className="tag ok"><Icon name="check" size={11} /> {t('voiceDl.installed')}</span>
             : <VoiceDownload model={m} jobs={jobs} onDone={load} />}
         </div>
       ))}
       <div className="pref-row boxed">
         <div><strong>{t('voiceDl.folder')}</strong><p className="hint">{list.dir}</p></div>
-        <button className="small" onClick={() => api.reveal(list.dir)}>{t('studio.finder')}</button>
+        <button className="small" onClick={() => guard(api.reveal(list.dir))}>{t('studio.finder')}</button>
       </div>
+      {error && <p className="error small">{error}</p>}
     </section>
   )
 }
 
 // The asset library's sources and the person's keys for them
-function AssetSources({ settings, update }: { settings: Settings; update: (s: Partial<Settings>) => void }) {
+function AssetSources({ settings, update }: { settings: Settings; update: (s: Patch) => void }) {
+  const { error, guard } = useErrorLine()
   const rows: { key: 'polypizzaKey' | 'smithsonianKey'; name: string; note: Key; url: string; hint: string }[] = [
-    { key: 'polypizzaKey', name: 'Poly Pizza', note: 'assets.polypizzaNote', url: 'https://poly.pizza/settings/api', hint: '' },
-    { key: 'smithsonianKey', name: 'Smithsonian Open Access', note: 'assets.smithsonianNote', url: 'https://api.data.gov/signup/', hint: 'DEMO_KEY' }
+    { key: 'polypizzaKey', name: 'Poly Pizza', note: 'assets.polypizzaNote', url: KEY_PAGES.polypizza, hint: '' },
+    { key: 'smithsonianKey', name: 'Smithsonian Open Access', note: 'assets.smithsonianNote', url: KEY_PAGES.smithsonian, hint: 'DEMO_KEY' }
   ]
   return (
     <section className="settings-block">
       <h3>{t('settings.assets')}</h3>
       <p className="hint">{t('assets.intro')}</p>
+      {error && <p className="error small">{error}</p>}
       {rows.map(r => (
         <label key={r.key} className="field">
           <span className="row between">
             {r.name}
-            <button type="button" className="link" onClick={() => api.openUrl(r.url)}>{t('ai.getKey')} <Icon name="arrow" size={12} /></button>
+            <button type="button" className="link" onClick={() => guard(api.openUrl(r.url))}>{t('ai.getKey')} <Icon name="arrow" size={12} /></button>
           </span>
           <input type="password" value={settings[r.key]} placeholder={r.hint} onChange={e => update({ [r.key]: e.target.value })} />
           <small className="muted">{t(r.note)}</small>

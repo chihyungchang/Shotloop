@@ -53,10 +53,3 @@ export const PRESETS: Preset[] = [
 
 export const presetById = (id: string) => PRESETS.find(p => p.id === id) ?? PRESETS[0]
 
-// Local OpenAI-compatible servers the agent looks for (agent/src/providers.ts)
-export const LOCAL_SERVERS = [
-  { id: 'ollama', name: 'Ollama', url: 'http://localhost:11434/v1' },
-  { id: 'lmstudio', name: 'LM Studio', url: 'http://localhost:1234/v1' },
-  { id: 'vllm', name: 'vLLM', url: 'http://localhost:8000/v1' },
-  { id: 'llamacpp', name: 'llama.cpp', url: 'http://localhost:8080/v1' }
-]

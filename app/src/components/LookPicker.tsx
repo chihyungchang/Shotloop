@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
+import { useLayoutEffect, useRef, useState, type RefObject } from 'react'
+import { useDismiss } from '../hooks'
 import { t } from '../i18n'
 import { LOOKS, lookAbout, lookName, lookPreview } from '../looks'
 import { lookFits, styleName } from '../styles'
@@ -32,17 +33,7 @@ export function LookPicker({ value, onChange, style = '' }: { value: string; onC
   const ref = useRef<HTMLDivElement>(null)
   const menu = useRef<HTMLDivElement>(null)
   useMenuInView(menu, open)
-  useEffect(() => {
-    if (!open) return
-    const away = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false)
-    const key = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    window.addEventListener('mousedown', away)
-    window.addEventListener('keydown', key)
-    return () => {
-      window.removeEventListener('mousedown', away)
-      window.removeEventListener('keydown', key)
-    }
-  }, [open])
+  useDismiss(ref, open, () => setOpen(false))
   const pick = (id: string) => {
     onChange(id)
     setOpen(false)
@@ -91,7 +82,7 @@ export function Tile({ on, name, image, mosaic, title, disabled, onClick }: {
             <span className="tile-auto">
               <span className="tile-mosaic">{mosaic.slice(0, 4).map((m, i) => (m ? <img key={i} src={m} alt="" /> : <i key={i} />))}</span>
               <span className="tile-aurora" />
-              <span className="tile-ai"><Icon name="spark" size={14} /> AI</span>
+              <span className="tile-ai"><Icon name="spark" size={14} /> {t('tile.ai')}</span>
             </span>
           )
           : image ? <img src={image} alt="" /> : null}

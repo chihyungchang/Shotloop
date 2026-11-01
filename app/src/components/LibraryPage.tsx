@@ -1,19 +1,20 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
-import { useEffect, useState } from 'react'
-import { api, fileUrl, type Asset, type LibraryItem } from '../api'
+import { useEffect, useRef, useState } from 'react'
+import { POLY_CATEGORIES } from '../../../engine/shotloop/data.mjs'
+import { api, fileUrl, KEY_PAGES, type Asset, type LibraryItem } from '../api'
+import { useErrorLine } from '../hooks'
 import { t } from '../i18n'
+import type { Key } from '../i18n/en'
+import { formatMB, formatNumber } from '../model'
 import { Icon } from './Icon'
 
 type Tab = 'search' | 'mine'
 type Source = LibraryItem['source']
 
-const SOURCES: { id: Source; name: string; note: string }[] = [
+const SOURCES: { id: Source; name: string; note: Key }[] = [
   { id: 'polypizza', name: 'Poly Pizza', note: 'assets.polypizzaShort' },
   { id: 'smithsonian', name: 'Smithsonian', note: 'assets.smithsonianShort' }
 ]
-
-// Poly Pizza's categories, to browse without a keyword
-const CATEGORIES = ['food', 'clutter', 'weapons', 'transport', 'furniture', 'objects', 'nature', 'animals', 'buildings', 'people', 'scenes', 'other'] as const
 
 // A preview, or a quiet placeholder when there is none or it won't load
 function Thumb({ src }: { src: string | null }) {
@@ -28,7 +29,10 @@ function Thumb({ src }: { src: string | null }) {
 // Results already fetched this session, by source, query, page and filter
 const seen = new Map<string, { results: LibraryItem[]; cursor: string | null }>()
 
-const sizeOf = (n: number | null) => (n ? `${(n / 1e6).toFixed(1)} MB` : null)
+// Cards in outline while results load
+function AssetSkeleton() {
+  return <div className="asset-grid" aria-busy>{Array.from({ length: 8 }, (_, i) => <div key={i} className="asset-card skeleton"><span className="shimmer" /></div>)}</div>
+}
 
 // The asset library: 3D models found on free sources and downloaded once
 // to this Mac, then added to the 3D projects that use them (in the
@@ -36,7 +40,11 @@ const sizeOf = (n: number | null) => (n ? `${(n / 1e6).toFixed(1)} MB` : null)
 export function LibraryPage({ openSettings }: { openSettings: () => void }) {
   const [tab, setTab] = useState<Tab>('search')
   const [mine, setMine] = useState<Asset[] | null>(null)
-  const reload = () => api.libraryList().then(setMine, () => setMine([]))
+  const [error, setError] = useState<string | null>(null)
+  const reload = () => api.libraryList().then(setMine, e => {
+    setMine([])
+    setError(String(e))
+  })
   useEffect(() => {
     reload()
   }, [])
@@ -53,6 +61,7 @@ export function LibraryPage({ openSettings }: { openSettings: () => void }) {
         </div>
       </div>
       <p className="hint">{t('library.intro')}</p>
+      {error && <div className="error-box small">{error}</div>}
       {tab === 'search'
         ? <Search have={new Set(mine?.map(a => a.id))} onAdded={reload} openSettings={openSettings} />
         : <Mine assets={mine} reload={reload} />}
@@ -68,10 +77,14 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
   const [cursor, setCursor] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [getting, setGetting] = useState<Record<string, 'busy' | 'failed'>>({})
+  // Per result: downloading, or why it failed
+  const [getting, setGetting] = useState<Record<string, { busy: true } | { error: string }>>({})
   const [category, setCategory] = useState<string | null>(null)
+  // The search asked last: a slower answer to an earlier one is dropped
+  const asked = useRef(0)
 
   const run = async (more = false, q = query, cat = category) => {
+    const n = ++asked.current
     if (!more) {
       setResults(null)
       setCursor(null)
@@ -85,13 +98,15 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
       const key = JSON.stringify([source, q.trim().toLowerCase(), more ? cursor : null, all, c])
       const r = seen.get(key) ?? (await api.librarySearch(source, q, more ? cursor : null, all, c))
       seen.set(key, r)
+      if (n !== asked.current) return
       setResults(cur => (more && cur ? [...cur, ...r.results] : r.results))
       setCursor(r.cursor)
     } catch (e) {
+      if (n !== asked.current) return
       setError(String(e))
       if (!more) setResults([])
     } finally {
-      setBusy(false)
+      if (n === asked.current) setBusy(false)
     }
   }
   useEffect(() => {
@@ -100,7 +115,7 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
   }, [source, all])
 
   const get = async (it: LibraryItem) => {
-    setGetting(g => ({ ...g, [it.id]: 'busy' }))
+    setGetting(g => ({ ...g, [it.id]: { busy: true } }))
     try {
       await api.libraryGet(it)
       setGetting(g => {
@@ -108,8 +123,8 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
         return rest
       })
       onAdded()
-    } catch {
-      setGetting(g => ({ ...g, [it.id]: 'failed' }))
+    } catch (e) {
+      setGetting(g => ({ ...g, [it.id]: { error: String(e) } }))
     }
   }
   const needsKey = error && /api key|needs an api key/i.test(error)
@@ -137,7 +152,7 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
           </label>
         )}
       </div>
-      <p className="small muted">{t(SOURCES.find(s => s.id === source)!.note as never)}</p>
+      <p className="small muted">{t(SOURCES.find(s => s.id === source)!.note)}</p>
       {needsKey
         ? (
           <div className="connect-card">
@@ -147,7 +162,7 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
               <p className="muted">{t('library.connectNote')}</p>
             </div>
             <div className="connect-actions">
-              <button className="ghost" onClick={() => api.openUrl('https://poly.pizza/settings/api')}>{t('ai.getKey')} <Icon name="arrow" size={12} /></button>
+              <button className="ghost" onClick={() => api.openUrl(KEY_PAGES.polypizza).catch(e => setError(String(e)))}>{t('ai.getKey')} <Icon name="arrow" size={12} /></button>
               <button className="primary" onClick={openSettings}><Icon name="key" size={14} /> {t('library.addKey')}</button>
             </div>
           </div>
@@ -156,34 +171,35 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
       {source === 'polypizza' && !query.trim() && !needsKey && (
         <div className="suggest">
           <span className="small muted">{t('library.browse')}</span>
-          {CATEGORIES.map(c => (
-            <button key={c} className={`provider-chip${category === c ? ' on' : ''}`} onClick={() => { setCategory(c); run(false, '', c) }}>{t(`library.cat.${c}`)}</button>
+          {POLY_CATEGORIES.map(c => (
+            <button key={c} className={`provider-chip${category === c ? ' on' : ''}`} onClick={() => { setCategory(c); run(false, '', c) }}>{t(`library.cat.${c}` as Key)}</button>
           ))}
         </div>
       )}
-      {busy && !results?.length && <div className="asset-grid">{Array.from({ length: 8 }, (_, i) => <div key={i} className="asset-card skeleton"><span className="shimmer" /></div>)}</div>}
+      {busy && !results?.length && <AssetSkeleton />}
       {results && results.length === 0 && !busy && !error && <p className="empty">{t('library.none')}</p>}
       <div className="asset-grid">
         {results?.map(it => {
           const owned = have.has(it.id)
           const state = getting[it.id]
+          const size = it.size ? formatMB(it.size, 1) : null
           return (
             <div key={it.id} className="asset-card">
               <Thumb src={it.thumb ? (it.thumb.startsWith('/') ? fileUrl(it.thumb) : it.thumb) : null} />
               <div className="asset-meta">
                 <strong className="ellipsis" title={it.name}>{it.name}</strong>
-                <span className="small muted ellipsis">{it.author}{it.triangles ? ` · ${it.triangles.toLocaleString()} △` : ''}{sizeOf(it.size) ? ` · ${sizeOf(it.size)}` : ''}</span>
+                <span className="small muted ellipsis">{it.author}{it.triangles ? ` · ${formatNumber(it.triangles)} △` : ''}{size ? ` · ${size}` : ''}</span>
               </div>
               <div className="asset-foot">
                 <span className={`license${/^cc0/i.test(it.license) ? ' cc0' : ''}`}>{it.license || '?'}</span>
                 {it.page && (
-                  <button className="icon-button" title={t('library.openPage')} onClick={() => api.openUrl(it.page!)}><Icon name="arrow" size={13} /></button>
+                  <button className="icon-button" title={t('library.openPage')} onClick={() => api.openUrl(it.page!).catch(e => setError(String(e)))}><Icon name="arrow" size={13} /></button>
                 )}
                 {owned
                   ? <span className="small ok-note"><Icon name="check" size={12} /> {t('library.have')}</span>
                   : (
-                    <button className="small" onClick={() => get(it)} disabled={state === 'busy'}>
-                      {state === 'busy' ? <span className="spinner small" /> : <Icon name="download" size={12} />} {t(state === 'failed' ? 'plan.retry' : 'library.get')}
+                    <button className="small" onClick={() => get(it)} disabled={!!state && 'busy' in state} title={state && 'error' in state ? state.error : undefined}>
+                      {state && 'busy' in state ? <span className="spinner small" /> : <Icon name="download" size={12} />} {t(state && 'error' in state ? 'plan.retry' : 'library.get')}
                     </button>
                   )}
               </div>
@@ -199,17 +215,14 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
 }
 
 function Mine({ assets, reload }: { assets: Asset[] | null; reload: () => void }) {
-  const [error, setError] = useState<string | null>(null)
+  const { error, guard } = useErrorLine()
   const importFile = async () => {
-    const file = await pick({ title: t('library.import'), filters: [{ name: 'glTF binary', extensions: ['glb'] }] })
-    if (typeof file !== 'string') return
-    setError(null)
-    try {
-      await api.libraryImport(file)
-      reload()
-    } catch (e) {
-      setError(String(e))
-    }
+    const file = await pick({ title: t('library.import'), filters: [{ name: t('filter.glb'), extensions: ['glb'] }] })
+    if (typeof file === 'string' && (await guard(api.libraryImport(file)))) reload()
+  }
+  const remove = async (id: string) => {
+    await guard(api.libraryRemove(id))
+    reload()
   }
   const bar = (
     <div className="row between">
@@ -217,7 +230,7 @@ function Mine({ assets, reload }: { assets: Asset[] | null; reload: () => void }
       <button onClick={importFile}><Icon name="plus" size={13} /> {t('library.import')}</button>
     </div>
   )
-  if (!assets) return <div className="asset-grid" aria-busy>{Array.from({ length: 8 }, (_, i) => <div key={i} className="asset-card skeleton"><span className="shimmer" /></div>)}</div>
+  if (!assets) return <AssetSkeleton />
   if (!assets.length) return <>{bar}{error && <div className="error-box small">{error}</div>}<p className="empty">{t('library.emptyMine')}</p></>
   return (
     <>
@@ -234,8 +247,8 @@ function Mine({ assets, reload }: { assets: Asset[] | null; reload: () => void }
           <div className="asset-foot">
             <span className={`license${/^cc0/i.test(a.license) ? ' cc0' : ''}`}>{a.license}</span>
             <span className="row">
-              <button className="icon-button" title={t('studio.revealFinder')} onClick={() => api.reveal(a.model)}><Icon name="folder" size={14} /></button>
-              <button className="icon-button" title={t('plan.remove')} onClick={async () => { await api.libraryRemove(a.id); reload() }}><Icon name="x" size={14} /></button>
+              <button className="icon-button" title={t('studio.revealFinder')} onClick={() => guard(api.reveal(a.model))}><Icon name="folder" size={14} /></button>
+              <button className="icon-button" title={t('plan.remove')} onClick={() => remove(a.id)}><Icon name="x" size={14} /></button>
             </span>
           </div>
         </div>

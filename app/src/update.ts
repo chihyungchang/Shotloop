@@ -6,8 +6,10 @@
 import { relaunch } from '@tauri-apps/plugin-process'
 import { check, type Update } from '@tauri-apps/plugin-updater'
 import { useEffect, useState } from 'react'
+import { api } from './api'
+import { isActive } from './model'
 
-export type UpdateState =
+type UpdateState =
   | { kind: 'idle' }
   | { kind: 'checking' }
   | { kind: 'none' }
@@ -45,9 +47,9 @@ export async function checkForUpdate(quiet = false) {
 export async function installUpdate() {
   if (!pending) return
   const version = pending.version
-  const { api } = await import('./api')
+  // The queue can't be read: nothing is known to run, so the install goes on
   const jobs = await api.jobs().catch(() => [])
-  if (jobs.some(j => j.state === 'running' || j.state === 'queued')) {
+  if (jobs.some(isActive)) {
     set({ kind: 'busy', version })
     // Offered again once the queue may have finished
     setTimeout(() => state.kind === 'busy' && set({ kind: 'available', version, notes: pending?.body ?? '' }), 8000)

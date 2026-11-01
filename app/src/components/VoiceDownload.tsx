@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { api, type Job } from '../api'
-import { formatEta } from '../model'
+import { useErrorLine } from '../hooks'
+import { formatEta, isActive } from '../model'
 import { t } from '../i18n'
 import { Icon } from './Icon'
 
@@ -13,7 +14,8 @@ export function VoiceDownload({ model, jobs, onDone }: {
   onDone?: () => void
 }) {
   const job = jobs.filter(j => j.kind === 'voiceModel' && j.model === model.id).at(-1)
-  const busy = job?.state === 'queued' || job?.state === 'running'
+  const busy = !!job && isActive(job)
+  const { error, guard } = useErrorLine()
   // Once per download that finishes while shown
   const seen = useRef(job?.state)
   useEffect(() => {
@@ -35,12 +37,13 @@ export function VoiceDownload({ model, jobs, onDone }: {
       </div>
     )
   }
+  const failure = error ?? (job?.state === 'failed' ? job.error : null)
   return (
     <div className="voice-dl">
-      <button className="small" onClick={() => api.enqueue({ kind: 'voiceModel', model: model.id })}>
+      <button className="small" onClick={() => guard(api.enqueue({ kind: 'voiceModel', model: model.id }))}>
         <Icon name="download" size={12} /> {t(job?.state === 'failed' ? 'voiceDl.retry' : 'voiceDl.get', { name: model.name, mb })}
       </button>
-      {job?.state === 'failed' && <span className="error small ellipsis" title={job.error ?? ''}>{job.error}</span>}
+      {failure && <span className="error small ellipsis" title={failure}>{failure}</span>}
     </div>
   )
 }

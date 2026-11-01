@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { api, type Job, type Project } from '../../api'
-import { editMode, formatSeconds, shotView } from '../../model'
+import { api, type Job, type PreviewResult, type Project } from '../../api'
+import { useDismiss, useErrorLine } from '../../hooks'
+import { aspectOf, editMode, formatSeconds, isActive, shotView } from '../../model'
 import type { useTheme } from '../../theme/theme'
 import { Icon } from '../Icon'
 import { ThemeToggle } from '../ThemeToggle'
@@ -30,7 +31,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   close: () => void
   theme: ReturnType<typeof useTheme>
   openSettings: () => void
-  openPlan: () => Promise<void> | void
+  openPlan: () => void
   // A draft (an example opened): saving keeps it
   save?: () => void
   saving?: boolean
@@ -38,13 +39,15 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   const mode = editMode(project)
   const [selected, setSelected] = useState(project.shots[0]?.id ?? '')
   const [drawer, setDrawer] = useState<Drawer>(null)
-  const [film, setFilm] = useState<{ file: string; stale: string[] } | null>(null)
+  const [film, setFilm] = useState<PreviewResult | null>(null)
   // Asked for the whole film while shots were still out of date
   const [wantFilm, setWantFilm] = useState(false)
-  const [filmError, setFilmError] = useState<string | null>(null)
-  // Joining the film (with its voice-over and subtitles) takes a moment the
-  // first time: the button says so meanwhile
-  const [joining, setJoining] = useState(false)
+  const { error: filmError, setError: setFilmError, guard } = useErrorLine()
+  // Joining the film (with its voice-over and subtitles) is a queue job of
+  // its own lane: the button shows it running and can stop it
+  const [previewId, setPreviewId] = useState<number | null>(null)
+  const previewJob = jobs.find(j => j.id === previewId) ?? null
+  const joining = !!previewJob && isActive(previewJob)
   const [menu, setMenu] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
 
@@ -60,10 +63,9 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   const shot = project.shots.find(s => s.id === selected)
   const view = shot ? views.get(shot.id)! : null
   const pending = project.shots.filter(s => ['stale', 'missing', 'failed'].includes(views.get(s.id)!.state))
-  const active = jobs.filter(j => j.state === 'running' || j.state === 'queued')
+  const active = jobs.filter(isActive)
   const exporting = active.some(j => j.project === project.root && j.kind === 'export')
 
-  // Render every shot whose frames are out of date, one at a time
   // The renders of this project under way: the queue shows them
   const renders = active.filter(j => j.project === project.root && j.kind === 'render')
   const toggle = (d: Drawer) => setDrawer(cur => (cur === d ? null : d))
@@ -74,21 +76,21 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   const waiting = pending.filter(s => !renders.some(j => j.shot === s.id))
   const playNow = async () => {
     setAsk(false)
-    setFilmError(null)
-    setJoining(true)
-    try {
-      setFilm(await api.filmPreview(project.root, mode))
-    } catch (e) {
-      setFilmError(/not rendered/.test(String(e)) ? t('film.failed') : String(e))
-    } finally {
-      setJoining(false)
-    }
+    const id = await guard(api.enqueue({ kind: 'preview', project: project.root, mode }))
+    if (id != null) setPreviewId(id)
   }
-  const updateThenPlay = () => {
+  // The preview job's end: the film to watch, or why not
+  useEffect(() => {
+    if (!previewJob || isActive(previewJob)) return
+    setPreviewId(null)
+    if (previewJob.state === 'done') setFilm(previewJob.result)
+    if (previewJob.state === 'failed') setFilmError(/not rendered/.test(previewJob.error ?? '') ? t('film.failed') : previewJob.error)
+  }, [previewJob?.state])
+  const updateThenPlay = async () => {
     setAsk(false)
-    setFilmError(null)
     setWantFilm(true)
-    for (const s of waiting) api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false })
+    const queued = await guard(Promise.all(waiting.map(s => api.enqueue({ kind: 'render', project: project.root, shot: s.id, mode, stills: false }))))
+    if (!queued) setWantFilm(false)
   }
   // No shot has a clip yet (just built): the film is rendered for the first time
   const fresh = waiting.length > 0 && project.shots.every(s => s[mode].state === 'missing')
@@ -114,10 +116,10 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         <div className="studio-title">
           <Title project={project} refresh={refresh} />
           <span className="muted small">
-            {project.track.toUpperCase()} · {project.size.width > project.size.height ? '16:9' : '9:16'} · {formatSeconds(project.duration)} · {t('common.shots', { n: project.shots.length })}
+            {project.track.toUpperCase()} · {aspectOf(project.size)} · {formatSeconds(project.duration)} · {t('common.shots', { n: project.shots.length })}
           </span>
         </div>
-        <PlanLink project={project} openPlan={openPlan} />
+        <button className="ghost plan-link" onClick={openPlan}><Icon name="edit" size={14} /> {t('plan.link')}</button>
         <div className="spacer" />
         {save && (
           <span className="draft-save">
@@ -131,6 +133,11 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         <button onClick={openFilm} disabled={wantFilm || joining}>
           {wantFilm || joining ? <span className="spinner small" /> : <Icon name="play" size={14} />} {t(wantFilm ? 'film.rendering' : joining ? 'film.joining' : 'film.watch')}
         </button>
+        {joining && (
+          <button className="icon-button" onClick={() => guard(api.cancel(previewJob!.id))} title={t('queue.stop')} aria-label={t('queue.stop')}>
+            <Icon name="x" size={14} />
+          </button>
+        )}
         {project.track === '3d' && (
           <button className={drawer === 'assets' ? 'on' : ''} onClick={() => toggle('assets')}>
             <Icon name="cube" size={14} /> {t('studio.assets')}
@@ -147,7 +154,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
             <span>{t('theme.label')}</span>
             <ThemeToggle pref={theme.pref} setPref={theme.setPref} />
           </div>
-          <button className="menu-item" onClick={() => { setMenu(false); api.reveal(project.root) }}>
+          <button className="menu-item" onClick={() => { setMenu(false); guard(api.reveal(project.root)) }}>
             <Icon name="folder" size={14} /> {t('studio.revealFinder')}
           </button>
         </MoreMenu>
@@ -162,7 +169,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
           ? <Stage key={`stage-${shot.id}`} project={project} shot={shot} view={view} mode={mode} refresh={refresh} />
           : <div className="stage empty">{t('studio.noShots')}</div>}
         <Filmstrip project={project} views={views} mode={mode} selected={selected} onSelect={setSelected} />
-        {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} editPlan={() => void openPlan()}
+        {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} editPlan={openPlan}
           busy={active.some(j => j.project === project.root && j.shot === shot.id)} />}
       </section>
 
@@ -195,17 +202,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
 // The studio's "more" menu: closes on a click outside or Esc
 function MoreMenu({ open, setOpen, children }: { open: boolean; setOpen: (o: boolean) => void; children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!open) return
-    const away = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false)
-    const key = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    window.addEventListener('mousedown', away)
-    window.addEventListener('keydown', key)
-    return () => {
-      window.removeEventListener('mousedown', away)
-      window.removeEventListener('keydown', key)
-    }
-  }, [open, setOpen])
+  useDismiss(ref, open, () => setOpen(false))
   return (
     <div className="more" ref={ref}>
       <button className={`icon-button${open ? ' on' : ''}`} onClick={() => setOpen(!open)} aria-label={t('studio.more')} aria-expanded={open}>
@@ -216,22 +213,37 @@ function MoreMenu({ open, setOpen, children }: { open: boolean; setOpen: (o: boo
   )
 }
 
+// Renames the project; the failure (the old name kept) goes to `failed`
+export async function rename(project: Project, title: string, refresh: () => void, failed: (e: string) => void) {
+  try {
+    await api.setTitle(project.root, title)
+    refresh()
+  } catch (e) {
+    failed(String(e))
+  }
+}
+
 // The project's name: click to rename, Enter or leaving the field saves,
 // Esc cancels
 export function Title({ project, refresh }: { project: Project; refresh: () => void }) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState(project.title)
+  const [error, setError] = useState<string | null>(null)
   const save = async () => {
     setEditing(false)
     const title = value.trim()
     if (!title || title === project.title) return setValue(project.title)
-    await api.setTitle(project.root, title).catch(() => setValue(project.title))
-    refresh()
+    setError(null)
+    await rename(project, title, refresh, e => {
+      setValue(project.title)
+      setError(e)
+    })
   }
   if (!editing) {
     return (
-      <button className="title-button" onClick={() => { setValue(project.title); setEditing(true) }} title={t('studio.rename')}>
-        <strong className="ellipsis">{project.title}</strong> <Icon name="edit" size={12} />
+      <button className="title-button" onClick={() => { setValue(project.title); setEditing(true) }} title={error ?? t('studio.rename')}>
+        <strong className="ellipsis">{project.title}</strong> <Icon name={error ? 'info' : 'edit'} size={12} />
+        {error && <span className="small error ellipsis">{t('studio.renameFailed')}</span>}
       </button>
     )
   }
@@ -247,22 +259,3 @@ export function Title({ project, refresh }: { project: Project; refresh: () => v
   )
 }
 
-// The way to the copy and storyboard; on an example it first makes the
-// person's own copy of it (a draft project in their folder)
-function PlanLink({ project, openPlan }: { project: Project; openPlan: () => Promise<void> | void }) {
-  const [busy, setBusy] = useState(false)
-  return (
-    <>
-      <button className="ghost plan-link" disabled={busy} title={project.example ? t('example.note') : undefined} onClick={async () => {
-        setBusy(true)
-        try {
-          await openPlan()
-        } finally {
-          setBusy(false)
-        }
-      }}>
-        {busy ? <span className="spinner small" /> : <Icon name="edit" size={14} />} {t('plan.link')}
-      </button>
-    </>
-  )
-}

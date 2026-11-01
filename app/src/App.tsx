@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { api, onCheckUpdate, onProjectChanged, onQueue, type Job, type Project } from './api'
+import { api, onCheckUpdate, onJob, onProjectChanged, onQueue, type Job, type Project } from './api'
 import { Home } from './components/Home'
 import { LibraryPage } from './components/LibraryPage'
 import { PlanPage } from './components/plan/PlanPage'
@@ -7,11 +7,13 @@ import { Projects } from './components/Projects'
 import { SettingsPage, type Section } from './components/SettingsPage'
 import { Sidebar, type Page } from './components/Sidebar'
 import { Studio } from './components/studio/Studio'
+import { SettingsProblem } from './components/SettingsProblem'
 import { TelemetryNotice } from './components/TelemetryNotice'
 import { LeaveDraftDialog, WorkspaceDialog } from './components/WorkspaceDialog'
 import { checkForUpdate } from './update'
 import { startTelemetry } from './telemetry'
-import { projectsFolder, remember, setProjectsFolder } from './recent'
+import { isActive } from './model'
+import { pickProject, projectsFolder, remember, setProjectsFolder } from './recent'
 import { useTheme } from './theme/theme'
 import { t, useLanguage } from './i18n'
 
@@ -103,7 +105,7 @@ export default function App() {
   // A draft: saved into the workspace, or thrown away on leaving
   const [leaving, setLeaving] = useState(false)
   const [saving, setSaving] = useState(false)
-  const busyJobs = (r: string) => jobs.filter(j => j.project === r && (j.state === 'running' || j.state === 'queued'))
+  const busyJobs = (r: string) => jobs.filter(j => j.project === r && isActive(j))
   const saveDraft = async (thenClose = false) => {
     if (!project?.draft) return
     if (busyJobs(project.root).length) return setError(t('draft.busy'))
@@ -130,8 +132,14 @@ export default function App() {
   }
   const discardDraft = async () => {
     if (!project?.draft) return
-    for (const j of busyJobs(project.root)) await api.cancel(j.id)
-    await api.discardDraft(project.root).catch(() => {})
+    try {
+      for (const j of busyJobs(project.root)) await api.cancel(j.id)
+      await api.discardDraft(project.root)
+    } catch (e) {
+      // Left behind in the drafts folder, which the app empties itself;
+      // the person still hears it did not go
+      setError(String(e))
+    }
     setLeaving(false)
     root.current = null
     setProject(null)
@@ -149,21 +157,24 @@ export default function App() {
     <>
       {askFolder && <WorkspaceDialog done={askFolder} />}
       {leaving && <LeaveDraftDialog busy={saving} save={() => saveDraft(true)} discard={discardDraft} cancel={() => setLeaving(false)} />}
+      <SettingsProblem />
     </>
   )
 
-  // ⌘O opens a project folder from anywhere
+  // A project folder from the system dialog: ⌘O from anywhere, or All projects' button
+  const openPicked = useCallback(async () => {
+    const dir = await pickProject()
+    if (dir) open(dir)
+  }, [open])
   useEffect(() => {
-    const onKey = async (e: KeyboardEvent) => {
+    const onKey = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'o') return
       e.preventDefault()
-      const { open: pick } = await import('@tauri-apps/plugin-dialog')
-      const dir = await pick({ directory: true, title: t('dialog.openProject') })
-      if (typeof dir === 'string') open(dir)
+      openPicked()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open])
+  }, [openPicked])
 
   // Once, even when development mounts effects twice
   const initial = useRef(false)
@@ -172,13 +183,15 @@ export default function App() {
     initial.current = true
     api.initialProject().then(p => {
       if (p) open(p)
-    })
+    }, e => setError(String(e)))
   }, [open])
 
   useEffect(() => {
-    api.jobs().then(setJobs)
+    api.jobs().then(setJobs, e => setError(String(e)))
     const subs = [
       onQueue(setJobs),
+      // A running job's progress: that job replaced, the rest kept
+      onJob(job => setJobs(list => list.map(j => (j.id === job.id ? job : j)))),
       onProjectChanged(r => {
         if (r === root.current) refresh()
       })
@@ -196,14 +209,16 @@ export default function App() {
   }, [refresh])
 
   // The menu bar menu speaks the UI's language
-  const active = jobs.filter(j => j.state === 'running' || j.state === 'queued').length
+  const active = jobs.filter(isActive).length
   useEffect(() => {
-    api.setTrayText(active ? t('sidebar.queue', { n: active }) : t('tray.idle'), t('tray.show'), t('tray.quit'), t('notify.done'), t('notify.failed'), t('update.menu')).catch(() => {})
+    // The menu keeps its last words if this fails (no tray on this Mac);
+    // nothing in the window depends on it
+    api.setTrayText(active ? t('sidebar.queue', { n: active }) : t('tray.idle'), t('tray.show'), t('tray.quit'), t('notify.done'), t('notify.failed'), t('update.menu')).catch(() => undefined)
   }, [active, language.lang])
 
   // Settings takes the whole window, with its own section list (as in
   // open-design); from a project, Back returns to it
-  if (page === 'settings') return <SettingsPage key={`${language.lang}-${settingsAt}`} theme={theme} language={language} jobs={jobs} start={settingsAt} back={() => setPage(settingsFrom)} backLabel={settingsFrom === 'library' ? 'settings.backLibrary' : 'settings.back'} />
+  if (page === 'settings') return <>{dialogs}<SettingsPage key={`${language.lang}-${settingsAt}`} theme={theme} language={language} jobs={jobs} start={settingsAt} back={() => setPage(settingsFrom)} backLabel={settingsFrom === 'library' ? 'settings.backLibrary' : 'settings.back'} /></>
 
   if (project && view === 'plan') {
     return <>{dialogs}<PlanPage key={language.lang} project={project} jobs={jobs} refresh={refresh} back={close} toStudio={() => setView('studio')} openSettings={() => openSettings()} /></>
@@ -222,13 +237,13 @@ export default function App() {
   return (
     <div className="workspace-shell" key={language.lang}>
       {dialogs}
-      <Sidebar page={page} setPage={setPage} open={open} jobs={jobs} theme={theme} />
+      <Sidebar page={page} setPage={setPage} open={open} jobs={jobs} theme={theme} openSettings={openSettings} />
       <TelemetryNotice />
       <main className="workspace-main">
         {error && <p className="error banner">{error}</p>}
         {copying && <p className="banner copying"><span className="spinner small" /> {t('example.copying')}</p>}
         {page === 'home' && <Home open={open} openSettings={() => openSettings()} ensureFolder={ensureFolder} />}
-        {page === 'projects' && <Projects open={open} />}
+        {page === 'projects' && <Projects open={open} openFolder={openPicked} />}
         {page === 'library' && <LibraryPage openSettings={() => openSettings('assets', 'library')} />}
       </main>
     </div>

@@ -1,24 +1,29 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useEffect, useState } from 'react'
-import { agentError } from '../../../ai/errors'
 import { api, fileUrl, type CoverTemplate, type Job, type Project } from '../../../api'
 import { t } from '../../../i18n'
-import { activityLine } from '../../../model'
+import { activityLine, isActive, sizeText } from '../../../model'
+import { readStored, writeStored } from '../../../storage'
+import { AgentError } from '../../AgentError'
 import { Icon } from '../../Icon'
+
+// The cover is a 9:16 frame at this size, whatever the film's aspect
+export const COVER_SIZE = { width: 1080, height: 1920 }
 
 // The cover preview (.shotloop/cover.png) both views show: rendered from
 // the cover page when the dialog opens, replaced by each of the AI's
 // renders while it designs
 export function useCover(project: Project, jobs: Job[]) {
   const job = jobs.filter(j => j.project === project.root && j.kind === 'cover').at(-1)
-  const busy = job?.state === 'running' || job?.state === 'queued'
+  const busy = !!job && isActive(job)
   const file = `${project.root}/.shotloop/cover.png`
   const [rendered, setRendered] = useState(0)
+  const [error, setError] = useState<string | null>(null)
   useEffect(() => {
-    api.coverPreview(project.root).then(() => setRendered(Date.now()), () => {})
+    api.coverPreview(project.root).then(() => setRendered(Date.now()), e => setError(String(e)))
   }, [project.root])
   const version = busy ? job.log.length : `${job?.finishedAt ?? 0}-${rendered}`
-  return { job, busy, file, src: rendered || job ? fileUrl(file, `${job?.id ?? 0}-${version}`) : null }
+  return { job, busy, file, error, src: rendered || job ? fileUrl(file, `${job?.id ?? 0}-${version}`) : null }
 }
 
 // How the cover was last made, in words ('' when unknown)
@@ -42,50 +47,46 @@ const TEMPLATE = 'shotloop.cover.template'
 // change, the background frame and saving it as a template
 export function CoverEditor({ project, cover, openSettings }: { project: Project; cover: ReturnType<typeof useCover>; openSettings: () => void }) {
   const { job, busy } = cover
-  const why = job?.state === 'failed' ? agentError(job.error) : null
   const [crop, setCrop] = useState<Crop>('3:4')
+  const [error, setError] = useState<string | null>(null)
 
   // Saved templates; the one chosen last is chosen again (the next video
   // of a series starts from it)
   const [templates, setTemplates] = useState<CoverTemplate[]>([])
+  const loadTemplates = () => api.coverTemplates().then(setTemplates, e => setError(String(e)))
   useEffect(() => {
-    api.coverTemplates().then(setTemplates, () => setTemplates([]))
+    loadTemplates()
   }, [])
   const [style, setStyle] = useState<Style>(() => {
-    try {
-      const id = localStorage.getItem(TEMPLATE)
-      return id ? { kind: 'template', id } : { kind: 'free' }
-    } catch {
-      return { kind: 'free' }
-    }
+    const id = readStored(TEMPLATE)
+    return id ? { kind: 'template', id } : { kind: 'free' }
   })
   const choose = (s: Style) => {
     setStyle(s)
-    try {
-      if (s.kind === 'template') localStorage.setItem(TEMPLATE, s.id)
-      else localStorage.removeItem(TEMPLATE)
-    } catch {
-      // storage unavailable: the choice lasts while the dialog is open
-    }
+    writeStored(TEMPLATE, s.kind === 'template' ? s.id : null)
   }
   // A template deleted since: back to the AI's own design
   const current: Style = style.kind === 'template' && templates.length && !templates.some(x => x.id === style.id) ? { kind: 'free' } : style
 
   const [request, setRequest] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const generate = (s: Style = current) => {
+  const generate = async (s: Style = current) => {
     const r = request.trim()
-    api.enqueue({
-      kind: 'cover', project: project.root, ...(r ? { request: r } : {}),
-      ...(s.kind === 'template' ? { template: s.id } : s.kind === 'reference' ? { reference: true } : {})
-    })
-    setRequest('')
+    setError(null)
+    try {
+      await api.enqueue({
+        kind: 'cover', project: project.root, ...(r ? { request: r } : {}),
+        ...(s.kind === 'template' ? { template: s.id } : s.kind === 'reference' ? { reference: true } : {})
+      })
+      setRequest('')
+    } catch (e) {
+      setError(String(e))
+    }
   }
 
   // An image to follow: into the project, then designed after at once
   const [reference, setReference] = useState<string | null>(null)
   const fromImage = async () => {
-    const file = await pick({ title: t('cover.importDialog'), filters: [{ name: 'Image', extensions: ['png', 'jpg', 'jpeg', 'webp'] }] })
+    const file = await pick({ title: t('cover.importDialog'), filters: [{ name: t('filter.image'), extensions: ['png', 'jpg', 'jpeg', 'webp'] }] })
     if (typeof file !== 'string') return
     setError(null)
     try {
@@ -100,8 +101,9 @@ export function CoverEditor({ project, cover, openSettings }: { project: Project
   const [removing, setRemoving] = useState<string | null>(null)
   const remove = async (id: string) => {
     setRemoving(null)
-    await api.removeCoverTemplate(id).catch(() => {})
-    setTemplates(await api.coverTemplates().catch(() => []))
+    setError(null)
+    await api.removeCoverTemplate(id).catch(e => setError(String(e)))
+    loadTemplates()
   }
 
   // Saving: a name, then the cover page and its preview into the templates
@@ -145,7 +147,7 @@ export function CoverEditor({ project, cover, openSettings }: { project: Project
             </button>
           ))}
           <span className="spacer" />
-          1080 × 1920
+          {sizeText(COVER_SIZE)}
         </div>
       </div>
 
@@ -187,16 +189,11 @@ export function CoverEditor({ project, cover, openSettings }: { project: Project
                 onKeyDown={e => e.key === 'Enter' && (e.metaKey || e.ctrlKey) && generate()} />}
           <div className="ask-foot">
             {busy
-              ? <button className="small ghost" onClick={() => api.cancel(job!.id)}>{t('queue.stop')}</button>
+              ? <button className="small ghost" onClick={() => api.cancel(job!.id).catch(e => setError(String(e)))}>{t('queue.stop')}</button>
               : <button className="small primary" onClick={() => generate()}><Icon name="spark" size={12} /> {t(label)}</button>}
           </div>
         </div>
-        {why && (
-          <div className="error-box small">
-            {why.text}
-            {why.setup && <button className="small" onClick={openSettings}>{t('agent.openSettings')}</button>}
-          </div>
-        )}
+        <AgentError job={job} openSettings={openSettings} />
 
         <h4>{t('ce.frame')}</h4>
         <p className="small muted ce-frame-line">
@@ -214,7 +211,7 @@ export function CoverEditor({ project, cover, openSettings }: { project: Project
               </div>
             )
             : <button className="small ghost" onClick={() => setNaming(project.title)} disabled={busy}>{t('cover.saveTemplate')}</button>}
-          {error && <span className="small error">{error}</span>}
+          {(error ?? cover.error) && <span className="small error">{error ?? cover.error}</span>}
         </div>
       </div>
     </div>

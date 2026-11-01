@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
-import { SAVED } from '../ai/useSettings'
+import { useRef, useState } from 'react'
 import { api, type Job, type Settings } from '../api'
+import { useDismiss, useErrorLine } from '../hooks'
 import { t } from '../i18n'
-import { jobLabel } from '../model'
+import { isActive, jobLabel } from '../model'
+import { patchSettings } from '../settings'
 import { Icon } from './Icon'
 
 // The sidebar's bell: a quiet ring and a count while jobs run; it opens
@@ -10,25 +11,10 @@ import { Icon } from './Icon'
 export function ActivityBell({ jobs, settings }: { jobs: Job[]; settings: Settings }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const active = jobs.filter(j => j.state === 'running' || j.state === 'queued')
+  useDismiss(ref, open, () => setOpen(false))
+  const { error, guard } = useErrorLine()
+  const active = jobs.filter(isActive)
   const alerts = settings.notifySound || settings.notifyDesktop
-
-  useEffect(() => {
-    if (!open) return
-    const away = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false)
-    const key = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    window.addEventListener('mousedown', away)
-    window.addEventListener('keydown', key)
-    return () => {
-      window.removeEventListener('mousedown', away)
-      window.removeEventListener('keydown', key)
-    }
-  }, [open])
-
-  const setAlerts = async (on: boolean) => {
-    await api.patchSettings({ notifySound: on, notifyDesktop: on })
-    window.dispatchEvent(new Event(SAVED))
-  }
 
   return (
     <div className="activity" ref={ref}>
@@ -63,9 +49,10 @@ export function ActivityBell({ jobs, settings }: { jobs: Job[]; settings: Settin
               <strong>{t('settings.alerts')}</strong>
               <span className="small muted">{t('activity.alertsNote')}</span>
             </span>
-            <input type="checkbox" className="switch" checked={alerts} onChange={e => setAlerts(e.target.checked)} />
+            <input type="checkbox" className="switch" checked={alerts} onChange={e => guard(patchSettings({ notifySound: e.target.checked, notifyDesktop: e.target.checked }))} />
           </label>
-          <button className="link try" onClick={() => api.testAlert()}><Icon name="play" size={11} /> {t('activity.try')}</button>
+          <button className="link try" onClick={() => guard(api.testAlert())}><Icon name="play" size={11} /> {t('activity.try')}</button>
+          {error && <p className="small error">{error}</p>}
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
 import { fileUrl, type Mode, type Project } from '../../api'
-import { formatSeconds, type ShotView } from '../../model'
+import { formatSeconds, isWide, type ShotView } from '../../model'
 import { t } from '../../i18n'
 import { ShotSketch } from '../plan/ShotSketch'
 
@@ -19,7 +19,7 @@ export function Filmstrip({ project, views, mode, selected, onSelect }: {
     <div className="filmstrip">
       <div className="ruler" aria-hidden>
         {ticks.map(s => (
-          <span key={s} style={{ left: `${(s / project.duration) * 100}%` }}>{s}s</span>
+          <span key={s} style={{ left: `${(s / project.duration) * 100}%` }}>{t('unit.s', { n: s })}</span>
         ))}
       </div>
       <nav className="strip" aria-label={t('common.shots', { n: project.shots.length })}>
@@ -38,7 +38,7 @@ export function Filmstrip({ project, views, mode, selected, onSelect }: {
               <div className="frame-thumb">
                 {thumb
                   ? <img src={fileUrl(thumb, v.take?.take)} alt="" className={v.stale ? 'dim' : ''} />
-                  : <ShotSketch look={project.look} text={shot.title ?? shot.id} n={i + 1} total={project.shots.length} wide={project.size.width > project.size.height} faint={v.state !== 'rendering'} />}
+                  : <ShotSketch look={project.look} text={shot.title ?? shot.id} n={i + 1} total={project.shots.length} wide={isWide(project.size)} faint={v.state !== 'rendering'} />}
                 {!thumb && (v.state === 'rendering' || v.state === 'queued') && <span className="shimmer sweep" />}
                 <span className="frame-no">{i + 1}</span>
                 {v.failedChecks.length > 0 && (

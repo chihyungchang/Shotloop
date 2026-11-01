@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { api, type Doctor, type Settings } from '../api'
+import { api, BLENDER_DOWNLOAD, type Doctor, type Settings } from '../api'
+import { useErrorLine } from '../hooks'
 import { t } from '../i18n'
 import { Icon } from './Icon'
 
@@ -8,6 +9,7 @@ import { Icon } from './Icon'
 export function Setup({ settings, update }: { settings: Settings; update: (s: Partial<Settings>) => void }) {
   const [doctor, setDoctor] = useState<Doctor | null>(null)
   const [doctorError, setDoctorError] = useState<string | null>(null)
+  const link = useErrorLine()
 
   const check = () => {
     setDoctorError(null)
@@ -35,7 +37,7 @@ export function Setup({ settings, update }: { settings: Settings; update: (s: Pa
         <h3>{t('setup.deps')}</h3>
         <button className="ghost small" onClick={check}>{t('setup.checkAgain')}</button>
       </div>
-      {doctorError && <p className="error">{doctorError}</p>}
+      {(doctorError ?? link.error) && <p className="error">{doctorError ?? link.error}</p>}
       {!doctor && !doctorError && <p className="muted">{t('setup.checking')}</p>}
       {doctor && (
         <table className="deps">
@@ -53,7 +55,7 @@ export function Setup({ settings, update }: { settings: Settings; update: (s: Pa
                   ) : (
                     <>
                       {t('setup.only3d')}{' '}
-                      <button className="link" onClick={() => api.openBlenderDownload()}>{t('blender.download')}</button>
+                      <button className="link" onClick={() => link.guard(api.openUrl(BLENDER_DOWNLOAD))}>{t('blender.download')}</button>
                     </>
                   ))}
                 </td>

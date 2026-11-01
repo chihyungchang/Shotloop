@@ -1,15 +1,18 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
-import { useEffect, useRef, useState } from 'react'
-import { api, fileUrl, type ProjectSummary } from '../api'
-import { formatSeconds } from '../model'
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react'
+import { firstLine } from '../../../engine/shotloop/data.mjs'
+import { api, BLENDER_DOWNLOAD, fileUrl, isBroken, type ListEntry, type ProjectSummary } from '../api'
+import { aspectOf, formatSeconds, isWide } from '../model'
 import { BrandIcon, hasBrand } from '../ai/BrandIcon'
-import { aiSummary, useSettings } from '../ai/useSettings'
-import { baseName, cleanRecent, projectsFolder, setProjectsFolder } from '../recent'
+import { aiSummary, useDetected } from '../ai/backends'
+import { useErrorLine } from '../hooks'
+import { baseName, listRecent, projectsFolder, setProjectsFolder } from '../recent'
+import { patchSettings, useSettings } from '../settings'
 import { Icon } from './Icon'
 import { ExampleGallery } from './ExampleGallery'
 import { LookPicker } from './LookPicker'
 import { StylePicker } from './StylePicker'
-import { lookFits, STYLES, styleName } from '../styles'
+import { examplesFor, lookFits, styleName } from '../styles'
 import type { Key } from '../i18n/en'
 import { t, tSplit } from '../i18n'
 
@@ -29,11 +32,64 @@ const LENGTHS = ['auto', '15', '30', '45', '60']
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 6).join('-') || 'untitled'
 
+type Open = (path: string, plan?: boolean) => void
+
 // Home: start a short from an idea (open-design's composer, for video),
-// or open one of the examples
-export function Home({ open, openSettings, ensureFolder }: { open: (path: string, plan?: boolean) => void; openSettings: () => void; ensureFolder: () => Promise<string> }) {
-  const settings = useSettings()
-  const ai = settings && aiSummary(settings)
+// or open one of the person's projects or the examples
+export function Home({ open, openSettings, ensureFolder }: { open: Open; openSettings: () => void; ensureFolder: () => Promise<string> }) {
+  const composer = useRef<ComposerHandle>(null)
+  const [examples, setExamples] = useState<ProjectSummary[] | null>(null)
+  const [mine, setMine] = useState<ListEntry[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    // Examples are bundled (and checked by the engine's tests): one that
+    // can't be read is left out of the gallery rather than shown broken
+    api.listProjects([], true).then(list => setExamples(examplesFor(list).filter(p => !isBroken(p)) as ProjectSummary[]), e => {
+      setExamples([])
+      setError(String(e))
+    })
+    listRecent(4).then(setMine, e => {
+      setMine([])
+      setError(String(e))
+    })
+  }, [])
+
+  return (
+    <div className="home">
+      <Composer ref={composer} open={open} openSettings={openSettings} ensureFolder={ensureFolder} />
+      {error && <p className="error">{error}</p>}
+      {mine === null || examples === null
+        ? <RowsSkeleton />
+        : mine.length > 0 && (
+        <section className="examples">
+          <span className="section-label">{t('home.mine')}</span>
+          <div className="example-list">
+            {mine.map(p => (isBroken(p)
+              ? <BrokenRow key={p.root} root={p.root} error={p.error} />
+              : <ProjectRow key={p.root} p={p} onClick={() => open(p.root, !p.poster)} />))}
+          </div>
+        </section>
+      )}
+      {examples && examples.length > 0 && (
+        <ExampleGallery examples={examples} open={p => open(p.root)} pickStyle={id => composer.current?.pickStyle(id)} />
+      )}
+    </div>
+  )
+}
+
+// An example's "Use this style", from the gallery below
+type ComposerHandle = { pickStyle: (id: string) => void }
+
+// The idea box with what kind of film to make, and the new project
+function Composer({ ref, open, openSettings, ensureFolder }: {
+  ref: Ref<ComposerHandle>
+  open: Open
+  openSettings: () => void
+  ensureFolder: () => Promise<string>
+}) {
+  const { settings } = useSettings()
+  const detected = useDetected()
+  const ai = settings && aiSummary(settings, detected)
   const [idea, setIdea] = useState('')
   const [track, setTrack] = useState<Track>('auto')
   const [aspect, setAspect] = useState<Aspect>('9:16')
@@ -54,8 +110,22 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
     setTrack(tr)
     if (tr === 'auto') setStyle('')
   }
-  // An example's style for the next video: back to the composer to write it
   const ideaBox = useRef<HTMLTextAreaElement>(null)
+  // An example's style for the next video: back to the composer to write it
+  const pickStyle = (id: string) => {
+    if (id === '3d') {
+      setTrack('3d')
+      setStyle('')
+    } else {
+      chooseStyle(id)
+      setTrack('2d')
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    ideaBox.current?.closest('.home')?.scrollTo?.({ top: 0, behavior: 'smooth' })
+    ideaBox.current?.focus({ preventScroll: true })
+  }
+  useImperativeHandle(ref, () => ({ pickStyle }))
+
   // The track sits at the start of the idea, as its label: the text runs
   // in a column beside it (every line aligned), however long the label is
   // in this language
@@ -78,45 +148,23 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
     ta.style.height = 'auto'
     ta.style.height = `${ta.scrollHeight}px`
   }, [idea, indent])
-  const pickStyle = (id: string) => {
-    if (id === '3d') {
-      setTrack('3d')
-      setStyle('')
-    } else {
-      chooseStyle(id)
-      setTrack('2d')
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-    ideaBox.current?.closest('.home')?.scrollTo?.({ top: 0, behavior: 'smooth' })
-    ideaBox.current?.focus({ preventScroll: true })
-  }
+
   const [folder, setFolder] = useState(projectsFolder())
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [examples, setExamples] = useState<ProjectSummary[] | null>(null)
   // 3D needs Blender: null until checked, 'missing' shows the install prompt
   const [blender, setBlender] = useState<null | 'missing' | 'stillMissing'>(null)
 
-  const [mine, setMine] = useState<ProjectSummary[] | null>(null)
-  useEffect(() => {
-    api.listProjects([], true).then(list => setExamples(examplesFor(list)), () => setExamples([]))
-    // The person's own recent projects, newest first
-    cleanRecent()
-      .then(recent => api.listProjects(recent.slice(0, 4)).then(list => recent.slice(0, 4).map(p => list.find(x => x.root === p)).filter((x): x is ProjectSummary => !!x)))
-      .then(setMine, () => setMine([]))
-  }, [])
-
   const chooseFolder = async () => {
     const dir = await pick({ directory: true, title: t('home.dialog.folder') })
-    if (typeof dir === 'string') {
-      setProjectsFolder(dir)
-      setFolder(dir)
-      return dir
-    }
-    return null
+    if (typeof dir !== 'string') return
+    setProjectsFolder(dir)
+    setFolder(dir)
   }
 
-  const hasBlender = async () => !!(await api.doctor()).blender
+  // The check failing reads as Blender missing: the prompt that follows
+  // offers to create the project anyway
+  const hasBlender = () => api.doctor().then(d => !!d.blender, () => false)
 
   // `anyway` creates a 3D project without Blender (install it before rendering)
   const create = async (anyway = false) => {
@@ -124,20 +172,16 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
     setError(null)
     if (track === '3d' && !anyway) {
       setBusy(true)
-      const ok = await hasBlender().catch(() => false)
+      const ok = await hasBlender()
       setBusy(false)
       if (!ok) return setBlender('missing')
     }
     setBlender(null)
-    const parent = folder ?? (await ensureFolder())
-    setFolder(parent)
     setBusy(true)
     try {
-      // The first sentence, cut at a word (as the engine's firstLine)
-      const first = idea.trim().split(/[.?!\n。？！]/)[0].trim()
-      const cut = first.slice(0, 59)
-      const space = cut.lastIndexOf(' ')
-      const title = first.length <= 60 ? first : (space > 30 ? cut.slice(0, space) : cut).replace(/[\s,;:–-]+$/, '') + '…'
+      const parent = folder ?? (await ensureFolder())
+      setFolder(parent)
+      const title = firstLine(idea.trim())
       const r = await api.createProject({
         dir: `${parent}/${slugify(title)}`,
         idea: idea.trim(),
@@ -158,24 +202,11 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
     }
   }
 
-  const checkBlender = async () => {
-    if (await hasBlender().catch(() => false)) create(true)
-    else setBlender('stillMissing')
-  }
-
-  // Blender.app, or the binary inside it; saved as the Blender tool path
-  const locateBlender = async () => {
-    const picked = await pick({ title: t('blender.dialog'), defaultPath: '/Applications', filters: [{ name: 'Blender', extensions: ['app'] }] })
-    if (typeof picked !== 'string') return
-    const path = picked.endsWith('.app') ? `${picked}/Contents/MacOS/Blender` : picked
-    await api.patchSettings({ blender: path })
-    checkBlender()
-  }
-
   const [before, after] = tSplit('home.hero', 'mark')
+  const model = ai ? `${ai.name}${ai.model ? ` · ${ai.model}` : ''}` : ''
 
   return (
-    <div className="home">
+    <>
       <h1 className="hero">
         {before}{track === 'auto'
           ? <Rotating words={[t('home.track.2d'), t('home.track.3d')]} />
@@ -185,60 +216,60 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
 
       <div className="composer">
         <div className="composer-card">
-        {/* What kind of film, as the idea's prefix: Auto, 2D or 3D */}
-        <label className={`track-chip${track === 'auto' ? ' auto' : ''}`} ref={trackChip} title={t(TRACKS[track].hint)}>
-          <Icon name="spark" size={12} />
-          <select value={track} onChange={e => chooseTrack(e.target.value as Track)} aria-label={t('home.aria.track')}>
-            {(['auto', '2d', '3d'] as Track[]).map(tr => <option key={tr} value={tr}>{t(TRACKS[tr].chip)}</option>)}
-          </select>
-        </label>
-        <textarea
-          ref={ideaBox}
-          value={idea}
-          rows={3}
-          style={{ paddingLeft: indent }}
-          placeholder={t('home.placeholder', { example: t(TRACKS[track].idea) })}
-          onChange={e => setIdea(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) create()
-          }}
-        />
-        <div className="composer-bar">
-          <div className="chips">
-            <div className="chip-group" role="radiogroup" aria-label={t('home.aria.aspect')}>
-              {(['9:16', '16:9'] as Aspect[]).map(a => (
-                <button key={a} role="radio" aria-checked={aspect === a} className={`chip${aspect === a ? ' on' : ''}`} onClick={() => setAspect(a)}>
-                  <span className={`aspect-glyph a${a.replace(':', '')}`} /> {a}
-                </button>
-              ))}
+          {/* What kind of film, as the idea's prefix: Auto, 2D or 3D */}
+          <label className={`track-chip${track === 'auto' ? ' auto' : ''}`} ref={trackChip} title={t(TRACKS[track].hint)}>
+            <Icon name="spark" size={12} />
+            <select value={track} onChange={e => chooseTrack(e.target.value as Track)} aria-label={t('home.aria.track')}>
+              {(['auto', '2d', '3d'] as Track[]).map(tr => <option key={tr} value={tr}>{t(TRACKS[tr].chip)}</option>)}
+            </select>
+          </label>
+          <textarea
+            ref={ideaBox}
+            value={idea}
+            rows={3}
+            style={{ paddingLeft: indent }}
+            placeholder={t('home.placeholder', { example: t(TRACKS[track].idea) })}
+            onChange={e => setIdea(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) create()
+            }}
+          />
+          <div className="composer-bar">
+            <div className="chips">
+              <div className="chip-group" role="radiogroup" aria-label={t('home.aria.aspect')}>
+                {(['9:16', '16:9'] as Aspect[]).map(a => (
+                  <button key={a} role="radio" aria-checked={aspect === a} className={`chip${aspect === a ? ' on' : ''}`} onClick={() => setAspect(a)}>
+                    <span className={`aspect-glyph a${a.replace(':', '')}`} /> {a}
+                  </button>
+                ))}
+              </div>
+              {/* Length as one chip with a menu: four buttons would wrap the row */}
+              <label className="chip-select" title={t('home.aria.length')}>
+                <Icon name="clock" size={13} />
+                <select value={length} onChange={e => setLength(e.target.value)} aria-label={t('home.aria.length')}>
+                  {LENGTHS.map(l => <option key={l} value={l}>{l === 'auto' ? t('home.lengthAutoShort') : t('unit.s', { n: l })}</option>)}
+                </select>
+              </label>
+              {/* The voice-over: a round toggle, its state in the icon and the tooltip */}
+              <button className={`chip-toggle${voice ? ' on' : ''}`} aria-pressed={voice} onClick={() => setVoice(!voice)}
+                title={`${t('home.voice')} · ${t(voice ? 'home.voiceOnHint' : 'home.voiceOffHint')}`} aria-label={t('home.voice')}>
+                <Icon name={voice ? 'mic' : 'micOff'} size={14} />
+              </button>
+              {track !== '3d' && <span className="bar-divider" aria-hidden />}
+              {track !== '3d' && <StylePicker value={style} onChange={chooseStyle} />}
+              {track !== '3d' && <LookPicker value={look} onChange={setLook} style={style} />}
             </div>
-            {/* Length as one chip with a menu: four buttons would wrap the row */}
-            <label className="chip-select" title={t('home.aria.length')}>
-              <Icon name="clock" size={13} />
-              <select value={length} onChange={e => setLength(e.target.value)} aria-label={t('home.aria.length')}>
-                {LENGTHS.map(l => <option key={l} value={l}>{l === 'auto' ? t('home.lengthAutoShort') : t('unit.s', { n: l })}</option>)}
-              </select>
-            </label>
-            {/* The voice-over: a round toggle, its state in the icon and the tooltip */}
-            <button className={`chip-toggle${voice ? ' on' : ''}`} aria-pressed={voice} onClick={() => setVoice(!voice)}
-              title={`${t('home.voice')} · ${t(voice ? 'home.voiceOnHint' : 'home.voiceOffHint')}`} aria-label={t('home.voice')}>
-              <Icon name={voice ? 'mic' : 'micOff'} size={14} />
+            {ai && (
+              // Just the AI's mark: its name and model are in the tooltip
+              <button className="model-chip icon-only" onClick={openSettings} title={`${model} · ${t('ai.change')}`} aria-label={model}>
+                {hasBrand(ai.brand) ? <BrandIcon id={ai.brand} size={16} /> : <Icon name={ai.mode === 'local' ? 'cpu' : 'spark'} size={15} />}
+                {!ai.ready && <span className="dot warn" />}
+              </button>
+            )}
+            <button className="send" onClick={() => create()} disabled={!idea.trim() || busy} aria-label={t('home.create')} title={t('home.create')}>
+              {busy ? <span className="spinner" /> : <Icon name="send" size={18} />}
             </button>
-            {track !== '3d' && <span className="bar-divider" aria-hidden />}
-            {track !== '3d' && <StylePicker value={style} onChange={chooseStyle} />}
-            {track !== '3d' && <LookPicker value={look} onChange={setLook} style={style} />}
           </div>
-          {ai && (
-            // Just the AI's mark: its name and model are in the tooltip
-            <button className="model-chip icon-only" onClick={openSettings} title={`${ai.name}${ai.model ? ` · ${ai.model}` : ''} · ${t('ai.change')}`} aria-label={`${ai.name}${ai.model ? ` · ${ai.model}` : ''}`}>
-              {hasBrand(ai.brand) ? <BrandIcon id={ai.brand} size={16} /> : <Icon name={ai.mode === 'local' ? 'cpu' : 'spark'} size={15} />}
-              {!ai.ready && <span className="dot warn" />}
-            </button>
-          )}
-          <button className="send" onClick={() => create()} disabled={!idea.trim() || busy} aria-label={t('home.create')} title={t('home.create')}>
-            {busy ? <span className="spinner" /> : <Icon name="send" size={18} />}
-          </button>
-        </div>
         </div>
         <div className="composer-foot">
           <button className="workdir" onClick={chooseFolder} title={folder ?? ''}>
@@ -248,50 +279,40 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
         </div>
       </div>
       {blender && track === '3d' && (
-        <div className="panel blender-needed" role="alert">
-          <strong>{t('blender.title')}</strong>
-          <p className="muted">{t('blender.body')}</p>
-          {blender === 'stillMissing' && <p className="error small">{t('blender.notFound')}</p>}
-          <div className="row">
-            <button className="primary" onClick={() => api.openBlenderDownload()}>{t('blender.download')}</button>
-            <button onClick={locateBlender}>{t('blender.locate')}</button>
-            <button className="ghost" onClick={checkBlender}>{t('setup.checkAgain')}</button>
-            <button className="ghost" onClick={() => create(true)}>{t('blender.anyway')}</button>
-          </div>
-        </div>
+        <BlenderPrompt stillMissing={blender === 'stillMissing'} create={() => create(true)}
+          checkAgain={async () => ((await hasBlender()) ? create(true) : setBlender('stillMissing'))} />
       )}
       {error && <p className="error">{error}</p>}
+    </>
+  )
+}
 
-      {mine === null || examples === null
-        ? <RowsSkeleton />
-        : mine.length > 0 && (
-        <section className="examples">
-          <span className="section-label">{t('home.mine')}</span>
-          <div className="example-list">
-            {mine.map(p => <ProjectCard key={p.root} p={p} onClick={() => open(p.root, !p.poster)} />)}
-          </div>
-        </section>
-      )}
-
-      {examples && examples.length > 0 && (
-        <ExampleGallery examples={examples} open={p => open(p.root)} pickStyle={pickStyle} />
-      )}
+// 3D without Blender: download it, show where it is (saved as the Blender
+// tool path), check again, or create the project anyway
+function BlenderPrompt({ stillMissing, create, checkAgain }: { stillMissing: boolean; create: () => void; checkAgain: () => void }) {
+  const { error, guard } = useErrorLine()
+  const locate = async () => {
+    const picked = await pick({ title: t('blender.dialog'), defaultPath: '/Applications', filters: [{ name: t('filter.app'), extensions: ['app'] }] })
+    if (typeof picked !== 'string') return
+    const path = picked.endsWith('.app') ? `${picked}/Contents/MacOS/Blender` : picked
+    if (await guard(patchSettings({ blender: path }))) checkAgain()
+  }
+  return (
+    <div className="panel blender-needed" role="alert">
+      <strong>{t('blender.title')}</strong>
+      <p className="muted">{t('blender.body')}</p>
+      {stillMissing && <p className="error small">{t('blender.notFound')}</p>}
+      {error && <p className="error small">{error}</p>}
+      <div className="row">
+        <button className="primary" onClick={() => guard(api.openUrl(BLENDER_DOWNLOAD))}>{t('blender.download')}</button>
+        <button onClick={locate}>{t('blender.locate')}</button>
+        <button className="ghost" onClick={checkAgain}>{t('setup.checkAgain')}</button>
+        <button className="ghost" onClick={create}>{t('blender.anyway')}</button>
+      </div>
     </div>
   )
 }
 
-// The examples (in English, for every UI language), grouped by visual
-// style in the styles' order
-export function examplesFor(list: ProjectSummary[]) {
-  const order = (p: ProjectSummary) => {
-    const i = STYLES.findIndex(s => s.id === p.style)
-    return i < 0 ? STYLES.length : i
-  }
-  return list.filter(p => p.example).sort((a, b) => order(a) - order(b))
-}
-
-// A project as a card: its poster, title and shape; a draft (nothing
-// rendered yet) says so
 // The lists of projects in outline while they load
 function RowsSkeleton() {
   return (
@@ -309,10 +330,12 @@ function RowsSkeleton() {
   )
 }
 
-function ProjectCard({ p, onClick }: { p: ProjectSummary; onClick: () => void }) {
+// A project as a row: its poster, title and shape; a draft (nothing
+// rendered yet) says so
+function ProjectRow({ p, onClick }: { p: ProjectSummary; onClick: () => void }) {
   return (
     <button className="example" onClick={onClick}>
-      <div className={`example-poster${p.size.width > p.size.height ? ' wide' : ''}`}>
+      <div className={`example-poster${isWide(p.size) ? ' wide' : ''}`}>
         {p.poster ? <img src={fileUrl(p.poster)} alt="" /> : <Icon name="film" size={20} />}
       </div>
       <div className="example-text">
@@ -320,11 +343,24 @@ function ProjectCard({ p, onClick }: { p: ProjectSummary; onClick: () => void })
         {p.description && <span className="example-desc ellipsis">{p.description}</span>}
         <span className="example-meta">
           {p.style && p.style !== '3d' && <span className="tag style-tag">{styleName(p.style)}</span>}
-          {p.track.toUpperCase()} · {t('common.shots', { n: p.shots })} · {formatSeconds(p.duration)} · {p.size.width > p.size.height ? '16:9' : '9:16'}
+          {p.track.toUpperCase()} · {t('common.shots', { n: p.shots })} · {formatSeconds(p.duration)} · {aspectOf(p.size)}
         </span>
       </div>
       <span className="example-go"><Icon name="arrow" size={14} /></span>
     </button>
+  )
+}
+
+// A recent project that can't be read: its folder and why
+function BrokenRow({ root, error }: { root: string; error: string }) {
+  return (
+    <div className="example broken" title={root}>
+      <div className="example-poster"><Icon name="info" size={20} /></div>
+      <div className="example-text">
+        <strong>{baseName(root)} <span className="tag danger">{t('projects.broken')}</span></strong>
+        <span className="example-desc ellipsis" title={error}>{error}</span>
+      </div>
+    </div>
   )
 }
 

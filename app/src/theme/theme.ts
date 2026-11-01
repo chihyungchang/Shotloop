@@ -4,30 +4,19 @@
 // the first paint, so the window never flashes the wrong look.
 
 import { useEffect, useState } from 'react'
+import { readStored, writeStored } from '../storage'
 
 export type ThemePref = 'system' | 'light' | 'dark'
 
 const KEY_THEME = 'shotloop.theme'
 const dark = window.matchMedia('(prefers-color-scheme: dark)')
 
-export function readThemePref(): ThemePref {
-  try {
-    const v = localStorage.getItem(KEY_THEME)
-    return v === 'light' || v === 'dark' ? v : 'system'
-  } catch {
-    return 'system'
-  }
+function readThemePref(): ThemePref {
+  const v = readStored(KEY_THEME)
+  return v === 'light' || v === 'dark' ? v : 'system'
 }
 
-function save(value: string) {
-  try {
-    localStorage.setItem(KEY_THEME, value)
-  } catch {
-    // storage unavailable: the choice lasts this session
-  }
-}
-
-export function apply(pref: ThemePref) {
+function apply(pref: ThemePref) {
   document.documentElement.dataset.theme = pref === 'system' ? (dark.matches ? 'dark' : 'light') : pref
 }
 
@@ -47,7 +36,7 @@ export function useTheme() {
   return {
     pref,
     setPref: (p: ThemePref) => {
-      save(p)
+      writeStored(KEY_THEME, p)
       setPref(p)
     }
   }
