@@ -54,7 +54,8 @@ test('MCP server: the narrow tools only, scoped writes, session recorded', async
     await client.callTool({ name: 'write_file', arguments: { path: `shots/${SHOT}/extra.txt`, content: 'ok' } })
     const stills = await client.callTool({ name: 'render_stills', arguments: { shot: SHOT } })
     const blocks = stills.content as any[]
-    assert.equal(blocks.filter(b => b.type === 'image').length, 3)
+    // On failure, say what the tool answered instead of three images
+    assert.equal(blocks.filter(b => b.type === 'image').length, 3, JSON.stringify(blocks.filter(b => b.type === 'text')))
     // Each image follows its label
     const first = blocks.findIndex(b => b.type === 'image')
     assert.deepEqual(blocks[first - 1], { type: 'text', text: 'start frame:' })
