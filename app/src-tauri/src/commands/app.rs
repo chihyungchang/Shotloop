@@ -54,18 +54,6 @@ pub fn get_settings(app: State<'_, App>) -> Result<Settings, String> {
     settings::load(&app.config_dir)
 }
 
-/// The settings saved whole (Settings' form)
-#[tauri::command]
-pub async fn save_settings(handle: AppHandle, settings: Settings) -> Result<(), String> {
-    blocking(move || {
-        let app = handle.state::<App>();
-        settings::save(&app.config_dir, &settings)?;
-        app.relaunch(&settings);
-        Ok(())
-    })
-    .await
-}
-
 /// A few fields changed on the settings as saved now, never on a copy read
 /// earlier (which would undo what another part of the app saved since)
 #[tauri::command]

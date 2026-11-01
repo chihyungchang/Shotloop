@@ -177,7 +177,6 @@ pub fn run() {
             commands::app::about,
             commands::app::machine,
             commands::app::get_settings,
-            commands::app::save_settings,
             commands::app::update_settings,
             commands::app::enqueue,
             commands::app::jobs,

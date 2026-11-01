@@ -134,12 +134,6 @@ fn normalize(s: &mut Settings) {
     }
 }
 
-/// The settings saved whole (Settings' form)
-pub fn save(dir: &Path, settings: &Settings) -> Result<(), String> {
-    let _guard = LOCK.lock().unwrap();
-    write(dir, settings)
-}
-
 /// Some fields changed on the settings as saved now (the top-level fields
 /// of `patch`, by their JSON names); returns the settings saved
 pub fn update(dir: &Path, patch: &Value) -> Result<Settings, String> {
@@ -267,7 +261,7 @@ mod tests {
         let dir = temp();
         let mut s = Settings { provider: "api".into(), api_preset: "openai".into(), api_protocol: "openai".into(), parallel: 3, ..Default::default() };
         s.api_keys.insert("openai".into(), "sk-1".into());
-        save(&dir, &s).unwrap();
+        write(&dir, &s).unwrap();
         let after = update(&dir, &serde_json::json!({ "telemetryTold": true, "notifyDesktop": true })).unwrap();
         assert!(after.telemetry_told && after.notify_desktop);
         // What the change didn't name stays as saved
@@ -294,7 +288,7 @@ mod tests {
         assert!(env.contains(&("SHOTLOOP_PROVIDER".into(), "api".into())));
         assert!(env.contains(&("SHOTLOOP_API_PROTOCOL".into(), "anthropic".into())));
         // Saved again, the old field is gone and the key lives under the preset
-        save(&dir, &s).unwrap();
+        write(&dir, &s).unwrap();
         let json = std::fs::read_to_string(dir.join("settings.json")).unwrap();
         assert!(!json.contains("\"apiKey\""));
         assert!(json.contains("\"anthropic\": \"sk-ant-1\""));
