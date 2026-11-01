@@ -27,8 +27,7 @@ const KOKORO_EN = [
   { id: 'bf_emma', sid: 21, gender: 'f', name: 'Emma (UK)' },
   { id: 'bm_george', sid: 26, gender: 'm', name: 'George (UK)' }
 ]
-// CosyVoice's voices: each a reference recording in its install
-const COSYVOICE_ZH = [{ id: 'female', gender: 'f', name: '女声' }]
+const COSYVOICE_ZH = cosyvoice.VOICES.map(({ id, gender, name }) => ({ id, gender, name }))
 const SUPERTONIC = SUPERTONIC_VOICES
   .map(id => ({ id, gender: id[0].toLowerCase(), name: `${id[0] === 'F' ? 'Female' : 'Male'} ${id[1]}` }))
 // The English lexicons Kokoro reads: the model's, then the word forms

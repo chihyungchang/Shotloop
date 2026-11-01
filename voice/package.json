@@ -4,7 +4,7 @@
   "type": "module",
   "version": "0.1.0",
   "license": "Apache-2.0",
-  "description": "Shotloop's voice-over: text to speech on this Mac (Kokoro through sherpa-onnx, Supertonic through ONNX Runtime)",
+  "description": "Shotloop's voice-over: text to speech on this Mac (Kokoro through sherpa-onnx, CosyVoice 2 in its own Python install, Supertonic through ONNX Runtime)",
   "main": "src/index.mjs",
   "scripts": {
     "test": "node --test test/"

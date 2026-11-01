@@ -201,8 +201,11 @@ const MODEL = [
 const WETEXT = { url: 'https://files.pythonhosted.org/packages/d9/81/351722ec61dbdf96cca59edac14ce620be273fa98a9fab9e1a2aa524c3e1/wetextprocessing-1.2.0-py3-none-any.whl', sha256: '2c7c1e048ede69b67e8a0921093c08a591bc9d7566ad70f5343686196f97aea9', bytes: 2012397 }
 // What Python and its packages take once installed (measured)
 const PYTHON_BYTES = 1_250_000_000
-// The voices: a reference recording and its words (CosyVoice's own sample)
-const VOICES = { female: { from: 'CosyVoice/asset/zero_shot_prompt.wav', words: '希望你以后能够做的比我还好呦。' } }
+// The voices: each a reference recording in the install and its words
+// (CosyVoice's own sample)
+export const VOICES = [
+  { id: 'female', gender: 'f', name: '女声', from: 'CosyVoice/asset/zero_shot_prompt.wav', words: '希望你以后能够做的比我还好呦。' }
+]
 
 // What the Chinese voice downloads besides the model, for the app's list
 // of third-party software (app/scripts/licenses.mjs) and the README
@@ -317,9 +320,9 @@ export async function install(dir, onProgress) {
       }
     }
     fs.mkdirSync(path.join(dir, 'voices'))
-    for (const [id, v] of Object.entries(VOICES)) {
-      fs.copyFileSync(path.join(dir, v.from), path.join(dir, 'voices', `${id}.wav`))
-      fs.writeFileSync(path.join(dir, 'voices', `${id}.txt`), v.words)
+    for (const v of VOICES) {
+      fs.copyFileSync(path.join(dir, v.from), path.join(dir, 'voices', `${v.id}.wav`))
+      fs.writeFileSync(path.join(dir, 'voices', `${v.id}.txt`), v.words)
     }
     fs.rmSync(tmp, { recursive: true, force: true })
   } catch (err) {
