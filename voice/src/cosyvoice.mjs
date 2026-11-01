@@ -165,27 +165,34 @@ export async function speak(dir, text, { voice, speed = 1 }) {
 // ------------------------------------------------------------- install
 
 // Everything pinned: uv (which brings Python 3.10 and the packages of
-// py/requirements.txt), the code at a commit, the model at a revision
-// with each large file's SHA-256, wetext's rules from WeTextProcessing's
-// wheel (ModelScope, where wetext looks, refuses requests too often)
+// py/requirements.txt), the code at a commit, the model at a revision,
+// wetext's rules from WeTextProcessing's wheel (ModelScope, where wetext
+// looks, refuses requests too often); every file with its SHA-256
 const UV = { url: 'https://github.com/astral-sh/uv/releases/download/0.13.6/uv-aarch64-apple-darwin.tar.gz', sha256: '60fbd5c8a1ed681845eea28d9d622fcde03c51e91a43465b64a1e17db1ed3472', bytes: 14235670 }
+// GitHub's archives of a commit, byte for byte the same on every fetch
 const CODE = [
-  { url: 'https://codeload.github.com/FunAudioLLM/CosyVoice/tar.gz/074ca6dc9e80a2f424f1f74b48bdd7d3fea531cc', to: 'CosyVoice', bytes: 1505172 },
-  { url: 'https://codeload.github.com/shivammehta25/Matcha-TTS/tar.gz/dd9105b34bf2be2230f4aa1e4769fb586a3c824e', to: 'CosyVoice/third_party/Matcha-TTS', bytes: 484695 }
+  { url: 'https://codeload.github.com/FunAudioLLM/CosyVoice/tar.gz/074ca6dc9e80a2f424f1f74b48bdd7d3fea531cc', to: 'CosyVoice', bytes: 1505172, sha256: '10c587f0853db27667a64a0a2dc0788b1c782cdab223682691db78702082a550' },
+  { url: 'https://codeload.github.com/shivammehta25/Matcha-TTS/tar.gz/dd9105b34bf2be2230f4aa1e4769fb586a3c824e', to: 'CosyVoice/third_party/Matcha-TTS', bytes: 484695, sha256: '59c43afae79110e4057eaa43f45b5558b556435da8fc85eab83f0c819ba3358d' }
 ]
-// The model's two homes with the same files (checked by SHA-256, so either
-// serves): Hugging Face at a pinned revision, and ModelScope, the
-// publisher's own, often several times faster in China
+// The model's two homes, each at a pinned commit, with the same files
+// (checked by SHA-256, so either serves): Hugging Face, and ModelScope,
+// the publisher's own, often several times faster in China. ModelScope
+// lacks config.json, so it comes from Hugging Face
 const SOURCES = [
   'https://huggingface.co/FunAudioLLM/CosyVoice2-0.5B/resolve/eec1ae6c79877dbd9379285cf8789c9e0879293d',
-  'https://www.modelscope.cn/models/iic/CosyVoice2-0.5B/resolve/master'
+  'https://www.modelscope.cn/models/iic/CosyVoice2-0.5B/resolve/6e3aa301f53582fa2de88625f89a29cb80d0fba1'
 ]
 const MODEL = [
-  ['CosyVoice-BlankEN/config.json', 659], ['CosyVoice-BlankEN/generation_config.json', 242], ['CosyVoice-BlankEN/merges.txt', 1402109],
+  ['CosyVoice-BlankEN/config.json', 659, '168aa1bd401abc3bc262ba15ba4e499627a8b4e006e9d050b47c22de20660185'],
+  ['CosyVoice-BlankEN/generation_config.json', 242, 'e558847a8b4402616f1273797b015104dc266fe4b520056fca88823ba8f8ebe6'],
+  ['CosyVoice-BlankEN/merges.txt', 1402109, 'ac8ff86a72bee70828fbc1119bc4398c6f3a9a6e490d7b0dbe917be025478bd0'],
   ['CosyVoice-BlankEN/model.safetensors', 988097824, '130282af0dfa9fe5840737cc49a0d339d06075f83c5a315c3372c9a0740d0b96'],
-  ['CosyVoice-BlankEN/tokenizer_config.json', 1287], ['CosyVoice-BlankEN/vocab.json', 2776833],
+  ['CosyVoice-BlankEN/tokenizer_config.json', 1287, '482bd979881423375ca5414e4e0d94cd7c5349dbb17fffd46b4d36d71e62a1bc'],
+  ['CosyVoice-BlankEN/vocab.json', 2776833, 'ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910'],
   ['campplus.onnx', 28303423, 'a6ac6a63997761ae2997373e2ee1c47040854b4b759ea41ec48e4e42df0f4d73'],
-  ['config.json', 2], ['configuration.json', 47], ['cosyvoice2.yaml', 7330],
+  ['config.json', 2, '44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a'],
+  ['configuration.json', 47, 'c502b6328c67638b401df8dd05de89e9e8d1cff9cd0ada10dfbdbe13556c20de'],
+  ['cosyvoice2.yaml', 7330, '0af2c0d010c477187c39f3e8fd5f1ae2e4e6f90ad03ba37c10ed6c6a87b05959'],
   ['flow.pt', 450575567, 'ff4c2f867674411e0a08cee702996df13fa67c1cd864c06108da88d16d088541'],
   ['hift.pt', 83390254, '3386cc880324d4e98e05987b99107f49e40ed925b8ecc87c1f4939432d429879'],
   ['llm.pt', 2023316821, 'b144ef55b51ce8cfb79a73c90dbba0bdaba4e451c0ebcfab20f769264f84a608'],
@@ -288,7 +295,7 @@ export async function install(dir, onProgress) {
 
     for (const c of CODE) {
       const file = path.join(tmp, 'code.tar.gz')
-      await download(c.url, file, null, tick)
+      await download(c.url, file, c.sha256, tick)
       fs.rmSync(path.join(dir, c.to), { recursive: true, force: true })
       fs.mkdirSync(path.join(dir, c.to), { recursive: true })
       execFileSync('tar', ['-xzf', file, '-C', path.join(dir, c.to), '--strip-components', '1'])
@@ -297,7 +304,7 @@ export async function install(dir, onProgress) {
     for (const [rel, , sha256] of MODEL) {
       const file = path.join(dir, 'model', rel)
       fs.mkdirSync(path.dirname(file), { recursive: true })
-      await fromAny(sources.map(s => `${s}/${rel}`), file, sha256 ?? null, tick)
+      await fromAny(sources.map(s => `${s}/${rel}`), file, sha256, tick)
     }
     // wetext's zh and en rules, laid out where it looks for them
     const wheel = path.join(tmp, 'wetext.whl')
