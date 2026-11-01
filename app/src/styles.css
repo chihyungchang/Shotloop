@@ -1133,3 +1133,11 @@ textarea.autotext { resize: none; overflow: hidden; line-height: 1.5; min-height
 .poster-card:hover .poster-use, .poster-use:focus-visible { opacity: 1; transform: translate(-50%, 0); }
 .poster-use:hover:not(:disabled) { background: #fff; border: 0; }
 .poster-title { font-size: 12.5px; font-weight: 600; line-height: 1.35; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* A project that can't be read: laid out like its card, nothing to open */
+.project-card.broken, .example.broken { display: flex; align-items: center; }
+.example.broken { cursor: default; }
+.project-card.broken { align-items: stretch; }
+.broken-why { white-space: normal; overflow-wrap: anywhere; }
+/* Settings that can't be read: what happened, and the way on */
+.banner.floating.settings-problem { display: flex; align-items: center; gap: 10px; max-width: min(720px, calc(100vw - 32px)); cursor: default; }

@@ -3,6 +3,7 @@ import { BrandIcon } from '../ai/BrandIcon'
 import { detectBackends, useDetected } from '../ai/backends'
 import { PRESETS, presetById, type Preset, type Protocol } from '../ai/presets'
 import { api, type Detected, type Provider, type Settings } from '../api'
+import { useErrorLine } from '../hooks'
 import { t } from '../i18n'
 import type { Key } from '../i18n/en'
 import { Icon } from './Icon'
@@ -87,6 +88,8 @@ export function AiSettings({ settings, update }: { settings: Settings; update: U
   const detected = useDetected()
   const mode: Provider = settings.provider === 'cli' || settings.provider === 'local' ? settings.provider : 'api'
   const preset = presetById(settings.apiPreset || 'anthropic')
+  const link = useErrorLine()
+  const openLink = (url: string) => void link.guard(api.openUrl(url))
   // A local server's models are listed as it is picked: the server alone
   // doesn't make another backend
   const probes = useProbes(settings, `${mode}:${mode === 'api' ? preset.id : mode === 'cli' ? settings.cli : ''}`)
@@ -102,8 +105,9 @@ export function AiSettings({ settings, update }: { settings: Settings; update: U
           <button key={m.id} role="tab" aria-selected={mode === m.id} className={mode === m.id ? 'on' : ''} onClick={() => chooseMode(m.id)}>{t(m.title)}</button>
         ))}
       </div>
-      {mode === 'cli' && <CliPane settings={settings} update={update} detected={detected} probes={probes} />}
-      {mode === 'api' && <ApiPane settings={settings} update={update} preset={preset} choosePreset={choosePreset} probes={probes} />}
+      {link.error && <p className="error small">{link.error}</p>}
+      {mode === 'cli' && <CliPane settings={settings} update={update} detected={detected} probes={probes} openLink={openLink} />}
+      {mode === 'api' && <ApiPane settings={settings} update={update} preset={preset} choosePreset={choosePreset} probes={probes} openLink={openLink} />}
       {mode === 'local' && <LocalPane settings={settings} update={update} detected={detected} probes={probes} />}
     </section>
   )
@@ -115,7 +119,7 @@ function Rescan({ detected }: { detected: Detected | null }) {
 
 // A CLI agent the person is signed in to: the installed ones to pick, the
 // others with how to install them
-function CliPane({ settings, update, detected, probes }: { settings: Settings; update: Update; detected: Detected | null; probes: Probes }) {
+function CliPane({ settings, update, detected, probes, openLink }: { settings: Settings; update: Update; detected: Detected | null; probes: Probes; openLink: (url: string) => void }) {
   const installed = detected?.clis.filter(c => c.path) ?? []
   const missing = detected?.clis.filter(c => !c.path) ?? []
   return (
@@ -169,7 +173,7 @@ function CliPane({ settings, update, detected, probes }: { settings: Settings; u
                 <code>{c.install}</code>
               </span>
               <button className="pill-button" onClick={() => navigator.clipboard?.writeText(c.install)}>{t('ai.copy')}</button>
-              <button className="pill-button" onClick={() => api.openUrl(c.url)}>{t('ai.website')} <Icon name="arrow" size={12} /></button>
+              <button className="pill-button" onClick={() => openLink(c.url)}>{t('ai.website')} <Icon name="arrow" size={12} /></button>
             </div>
           ))}
         </details>
@@ -180,7 +184,7 @@ function CliPane({ settings, update, detected, probes }: { settings: Settings; u
 }
 
 // A hosted model API with the person's own key: a preset, its key, URL and model
-function ApiPane({ settings, update, preset, choosePreset, probes }: { settings: Settings; update: Update; preset: Preset; choosePreset: (p: Preset) => void; probes: Probes }) {
+function ApiPane({ settings, update, preset, choosePreset, probes, openLink }: { settings: Settings; update: Update; preset: Preset; choosePreset: (p: Preset) => void; probes: Probes; openLink: (url: string) => void }) {
   const key = settings.apiKeys[preset.id] ?? ''
   return (
     <div className="provider-body">
@@ -205,7 +209,7 @@ function ApiPane({ settings, update, preset, choosePreset, probes }: { settings:
         <span className="row between">
           {t('ai.key')}
           {preset.keyUrl && (
-            <button type="button" className="link" onClick={() => api.openUrl(preset.keyUrl!)}>{t('ai.getKey')} <Icon name="arrow" size={12} /></button>
+            <button type="button" className="link" onClick={() => openLink(preset.keyUrl!)}>{t('ai.getKey')} <Icon name="arrow" size={12} /></button>
           )}
         </span>
         <input type="password" value={key} placeholder={preset.keyHint ?? (preset.id === 'custom' ? t('ai.keyOptional') : '')}
