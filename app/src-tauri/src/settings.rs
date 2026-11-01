@@ -41,6 +41,10 @@ pub struct Settings {
     pub smithsonian_key: String,
     /// Shots the AI builds at the same time, 1–5; 0 picks by the machine
     pub parallel: u32,
+    /// Anonymous usage counts (telemetry.rs) are on unless this is set
+    pub telemetry_off: bool,
+    /// The first-launch notice about them was shown
+    pub telemetry_told: bool,
 }
 
 /// This Mac: logical cores and memory, and the shots to build at once

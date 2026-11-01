@@ -921,6 +921,8 @@ textarea.autotext { resize: none; overflow: hidden; line-height: 1.5; min-height
 .danger-text { color: var(--danger); }
 .draft-save { display: inline-flex; align-items: center; gap: 8px; }
 .tag.warn { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); }
+.telemetry-notice { position: fixed; right: 20px; bottom: 20px; z-index: 60; width: min(360px, calc(100vw - 40px)); display: flex; flex-direction: column; gap: 8px; }
+.telemetry-notice p { margin: 0; display: block; }
 .banner.floating { position: fixed; top: 52px; left: 50%; transform: translateX(-50%); z-index: 70; cursor: pointer; }
 .dialog-actions button.danger-text { color: var(--danger); }
 .update-note { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; margin-bottom: 8px; border: 0; border-radius: var(--r-lg); background: var(--accent-soft); color: var(--accent-text); text-align: left; }

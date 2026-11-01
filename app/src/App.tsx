@@ -7,8 +7,10 @@ import { Projects } from './components/Projects'
 import { SettingsPage, type Section } from './components/SettingsPage'
 import { Sidebar, type Page } from './components/Sidebar'
 import { Studio } from './components/studio/Studio'
+import { TelemetryNotice } from './components/TelemetryNotice'
 import { LeaveDraftDialog, WorkspaceDialog } from './components/WorkspaceDialog'
 import { checkForUpdate } from './update'
+import { startTelemetry } from './telemetry'
 import { projectsFolder, remember, setProjectsFolder } from './recent'
 import { useTheme } from './theme/theme'
 import { t, useLanguage } from './i18n'
@@ -45,6 +47,9 @@ export default function App() {
     setSettingsFrom(from)
     setPage('settings')
   }
+
+  // Anonymous usage counts: a report about once a day (src/telemetry.ts)
+  useEffect(startTelemetry, [])
 
   // Check for Updates… in the menus: Settings → About, checking
   useEffect(() => {
@@ -218,6 +223,7 @@ export default function App() {
     <div className="workspace-shell" key={language.lang}>
       {dialogs}
       <Sidebar page={page} setPage={setPage} open={open} jobs={jobs} theme={theme} />
+      <TelemetryNotice />
       <main className="workspace-main">
         {error && <p className="error banner">{error}</p>}
         {copying && <p className="banner copying"><span className="spinner small" /> {t('example.copying')}</p>}

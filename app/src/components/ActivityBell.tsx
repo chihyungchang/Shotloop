@@ -26,7 +26,7 @@ export function ActivityBell({ jobs, settings }: { jobs: Job[]; settings: Settin
   }, [open])
 
   const setAlerts = async (on: boolean) => {
-    await api.saveSettings({ ...settings, notifySound: on, notifyDesktop: on })
+    await api.patchSettings({ notifySound: on, notifyDesktop: on })
     window.dispatchEvent(new Event(SAVED))
   }
 

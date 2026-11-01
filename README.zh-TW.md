@@ -235,6 +235,10 @@ Shotloop 建立在開源成果之上。感謝以下專案背後的人：
 
 「設定 → 關於」列出每個元件的版本和授權，詳情見 [NOTICE](NOTICE)。
 
+## 隱私
+
+Shotloop 每天最多一次向開發者傳送匿名計數：版本、晶片架構、介面語言，以及規劃、建構、修改和匯出了多少部影片（匯出依視覺風格統計），附一個隨機的安裝編號。絕不包含你的專案內容、名稱、文字、檔案或 API 金鑰，也不保存 IP 位址。第一次開啟時會告訴你；在 **設定 → 一般** 裡可以關閉。從原始碼建構的版本永遠不會傳送（[`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)）。
+
 ## 授權
 
 [Apache License 2.0](LICENSE)；另見 [NOTICE](NOTICE)。素材庫中的模型保留各自的授權（CC0 或 CC-BY，署名會寫進專案），語音模型也一樣（Kokoro 和 CosyVoice 2：Apache-2.0；Supertonic：OpenRAIL-M）。

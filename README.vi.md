@@ -235,6 +235,10 @@ Shotloop được xây trên công sức của cộng đồng mã nguồn mở. 
 
 Cài đặt → Giới thiệu liệt kê mọi thành phần cùng phiên bản và giấy phép, còn [NOTICE](NOTICE) có đầy đủ chi tiết.
 
+## Quyền riêng tư
+
+Mỗi ngày tối đa một lần, Shotloop gửi cho tác giả các số đếm ẩn danh: phiên bản, chip, ngôn ngữ giao diện và số video đã được lên kế hoạch, tạo, sửa và xuất (lượt xuất theo phong cách hình ảnh), kèm một ID cài đặt ngẫu nhiên. Không bao giờ gửi dự án, tên hay chữ trong đó, tệp hoặc khóa API của bạn, và không lưu địa chỉ IP. Lần mở đầu tiên sẽ báo cho bạn; tắt trong **Cài đặt → Chung**. Bản dựng từ mã nguồn không bao giờ gửi ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)).
+
 ## Giấy phép
 
 [Apache License 2.0](LICENSE); xem thêm [NOTICE](NOTICE). Mô hình từ thư viện tài nguyên giữ giấy phép riêng (CC0 hoặc CC-BY, ghi công được lưu trong dự án), mô hình giọng cũng vậy (Kokoro và CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).

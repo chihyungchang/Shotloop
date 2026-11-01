@@ -128,6 +128,17 @@ function General({ settings, savePref, theme, language }: {
         {toggle('notifyDesktop', 'settings.desktop')}
         <button className="link try" onClick={() => api.testAlert()}><Icon name="play" size={11} /> {t('activity.try')}</button>
       </section>
+      <section className="settings-block">
+        <h3>{t('telemetry.title')}</h3>
+        <p className="hint">{t('telemetry.note')}</p>
+        <div className="pref-row">
+          <span>{t('telemetry.send')}</span>
+          <div className="seg-control" role="radiogroup" aria-label={t('telemetry.send')}>
+            <button role="radio" aria-checked={!settings.telemetryOff} className={settings.telemetryOff ? '' : 'on'} onClick={() => savePref({ telemetryOff: false, telemetryTold: true })}>{t('settings.on')}</button>
+            <button role="radio" aria-checked={settings.telemetryOff} className={settings.telemetryOff ? 'on' : ''} onClick={() => savePref({ telemetryOff: true, telemetryTold: true })}>{t('settings.off')}</button>
+          </div>
+        </div>
+      </section>
     </>
   )
 }

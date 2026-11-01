@@ -5,6 +5,7 @@ mod env;
 mod queue;
 mod settings;
 mod tray;
+mod telemetry;
 
 use queue::{Job, Launch, Queue, Spec};
 use serde_json::Value;
@@ -29,6 +30,7 @@ fn launch_for(root: PathBuf, settings: &Settings) -> Launch {
         needs_key: settings.needs_key(),
         notify_sound: settings.notify_sound,
         notify_desktop: settings.notify_desktop,
+        telemetry: !settings.telemetry_off,
     }
 }
 
@@ -606,6 +608,20 @@ fn about(handle: AppHandle) -> Value {
     })
 }
 
+/// The anonymous usage report due now, if one is (telemetry.rs)
+#[tauri::command]
+fn telemetry_due(handle: AppHandle, app: State<'_, App>) -> Option<telemetry::Report> {
+    // Only once the person has seen the first-launch notice
+    let s = settings::load(&app.config_dir);
+    telemetry::due(&app.config_dir, s.telemetry_told && !s.telemetry_off, &handle.package_info().version.to_string())
+}
+
+/// A telemetry report arrived: its counts are taken off
+#[tauri::command]
+fn telemetry_sent(app: State<'_, App>, counts: telemetry::Counts) {
+    telemetry::sent(&app.config_dir, &counts)
+}
+
 /// A provider's key page: https links only
 #[tauri::command]
 fn open_url(url: String) -> Result<(), String> {
@@ -726,6 +742,8 @@ pub fn run() {
             music,
             voice,
             voice_models,
+            telemetry_due,
+            telemetry_sent,
             tray::set_tray_text,
             tray::test_alert
         ])

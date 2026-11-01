@@ -1,6 +1,6 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useEffect, useRef, useState } from 'react'
-import { api, EMPTY_SETTINGS, fileUrl, type ProjectSummary } from '../api'
+import { api, fileUrl, type ProjectSummary } from '../api'
 import { formatSeconds } from '../model'
 import { BrandIcon, hasBrand } from '../ai/BrandIcon'
 import { aiSummary, useSettings } from '../ai/useSettings'
@@ -168,8 +168,7 @@ export function Home({ open, openSettings, ensureFolder }: { open: (path: string
     const picked = await pick({ title: t('blender.dialog'), defaultPath: '/Applications', filters: [{ name: 'Blender', extensions: ['app'] }] })
     if (typeof picked !== 'string') return
     const path = picked.endsWith('.app') ? `${picked}/Contents/MacOS/Blender` : picked
-    const saved = await api.getSettings()
-    await api.saveSettings({ ...EMPTY_SETTINGS, ...saved, blender: path })
+    await api.patchSettings({ blender: path })
     checkBlender()
   }
 

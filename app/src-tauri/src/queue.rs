@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Read};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::os::unix::process::CommandExt;
 use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Condvar, Mutex};
@@ -259,6 +259,8 @@ pub struct Launch {
     /// Alerts when the queue runs dry (Settings → General)
     pub notify_sound: bool,
     pub notify_desktop: bool,
+    /// Anonymous usage counts (telemetry.rs), unless turned off
+    pub telemetry: bool,
 }
 
 #[derive(Default)]
@@ -432,6 +434,7 @@ impl Queue {
             };
             self.notify(&app);
             let outcome = self.run(&app, id, &spec);
+            let mut finished = None;
             self.update(&app, id, |j| {
                 j.finished_at = Some(now());
                 if j.state == "cancelled" {
@@ -441,6 +444,7 @@ impl Queue {
                     Ok(result) => {
                         j.state = "done".into();
                         j.result = result;
+                        finished = Some((j.kind.clone(), j.project.clone()));
                     }
                     Err(e) => {
                         j.state = "failed".into();
@@ -448,6 +452,10 @@ impl Queue {
                     }
                 }
             });
+            if let Some((kind, project)) = finished {
+                let on = self.launch.lock().unwrap().telemetry;
+                crate::telemetry::count(&app.state::<crate::App>().config_dir, on, &kind, Path::new(&project));
+            }
             // The queue ran dry: one alert for the whole batch
             let batch = {
                 let mut inner = self.inner.lock().unwrap();

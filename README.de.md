@@ -235,6 +235,10 @@ Shotloop baut auf Open-Source-Arbeit auf. Danke an die Menschen hinter:
 
 Einstellungen → Über listet jede Komponente mit Version und Lizenz, und [NOTICE](NOTICE) enthält die Details.
 
+## Datenschutz
+
+Einmal am Tag sendet Shotloop anonyme Zahlen an den Entwickler: Version, Chip, Sprache der Oberfläche und wie viele Filme geplant, gebaut, korrigiert und exportiert wurden (Exporte nach visuellem Stil), mit einer zufälligen Installations-ID. Nie deine Projekte, ihre Namen oder Texte, deine Dateien oder API-Schlüssel, und keine IP-Adresse wird gespeichert. Der erste Start weist darauf hin; ausschalten unter **Einstellungen → Allgemein**. Aus dem Quellcode gebaute Versionen senden nie ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)).
+
 ## Lizenz
 
 [Apache License 2.0](LICENSE); siehe [NOTICE](NOTICE). Modelle aus der Asset-Bibliothek behalten ihre eigenen Lizenzen (CC0 oder CC-BY, mit Namensnennung im Projekt), ebenso die Stimmmodelle (Kokoro und CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).

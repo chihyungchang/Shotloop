@@ -232,7 +232,15 @@ export interface Settings {
   smithsonianKey: string
   // Shots the AI builds at once, 1–5; 0 picks by the machine
   parallel: number
+  // Anonymous usage counts (src/telemetry.ts): on unless turned off, sent once
+  // the first-launch notice was shown
+  telemetryOff: boolean
+  telemetryTold: boolean
 }
+
+// The anonymous usage report due now (src-tauri/src/telemetry.rs)
+export interface TelemetryCounts { jobs: Record<string, number>; styles: Record<string, number> }
+export interface TelemetryReport { id: string; version: string; arch: string; counts: TelemetryCounts }
 
 export interface Machine { cores: number; memoryGb: number; autoParallel: number }
 
@@ -265,7 +273,7 @@ export interface Asset {
 }
 
 export const EMPTY_SETTINGS: Settings = {
-  provider: '', apiPreset: '', apiProtocol: '', apiUrl: '', apiKeys: {}, cli: '', model: '', localUrl: '', localModel: '', localKey: '', blender: '', chrome: '', notifySound: false, notifyDesktop: false, polypizzaKey: '', smithsonianKey: '', parallel: 0
+  provider: '', apiPreset: '', apiProtocol: '', apiUrl: '', apiKeys: {}, cli: '', model: '', localUrl: '', localModel: '', localKey: '', blender: '', chrome: '', notifySound: false, notifyDesktop: false, polypizzaKey: '', smithsonianKey: '', parallel: 0, telemetryOff: false, telemetryTold: false
 }
 
 // The voice-over (engine/shotloop/voice.mjs): its settings, the voices of
@@ -399,6 +407,12 @@ export const api = {
   aiModels: (url: string, key: string, protocol: 'anthropic' | 'openai' = 'openai') => invoke<string[]>('ai_models', { url, key, protocol }),
   openUrl: (url: string) => invoke<void>('open_url', { url }),
   saveSettings: (settings: Settings) => invoke<void>('save_settings', { settings }),
+  // A few fields changed on the settings as saved now, not on a copy read
+  // earlier (which would undo what another part of the app saved since)
+  patchSettings: async (patch: Partial<Settings>) => {
+    const saved = await invoke<Settings>('get_settings')
+    await invoke<void>('save_settings', { settings: { ...EMPTY_SETTINGS, ...saved, ...patch } })
+  },
   initialProject: () => invoke<string | null>('initial_project'),
   reveal: (path: string) => invoke<void>('reveal', { path }),
   trashProject: (path: string) => invoke<void>('trash_project', { path }),
@@ -408,6 +422,8 @@ export const api = {
   // One tiny request through the backend as Settings shows it, saved or not
   aiTest: (settings: Settings) => invoke<{ ok: boolean; latencyMs: number; reply: string; backend: string }>('ai_test', { settings }),
   about: () => invoke<About>('about'),
+  telemetryDue: () => invoke<TelemetryReport | null>('telemetry_due'),
+  telemetrySent: (counts: TelemetryCounts) => invoke<void>('telemetry_sent', { counts }),
   // The completion alert, now: a sound and a desktop notification
   testAlert: () => invoke<void>('test_alert'),
   // The whole film, joined from the shots' clips with music (cached)

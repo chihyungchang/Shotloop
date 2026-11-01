@@ -235,6 +235,10 @@ Shotloop açık kaynak emeğinin üzerinde duruyor. Şunların arkasındaki insa
 
 Ayarlar → Hakkında her bileşeni sürümü ve lisansıyla listeler; ayrıntılar [NOTICE](NOTICE) dosyasındadır.
 
+## Gizlilik
+
+Shotloop günde en fazla bir kez geliştiricisine anonim sayılar gönderir: sürüm, çip, arayüz dili ve kaç filmin planlandığı, oluşturulduğu, düzeltildiği ve dışa aktarıldığı (dışa aktarımlar görsel stile göre), rastgele bir kurulum kimliğiyle. Projeleriniz, adları veya metinleri, dosyalarınız ya da API anahtarlarınız asla gönderilmez ve IP adresi saklanmaz. İlk açılışta bildirilir; **Ayarlar → Genel** bölümünden kapatılabilir. Kaynak koddan derlenen sürümler hiçbir şey göndermez ([`app/src-tauri/src/telemetry.rs`](app/src-tauri/src/telemetry.rs)).
+
 ## Lisans
 
 [Apache License 2.0](LICENSE); bkz. [NOTICE](NOTICE). Varlık kütüphanesindeki modeller kendi lisanslarını korur (CC0 veya CC-BY; atıf projeye yazılır), ses modelleri de öyle (Kokoro ve CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).
