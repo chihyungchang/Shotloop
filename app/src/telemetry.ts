@@ -20,7 +20,11 @@ async function report() {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ ...due, lang: lang() })
   })
-  if (res.ok) await api.telemetrySent(due.counts)
+  // Taken off once it landed, or once the site refused it for good (400
+  // malformed, 413 too large): resending the same counts every hour
+  // would never get through, and the next ones would pile up behind them.
+  // Anything else (offline, 5xx, 404 while the endpoint isn't there) waits.
+  if (res.ok || res.status === 400 || res.status === 413) await api.telemetrySent(due.counts)
 }
 
 let started = false
