@@ -6,9 +6,8 @@ import { t } from '../i18n'
 import { Icon } from './Icon'
 
 // A speech model's download (a queue job, voiceModel): a button with its
-// size, then the approval it waits for (here as in the queue), then a bar
-// with MB and the time left; onDone runs when it lands, so whatever waited
-// for the voice goes on
+// size, then a bar with MB and the time left; onDone runs when it lands,
+// so whatever waited for the voice goes on
 export function VoiceDownload({ model, project, jobs, onDone }: {
   model: { id: string; name: string; bytes: number; installed: boolean }
   // The project that asked for it, whose speaking jobs wait for it
@@ -29,15 +28,6 @@ export function VoiceDownload({ model, project, jobs, onDone }: {
   if (model.installed && !busy) return null
   const mb = Math.round(model.bytes / 1e6)
   const p = job?.progress
-  if (job?.state === 'approval') {
-    return (
-      <div className="voice-dl dl-ask">
-        <span className="small muted">{t('queue.awaiting')} · {mb} MB</span>
-        <button className="small primary" onClick={() => guard(api.approve(job.id))}>{t('queue.approve')}</button>
-        <button className="small ghost" onClick={() => guard(api.cancel(job.id))}>{t('queue.decline')}</button>
-      </div>
-    )
-  }
   if (busy) {
     return (
       <div className="voice-dl">

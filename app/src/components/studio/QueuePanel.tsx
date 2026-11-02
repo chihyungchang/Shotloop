@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { api, fileUrl, type Job, type Project, type VoiceModel } from '../../api'
+import { api, fileUrl, type Job, type Project } from '../../api'
 import { useErrorLine, useTick } from '../../hooks'
 import { agentNow, buildProgress, formatEta, formatMB, formatSeconds, isActive, jobEstimate, jobLabel, stageName } from '../../model'
 import { baseName } from '../../recent'
@@ -51,27 +50,22 @@ export function QueuePanel({ project, jobs }: { project: Project; jobs: Job[] })
   )
 }
 
-// A download waiting for the person: what it fetches, from where, under
-// which license and how big, with the choice
+// A library download waiting for the person: what it fetches, from where,
+// under which license and how big, with the choice
 function Approval({ job, approve, decline }: { job: Job; approve: () => void; decline: () => void }) {
   const it = job.item
-  const [model, setModel] = useState<VoiceModel | null>(null)
-  useEffect(() => {
-    if (job.kind === 'voiceModel') api.voiceModels().then(r => setModel(r.models.find(m => m.id === job.model) ?? null), () => setModel(null))
-  }, [job.kind, job.model])
-  const bytes = it?.size ?? model?.bytes ?? null
-  const facts = it
-    ? [t(it.kind === 'sound' ? 'library.kind.sounds' : 'library.kind.models'), it.source === 'polypizza' ? 'Poly Pizza' : it.source === 'smithsonian' ? 'Smithsonian' : 'Openverse', it.license, it.author]
-    : [t('voiceDl.model'), model?.license]
+  if (!it) return null
+  const source = it.source === 'polypizza' ? 'Poly Pizza' : it.source === 'smithsonian' ? 'Smithsonian' : 'Openverse'
+  const facts = [t(it.kind === 'sound' ? 'library.kind.sounds' : 'library.kind.models'), source, it.license, it.author, it.size ? formatMB(it.size) : null]
   return (
     <div className="job approval">
       <div className="approval-head">
         <span className="approval-thumb">
-          {it?.thumb ? <img src={fileUrl(it.thumb)} alt="" /> : <Icon name={it?.kind === 'sound' ? 'volume' : it ? 'cube' : 'download'} size={16} />}
+          {it.thumb ? <img src={fileUrl(it.thumb)} alt="" /> : <Icon name={it.kind === 'sound' ? 'volume' : 'cube'} size={16} />}
         </span>
         <span className="approval-text">
-          <strong className="ellipsis">{it?.name ?? model?.name ?? job.model}</strong>
-          <span className="small muted ellipsis">{[...facts, bytes ? formatMB(bytes) : null].filter(Boolean).join(' · ')}</span>
+          <strong className="ellipsis">{it.name}</strong>
+          <span className="small muted ellipsis">{facts.filter(Boolean).join(' · ')}</span>
         </span>
       </div>
       <div className="approval-actions">

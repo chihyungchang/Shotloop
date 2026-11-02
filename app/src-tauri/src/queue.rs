@@ -6,10 +6,10 @@
 //! `download` for assets fetched into the library, and `preview` for the
 //! whole film joined to watch (never behind a render).
 //!
-//! A download waits for the person's approval (state `approval`) before it
-//! starts; meanwhile, and until the speech model a project asked for has
-//! landed, that project's jobs that speak the lines wait rather than fetch
-//! the model themselves.
+//! A library download waits for the person's approval (state `approval`)
+//! before it starts. A speech model downloads as soon as it is asked for;
+//! until it has landed, the jobs of the project that asked for it that
+//! speak the lines wait rather than fetch the model themselves.
 //!
 //! Every job is a child process (the engine CLI or the agent sidecar, see
 //! runner.rs) that prints one JSON event per line; the queue keeps the
@@ -226,9 +226,10 @@ impl Spec {
         }
     }
 
-    /// Fetches from the network: the person approves it first
+    /// Fetches assets from the network: the person approves it first (a
+    /// speech model, asked for by turning the voice on, does not wait)
     fn downloads(&self) -> bool {
-        matches!(self, Spec::VoiceModel { .. } | Spec::Download { .. })
+        matches!(self, Spec::Download { .. })
     }
 
     /// Speaks the voice-over's lines (or may: a build, a sound pass with
@@ -732,7 +733,7 @@ mod tests {
         assert_eq!((d.state.as_str(), d.lane.as_str(), d.active()), ("approval", "download", true));
         assert!(!d.busy());
         let m = Job::new(2, spec(serde_json::json!({ "kind": "voiceModel", "model": "kokoro" })));
-        assert_eq!(m.state, "approval");
+        assert_eq!(m.state, "queued");
         let r = Job::new(3, spec(serde_json::json!({ "kind": "render", "project": "/p", "shot": "s1", "mode": "draft", "stills": false })));
         assert_eq!(r.state, "queued");
         // What speaks waits for the speech model; a render doesn't

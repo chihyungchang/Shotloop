@@ -127,11 +127,11 @@ async function speak(project, text, { lang, voice, speed = 1 }) {
   if (meta && fs.existsSync(file)) return { file, duration: meta.duration }
   const v = await voicePackage()
   // The model downloads here only when nothing fetched it first; from the
-  // app (SHOTLOOP_DOWNLOADS=ask) never: its download is a queue job the
-  // person approves
+  // app (SHOTLOOP_MODEL_FETCH=queue) never: its download is a queue job
+  // with a bar, which the jobs that speak wait for
   const model = v.engineFor(lang)?.model
-  if (process.env.SHOTLOOP_DOWNLOADS === 'ask' && model && !v.installed(model)) {
-    throw new Error(`the voice model (${v.MODELS[model]?.name ?? model}) isn't on this Mac yet: approve its download in the queue`)
+  if (process.env.SHOTLOOP_MODEL_FETCH === 'queue' && model && !v.installed(model)) {
+    throw new Error(`the voice model (${v.MODELS[model]?.name ?? model}) isn't on this Mac yet: download it in the voice-over settings`)
   }
   let tick = null
   const out = await v.synthesize(text, {

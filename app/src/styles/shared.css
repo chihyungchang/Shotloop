@@ -106,8 +106,4 @@
 .code-skeleton .sk-line { height: 9px; background: linear-gradient(100deg, color-mix(in srgb, var(--text) 7%, var(--surface-2)) 30%, color-mix(in srgb, var(--text) 13%, var(--surface-2)) 50%, color-mix(in srgb, var(--text) 7%, var(--surface-2)) 70%); background-size: 200% 100%; }
 .sk-gap { height: 9px; }
 
-/* A download waiting for approval where it was asked for (the library,
-   a voice model): the same choice as in the queue */
-.dl-ask { display: inline-flex; align-items: center; gap: 6px; }
-
 }
