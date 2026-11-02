@@ -44,9 +44,12 @@ export default function App() {
   // Settings, opened at a section; Back returns where it was opened from
   const [settingsAt, setSettingsAt] = useState<Section>('ai')
   const [settingsFrom, setSettingsFrom] = useState<Page>('home')
-  const openSettings = (at: Section = 'ai', from: Page = 'home') => {
+  // A rule to show there (a check's reference)
+  const [ruleFocus, setRuleFocus] = useState<string | undefined>()
+  const openSettings = (at: Section = 'ai', from: Page = 'home', rule?: string) => {
     setSettingsAt(at)
     setSettingsFrom(from)
+    setRuleFocus(rule)
     setPage('settings')
   }
 
@@ -218,7 +221,7 @@ export default function App() {
 
   // Settings takes the whole window, with its own section list (as in
   // open-design); from a project, Back returns to it
-  if (page === 'settings') return <>{dialogs}<SettingsPage key={`${language.lang}-${settingsAt}`} theme={theme} language={language} jobs={jobs} start={settingsAt} back={() => setPage(settingsFrom)} backLabel={settingsFrom === 'library' ? 'settings.backLibrary' : 'settings.back'} /></>
+  if (page === 'settings') return <>{dialogs}<SettingsPage key={`${language.lang}-${settingsAt}-${ruleFocus ?? ''}`} theme={theme} language={language} jobs={jobs} start={settingsAt} focus={ruleFocus} back={() => setPage(settingsFrom)} backLabel={settingsFrom === 'library' ? 'settings.backLibrary' : 'settings.back'} /></>
 
   if (project && view === 'plan') {
     return <>{dialogs}<PlanPage key={language.lang} project={project} jobs={jobs} refresh={refresh} back={close} toStudio={() => setView('studio')} openSettings={() => openSettings()} /></>
@@ -229,6 +232,7 @@ export default function App() {
         {dialogs}
         {error && <p className="error banner floating" onClick={() => setError(null)}>{error}</p>}
         <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} openSettings={() => openSettings()} openPlan={openPlan}
+          openRule={id => openSettings('rules', 'home', id)}
           save={project.draft ? () => saveDraft(false) : undefined} saving={saving} />
       </>
     )

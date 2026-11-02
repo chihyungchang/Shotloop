@@ -16,6 +16,9 @@
 .rule-row:last-child { border-radius: 0 0 var(--r-md) var(--r-md); }
 .rule-row:only-child { border-radius: var(--r-md); }
 .rule-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px; border-top: 1px solid var(--border-soft); }
+/* The rule a check pointed to: marked, the mark fading after a while */
+.rule-row.focus { animation: rule-focus 2.4s var(--ease) both; }
+@keyframes rule-focus { 0%, 60% { background: var(--info-soft); box-shadow: inset 3px 0 0 var(--info); } 100% { background: transparent; box-shadow: none; } }
 .rule-row:first-child { border-top: 0; }
 .rule-row:hover { background: var(--surface-2); }
 .rule-row.off .rule-text { opacity: 0.5; }

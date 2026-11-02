@@ -37,13 +37,15 @@ type SavePref = (patch: Patch) => void
 // General applies at once; the AI backend, tool paths and asset keys are
 // edits kept here until Save, which saves only the fields edited (a
 // General switch saved meanwhile stays as it is).
-export function SettingsPage({ theme, language, jobs, back, start = 'ai', backLabel = 'settings.back' }: {
+export function SettingsPage({ theme, language, jobs, back, start = 'ai', focus, backLabel = 'settings.back' }: {
   theme: ReturnType<typeof useTheme>
   language: ReturnType<typeof useLanguage>
   jobs: Job[]
   back: () => void
   // The section to open on (an "add your key" button points at its own)
   start?: Section
+  // A rule to show in Settings → Rules (a check's reference)
+  focus?: string
   backLabel?: Key
 }) {
   const [section, setSection] = useState<Section>(start)
@@ -90,7 +92,7 @@ export function SettingsPage({ theme, language, jobs, back, start = 'ai', backLa
           {settings && section === 'general' && <General settings={settings} savePref={savePref} theme={theme} language={language} />}
           {settings && section === 'deps' && <><Setup settings={settings} update={update} /><VoiceModels jobs={jobs} /></>}
           {settings && section === 'assets' && <AssetSources settings={settings} update={update} />}
-          {section === 'rules' && <RulesSettings />}
+          {section === 'rules' && <RulesSettings focus={focus} />}
           {section === 'memory' && <MemorySettings />}
           {section === 'about' && <AboutSection />}
         </div>

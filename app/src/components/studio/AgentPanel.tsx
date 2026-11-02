@@ -4,6 +4,7 @@ import { useErrorLine } from '../../hooks'
 import { isActive } from '../../model'
 import { AgentError } from '../AgentError'
 import { Icon } from '../Icon'
+import { RuleRef } from '../RuleRef'
 import { CompareStills } from './CompareStills'
 import { ElementChip, type PickerState } from './Picker'
 import type { Key } from '../../i18n/en'
@@ -15,11 +16,12 @@ import { formatDate, t } from '../../i18n'
 // element picked in the frame (Picker.tsx) says what the request is about.
 const SUGGESTIONS: Key[] = ['agent.s1', 'agent.s2', 'agent.s3', 'agent.s4']
 
-export function AgentPanel({ project, shot, jobs, openSettings, picker }: {
+export function AgentPanel({ project, shot, jobs, openSettings, openRule, picker }: {
   project: Project
   shot: Shot
   jobs: Job[]
   openSettings: () => void
+  openRule: (id: string) => void
   picker: PickerState
 }) {
   const [request, setRequest] = useState('')
@@ -69,7 +71,7 @@ export function AgentPanel({ project, shot, jobs, openSettings, picker }: {
         )}
         {/* The last check's failures can be fixed in one click (a check
             only reports) */}
-        {shot.fixes.map((f, i, all) => <Exchange key={i} fix={f} fixFound={i === all.length - 1 && !active ? send : undefined} />)}
+        {shot.fixes.map((f, i, all) => <Exchange key={i} fix={f} openRule={openRule} fixFound={i === all.length - 1 && !active ? send : undefined} />)}
         {active && (
           <>
             <div className="bubble me">
@@ -126,7 +128,7 @@ export function AgentPanel({ project, shot, jobs, openSettings, picker }: {
   )
 }
 
-function Exchange({ fix, fixFound }: { fix: FixRecord; fixFound?: (request: string) => void }) {
+function Exchange({ fix, openRule, fixFound }: { fix: FixRecord; openRule: (id: string) => void; fixFound?: (request: string) => void }) {
   const own = fix.checks.find(c => c.shot === fix.shot)
   const failed = own?.results.filter(r => !r.pass) ?? []
   const found = failed.map(r => `- ${r.rule}${r.note ? `: ${r.note}` : ''}`).join('\n')
@@ -152,9 +154,11 @@ function Exchange({ fix, fixFound }: { fix: FixRecord; fixFound?: (request: stri
         {own && (
           <span className={`check-pill ${failed.length ? 'bad' : 'ok'}`}>
             <Icon name={failed.length ? 'x' : 'check'} size={12} />
-            {failed.length ? t('agent.left', { n: failed.length, rules: failed.map(r => r.rule).join(', ') }) : t('agent.allPass')}
+            {failed.length ? t('agent.left', { n: failed.length }) : t('agent.allPass')}
           </span>
         )}
+        {/* Each failing check names the rule it answers to */}
+        {failed.length > 0 && <div className="rule-refs">{failed.map(r => <RuleRef key={r.rule} id={r.rule} open={openRule} />)}</div>}
         {fix.task === 'check' && failed.length > 0 && fixFound && (
           <button className="small fix-found" onClick={() => fixFound(t('agent.fixFoundAsk', { list: found }))}>
             <Icon name="spark" size={12} /> {t('agent.fixFound')}

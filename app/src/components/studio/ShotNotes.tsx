@@ -4,6 +4,7 @@ import { useErrorLine } from '../../hooks'
 import { formatDate, t } from '../../i18n'
 import { readStored, writeStored } from '../../storage'
 import { Icon } from '../Icon'
+import { RuleRef } from '../RuleRef'
 
 const OPEN = 'shotloop.notes.open'
 
@@ -11,7 +12,7 @@ const OPEN = 'shotloop.notes.open'
 // show (notes.md), what the voice says over it (sentence by sentence, with
 // its time in the shot; edited in the plan, since a new line re-times the
 // film) and how it fared against the checklist
-export function ShotNotes({ project, shot, editPlan, busy }: { project: Project; shot: Shot; editPlan: () => void; busy: boolean }) {
+export function ShotNotes({ project, shot, editPlan, openRule, busy }: { project: Project; shot: Shot; editPlan: () => void; openRule: (id: string) => void; busy: boolean }) {
   const [must, setMust] = useState<string | null>(null)
   const index = project.shots.findIndex(s => s.id === shot.id)
   const { error, setError, guard } = useErrorLine()
@@ -78,7 +79,7 @@ export function ShotNotes({ project, shot, editPlan, busy }: { project: Project;
                 {checks.results.map(r => (
                   <li key={r.rule} className={r.pass ? 'pass' : 'fail'}>
                     <span className="dot" />
-                    <span className="check-text"><code>{r.rule}</code> <span className="muted">{r.note}</span></span>
+                    <span className="check-text"><RuleRef id={r.rule} open={openRule} /> <span className="muted">{r.note}</span></span>
                   </li>
                 ))}
               </ul>

@@ -6,17 +6,19 @@ import type { Key } from '../i18n/en'
 import { useErrorLine } from '../hooks'
 import { ruleAbout, ruleName, toolAbout3d, toolStill } from '../rules'
 import { Icon } from './Icon'
+import { forgetRules } from './RuleRef'
 
 // Settings → Rules: what every video follows (engine/shotloop/rules.mjs),
 // one part at a time (the taste, the toolbox, the fixed rules) and for 2D,
 // 3D or both. Fixed rules can be switched off, never edited; the house taste can be
 // reworded, switched off and restored, and the person adds their own; the
 // toolbox keeps its built-in tools and takes the person's own, each with a
-// picture
+// picture. focus: a rule to show (a check's reference), its tab opened
+// and the rule scrolled to and marked
 type Tab = 'taste' | 'tools' | 'fixed'
 const TABS: [Tab, Key, Key][] = [['taste', 'rules.taste', 'rules.tasteNote'], ['tools', 'rules.toolbox', 'rules.toolboxNote'], ['fixed', 'rules.fixed', 'rules.fixedNote']]
 
-export function RulesSettings() {
+export function RulesSettings({ focus }: { focus?: string }) {
   const [rules, setRules] = useState<Rules | null>(null)
   const [tab, setTab] = useState<Tab>('taste')
   const [show, setShow] = useState<RuleTrack>('all')
@@ -26,9 +28,21 @@ export function RulesSettings() {
   const run = useCallback(async (p: Promise<Rules>) => {
     const next = await guard(p)
     if (next) setRules(next)
+    // The checks name rules as they were: they read them again
+    forgetRules()
     return !!next
   }, [guard])
   useEffect(() => { void run(api.rules()) }, [run])
+  // The rule asked for: its tab, then the rule itself in view
+  const found = !!focus && !!rules
+  useEffect(() => {
+    if (!focus || !rules) return
+    if (rules.fixed.some(r => r.id === focus)) setTab('fixed')
+    else if (rules.taste.some(r => r.id === focus)) setTab('taste')
+  }, [found])
+  useEffect(() => {
+    if (focus) document.querySelector(`[data-rule="${CSS.escape(focus)}"]`)?.scrollIntoView({ block: 'center' })
+  }, [found, tab])
 
   const count: Record<Tab, number> = {
     taste: rules?.taste.filter(r => shown(r.track) && !r.off).length ?? 0,
@@ -58,7 +72,7 @@ export function RulesSettings() {
           {tab === 'taste' && (
             <>
               <AddRule run={run} track={show} />
-              <ByTrack rules={rules.taste.filter(r => shown(r.track))} row={r => <TasteRow key={r.id} r={r} run={run} />} />
+              <ByTrack rules={rules.taste.filter(r => shown(r.track))} row={r => <TasteRow key={r.id} r={r} run={run} focus={r.id === focus} />} />
             </>
           )}
           {tab === 'tools' && (
@@ -77,7 +91,7 @@ export function RulesSettings() {
               })}
             </>
           )}
-          {tab === 'fixed' && <ByTrack rules={rules.fixed.filter(r => shown(r.track))} row={r => <FixedRow key={r.id} r={r} run={run} />} />}
+          {tab === 'fixed' && <ByTrack rules={rules.fixed.filter(r => shown(r.track))} row={r => <FixedRow key={r.id} r={r} run={run} focus={r.id === focus} />} />}
         </>
       )}
     </section>
@@ -123,10 +137,10 @@ function ByTrack({ rules, row }: { rules: Rule[]; row: (r: Rule) => React.ReactN
 }
 
 // A fixed rule: read, and switched off or on (never edited)
-function FixedRow({ r, run }: { r: Rule; run: Run }) {
+function FixedRow({ r, run, focus }: { r: Rule; run: Run; focus: boolean }) {
   const name = ruleName(r.id, r.name)
   return (
-    <label className={`rule-row${r.off ? ' off' : ''}`}>
+    <label className={`rule-row${r.off ? ' off' : ''}${focus ? ' focus' : ''}`} data-rule={r.id}>
       <div className="rule-text">
         <span className="rule-name">{name}</span>
         {r.off && <span className="tag">{t('rules.off')}</span>}
@@ -137,14 +151,14 @@ function FixedRow({ r, run }: { r: Rule; run: Run }) {
   )
 }
 
-function TasteRow({ r, run }: { r: Rule; run: Run }) {
+function TasteRow({ r, run, focus }: { r: Rule; run: Run; focus: boolean }) {
   const [draft, setDraft] = useState<string | null>(null)
   const own = !r.builtIn
   const save = async () => {
     if (draft != null && (await run(api.editRule(r.id, draft)))) setDraft(null)
   }
   return (
-    <div className={`rule-row${r.off ? ' off' : ''}`}>
+    <div className={`rule-row${r.off ? ' off' : ''}${focus ? ' focus' : ''}`} data-rule={r.id}>
       <div className="rule-text">
         <span className="rule-name">{own ? r.rule : ruleName(r.id, r.name)}</span>
         {own && <span className="tag">{t('rules.yours')}</span>}
