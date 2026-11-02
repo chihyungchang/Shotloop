@@ -55,5 +55,7 @@
 .asset-row-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .asset-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .asset-row-text strong { font-weight: 600; font-size: 12.5px; }
+/* A download waiting for approval: the same choice as in the queue */
+.dl-ask { display: inline-flex; align-items: center; gap: 6px; }
 
 }
