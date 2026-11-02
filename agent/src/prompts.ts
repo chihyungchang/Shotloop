@@ -32,14 +32,15 @@ Rules of the format: a shot sees the world and its own code only. Anything two s
 
 // Reading and changing a shot, the same for every task that edits one
 const CRAFT = `How to work:
-- Read before you write: the shot's code, its notes, and the parts of the world it uses.
+- The shot's code and notes are in the request: work from them without reading them again. Read a part of the world only when the change needs it (a kit helper you call, a shared style you use).
 - Make the smallest change that fixes the problem. Keep the shot's single camera move and its lens unless the problem is the move itself. Keep code style and comments as they are; comments are English.
 - Change only this shot's files when you can. Change the world only when the fix cannot live in the shot (a prop that blocks every view, a shared material); then say plainly that the world changed and that every shot will re-render.`
 
 // A fix does what the person asked, quickly: one render to see it, one
 // more only when it didn't land or broke the frame; a full review is the
 // person's check
-const FIX_LOOP = `- Fix what the person asked, nothing else. Other problems you notice: name them in a sentence (the person can run a check); don't fix them unasked.
+const FIX_LOOP = `- Make the change in as few steps as you can: the edits a file needs in one turn (or one write_file when most of it changes).
+- Fix what the person asked, nothing else. Other problems you notice: name them in a sentence (the person can run a check); don't fix them unasked.
 - Render the stills once and look: is the change there, and is the frame unbroken (nothing covered, clipped, blank or unreadable)? Only if not, change it and render once more; never more than two renders.
 - Don't call report_checks: the person runs a check when they want the whole checklist.
 - End with two or three sentences for the person: what you changed and what they should look at. No headings, no lists.`
