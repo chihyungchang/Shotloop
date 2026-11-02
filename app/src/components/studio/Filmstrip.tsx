@@ -17,6 +17,7 @@ export function Filmstrip({ project, views, mode, selected, onSelect }: {
   const ticks = Array.from({ length: Math.floor(project.duration / 5) + 1 }, (_, i) => i * 5)
   return (
     <div className="filmstrip">
+      <span className="lane-label">{t('audio.shots')}</span>
       <div className="ruler" aria-hidden>
         {ticks.map(s => (
           <span key={s} style={{ left: `${(s / project.duration) * 100}%` }}>{t('unit.s', { n: s })}</span>

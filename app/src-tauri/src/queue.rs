@@ -2,8 +2,14 @@
 //! time per lane: `render` for shot renders and exports (one shot at a
 //! time, so a final render runs in the background while the person keeps
 //! working), `agent` for fixes, checks, publish copy and the cover,
-//! `voice` for the voice-over's model downloads and line fitting, and
-//! `preview` for the whole film joined to watch (never behind a render).
+//! `voice` for the voice-over's model downloads and line fitting,
+//! `download` for assets fetched into the library, and `preview` for the
+//! whole film joined to watch (never behind a render).
+//!
+//! A download waits for the person's approval (state `approval`) before it
+//! starts; meanwhile, and until the speech model a project asked for has
+//! landed, that project's jobs that speak the lines wait rather than fetch
+//! the model themselves.
 //!
 //! Every job is a child process (the engine CLI or the agent sidecar, see
 //! runner.rs) that prints one JSON event per line; the queue keeps the
@@ -24,7 +30,7 @@ use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter, Manager};
 
-pub const LANES: [&str; 4] = ["render", "agent", "voice", "preview"];
+pub const LANES: [&str; 5] = ["render", "agent", "voice", "download", "preview"];
 const LOG_LINES: usize = 240;
 /// Progress reaches the UI at most this often per job
 const PROGRESS_EVERY: Duration = Duration::from_millis(100);
@@ -58,9 +64,21 @@ pub enum Spec {
     Plan { project: String, request: Option<String>, lang: Option<String> },
     /// The world and every shot, from the applied storyboard
     Build { project: String, lang: Option<String> },
+    /// The film's sound once its shots are approved: the `parts` chosen of
+    /// effects, ambience and narration (fitting the finished shots), with
+    /// the person's wish for it
+    Sound { project: String, parts: Vec<String>, request: Option<String>, lang: Option<String> },
     /// A speech model for the voice-over, downloaded with progress (its own
-    /// lane: it never waits behind renders or the agent)
-    VoiceModel { model: String },
+    /// lane: it never waits behind renders or the agent); `project`: the
+    /// one that asked for it, whose speaking jobs wait for it
+    VoiceModel {
+        model: String,
+        #[serde(default)]
+        project: Option<String>,
+    },
+    /// A search result fetched into the asset library (engine library
+    /// get); `key`: Poly Pizza's, added from the settings when queued
+    Download { item: Value, #[serde(default)] key: Option<String> },
     /// Every line spoken and the shots fitted to them (a plan's lines
     /// edited without a build)
     VoiceFit { project: String },
@@ -79,7 +97,9 @@ impl Spec {
             Spec::Cover { .. } => "cover",
             Spec::Plan { .. } => "plan",
             Spec::Build { .. } => "build",
+            Spec::Sound { .. } => "sound",
             Spec::VoiceModel { .. } => "voiceModel",
+            Spec::Download { .. } => "download",
             Spec::VoiceFit { .. } => "voiceFit",
             Spec::Preview { .. } => "preview",
         }
@@ -89,6 +109,7 @@ impl Spec {
         match self {
             Spec::Render { .. } | Spec::Export { .. } => "render",
             Spec::VoiceModel { .. } | Spec::VoiceFit { .. } => "voice",
+            Spec::Download { .. } => "download",
             Spec::Preview { .. } => "preview",
             _ => "agent",
         }
@@ -104,9 +125,11 @@ impl Spec {
             | Spec::Cover { project, .. }
             | Spec::Plan { project, .. }
             | Spec::Build { project, .. }
+            | Spec::Sound { project, .. }
             | Spec::Preview { project, .. }
             | Spec::VoiceFit { project } => project,
-            Spec::VoiceModel { .. } => "",
+            Spec::VoiceModel { project, .. } => project.as_deref().unwrap_or(""),
+            Spec::Download { .. } => "",
         }
     }
 
@@ -123,7 +146,9 @@ impl Spec {
             Spec::Plan { request: Some(r), .. } => format!("Plan: {}", r),
             Spec::Plan { .. } => "Plan the copy and storyboard".into(),
             Spec::Build { .. } => "Build the shots".into(),
-            Spec::VoiceModel { model } => format!("Download voice {}", model),
+            Spec::Sound { .. } => "Sound for the film".into(),
+            Spec::VoiceModel { model, .. } => format!("Download voice {}", model),
+            Spec::Download { item, .. } => format!("Download {}", item["name"].as_str().unwrap_or("an asset")),
             Spec::VoiceFit { .. } => "Speak the lines".into(),
             Spec::Preview { mode, .. } => format!("Preview the film {}", mode),
         }
@@ -167,7 +192,17 @@ impl Spec {
                 (Script::Agent, Args::new(["plan", project]).opt("--request", request.as_ref()).opt("--lang", lang.as_ref()))
             }
             Spec::Build { project, lang } => (Script::Agent, Args::new(["build", project]).opt("--lang", lang.as_ref())),
-            Spec::VoiceModel { model } => (Script::Engine, Args::new(["voice-models", "--download", model])),
+            Spec::Sound { project, parts, request, lang } => (
+                Script::Agent,
+                Args::new(["sound", project])
+                    .opt("--parts", Some(parts.join(",")))
+                    .opt("--request", request.as_ref())
+                    .opt("--lang", lang.as_ref()),
+            ),
+            Spec::VoiceModel { model, .. } => (Script::Engine, Args::new(["voice-models", "--download", model])),
+            Spec::Download { item, key } => {
+                (Script::Engine, Args::new(["library", "get", "--item"]).arg(item.to_string()).opt("--key", key.as_ref()))
+            }
             Spec::VoiceFit { project } => (Script::Engine, Args::new(["voice", project, "--fit"])),
             Spec::Preview { project, mode } => {
                 (Script::Engine, Args::new(["preview", project]).arg(if mode == "final" { "--final" } else { "--draft" }))
@@ -183,11 +218,23 @@ impl Spec {
                 Spec::Render { project: p2, shot: s2, mode: m2, stills: x2 },
             ) => p1 == p2 && s1 == s2 && m1 == m2 && x1 == x2,
             // One download of a model at a time
-            (Spec::VoiceModel { model: a }, Spec::VoiceModel { model: b }) => a == b,
+            (Spec::VoiceModel { model: a, .. }, Spec::VoiceModel { model: b, .. }) => a == b,
             (Spec::VoiceFit { project: a }, Spec::VoiceFit { project: b }) => a == b,
+            (Spec::Download { item: a, .. }, Spec::Download { item: b, .. }) => a["id"] == b["id"],
             (Spec::Preview { project: p1, mode: m1 }, Spec::Preview { project: p2, mode: m2 }) => p1 == p2 && m1 == m2,
             _ => false,
         }
+    }
+
+    /// Fetches from the network: the person approves it first
+    fn downloads(&self) -> bool {
+        matches!(self, Spec::VoiceModel { .. } | Spec::Download { .. })
+    }
+
+    /// Speaks the voice-over's lines (or may: a build, a sound pass with
+    /// narration, the film joined), so needs the speech model on this Mac
+    fn speaks(&self) -> bool {
+        matches!(self, Spec::Build { .. } | Spec::Sound { .. } | Spec::VoiceFit { .. } | Spec::Preview { .. } | Spec::Export { .. })
     }
 }
 
@@ -213,6 +260,8 @@ pub struct Job {
     pub shot: Option<String>,
     /// The speech model a voiceModel job downloads
     pub model: Option<String>,
+    /// The search result a download job fetches (name, source, license)
+    pub item: Option<Value>,
     pub mode: Option<String>,
     /// A render of the shot's stills, not its clip
     pub stills: bool,
@@ -257,7 +306,11 @@ impl Job {
             project: spec.project().into(),
             shot,
             model: match &spec {
-                Spec::VoiceModel { model } => Some(model.clone()),
+                Spec::VoiceModel { model, .. } => Some(model.clone()),
+                _ => None,
+            },
+            item: match &spec {
+                Spec::Download { item, .. } => Some(item.clone()),
                 _ => None,
             },
             mode,
@@ -275,7 +328,7 @@ impl Job {
                 Spec::Fix { element, .. } => element.clone(),
                 _ => None,
             },
-            state: "queued".into(),
+            state: if spec.downloads() { "approval" } else { "queued" }.into(),
             progress: None,
             phase: None,
             shots: BTreeMap::new(),
@@ -290,7 +343,13 @@ impl Job {
         }
     }
 
+    /// In the queue: waiting for approval, queued or running
     fn active(&self) -> bool {
+        matches!(self.state.as_str(), "approval" | "queued" | "running")
+    }
+
+    /// Working or about to: what the queue's batch alert waits for
+    fn busy(&self) -> bool {
         matches!(self.state.as_str(), "queued" | "running")
     }
 
@@ -407,7 +466,16 @@ impl Queue {
         id
     }
 
-    /// Cancels a queued job, or stops a running one
+    /// A download the person approved: it joins its lane
+    pub fn approve(&self, app: &AppHandle, id: u64) {
+        if let Some(j) = self.inner.lock().unwrap().jobs.iter_mut().find(|j| j.id == id && j.state == "approval") {
+            j.state = "queued".into();
+        }
+        self.wake.notify_all();
+        self.notify(app);
+    }
+
+    /// Cancels a queued job (declines a download), or stops a running one
     pub fn cancel(&self, app: &AppHandle, id: u64) {
         let pid = {
             let mut inner = self.inner.lock().unwrap();
@@ -424,6 +492,9 @@ impl Queue {
         if let Some(pid) = pid {
             kill_group(pid);
         }
+        // A declined speech model: the jobs waiting on it go on (and say
+        // the voice is missing)
+        self.wake.notify_all();
         self.notify(app);
     }
 
@@ -457,11 +528,19 @@ impl Queue {
 
     fn worker(self: Arc<Self>, lane: &'static str, app: AppHandle) {
         loop {
-            // Wait for the oldest queued job of this lane
+            // Wait for the oldest queued job of this lane; one that speaks
+            // waits while its project's speech model is still to be
+            // approved or fetched
             let (id, spec) = {
                 let mut inner = self.inner.lock().unwrap();
                 loop {
-                    if let Some(j) = inner.jobs.iter_mut().find(|j| j.lane == lane && j.state == "queued") {
+                    let fetching: HashSet<String> =
+                        inner.jobs.iter().filter(|j| j.kind == "voiceModel" && j.active() && !j.project.is_empty()).map(|j| j.project.clone()).collect();
+                    if let Some(j) = inner
+                        .jobs
+                        .iter_mut()
+                        .find(|j| j.lane == lane && j.state == "queued" && !(j.spec.speaks() && fetching.contains(&j.project)))
+                    {
                         j.state = "running".into();
                         j.started_at = Some(now());
                         let job = (j.id, j.spec.clone());
@@ -509,12 +588,14 @@ impl Queue {
             let on = self.launch.lock().unwrap().telemetry;
             crate::telemetry::count(&app.state::<crate::App>().config_dir, on, spec.kind(), Path::new(spec.project()), result["style"].as_str());
         }
+        // A speech model landed: the jobs that waited for it go on
+        self.wake.notify_all();
         self.notify(app);
         // The queue ran dry: one alert for the whole batch (a preview
         // asked for to watch now is no news)
         let batch = {
             let mut inner = self.inner.lock().unwrap();
-            if inner.jobs.iter().any(Job::active) {
+            if inner.jobs.iter().any(Job::busy) {
                 None
             } else {
                 let since = inner.batch_start.take().unwrap_or(0);
@@ -642,6 +723,21 @@ mod tests {
 
     fn spec(json: Value) -> Spec {
         serde_json::from_value(json).unwrap()
+    }
+
+    #[test]
+    fn downloads_wait_for_approval() {
+        let item = serde_json::json!({ "id": "openverse:1", "name": "Rain", "source": "openverse" });
+        let d = Job::new(1, spec(serde_json::json!({ "kind": "download", "item": item })));
+        assert_eq!((d.state.as_str(), d.lane.as_str(), d.active()), ("approval", "download", true));
+        assert!(!d.busy());
+        let m = Job::new(2, spec(serde_json::json!({ "kind": "voiceModel", "model": "kokoro" })));
+        assert_eq!(m.state, "approval");
+        let r = Job::new(3, spec(serde_json::json!({ "kind": "render", "project": "/p", "shot": "s1", "mode": "draft", "stills": false })));
+        assert_eq!(r.state, "queued");
+        // What speaks waits for the speech model; a render doesn't
+        assert!(spec(serde_json::json!({ "kind": "voiceFit", "project": "/p" })).speaks());
+        assert!(!r.spec.speaks());
     }
 
     #[test]

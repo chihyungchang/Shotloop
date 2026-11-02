@@ -13,6 +13,10 @@ export const SUBTITLE_BAND = { portrait: [0.68, 0.79], landscape: [0.72, 0.84] }
 // agent plans durations with them)
 export const VOICE_LEAD = 0.2
 export const VOICE_TAIL = 0.45
+// A planned shot may hold this much longer than its line needs (a breath
+// after it): the fit keeps the plan's length within it, so a film keeps
+// the length it was planned at
+export const VOICE_HOLD = 1
 
 // The language spoken (and written in the subtitles): the project's, else
 // read from its lines
@@ -44,13 +48,22 @@ export function sentences(text) {
   return out.filter(s => /[\p{L}\p{N}]/u.test(s))
 }
 
-export function voiceCues(project, shot) {
-  if (!project.config.voice?.on || !shot.cues?.length) return []
+// A shot's sentences as the last fit timed them (shot seconds); none when
+// its line changed since
+function fittedCues(shot) {
+  if (!shot.cues?.length) return []
   const texts = sentences(shot.say)
   if (texts.length !== shot.cues.length) return []
   return shot.cues.map((c, i) => ({ text: texts[i], at: c.at, end: c.end }))
 }
 
-// Every timed sentence of the film: { shot, text, at, end } in film seconds
-export const timedLines = project => project.shots.flatMap(s =>
-  voiceCues(project, s).map(c => ({ shot: s.id, text: c.text, at: s.start + c.at, end: s.start + c.end })))
+// The sentences a shot's code is timed to (ctx.voice, part of its render
+// key): the fitted ones whether the voice-over plays or not, so switching
+// it off and on never makes a shot render again; none when the picture
+// leads (narration added to finished shots changes none of them)
+export const voiceCues = (project, shot) => (project.config.voice?.picture ? [] : fittedCues(shot))
+
+// Every sentence the film says, while the voice-over is on: { shot, text,
+// at, end } in film seconds
+export const timedLines = project => (!project.config.voice?.on ? [] : project.shots.flatMap(s =>
+  fittedCues(s).map(c => ({ shot: s.id, text: c.text, at: s.start + c.at, end: s.start + c.end }))))

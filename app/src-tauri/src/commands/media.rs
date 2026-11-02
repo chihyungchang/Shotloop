@@ -43,8 +43,6 @@ pub struct MusicChange {
     file: Option<String>,
     none: Option<bool>,
     gain: Option<f64>,
-    /// The bed rendered alone, to listen to
-    bed: Option<bool>,
 }
 
 /// The project's music bed: read it, or set a preset, an audio file, none,
@@ -58,8 +56,7 @@ pub async fn music(handle: AppHandle, path: String, change: Option<MusicChange>)
             .flag(c.shuffle == Some(true), "--shuffle")
             .opt("--file", c.file)
             .flag(c.none == Some(true), "--none")
-            .opt("--gain", c.gain)
-            .flag(c.bed == Some(true), "--bed");
+            .opt("--gain", c.gain);
         engine(&handle, args)
     })
     .await
@@ -98,17 +95,35 @@ pub async fn sound(handle: AppHandle, path: String, change: Option<SoundChange>)
     .await
 }
 
+/// The film's sound as the studio's timeline shows it: each track's
+/// waveform, the voice's lines, the effects' cues and the mix to play
+#[tauri::command]
+pub async fn sound_timeline(handle: AppHandle, path: String) -> Result<Value, String> {
+    blocking(move || engine(&handle, Args::new(["timeline", &path]))).await
+}
+
 /// The voice-over: read it (with the voices of the project's language), or
 /// turn it on or off and pick the voice (each speaks the lines again and
-/// fits the shots to them); sample: a WAV of the voice to listen to
+/// fits the shots to them), or set its volume; sample: a WAV of the voice
+/// to listen to
 #[tauri::command]
-pub async fn voice(handle: AppHandle, path: String, on: Option<bool>, voice: Option<String>, sample: Option<bool>) -> Result<Value, String> {
+pub async fn voice(
+    handle: AppHandle,
+    path: String,
+    on: Option<bool>,
+    voice: Option<String>,
+    gain: Option<f64>,
+    sample: Option<bool>,
+) -> Result<Value, String> {
     blocking(move || {
         let args = Args::new(["voice", &path])
             .flag(on == Some(true), "--on")
             .flag(on == Some(false), "--off")
             .opt("--voice", voice)
-            .flag(sample == Some(true), "--sample");
+            .opt("--gain", gain)
+            .flag(sample == Some(true), "--sample")
+            // Speaking every line again is a queue job the app shows (voiceFit)
+            .arg("--no-fit");
         engine(&handle, args)
     })
     .await

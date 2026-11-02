@@ -145,7 +145,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
         setError(String(e))
         return null
       })
-      if (v?.model && !v.model.installed && !(await enqueue({ kind: 'voiceModel', model: v.model.id }))) return
+      if (v?.model && !v.model.installed && !(await enqueue({ kind: 'voiceModel', model: v.model.id, project: project.root }))) return
     }
     if (await enqueue({ kind: 'build', project: project.root })) setPhase('build')
   }

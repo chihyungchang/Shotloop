@@ -1,14 +1,17 @@
-import { api, type Job, type Project } from '../../api'
+import { useEffect, useState } from 'react'
+import { api, fileUrl, type Job, type Project, type VoiceModel } from '../../api'
 import { useErrorLine, useTick } from '../../hooks'
-import { agentNow, buildProgress, formatEta, formatSeconds, isActive, jobEstimate, jobLabel, stageName } from '../../model'
+import { agentNow, buildProgress, formatEta, formatMB, formatSeconds, isActive, jobEstimate, jobLabel, stageName } from '../../model'
 import { baseName } from '../../recent'
 import { Icon } from '../Icon'
 import { formatDate, t } from '../../i18n'
 
-// The render queue (docs/PRD.md §7.7): renders one shot at a time,
-// agent work alongside; progress and time estimates per job
+// The queue (docs/PRD.md §7.7): the downloads waiting for the person's
+// approval first, then renders one shot at a time with agent work
+// alongside; progress and time estimates per job
 export function QueuePanel({ project, jobs }: { project: Project; jobs: Job[] }) {
-  const active = jobs.filter(isActive)
+  const asking = jobs.filter(j => j.state === 'approval')
+  const active = jobs.filter(j => isActive(j) && j.state !== 'approval')
   const finished = jobs.filter(j => !isActive(j)).reverse()
   const left = active.filter(j => j.lane === 'render').reduce((t, j) => t + (jobEstimate(project, j) ?? 0), 0)
   useTick(active.length > 0)
@@ -25,8 +28,15 @@ export function QueuePanel({ project, jobs }: { project: Project; jobs: Job[] })
             {left > 0 && <span className="small muted">{t('queue.doneAt', { at: doneAt })}</span>}
           </div>
         )
-        : <p className="muted small">{t('queue.idle')}</p>}
+        : !asking.length && <p className="muted small">{t('queue.idle')}</p>}
       {error && <pre className="error-box small">{error}</pre>}
+      {asking.length > 0 && (
+        <section className="approvals">
+          <h3>{t('queue.approvals', { n: asking.length })}</h3>
+          <p className="small muted">{t('queue.approvalsNote')}</p>
+          {asking.map(j => <Approval key={j.id} job={j} approve={() => guard(api.approve(j.id))} decline={() => guard(api.cancel(j.id))} />)}
+        </section>
+      )}
       {active.map(j => <JobRow key={j.id} job={j} project={project} cancel={() => guard(api.cancel(j.id))} />)}
       {finished.length > 0 && (
         <>
@@ -37,6 +47,37 @@ export function QueuePanel({ project, jobs }: { project: Project; jobs: Job[] })
           {finished.slice(0, 30).map(j => <JobRow key={j.id} job={j} project={project} />)}
         </>
       )}
+    </div>
+  )
+}
+
+// A download waiting for the person: what it fetches, from where, under
+// which license and how big, with the choice
+function Approval({ job, approve, decline }: { job: Job; approve: () => void; decline: () => void }) {
+  const it = job.item
+  const [model, setModel] = useState<VoiceModel | null>(null)
+  useEffect(() => {
+    if (job.kind === 'voiceModel') api.voiceModels().then(r => setModel(r.models.find(m => m.id === job.model) ?? null), () => setModel(null))
+  }, [job.kind, job.model])
+  const bytes = it?.size ?? model?.bytes ?? null
+  const facts = it
+    ? [t(it.kind === 'sound' ? 'library.kind.sounds' : 'library.kind.models'), it.source === 'polypizza' ? 'Poly Pizza' : it.source === 'smithsonian' ? 'Smithsonian' : 'Openverse', it.license, it.author]
+    : [t('voiceDl.model'), model?.license]
+  return (
+    <div className="job approval">
+      <div className="approval-head">
+        <span className="approval-thumb">
+          {it?.thumb ? <img src={fileUrl(it.thumb)} alt="" /> : <Icon name={it?.kind === 'sound' ? 'volume' : it ? 'cube' : 'download'} size={16} />}
+        </span>
+        <span className="approval-text">
+          <strong className="ellipsis">{it?.name ?? model?.name ?? job.model}</strong>
+          <span className="small muted ellipsis">{[...facts, bytes ? formatMB(bytes) : null].filter(Boolean).join(' · ')}</span>
+        </span>
+      </div>
+      <div className="approval-actions">
+        <button className="small ghost" onClick={decline}>{t('queue.decline')}</button>
+        <button className="small primary" onClick={approve}><Icon name="download" size={12} /> {t('queue.approve')}</button>
+      </div>
     </div>
   )
 }

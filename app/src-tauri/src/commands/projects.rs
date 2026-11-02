@@ -49,7 +49,7 @@ pub struct NewProject {
     duration: String,
     look: Option<String>,
     style: Option<String>,
-    /// The voice-over: on unless the person turned it off
+    /// The voice-over: off unless the person turned it on
     voice: Option<bool>,
 }
 
@@ -60,7 +60,7 @@ pub async fn create_project(handle: AppHandle, project: NewProject) -> Result<Va
         let p = project;
         let given = |v: Option<String>| v.filter(|s| !s.is_empty());
         let args = Args::new(["new", &p.dir, "--idea", &p.idea, "--title", &p.title, "--track", &p.track, "--aspect", &p.aspect, "--duration", &p.duration])
-            .flag(p.voice == Some(false), "--no-voice")
+            .flag(p.voice == Some(true), "--voice-over")
             .opt("--look", given(p.look))
             .opt("--style", given(p.style));
         engine(&handle, args)

@@ -1,11 +1,11 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { AUDIO_EXTS, POLY_CATEGORIES } from '../../../engine/shotloop/data.mjs'
-import { api, fileUrl, KEY_PAGES, type Asset, type AssetKind, type LibraryItem } from '../api'
+import { api, fileUrl, KEY_PAGES, type Asset, type AssetKind, type Job, type LibraryItem } from '../api'
 import { useErrorLine } from '../hooks'
 import { t } from '../i18n'
 import type { Key } from '../i18n/en'
-import { formatMB, formatNumber, formatSeconds } from '../model'
+import { formatMB, formatNumber, formatSeconds, isActive } from '../model'
 import { Icon } from './Icon'
 import { PlayButton } from './PlayButton'
 
@@ -41,12 +41,12 @@ function License({ license }: { license: string }) {
 
 // A sound as a row: played in place, then its name, author, length and
 // licence, and the row's own actions after
-function SoundRow({ name, author, duration, license, src, onError, children }: {
-  name: string; author: string; duration?: number | null; license: string; src: () => Promise<string>; onError: (e: string) => void; children: ReactNode
+function SoundRow({ name, author, duration, license, file, onError, children }: {
+  name: string; author: string; duration?: number | null; license: string; file: () => Promise<string>; onError: (e: string) => void; children: ReactNode
 }) {
   return (
     <div className="audio-row">
-      <PlayButton src={src} onError={onError} />
+      <PlayButton file={file} onError={onError} />
       <span className="audio-text">
         <strong className="ellipsis" title={name}>{name}</strong>
         <span className="small muted ellipsis">{author}{duration ? ` · ${formatSeconds(duration)}` : ''}</span>
@@ -68,7 +68,7 @@ function AssetSkeleton() {
 // The asset library: 3D models and sounds found on free sources and
 // downloaded once to this Mac, then added to the projects that use them
 // (in the studio's Assets drawer)
-export function LibraryPage({ openSettings }: { openSettings: () => void }) {
+export function LibraryPage({ jobs, openSettings }: { jobs: Job[]; openSettings: () => void }) {
   const [tab, setTab] = useState<Tab>('search')
   const [kind, setKind] = useState<AssetKind>('model')
   const [all, setAll] = useState<Asset[] | null>(null)
@@ -78,9 +78,11 @@ export function LibraryPage({ openSettings }: { openSettings: () => void }) {
     setAll([])
     setError(String(e))
   })
+  // A download that landed (a queue job): the library lists it
+  const landed = jobs.filter(j => j.kind === 'download' && j.state === 'done').length
   useEffect(() => {
     reload()
-  }, [])
+  }, [landed])
 
   return (
     <div className="library-page">
@@ -104,13 +106,13 @@ export function LibraryPage({ openSettings }: { openSettings: () => void }) {
       <p className="hint">{t('library.intro')}</p>
       {error && <div className="error-box small">{error}</div>}
       {tab === 'search'
-        ? <Search key={kind} kind={kind} have={new Set(all?.map(a => a.id))} onAdded={reload} openSettings={openSettings} />
+        ? <Search key={kind} kind={kind} have={new Set(all?.map(a => a.id))} jobs={jobs} openSettings={openSettings} />
         : <Mine key={kind} kind={kind} assets={mine} reload={reload} />}
     </div>
   )
 }
 
-function Search({ kind, have, onAdded, openSettings }: { kind: AssetKind; have: Set<string>; onAdded: () => void; openSettings: () => void }) {
+function Search({ kind, have, jobs, openSettings }: { kind: AssetKind; have: Set<string>; jobs: Job[]; openSettings: () => void }) {
   const sources = SOURCES[kind]
   const [source, setSource] = useState<Source>(sources[0].id)
   const [query, setQuery] = useState('')
@@ -119,8 +121,6 @@ function Search({ kind, have, onAdded, openSettings }: { kind: AssetKind; have: 
   const [cursor, setCursor] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // Per result: downloading, or why it failed
-  const [getting, setGetting] = useState<Record<string, { busy: true } | { error: string }>>({})
   const [category, setCategory] = useState<string | null>(null)
   // The search asked last: a slower answer to an earlier one is dropped
   const asked = useRef(0)
@@ -156,24 +156,13 @@ function Search({ kind, have, onAdded, openSettings }: { kind: AssetKind; have: 
     run()
   }, [source, all])
 
-  const get = async (it: LibraryItem) => {
-    setGetting(g => ({ ...g, [it.id]: { busy: true } }))
-    try {
-      await api.libraryGet(it)
-      setGetting(g => {
-        const { [it.id]: _, ...rest } = g
-        return rest
-      })
-      onAdded()
-    } catch (e) {
-      setGetting(g => ({ ...g, [it.id]: { error: String(e) } }))
-    }
-  }
+  // A download is a queue job, approved there (or here) before it starts
+  const get = (it: LibraryItem) => api.enqueue({ kind: 'download', item: it }).catch(e => setError(String(e)))
+  const jobOf = (it: LibraryItem) => jobs.filter(j => j.kind === 'download' && j.item?.id === it.id).at(-1)
   const needsKey = error && /api key|needs an api key/i.test(error)
   // What every result ends with: a link to its page, then Download (or
   // Downloaded)
   const foot = (it: LibraryItem) => {
-    const state = getting[it.id]
     return (
       <>
         {it.page && (
@@ -181,11 +170,7 @@ function Search({ kind, have, onAdded, openSettings }: { kind: AssetKind; have: 
         )}
         {have.has(it.id)
           ? <span className="small ok-note"><Icon name="check" size={12} /> {t('library.have')}</span>
-          : (
-            <button className="small" onClick={() => get(it)} disabled={!!state && 'busy' in state} title={state && 'error' in state ? state.error : undefined}>
-              {state && 'busy' in state ? <span className="spinner small" /> : <Icon name="download" size={12} />} {t(state && 'error' in state ? 'plan.retry' : 'library.get')}
-            </button>
-          )}
+          : <DownloadState job={jobOf(it)} get={() => get(it)} />}
       </>
     )
   }
@@ -245,7 +230,7 @@ function Search({ kind, have, onAdded, openSettings }: { kind: AssetKind; have: 
         <div className="audio-list">
           {results.map(it => (
             <SoundRow key={it.id} name={it.name} author={it.author} duration={it.duration} license={it.license}
-              src={async () => fileUrl((await api.libraryPreview(it)).file)} onError={setError}>
+              file={async () => (await api.libraryPreview(it)).file} onError={setError}>
               {foot(it)}
             </SoundRow>
           ))}
@@ -312,7 +297,7 @@ function Mine({ kind, assets, reload }: { kind: AssetKind; assets: Asset[] | nul
     {error && <div className="error-box small">{error}</div>}
     <div className="audio-list">
       {assets.map(a => (
-        <SoundRow key={a.id} name={a.name} author={a.author} duration={a.duration} license={a.license} src={async () => fileUrl(a.file)} onError={setError}>
+        <SoundRow key={a.id} name={a.name} author={a.author} duration={a.duration} license={a.license} file={async () => a.file} onError={setError}>
           {actions(a)}
         </SoundRow>
       ))}
@@ -339,5 +324,27 @@ function Mine({ kind, assets, reload }: { kind: AssetKind; assets: Asset[] | nul
       ))}
     </div>
     </>
+  )
+}
+
+// A result's download: the button, then its job as it goes (waiting for
+// approval, with the choice here as in the queue; fetching; failed)
+function DownloadState({ job, get }: { job: Job | undefined; get: () => void }) {
+  const { error, guard } = useErrorLine()
+  if (job?.state === 'approval') {
+    return (
+      <span className="dl-ask">
+        <span className="small muted">{t('queue.awaiting')}</span>
+        <button className="small primary" onClick={() => guard(api.approve(job.id))}>{t('queue.approve')}</button>
+        <button className="icon-button" onClick={() => guard(api.cancel(job.id))} title={t('queue.decline')} aria-label={t('queue.decline')}><Icon name="x" size={12} /></button>
+      </span>
+    )
+  }
+  if (job && isActive(job)) return <span className="small muted"><span className="spinner small" /> {t('library.getting')}</span>
+  const failed = error ?? (job?.state === 'failed' ? job.error : null)
+  return (
+    <button className="small" onClick={get} title={failed ?? undefined}>
+      <Icon name="download" size={12} /> {t(failed ? 'plan.retry' : 'library.get')}
+    </button>
   )
 }

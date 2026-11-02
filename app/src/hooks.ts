@@ -99,19 +99,36 @@ export function useAutosave<T>(write: (value: T) => Promise<unknown>, delay = 50
   return { save, flush: run, status }
 }
 
+// The sound playing now, stopped when another starts: one at a time
+// across the app (a preview, the timeline's playback)
+let playingNow: (() => void) | null = null
+export function takeTurn(stop: () => void) {
+  if (playingNow !== stop) playingNow?.()
+  playingNow = stop
+}
+export const hasTurn = (stop: () => void) => playingNow === stop
+export function releaseTurn(stop: () => void) {
+  if (playingNow === stop) playingNow = null
+}
+
 // A sound to listen to (a voice sample, the music bed): `fetchFile` makes
 // it and gives its path; toggle plays it or stops it. A failure to make or
 // play it goes to `onError`
+
 export function useAudioPreview(fetchFile: () => Promise<string | null | undefined>, onError: (e: string) => void) {
   const [playing, setPlaying] = useState<'loading' | 'on' | null>(null)
   const audio = useRef<HTMLAudioElement | null>(null)
-  useEffect(() => () => audio.current?.pause(), [])
-
   const stop = useCallback(() => {
     audio.current?.pause()
     setPlaying(null)
   }, [])
+  useEffect(() => () => {
+    audio.current?.pause()
+    releaseTurn(stop)
+  }, [stop])
+
   const play = useCallback(async () => {
+    takeTurn(stop)
     setPlaying('loading')
     try {
       const file = await fetchFile()
@@ -121,7 +138,9 @@ export function useAudioPreview(fetchFile: () => Promise<string | null | undefin
       a.onended = () => setPlaying(null)
       audio.current = a
       await a.play()
-      setPlaying('on')
+      // Another sound may have started while this one was fetched
+      if (hasTurn(stop)) setPlaying('on')
+      else a.pause()
     } catch (e) {
       setPlaying(null)
       onError(String(e))

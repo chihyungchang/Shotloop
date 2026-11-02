@@ -10,8 +10,8 @@
 //                            they land on its animation:
 //                            [{ "at": 1.2, "sound": "click", "gain": 1, "pan": 0 }]
 //                            (at: shot seconds; pan -1 left … 1 right)
-//   shotloop.json "sound":   what the person chose:
-//                            { "ambience": "room", "ambienceGain": 1, "chosen": true,
+//   shotloop.json "sound":   the ambience and what the person chose:
+//                            { "ambience": "room", "ambienceGain": 1,
 //                              "effects": true, "effectsGain": 1,
 //                              "off": ["<shot>@<at>:<sound>", "kind:<sound>"] }
 //
@@ -144,6 +144,23 @@ async function decode(file, channels, seconds) {
   }
 }
 
+// A sound file's loudness over time, to draw its waveform: the largest
+// sample in each 1/rate s (0–1), kept beside the file (whose name is its
+// content's, so the peaks never go stale)
+export async function peaksOf(file, seconds, rate = 20) {
+  const out = `${file}.peaks-${rate}.json`
+  if (fs.existsSync(out)) return readJson(out)
+  const [b] = await decode(file, 1, seconds)
+  const step = RATE / rate
+  const peaks = Array.from({ length: Math.ceil(b.length / step) }, (_, i) => {
+    let m = 0
+    for (let j = Math.floor(i * step); j < Math.min(b.length, Math.floor((i + 1) * step)); j++) m = Math.max(m, Math.abs(b[j]))
+    return Math.round(m * 100) / 100
+  })
+  writeJson(out, peaks)
+  return peaks
+}
+
 // One effect as a WAV, made once: a synth one, or a library sound cut to
 // EFFECT_MAX and set to the synth effects' peak
 async function effectFile(project, sound) {
@@ -202,13 +219,13 @@ export function soundCues(project) {
 // their level, one effect (by key) or every effect of a kind on or off
 export function setSound(project, { ambience, ambienceGain, effects, effectsGain, cue, kind, on } = {}) {
   const cfg = JSON.parse(fs.readFileSync(path.join(project.root, 'shotloop.json'), 'utf8'))
-  const s = { ...settings(project) }
+  // A film from before the sound pass may carry "chosen" (a plan kept the
+  // person's ambience): nothing reads it any more
+  const { chosen, ...s } = settings(project)
   const library = projectSounds(project)
   if (ambience !== undefined) {
     if (ambience && !AMBIENCES[ambience] && !library.has(ambience)) throw new Error(`ambience is one of ${[...AMBIENCE_NAMES, ...library.keys()].join(', ')} or none`)
     s.ambience = ambience || null
-    // The person's choice: a later plan keeps it
-    s.chosen = true
   }
   if (ambienceGain !== undefined) s.ambienceGain = Math.min(2, Math.max(0, Number(ambienceGain)))
   if (effects !== undefined) s.effects = !!effects

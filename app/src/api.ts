@@ -5,7 +5,7 @@ import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type {
   BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, SoundResult, PickedElement, PickMap, PreviewResult, ProgressEvent, ProjectSummary,
-  ShotStatus, StatusResult, Take, UsageEvent, UsageWindow, VoiceResult
+  ShotStatus, StatusResult, Take, TimelineResult, UsageEvent, UsageWindow, VoiceResult
 } from '../../engine/shotloop/protocol'
 import type { Protocol } from './ai/presets'
 import { lang } from './i18n'
@@ -16,8 +16,12 @@ export type Shot = ShotStatus
 export type VoiceInfo = VoiceResult
 export type MusicInfo = MusicResult
 export type SoundInfo = SoundResult
+export type { TimelineResult }
 // What the sound panel changes; nothing set reads it
 export interface SoundChange { ambience?: string; ambienceGain?: number; effects?: boolean; effectsGain?: number; cue?: string; kind?: string; on?: boolean }
+
+// What the AI's sound pass can make (agent/src/prompts.ts SOUND_PARTS)
+export type SoundPart = 'effects' | 'ambience' | 'narration'
 
 // A card of `list`: a project, or one that can't be read (shown as broken)
 export type ListEntry = ListResult[number]
@@ -38,8 +42,14 @@ type Spec =
   | { kind: 'cover'; project: string; request?: string; template?: string; reference?: boolean; lang?: string }
   | { kind: 'plan'; project: string; request?: string; lang?: string }
   | { kind: 'build'; project: string; lang?: string }
+  // The film's sound once its shots are approved: the parts chosen, and the
+  // person's wish for it
+  | { kind: 'sound'; project: string; parts: SoundPart[]; request?: string; lang?: string }
   // A speech model for the voice-over, downloaded with progress
-  | { kind: 'voiceModel'; model: string }
+  // project: the one that asked for it, whose speaking jobs wait for it
+  | { kind: 'voiceModel'; model: string; project?: string }
+  // A search result fetched into the asset library, once approved
+  | { kind: 'download'; item: LibraryItem }
   // Every line spoken and the shots fitted to them
   | { kind: 'voiceFit'; project: string }
   // The whole film to watch: the shots' clips joined, with music (cached)
@@ -49,11 +59,13 @@ type Spec =
 export interface Job {
   id: number
   kind: Spec['kind']
-  lane: 'render' | 'agent' | 'voice' | 'preview'
+  lane: 'render' | 'agent' | 'voice' | 'download' | 'preview'
   project: string
   shot: string | null
   // The speech model a voiceModel job downloads
   model: string | null
+  // The search result a download job fetches
+  item: LibraryItem | null
   mode: Mode | null
   // A render of the shot's stills, not its clip
   stills: boolean
@@ -63,7 +75,8 @@ export interface Job {
   request: string | null
   // The element a fix is about, picked in the frame
   element: PickedElement | null
-  state: 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
+  // approval: a download waiting for the person to approve it
+  state: 'approval' | 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
   progress: Progress | null
   // A build's step, and each shot at its latest state: start, written
   // (not every CLI sends it), done
@@ -293,10 +306,10 @@ interface NewProject {
 }
 
 // A change to the music bed (media.rs MusicChange); none reads it
-type MusicChange = { preset?: string; shuffle?: boolean; file?: string; none?: boolean; gain?: number; bed?: boolean }
+type MusicChange = { preset?: string; shuffle?: boolean; file?: string; none?: boolean; gain?: number }
 
 // Agent jobs (and an export's copy) reply in the UI language
-const SPOKEN: Spec['kind'][] = ['fix', 'check', 'plan', 'build', 'publish', 'cover', 'export']
+const SPOKEN: Spec['kind'][] = ['fix', 'check', 'plan', 'build', 'sound', 'publish', 'cover', 'export']
 
 export const api = {
   doctor: () => invoke<Doctor>('doctor'),
@@ -311,6 +324,7 @@ export const api = {
   aiUsage: () => invoke<Usage | null>('ai_usage'),
   jobs: () => invoke<Job[]>('jobs'),
   cancel: (id: number) => invoke<void>('cancel_job', { id }),
+  approve: (id: number) => invoke<void>('approve_job', { id }),
   clearJobs: () => invoke<void>('clear_jobs'),
   // Rejects with a message when the settings file is damaged (src/settings.ts)
   getSettings: () => invoke<Settings>('get_settings'),
@@ -335,7 +349,6 @@ export const api = {
   testAlert: () => invoke<void>('test_alert'),
   librarySearch: (source: string, query: string, cursor: string | null, all: boolean, category: string | null = null) =>
     invoke<{ results: LibraryItem[]; cursor: string | null; total?: number }>('library_search', { source, query, cursor, all, category }),
-  libraryGet: (item: LibraryItem) => invoke<Asset>('library', { action: 'get', item }),
   // A sound fetched to listen to before it is added
   libraryPreview: (item: LibraryItem) => invoke<{ file: string }>('library', { action: 'preview', item }),
   libraryList: (project?: string) => invoke<Asset[]>('library', { action: 'list', project }),
@@ -378,7 +391,7 @@ export const api = {
   setStyle: (path: string, style: string) => invoke<{ style: string }>('set_style', { path, style }),
   // The voice-over: read, or change (turning it on or a new voice fits the
   // shots to the lines again); sample: a WAV of the voice to listen to
-  voice: (path: string, change: { on?: boolean; voice?: string; sample?: boolean } = {}) =>
+  voice: (path: string, change: { on?: boolean; voice?: string; gain?: number; sample?: boolean } = {}) =>
     invoke<VoiceInfo>('voice', { path, ...change }),
   // The speech models, with what is on this Mac (Settings → Dependencies)
   voiceModels: () => invoke<{ dir: string; models: VoiceModel[] }>('voice_models'),
@@ -386,6 +399,8 @@ export const api = {
   music: (path: string, change?: MusicChange) => invoke<MusicInfo>('music', { path, change }),
   // The ambience and the sound effects, and which of them play
   sound: (path: string, change?: SoundChange) => invoke<SoundInfo>('sound', { path, change }),
+  // The sound as the studio's timeline draws and plays it
+  soundTimeline: (path: string) => invoke<TimelineResult>('sound_timeline', { path }),
   // What is where on a 2D shot's three stills, for the element picker
   pickMap: (path: string, shot: string) => invoke<PickMap>('pick_map', { path, shot }),
 }

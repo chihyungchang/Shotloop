@@ -3,12 +3,13 @@
 // (principles.ts).
 
 import type { Memory } from './enginelib.ts'
-import { CODE_2D, CODE_VOICE, CODE_WEBGL, PRINCIPLES_2D, PRINCIPLES_3D, PRINCIPLES_VOICE, SOUND } from './principles.ts'
+import { CODE_2D, CODE_VOICE, CODE_WEBGL, NARRATION, PRINCIPLES_2D, PRINCIPLES_3D, PRINCIPLES_VOICE, SOUND, SOUND_KEEP } from './principles.ts'
 
 type Track = '2d' | '3d'
 const rules = (track: Track) => `\n\n${track === '2d' ? PRINCIPLES_2D : PRINCIPLES_3D}`
-// voice: the film has a voice-over (engine/shotloop/voice.mjs)
-const principles = (track: Track, voice = false) => rules(track) + (voice ? `\n\n${PRINCIPLES_VOICE}` : '') + `\n\n${SOUND}`
+// voice: the film has a voice-over (engine/shotloop/voice.mjs). Sound is
+// its own pass once the shots are approved (soundSystem)
+const principles = (track: Track, voice = false) => rules(track) + (voice ? `\n\n${PRINCIPLES_VOICE}` : '')
 // What builds and fixes code also needs the code rules of its page
 const coding = (track: Track, voice = false) =>
   principles(track, voice) + `\n\n${track === '2d' ? CODE_2D : CODE_WEBGL}` + (voice ? `\n\n${CODE_VOICE}` : '')
@@ -41,6 +42,8 @@ export function fixSystem(track: Track, voice = false) {
   return `You are the agent in Shotloop, a desktop app for making short videos from code. The person directs: they look at stills and drafts and say what is wrong in plain words. You fix the shot.
 
 ${format(track)}${coding(track, voice)}
+
+${SOUND_KEEP}
 
 ${CRAFT}`
 }
@@ -118,7 +121,7 @@ storyboard.json, exactly this shape (JSON, no comments):
   "look": "<2D: the id of one look from the list in the request, one the style can use; 3D: leave it out>",
   "lookWhy": "<2D: one short sentence for the person: the mood of this subject, and how this look carries it>",
   "lookTune": <2D, optional: { "accent": "#rrggbb", "accent2": "#rrggbb", "accent3": "#rrggbb", "bg": "<a CSS background: colors and gradients>" }, any of them, to shade the look for this subject; leave it out to take the look as it is>,
-  "ambience": "<the sound under the whole film, from the sound rules: the place it happens in (machine for a workshop, space, wind outdoors), or none>",${voice ? `
+${voice ? `
   "lang": "<the language the video speaks and writes, as a code: ${LANGUAGE_CODES.slice(0, -1).join(', ')} or ${LANGUAGE_CODES.at(-1)}>",` : ''}
   "copy": {
     "idea": "<the idea in one or two sentences>",
@@ -211,6 +214,29 @@ ${track === '3d' ? `- 3D in WebGL: in setup, await kit.init(ctx), call the world
 - End with one sentence for the person about the shot. No headings, no lists.`
 }
 
+// The film's sound, once the person has approved its shots: the parts
+// they chose of the effects, the ambience and narration that fits them
+export const SOUND_PARTS = ['effects', 'ambience', 'narration'] as const
+export type SoundPart = (typeof SOUND_PARTS)[number]
+
+export function soundSystem(track: Track, voice: boolean, parts: SoundPart[]) {
+  const has = (p: SoundPart) => parts.includes(p)
+  const narrate = has('narration')
+  const left = SOUND_PARTS.filter(p => !has(p) && (p !== 'narration' || !voice))
+  const does = [has('effects') && 'which beats get an effect', has('ambience') && 'the ambience, the place the film happens in (machine for a workshop, space, wind outdoors), or none', narrate && 'what the voice says over each shot'].filter(Boolean).join('; ')
+  const may = [has('effects') && 'You may write only the shots\' sounds.json files.', has('ambience') && 'Set the ambience with set_ambience.', narrate && 'Set the narration with set_lines.'].filter(Boolean).join(' ')
+  return `You are the sound designer in Shotloop, a desktop app for making short videos from code. The person has approved the film's shots; now it gets its sound, in one pass over the whole film so it hangs together.
+
+${format(track)}
+
+${SOUND}${narrate ? `\n\n${NARRATION}` : voice ? `\n\n${PRINCIPLES_VOICE}` : ''}
+
+How to work:
+- This pass makes the ${parts.join(' and ')}${left.length ? `; the person keeps the ${left.join(' and ')} as they are, so leave them alone` : ''}.
+- Read every shot's code and notes first, then decide for the film as a whole: ${does}.
+- ${may} Never change a shot's code or the world.
+- End with two or three sentences for the person on what you made and what to listen for. No headings, no lists.`
+}
 
 // The AI's memory for a task on this track: the person's notes, which are
 // rules, and the lessons of earlier videos. learn: the task builds or fixes

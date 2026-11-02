@@ -14,7 +14,9 @@ import type { Pick, PickerState } from './Picker'
 import { Filmstrip } from './Filmstrip'
 import { QueuePanel } from './QueuePanel'
 import { ShotNotes } from './ShotNotes'
+import { AudioTimeline } from './AudioTimeline'
 import { Stage } from './Stage'
+import type { Follow } from './VideoPlayer'
 import { t } from '../../i18n'
 import { readStored, writeStored } from '../../storage'
 
@@ -63,6 +65,8 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
     setPick(null)
   }, [selected])
   const [drawer, setDrawer] = useState<Drawer>(null)
+  // The film's sound playing: the stage's clip goes with it
+  const [follow, setFollow] = useState<Follow | null>(null)
   const [film, setFilm] = useState<PreviewResult | null>(null)
   // Asked for the whole film while shots were still out of date
   const [wantFilm, setWantFilm] = useState(false)
@@ -93,6 +97,13 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   // The renders of this project under way: the queue shows them
   const renders = active.filter(j => j.project === project.root && j.kind === 'render')
   const toggle = (d: Drawer) => setDrawer(cur => (cur === d ? null : d))
+  // A download asking for approval opens the queue, where it is approved
+  const asking = jobs.filter(j => j.state === 'approval').length
+  const asked = useRef(asking)
+  useEffect(() => {
+    if (asking > asked.current) setDrawer('queue')
+    asked.current = asking
+  }, [asking])
 
   // The whole film. With shots out of date, first ask: update them and
   // then watch, or watch now (their last frames play)
@@ -167,7 +178,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
           <Icon name={project.track === '3d' ? 'cube' : 'volume'} size={14} /> {t('studio.assets')}
         </button>
         <button className={drawer === 'queue' ? 'ghost on' : 'ghost'} onClick={() => toggle('queue')}>
-          <Icon name="queue" size={14} /> {t('studio.queue')}{active.length ? <span className="count">{active.length}</span> : null}
+          <Icon name="queue" size={14} /> {t('studio.queue')}{active.length ? <span className={`count${asking ? ' ask' : ''}`} title={asking ? t('queue.approvals', { n: asking }) : undefined}>{active.length}</span> : null}
         </button>
         <button className="dark" onClick={() => setExportOpen(true)}>
           {exporting ? <span className="spinner small" /> : <Icon name="export" size={14} />} {t(exporting ? 'export.exporting' : 'studio.export')}
@@ -192,9 +203,10 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
       <section className="center">
         {shot && view
           ? <Stage key={`stage-${shot.id}`} project={project} shot={shot} view={view} mode={mode} refresh={refresh}
-              picker={picker} />
+              picker={picker} follow={follow} />
           : <div className="stage empty">{t('studio.noShots')}</div>}
         <Filmstrip project={project} views={views} mode={mode} selected={selected} onSelect={setSelected} />
+        <AudioTimeline project={project} jobs={jobs} refresh={refresh} selected={selected} onSelect={setSelected} onFollow={setFollow} />
         {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} editPlan={openPlan}
           busy={active.some(j => j.project === project.root && j.shot === shot.id)} />}
       </section>
@@ -210,12 +222,13 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
           ]} />
       )}
       {film && <FilmPreview project={project} file={film.file} close={() => setFilm(null)} />}
-      {exportOpen && <ExportDialog project={project} jobs={jobs} refresh={refresh} openSettings={openSettings} close={() => setExportOpen(false)} />}
+      {exportOpen && <ExportDialog project={project} jobs={jobs} refresh={refresh} openSettings={openSettings} close={() => setExportOpen(false)}
+        openSound={() => setExportOpen(false)} />}
 
       {drawer && (
         <aside className="drawer">
           <div className="drawer-head">
-            <strong>{t(drawer === 'queue' ? 'drawer.queue' : 'studio.assets')}</strong>
+            <strong>{t(drawer === 'queue' ? 'studio.queue' : 'studio.assets')}</strong>
             <button className="icon-button" onClick={() => setDrawer(null)} aria-label={t('common.close')}><Icon name="x" /></button>
           </div>
           {drawer === 'queue' ? <QueuePanel project={project} jobs={jobs} /> : <AssetsPanel project={project} refresh={refresh} />}

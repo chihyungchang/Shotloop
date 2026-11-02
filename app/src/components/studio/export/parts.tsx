@@ -1,5 +1,5 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { MUSIC_MOODS } from '../../../../../engine/shotloop/data.mjs'
 import { api, type Job, type MusicInfo, type Project, type SoundChange, type SoundInfo, type VoiceInfo } from '../../../api'
 import { useAudioPreview, useAutosave, useErrorLine } from '../../../hooks'
@@ -10,23 +10,42 @@ import { AgentError } from '../../AgentError'
 import { Icon } from '../../Icon'
 import { VoiceDownload } from '../../VoiceDownload'
 
-// The export dialog's parts that keep their own state: the voice-over,
-// the music bed, 3D final quality and the publish copy
+// The sound's parts that keep their own state (the voice-over, the music
+// bed, the ambience and effects: the studio's sound lanes) and the export
+// dialog's (its sound in one line, the publish copy)
 
-// The voice-over: off or on, and which voice, with a sample to listen to.
-// A new voice speaks every line again and the shots are fitted to it
-// (the engine does that with the change), so it can take a moment. A
-// model not on this Mac yet downloads first (a queue job with a bar), and
-// the change waiting for it is made when it lands
-export function Voice({ project, jobs, refresh }: { project: Project; jobs: Job[]; refresh: () => void }) {
+// The voice-over's settings, read through the engine (its lane's volume
+// and its settings share them)
+export function useVoice(project: Project, refresh: () => void, stamp = 0) {
   const [info, setInfo] = useState<VoiceInfo | null>(null)
-  const [pending, setPending] = useState<Parameters<typeof api.voice>[1] | null>(null)
-  const [busy, setBusy] = useState(false)
-  const { error, setError, guard } = useErrorLine()
+  const { error, guard } = useErrorLine()
   useEffect(() => {
     guard(api.voice(project.root)).then(v => v && setInfo(v))
-  }, [project.root, guard])
+  }, [project.root, stamp, guard])
+  const setGain = async (gain: number) => {
+    const next = await guard(api.voice(project.root, { gain }))
+    if (!next) return
+    setInfo(next)
+    refresh()
+  }
+  return { info, setInfo, error, setGain }
+}
+type VoiceState = ReturnType<typeof useVoice>
+
+// The voice-over: off or on, and which voice, with a sample to listen to.
+// Turning it on or a new voice speaks the lines and fits the shots to
+// them: a queue job (voiceFit), its progress shown beside the switch; off
+// and on again with nothing changed keeps the last fit (fitted). A
+// model not on this Mac yet downloads first (a queue job with a bar), and
+// the change waiting for it is made when it lands
+export function Voice({ project, jobs, refresh, state }: { project: Project; jobs: Job[]; refresh: () => void; state: VoiceState }) {
+  const { info, setInfo } = state
+  const [pending, setPending] = useState<Parameters<typeof api.voice>[1] | null>(null)
+  const [busy, setBusy] = useState(false)
+  const { error: failed, setError, guard } = useErrorLine()
+  const error = failed ?? state.error
   const sample = useAudioPreview(useCallback(() => api.voice(project.root, { sample: true }).then(r => r.sample), [project.root]), setError)
+  const fitting = jobs.find(j => j.kind === 'voiceFit' && j.project === project.root && isActive(j))
 
   // current: the info to judge by (the fresh one when a download lands)
   const change = async (c: Parameters<typeof api.voice>[1], current = info) => {
@@ -35,7 +54,7 @@ export function Voice({ project, jobs, refresh }: { project: Project; jobs: Job[
     // turning off never does
     if ((c?.on || c?.voice) && current?.model && !current.model.installed) {
       setPending(c)
-      if ((await guard(api.enqueue({ kind: 'voiceModel', model: current.model.id }))) == null) setPending(null)
+      if ((await guard(api.enqueue({ kind: 'voiceModel', model: current.model.id, project: project.root }))) == null) setPending(null)
       return
     }
     setBusy(true)
@@ -43,6 +62,7 @@ export function Voice({ project, jobs, refresh }: { project: Project; jobs: Job[
     if (next) {
       setInfo(next)
       refresh()
+      if (next.on && next.lines && !next.fitted && (c?.on || c?.voice)) await guard(api.enqueue({ kind: 'voiceFit', project: project.root }))
     }
     setBusy(false)
   }
@@ -62,13 +82,13 @@ export function Voice({ project, jobs, refresh }: { project: Project; jobs: Job[
   return (
     <>
       <div className="xrow">
-        <span className="xrow-label">{t('voice.title')}</span>
+        <span className="xrow-label">{t('audio.switch')}</span>
         <div className="chips">
           <div className="seg" role="radiogroup" aria-label={t('voice.title')}>
-            <button role="radio" aria-checked={!info.on} className={!info.on ? 'on' : ''} disabled={busy} onClick={() => info.on && change({ on: false })}>{t('voice.off')}</button>
-            <button role="radio" aria-checked={info.on} className={info.on ? 'on' : ''} disabled={busy || !info.available} onClick={() => !info.on && change({ on: true })}>{t('voice.on')}</button>
+            <button role="radio" aria-checked={!info.on} className={!info.on ? 'on' : ''} disabled={busy || !!fitting} onClick={() => info.on && change({ on: false })}>{t('voice.off')}</button>
+            <button role="radio" aria-checked={info.on} className={info.on ? 'on' : ''} disabled={busy || !!fitting || !info.available} onClick={() => !info.on && change({ on: true })}>{t('voice.on')}</button>
           </div>
-          {busy && <span className="muted voice-busy"><span className="spinner small" /> {t('voice.fitting')}</span>}
+          {(busy || fitting) && <span className="muted voice-busy"><span className="spinner small" /> {t('voice.fitting')}{fitting?.progress?.total ? ` ${fitting.progress.done}/${fitting.progress.total}` : ''}</span>}
         </div>
       </div>
       {!info.available && <p className="xrow-note">{t('voice.unavailable')}</p>}
@@ -77,14 +97,14 @@ export function Voice({ project, jobs, refresh }: { project: Project; jobs: Job[
       {info.model && missing && (info.on || pending) && (
         <div className="xrow">
           <span className="xrow-label">{t('voiceDl.model')}</span>
-          <VoiceDownload model={info.model} jobs={jobs} onDone={landed} />
+          <VoiceDownload model={info.model} project={project.root} jobs={jobs} onDone={landed} />
         </div>
       )}
       {info.on && info.available && (
         <div className="xrow">
           <span className="xrow-label">{t('voice.voice')}</span>
           <div className="vol">
-            <select value={info.voice ?? ''} disabled={busy || missing} aria-label={t('voice.voice')} onChange={e => change({ voice: e.currentTarget.value })}>
+            <select value={info.voice ?? ''} disabled={busy || !!fitting || missing} aria-label={t('voice.voice')} onChange={e => change({ voice: e.currentTarget.value })}>
               {info.voices.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
             </select>
             <Listen preview={sample} disabled={busy || missing} />
@@ -110,36 +130,37 @@ function Listen({ preview, disabled }: { preview: ReturnType<typeof useAudioPrev
 // A mood the engine composes a bed in (data.mjs MUSIC_MOODS), in words
 const isMood = (preset: string | undefined) => !!preset && MUSIC_MOODS.includes(preset)
 
-// The music bed: none, a preset or the person's file, its volume, and a
-// listen button (the bed is made for the film's length, then played)
-export function Music({ project, refresh }: { project: Project; refresh: () => void }) {
+// The music bed's settings, read and changed through the engine; stamp:
+// read again when it changes
+export function useMusic(project: Project, refresh: () => void, stamp = 0) {
   const [music, setMusic] = useState<MusicInfo | null>(null)
-  const { error, setError, guard } = useErrorLine()
+  const { error, guard } = useErrorLine()
   useEffect(() => {
     guard(api.music(project.root)).then(m => m && setMusic(m))
-  }, [project.root, guard])
-  const bed = useAudioPreview(useCallback(() => api.music(project.root, { bed: true }).then(r => r.bed), [project.root]), setError)
-
+  }, [project.root, stamp, guard])
   const change = async (c: Parameters<typeof api.music>[1]) => {
-    const wasPlaying = bed.playing === 'on'
-    bed.stop()
     const next = await guard(api.music(project.root, c))
     if (!next) return
     setMusic(next)
     refresh()
-    // Picking another track while listening plays the new one
-    if (wasPlaying && !c?.none) bed.play()
   }
+  return { music, change, error }
+}
+type MusicState = ReturnType<typeof useMusic>
+
+// The music bed: none, a preset or the person's file (its volume is in
+// its lane's head)
+export function Music({ state }: { state: MusicState }) {
+  const { music, change, error } = state
   const chooseFile = async () => {
     const file = await pick({ title: t('music.dialog'), filters: [{ name: t('filter.audio'), extensions: ['mp3', 'wav', 'm4a', 'aac', 'aiff', 'flac'] }] })
     if (typeof file === 'string') change({ file })
   }
 
-  // One choice: none, a preset or a file (a segmented control); then the volume
   return (
     <>
       <div className="xrow">
-        <span className="xrow-label">{t('music.title')}</span>
+        <span className="xrow-label">{t('audio.pick')}</span>
         <div className="chips">
           <div className="seg" role="radiogroup" aria-label={t('music.title')}>
             <button role="radio" aria-checked={music?.kind === 'none'} className={music?.kind === 'none' ? 'on' : ''} onClick={() => change({ none: true })}>{t('music.none')}</button>
@@ -154,115 +175,142 @@ export function Music({ project, refresh }: { project: Project; refresh: () => v
           <button className={`small ${music?.kind === 'file' ? 'on' : 'ghost'} music-file`} onClick={chooseFile} title={music?.name}>
             <Icon name="folder" size={12} /> <span className="ellipsis">{music?.kind === 'file' ? music.name : t('music.file')}</span>
           </button>
+          {/* A preset is a mood: each pick is composed anew; this asks for another */}
+          {music?.kind === 'preset' && isMood(music.preset) && (
+            <button className="link listen" onClick={() => change({ shuffle: true })} title={t('music.shuffleHint')}>
+              <Icon name="refresh" size={11} /> {t('music.shuffle')}
+            </button>
+          )}
         </div>
       </div>
-      {music && music.kind !== 'none' && (
-        <div className="xrow">
-          <span className="xrow-label">{t('music.volume')}</span>
-          <div className="vol">
-            <input type="range" min={0} max={1.5} step={0.05} defaultValue={music.gain} key={`${music.kind}-${music.preset ?? music.name}`}
-              onPointerUp={e => change({ gain: Number(e.currentTarget.value) })}
-              onKeyUp={e => change({ gain: Number(e.currentTarget.value) })} aria-label={t('music.volume')} />
-            <Listen preview={bed} />
-            {/* A preset is a mood: each pick is composed anew; this asks for another */}
-            {music.kind === 'preset' && isMood(music.preset) && (
-              <button className="link listen" onClick={() => change({ shuffle: true })} title={t('music.shuffleHint')}>
-                <Icon name="refresh" size={11} /> {t('music.shuffle')}
-              </button>
-            )}
-          </div>
-        </div>
-      )}
       {error && <p className="xrow-note error">{error}</p>}
     </>
   )
 }
 
-// The film's ambience and sound effects (engine/shotloop/sound.mjs): the
-// ambience and its level, effects on or off and their level, and every
-// effect by time, each (or every one of a kind) switched on or off. A
-// change mixes the sound again; the picture stays as it is
-export function Sound({ project, refresh }: { project: Project; refresh: () => void }) {
+// A track's volume, its value in per cent beside it: live hears it while
+// it is dragged, set keeps it when let go; a track with nothing in it has
+// none
+export function Level({ value, max, set, live, label, disabled }: {
+  value: number
+  max: number
+  set: (v: number) => void
+  live: (v: number) => void
+  label: string
+  disabled?: boolean
+}) {
+  const [v, setV] = useState(value)
+  useEffect(() => setV(value), [value])
+  const commit = () => v !== value && set(v)
+  return (
+    <>
+      <input type="range" min={0} max={max} step={0.05} value={v} disabled={disabled} aria-label={label}
+        style={{ '--fill': `${(v / max) * 100}%` } as CSSProperties}
+        onChange={e => {
+          setV(Number(e.currentTarget.value))
+          live(Number(e.currentTarget.value))
+        }} onPointerUp={commit} onKeyUp={commit} />
+      <span className="mono level-value">{disabled ? '–' : `${Math.round(v * 100)}%`}</span>
+    </>
+  )
+}
+
+// The film's sound in one line, for the export: it is made and changed in
+// the studio's sound lanes, which `open` goes back to
+export function SoundSummary({ project, open }: { project: Project; open: () => void }) {
+  const { sound, error, ambienceName } = useSound(project, () => {})
+  const { music } = useMusic(project, () => {})
+  const musicName = !music || music.kind === 'none' ? t('music.none')
+    : music.kind === 'file' ? music.name ?? '' : isMood(music.preset) ? t(`music.${music.preset}` as Key) : t('music.custom')
+  const ambience = ambienceName(sound?.ambience)
+  const effects = sound?.cues.length ? t('sound.count', { on: sound.cues.filter(c => c.on).length, n: sound.cues.length }) : t('sound.none')
+  return (
+    <div className="xrow">
+      <span className="xrow-label">{t('studio.sound')}</span>
+      <div className="chips">
+        <span className="small muted">
+          {error ?? `${t('voice.title')} ${t(project.voiced ? 'voice.on' : 'voice.off')} · ${t('music.title')} ${musicName} · ${t('sound.ambience')} ${ambience} · ${t('sound.effects')} ${effects}`}
+        </span>
+        <button className="link" onClick={open}>{t('sound.adjust')} <Icon name="arrow" size={11} /></button>
+      </div>
+    </div>
+  )
+}
+
+// The film's ambience and effects settings (engine/shotloop/sound.mjs),
+// read and changed through the engine; stamp: read again when it changes
+export function useSound(project: Project, refresh: () => void, stamp = 0) {
   const [sound, setSound] = useState<SoundInfo | null>(null)
-  const [listOpen, setListOpen] = useState(false)
   const { error, guard } = useErrorLine()
   useEffect(() => {
     guard(api.sound(project.root)).then(s => s && setSound(s))
-  }, [project.root, guard])
+  }, [project.root, stamp, guard])
   const change = async (c: SoundChange) => {
     const next = await guard(api.sound(project.root, c))
     if (!next) return
     setSound(next)
     refresh()
   }
-  if (!sound) return error ? <p className="xrow-note error">{error}</p> : null
-
-  const effects = sound.effects !== false
-  const kindOff = (k: string) => !!sound.off?.includes(`kind:${k}`)
-  const kinds = [...new Set(sound.cues.map(c => c.sound))]
   // A synth sound by its word, one from the asset library by its name
-  const named = new Map(sound.library.map(a => [a.id, a.name]))
+  const named = new Map(sound?.library.map(a => [a.id, a.name]) ?? [])
   const fxName = (k: string) => named.get(k) ?? t(`sound.fx.${k}` as Key)
-  const shotLabel = (id: string) => {
-    const i = project.shots.findIndex(s => s.id === id)
-    return i < 0 ? id : `${String(i + 1).padStart(2, '0')} ${project.shots[i].title ?? id}`
-  }
-  const slider = (value: number, set: (v: number) => void, label: string) => (
-    <input type="range" min={0} max={2} step={0.05} defaultValue={value} key={value}
-      onPointerUp={e => set(Number(e.currentTarget.value))} onKeyUp={e => set(Number(e.currentTarget.value))} aria-label={label} />
-  )
+  const ambienceName = (a: string | null | undefined) => (!a ? t('sound.none') : named.get(a) ?? t(`sound.amb.${a}` as Key))
+  return { sound, change, error, fxName, ambienceName }
+}
+type SoundState = ReturnType<typeof useSound>
+
+// The ambience: none, a synth one or a sound from the project's assets
+// (its level is in its lane's head)
+export function Ambience({ state }: { state: SoundState }) {
+  const { sound, change, ambienceName } = state
+  if (!sound) return null
   return (
     <>
       <div className="xrow">
-        <span className="xrow-label">{t('sound.ambience')}</span>
-        <div className="chips">
-          <div className="seg" role="radiogroup" aria-label={t('sound.ambience')}>
-            {['', ...sound.ambiences, ...sound.library.map(a => a.id)].map(a => {
-              const on = (sound.ambience ?? '') === a
-              const name = !a ? t('sound.none') : named.get(a) ?? t(`sound.amb.${a}` as Key)
-              return <button key={a || 'none'} role="radio" aria-checked={on} className={`${on ? 'on' : ''}${named.has(a) ? ' ellipsis lib' : ''}`} title={name} onClick={() => !on && change({ ambience: a || 'none' })}>{name}</button>
-            })}
-          </div>
-          {sound.ambience && <div className="vol">{slider(sound.ambienceGain ?? 1, v => change({ ambienceGain: v }), t('music.volume'))}</div>}
+        <span className="xrow-label">{t('audio.pick')}</span>
+        <div className="seg" role="radiogroup" aria-label={t('sound.ambience')}>
+          {['', ...sound.ambiences, ...sound.library.map(a => a.id)].map(a => {
+            const on = (sound.ambience ?? '') === a
+            const lib = sound.library.some(l => l.id === a)
+            return <button key={a || 'none'} role="radio" aria-checked={on} className={`${on ? 'on' : ''}${lib ? ' ellipsis lib' : ''}`} title={ambienceName(a)} onClick={() => !on && change({ ambience: a || 'none' })}>{ambienceName(a)}</button>
+          })}
         </div>
       </div>
+    </>
+  )
+}
+
+// The effects: on or off, and every effect of a kind at once (one effect
+// is switched on the timeline; their level is in their lane's head)
+export function Effects({ state }: { state: SoundState }) {
+  const { sound, change, fxName } = state
+  if (!sound) return null
+  const effects = sound.effects !== false
+  const kindOff = (k: string) => !!sound.off?.includes(`kind:${k}`)
+  const kinds = [...new Set(sound.cues.map(c => c.sound))]
+  return (
+    <>
       <div className="xrow">
-        <span className="xrow-label">{t('sound.effects')}</span>
+        <span className="xrow-label">{t('audio.switch')}</span>
         <div className="chips">
           <input type="checkbox" className="switch" checked={effects} onChange={e => change({ effects: e.target.checked })} aria-label={t('sound.effects')} />
           {sound.cues.length
-            ? <button className="link" onClick={() => setListOpen(!listOpen)} disabled={!effects}>
-                {t('sound.count', { on: sound.cues.filter(c => c.on).length, n: sound.cues.length })} <Icon name="chevron" size={11} />
-              </button>
+            ? <span className="small muted">{t('sound.count', { on: sound.cues.filter(c => c.on).length, n: sound.cues.length })}</span>
             : <span className="muted small">{t('sound.noEffects')}</span>}
-          {effects && sound.cues.length > 0 && <div className="vol">{slider(sound.effectsGain ?? 1, v => change({ effectsGain: v }), t('music.volume'))}</div>}
         </div>
       </div>
-      {listOpen && effects && sound.cues.length > 0 && (
-        <div className="xrow top">
-          <span className="xrow-label" />
-          <div className="sound-list">
-            <p className="hint">{t('sound.hint')}</p>
-            {/* Every effect of a kind at once */}
-            <div className="chips">
-              {kinds.map(k => (
-                <button key={k} className={`chip${kindOff(k) ? '' : ' on'}`} aria-pressed={!kindOff(k)} onClick={() => change({ kind: k, on: kindOff(k) })}>
-                  {fxName(k)} <span className="muted">{sound.cues.filter(c => c.sound === k).length}</span>
-                </button>
-              ))}
-            </div>
-            {sound.cues.map(c => (
-              <label key={c.key} className={`sound-cue${c.on ? '' : ' off'}`}>
-                <span className="mono">{t('unit.s', { n: c.at.toFixed(1) })}</span>
-                <span className="ellipsis">{shotLabel(c.shot)}</span>
-                <span className="ellipsis">{fxName(c.sound)}</span>
-                <input type="checkbox" className="switch" checked={c.on} disabled={kindOff(c.sound)} onChange={e => change({ cue: c.key, on: e.target.checked })} aria-label={`${shotLabel(c.shot)} · ${fxName(c.sound)}`} />
-              </label>
+      {effects && kinds.length > 0 && (
+        <div className="xrow">
+          <span className="xrow-label">{t('audio.byKind')}</span>
+          <div className="chips">
+            {kinds.map(k => (
+              <button key={k} className={`chip${kindOff(k) ? '' : ' on'}`} aria-pressed={!kindOff(k)} onClick={() => change({ kind: k, on: kindOff(k) })}>
+                {fxName(k)} <span className="muted">{sound.cues.filter(c => c.sound === k).length}</span>
+              </button>
             ))}
           </div>
         </div>
       )}
-      {error && <p className="xrow-note error">{error}</p>}
     </>
   )
 }

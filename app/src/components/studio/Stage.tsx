@@ -5,7 +5,7 @@ import { estimate, formatSeconds, isWide, shotTime, stageName, STILL_NAMES, type
 import { baseName } from '../../recent'
 import { CodeArea, Markdown } from './code'
 import { framePoint, Highlight, lookup, type Pick, type PickerState } from './Picker'
-import { VideoPlayer } from './VideoPlayer'
+import { VideoPlayer, type Follow } from './VideoPlayer'
 import { Icon } from '../Icon'
 import { formatDate, t } from '../../i18n'
 
@@ -15,14 +15,16 @@ type Tab = 'preview' | 'stills' | 'code'
 // stills, or its code (docs/PRD.md §7.4); rendering is the studio's
 // "Render changed", or the button here when the shot has no clip yet.
 // While picking (on the latest stills), the thing under the pointer is
-// outlined and a click picks it; picking goes on until Esc or another tab
-export function Stage({ project, shot, view, mode, refresh, picker }: {
+// outlined and a click picks it; picking goes on until Esc or another tab.
+// While the film's sound plays (follow), the clip plays with it
+export function Stage({ project, shot, view, mode, refresh, picker, follow }: {
   project: Project
   shot: Shot
   view: ShotView
   mode: Mode
   refresh: () => void
   picker: PickerState
+  follow: Follow | null
 }) {
   const [tab, setTab] = useState<Tab>(view.clip ? 'preview' : 'stills')
   const [take, setTake] = useState<Take | null>(null)
@@ -57,6 +59,10 @@ export function Stage({ project, shot, view, mode, refresh, picker }: {
     setTab(next)
     if (next !== 'stills') picker.setPicking(false)
   }
+  // The sound playing shows the picture it goes with
+  useEffect(() => {
+    if (follow?.playing && view.clip) show('preview')
+  }, [follow])
 
   useEffect(() => {
     if (!picking) return
@@ -146,7 +152,7 @@ export function Stage({ project, shot, view, mode, refresh, picker }: {
           <pre className="stage-error">{t('stage.failed', { mode: t(`mode.${shot.error.mode}`), message: shot.error.message })}</pre>
         )}
         {tab === 'preview' && (clip
-          ? <VideoPlayer key={clip} src={fileUrl(clip, version)} className={`shot${wide ? ' wide' : ''}`} />
+          ? <VideoPlayer key={clip} src={fileUrl(clip, version)} className={`shot${wide ? ' wide' : ''}`} follow={follow} />
           : <div className="stage-empty">
               <p>{t('stage.noClip', { mode: t(`mode.${mode}`) })}</p>
               <button onClick={() => render(mode, false)}>{t('stage.renderMode', { mode: t(`mode.${mode}`), time: formatSeconds(estimate(project, shot, mode)) })}</button>

@@ -218,7 +218,8 @@ export interface ShotStatus {
   start: number
   duration: number
   say: string | null
-  // The voice-over's sentences timed in the shot, as its code sees them
+  // The voice-over's sentences timed in the shot, as its code sees them; a
+  // line over a cut starts before 0 or ends after the shot
   cues: { text: string; at: number; end: number }[]
   code: string
   notes: string
@@ -356,6 +357,9 @@ export interface PreviewResult {
 // shotloop voice <project>
 export interface VoiceResult {
   on: boolean
+  // The picture leads: narration added to a finished film never changes a
+  // shot's length (the fit reports overruns instead)
+  picture: boolean
   voice: string | null
   speed: number
   gain: number
@@ -366,17 +370,40 @@ export interface VoiceResult {
   model: { id: string; name: string; bytes: number; installed: boolean } | null
   // Shots with a line
   lines: number
+  // The lines are timed for this voice and these shots: turning the
+  // voice-over on needs no new fit
+  fitted: boolean
   // --fit (or a new voice or speed): what the fit changed
   fit?: {
     lang: string
     voice: string
     changes: { shot: string; from: number; to: number }[]
+    // With the picture leading: lines too long for their shot even spoken
+    // faster (seconds spoken, seconds the shot has)
+    overruns: { shot: string; spoken: number; room: number }[]
+    // With the picture leading: lines placed over a cut, into the next shot
+    // or starting in the previous one
+    crossings: { shot: string; over: ('previous' | 'next')[] }[]
     // Words the voice can't say, per shot
     unspoken: { shot: string; words: string[] }[]
     duration: number
   }
   // --sample: a WAV of the voice
   sample?: string
+}
+
+// shotloop timeline <project>: the sound as the studio's timeline draws
+// it; peaks: each 1/rate s's loudest sample (0–1)
+export interface TimelineResult {
+  duration: number
+  rate: number
+  // Each track alone at gain 1 (a WAV of the whole film) and its
+  // waveform; the app plays them together at the person's volumes
+  voice: { file: string; peaks: number[]; lines: { shot: string; text: string; at: number; end: number }[] } | null
+  // The music and the ambience as they play: dipping under the voice
+  music: { file: string; peaks: number[] } | null
+  ambience: { file: string; peaks: number[] } | null
+  effects: { cues: SoundCue[]; file: string | null; peaks: number[] | null }
 }
 
 // shotloop music <project>
@@ -400,8 +427,6 @@ export interface SoundResult {
   effectsGain?: number
   // Switched off: cue keys and "kind:<sound>"
   off?: string[]
-  // The person chose the ambience (a plan keeps it)
-  chosen?: boolean
   cues: SoundCue[]
   // The synth's ambiences and effects, by name
   ambiences: string[]
@@ -417,7 +442,5 @@ export interface MusicResult {
   // The person's audio file
   name?: string
   gain: number
-  // --bed: the bed itself
-  bed?: string | null
 }
 

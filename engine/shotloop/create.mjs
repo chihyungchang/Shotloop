@@ -40,8 +40,9 @@ const startMood = style => STYLE_MOOD[style] ?? 'bright'
 // (applyStoryboard); duration 'auto': the planner picks 15–60 s from the
 // content, the starter shots fill 30 s until then. style: a 2D visual
 // style the person chose (styles.mjs), kept by the planner; none: the
-// planner picks. voice: the film has a voice-over (voice.mjs)
-export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16', duration = 30, look = '', style = '', voice = true }) {
+// planner picks. voice: the film has a voice-over (voice.mjs), which then
+// sets each shot's length; without one the picture sets the timing
+export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16', duration = 30, look = '', style = '', voice = false }) {
   const root = path.resolve(dir)
   if (fs.existsSync(root) && fs.readdirSync(root).length) throw new Error(`${root} exists and is not empty`)
   if (!['2d', '3d', 'auto'].includes(track)) throw new Error('track must be 2d, 3d or auto')
@@ -87,8 +88,8 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
     ...(trackAuto ? { trackAuto: true } : {}),
     ...(style ? { style, styleChosen: true } : {}),
     ...(lengthAuto ? { lengthAuto: true } : {}),
-    // The voice-over: on for a new film unless the person turned it off;
-    // the plan writes each shot's line
+    // The voice-over: off for a new film unless the person turned it on;
+    // then the plan writes each shot's line
     voice: { on: !!voice }
   })
   writeBed(root, startMood(track === '3d' ? '3d' : style), loadProject(root))

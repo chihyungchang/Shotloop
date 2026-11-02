@@ -35,7 +35,7 @@ export function ChangesDialog({ project, shots, mode, failed = [], title, note, 
   const hint = actions.find(a => a.disabled && a.hint)?.hint
   return (
     <div className="dialog-backdrop" onClick={close}>
-      <div className="dialog changes-dialog" role="dialog" aria-label={title} onClick={e => e.stopPropagation()}>
+      <div className="dialog column" role="dialog" aria-label={title} onClick={e => e.stopPropagation()}>
         <div className="row between">
           <strong>{title}</strong>
           <button className="icon-button" onClick={close} aria-label={t('common.close')}><Icon name="x" size={14} /></button>

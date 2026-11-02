@@ -22,12 +22,13 @@ import { cachedFile, MODES } from './cache.mjs'
 import { readJson, writeAtomic, writeJson } from './files.mjs'
 import { emit, ffmpeg, progress } from './compose.mjs'
 import { round } from './data.mjs'
-import { sentences, VOICE_LEAD, VOICE_TAIL, voiceLang, voiceOn } from './cues.mjs'
+import { sentences, VOICE_HOLD, VOICE_LEAD, VOICE_TAIL, voiceLang, voiceOn } from './cues.mjs'
 import { loadProject, localPath, projectPath, updateConfig } from './project.mjs'
 import { isStarter } from './starters.mjs'
 import { STORYBOARD_FILE } from './storyboard.mjs'
 import { dressClips } from './subtitles.mjs'
-import { withAmbience, withEffects } from './sound.mjs'
+import { musicBed } from './bed.mjs'
+import { peaksOf, soundCues, withAmbience, withEffects } from './sound.mjs'
 
 const LEAD = VOICE_LEAD
 const TAIL = VOICE_TAIL
@@ -37,6 +38,11 @@ const GAP = 0.25
 const MAX_SPEEDUP = 1.08
 // A shot with a line lasts at least this long
 const MIN_SHOT = 1.5
+// With the picture leading, a line may run over a cut: it keeps this much
+// from the line after it, and starts at most this early in the shot
+// before its own (the voice leads into the cut)
+const LINE_GAP = 0.3
+const MAX_EARLY = 1
 
 // Bump when a change should speak every line again
 const VOICE_VERSION = 1
@@ -74,6 +80,13 @@ const shotSpeed = (shot, cfg) => shot.sayFast ?? cfg.speed ?? 1
 
 const lineKey = (text, lang, voice, speed) => createHash('sha256')
   .update(JSON.stringify([VOICE_VERSION, lang, voice, Math.round(speed * 1000), text])).digest('hex').slice(0, 16)
+
+// What a fit depends on: the lines, the shots' lengths, the voice and how
+// it leads. Stored by the fit (voice.fitted), so switching the voice-over
+// off and on again, with nothing else changed, needs no new fit
+const fitKey = (shots, lang, voice, cfg) => createHash('sha256')
+  .update(JSON.stringify([VOICE_VERSION, lang, voice, cfg.speed ?? 1, !!cfg.picture, shots.map(s => [s.id, s.say?.trim() ?? '', s.duration])]))
+  .digest('hex').slice(0, 16)
 
 // A model download's progress, as MB a step: progress events for the
 // app's queue bar (the last step once the model is unpacked in place)
@@ -113,8 +126,13 @@ async function speak(project, text, { lang, voice, speed = 1 }) {
   const meta = readJson(path.join(voiceDir(project), `${key}.json`), null)
   if (meta && fs.existsSync(file)) return { file, duration: meta.duration }
   const v = await voicePackage()
-  // The model downloads here only when nothing fetched it first (the app
-  // queues the download as a job of its own)
+  // The model downloads here only when nothing fetched it first; from the
+  // app (SHOTLOOP_DOWNLOADS=ask) never: its download is a queue job the
+  // person approves
+  const model = v.engineFor(lang)?.model
+  if (process.env.SHOTLOOP_DOWNLOADS === 'ask' && model && !v.installed(model)) {
+    throw new Error(`the voice model (${v.MODELS[model]?.name ?? model}) isn't on this Mac yet: approve its download in the queue`)
+  }
   let tick = null
   const out = await v.synthesize(text, {
     lang, voice, speed,
@@ -141,8 +159,11 @@ async function speakShot(project, shot, opts) {
 }
 
 // Sentences laid out from LEAD on, GAP apart
-function cuesOf(parts) {
-  let t = LEAD
+// Each sentence's time in its shot, the line starting at `start` (shot
+// seconds: LEAD, or where it was placed over a cut, before 0 or running
+// past the shot's end)
+function cuesOf(parts, start = LEAD) {
+  let t = start
   return parts.map(p => {
     const cue = { at: round(t, 2), end: round(t + p.duration, 2) }
     t += p.duration + GAP
@@ -154,18 +175,26 @@ function cuesOf(parts) {
 // a shot gets the time its line needs. A shot not built yet (its starter
 // code) lasts exactly what its line needs; a built one keeps its length
 // when its line fits, a line up to 8% too long is spoken faster, and only
-// a longer one makes the shot longer. Returns the changes, and the words
-// the voice would drop (English names it can't read), for the person.
+// a longer one makes the shot longer. When the picture leads (voice
+// "picture", narration added to a finished film) no shot changes length:
+// a line that doesn't fit even faster is an overrun, for its writer to
+// shorten. Returns the changes, the overruns, and the words the voice
+// would drop (English names it can't read), for the person.
 export async function fitVoice(project) {
   if (!project.config.voice?.on) throw new Error('the voice-over is off for this project')
   const { v, lang, voice, cfg } = await voiceSetup(project)
   const base = cfg.speed ?? 1
+  const picture = !!cfg.picture
   const spoken = project.shots.filter(s => s.say?.trim())
   const tick = progress({ stage: 'voice' }, spoken.length)
   tick(0)
   const changes = []
+  const overruns = []
+  const crossings = []
   const unspoken = []
   let n = 0
+  // Where the last line ended, in film seconds (the picture leading)
+  let prevEnd = -Infinity
   // What the fit sets, per shot: its length and its line's timing (a shot
   // without a line loses any timing it had)
   const fitted = new Map()
@@ -183,8 +212,22 @@ export async function fitVoice(project) {
     const fits = sp => LEAD + sp + TAIL <= duration + 1e-6
     let duration = shot.duration
     let speed = base
-    const free = !fs.existsSync(shot.code) || isStarter(shot.code)
-    if (free) duration = Math.max(MIN_SHOT, ceil1(LEAD + speech + TAIL))
+    let start = LEAD
+    const free = !picture && (!fs.existsSync(shot.code) || isStarter(shot.code))
+    // A shot not built yet takes its line's length, keeping the plan's
+    // when that is at most VOICE_HOLD longer (the film keeps its length)
+    if (picture) {
+      const placed = await placeLine(project, shot, { lang, voice, base, prevEnd })
+      ;({ parts, speech, speed } = placed)
+      start = round(placed.at - shot.start, 2)
+      prevEnd = placed.end
+      if (placed.overrun) overruns.push({ shot: shot.id, spoken: round(LEAD + speech + TAIL, 1), room: duration })
+      else if (placed.over.length) crossings.push({ shot: shot.id, over: placed.over })
+    }
+    else if (free) {
+      const need = Math.max(MIN_SHOT, ceil1(LEAD + speech + TAIL))
+      duration = duration >= need && duration <= need + VOICE_HOLD ? duration : need
+    }
     else if (!fits(speech)) {
       // Faster, a little, rather than a longer built shot; if the faster
       // line still doesn't fit (speed isn't linear), the shot grows
@@ -196,22 +239,69 @@ export async function fitVoice(project) {
       if (!fits(speech)) duration = Math.max(MIN_SHOT, ceil1(LEAD + speech + TAIL))
     }
     if (duration !== shot.duration) changes.push({ shot: shot.id, from: shot.duration, to: duration })
-    fitted.set(shot.id, { say: shot.say, fit: { duration, cues: cuesOf(parts), ...(speed !== base ? { sayFast: speed } : {}) } })
+    fitted.set(shot.id, { say: shot.say, fit: { duration, cues: cuesOf(parts, start), ...(speed !== base ? { sayFast: speed } : {}), ...(start !== LEAD ? { sayAt: start } : {}) } })
     tick(++n)
   }
   // Into shotloop.json as it is now: speaking took a while, and a shot
   // whose line changed meanwhile keeps what it has (the next fit times it)
-  const { shots } = updateConfig(project.root, c => ({
-    ...c, lang, voice: { ...c.voice, voice },
-    shots: c.shots.map(s => {
+  const { shots } = updateConfig(project.root, c => {
+    const shots = c.shots.map(s => {
       const f = fitted.get(s.id)
       if (!f || f.say !== s.say) return s
-      const { cues, sayFast, ...rest } = s
+      const { cues, sayFast, sayAt, ...rest } = s
       return { ...rest, ...f.fit }
     })
+    return { ...c, lang, voice: { ...c.voice, voice, fitted: fitKey(shots, lang, voice, cfg) }, shots }
+  })
+  syncStoryboard(project.root, shots)
+  return { lang, voice, changes, overruns, crossings, unspoken, duration: round(shots.reduce((t, s) => t + s.duration, 0), 2) }
+}
+
+// With the picture leading, where a line plays (film seconds): in its shot
+// when it fits there, spoken up to 8% faster if need be; else at its own
+// speed over a cut, running on into the next shot (an L-cut) or starting
+// in the last one's tail (a J-cut), as long as it meets no other line (the
+// next shot's line may wait as late as it still fits its shot); else it is
+// an overrun, for its writer to shorten. over: the cuts it crosses
+// ('previous', 'next'); end: where the next line may start after it (an
+// overrun ends where it should, so the lines after it keep their places)
+async function placeLine(project, shot, { lang, voice, base, prevEnd }) {
+  const from = shot.start, to = shot.start + shot.duration
+  const after = project.shots[project.shots.indexOf(shot) + 1]
+  // How late the line may end: before the next shot's line at its latest,
+  // through a next shot that says nothing, or at the film's end
+  const limit = !after ? project.duration - TAIL
+    : after.say?.trim() ? after.start + after.duration - TAIL - (await speakShot(project, after, { lang, voice, speed: base })).speech - LINE_GAP
+    : after.start + after.duration - TAIL
+  const start = Math.max(from + LEAD, prevEnd + LINE_GAP)
+  const spoken = await speakShot(project, shot, { lang, voice, speed: base })
+  const inShot = (r, speed) => ({ ...r, speed, at: start, end: start + r.speech, over: [] })
+  if (start + spoken.speech <= to - TAIL) return inShot(spoken, base)
+  // A little faster first, so the line stays in its shot
+  const room = to - TAIL - start
+  if (room > 0 && spoken.speech / MAX_SPEEDUP <= room) {
+    const speed = round(base * Math.min(MAX_SPEEDUP, spoken.speech / room) + 0.005, 2)
+    const quick = await speakShot(project, shot, { lang, voice, speed })
+    if (start + quick.speech <= to - TAIL) return inShot(quick, speed)
+  }
+  // Over a cut, at its own speed: on past the shot's end, or earlier
+  const earliest = Math.max(0, prevEnd + LINE_GAP, from - MAX_EARLY)
+  const at = start + spoken.speech <= limit ? start : Math.max(earliest, limit - spoken.speech)
+  if (at + spoken.speech > limit + 1e-6 || at >= to - TAIL) return { ...spoken, speed: base, at: start, end: Math.min(start + spoken.speech, limit), over: [], overrun: true }
+  return { ...spoken, speed: base, at, end: at + spoken.speech, over: [...(at < from ? ['previous'] : []), ...(at + spoken.speech > to ? ['next'] : [])] }
+}
+
+// The lines the voice says, by shot ({ "<shot id>": "…" }; "" for none),
+// into shotloop.json and the plan page's storyboard
+export function setLines(project, lines) {
+  const ids = new Set(project.shots.map(s => s.id))
+  const unknown = Object.keys(lines).filter(id => !ids.has(id))
+  if (unknown.length) throw new Error(`no shot ${unknown.join(', ')} (shots: ${[...ids].join(', ')})`)
+  const { shots } = updateConfig(project.root, c => ({
+    ...c, shots: c.shots.map(s => (s.id in lines ? { ...s, say: String(lines[s.id] ?? '').trim() } : s))
   }))
   syncStoryboard(project.root, shots)
-  return { lang, voice, changes, unspoken, duration: round(shots.reduce((t, s) => t + s.duration, 0), 2) }
+  return loadProject(project.root)
 }
 
 // The plan page shows storyboard.json: its durations follow the fit
@@ -232,7 +322,7 @@ async function voiceLines(project) {
   for (const shot of project.shots) {
     if (!sentences(shot.say).length) continue
     const { parts } = await speakShot(project, shot, { lang, voice, speed: shotSpeed(shot, cfg) })
-    const cues = shot.cues?.length === parts.length ? shot.cues : cuesOf(parts)
+    const cues = shot.cues?.length === parts.length ? shot.cues : cuesOf(parts, shot.sayAt ?? LEAD)
     parts.forEach((p, i) => out.push({ shot: shot.id, text: p.text, at: shot.start + cues[i].at, end: shot.start + cues[i].at + p.duration, file: p.file }))
   }
   return out
@@ -314,21 +404,76 @@ async function soundtrack(project, music, lines) {
 // record: what the whole film plays is kept for pruneVoice (a single
 // shot's preview is not the film, so it doesn't replace that record)
 export async function dressFilm(project, mode, clips, music, { strict = false, record = true } = {}) {
-  // The ambience joins the music as the bed the voice ducks; the effects
-  // go over the result, kept off the spoken lines (sound.mjs)
-  const bed = await withAmbience(project, music)
-  if (!voiceOn(project)) return { clips, audio: await withEffects(project, bed, []) }
+  if (!voiceOn(project)) return { clips, audio: await mixSound(project, music, []) }
   try {
     const lines = await voiceLines(project)
     const { clips: dressed, subs } = await dressClips(project, mode, clips, lines)
-    const audio = await withEffects(project, await soundtrack(project, bed, lines), lines)
+    const audio = await mixSound(project, music, lines)
     if (record) writeJson(path.join(voiceDir(project), `used-${mode}.json`), [...dressed, audio, subs].filter(Boolean).map(f => projectPath(project, f)))
     return { clips: dressed, audio }
   } catch (err) {
     if (strict) throw err
     emit({ type: 'log', message: `voice-over left out: ${err.message}` })
-    return { clips, audio: await withEffects(project, bed, []) }
+    return { clips, audio: await mixSound(project, music, []) }
   }
+}
+
+// The film's sound from its parts: the ambience joins the music as the bed
+// the voice ducks, and the effects go over the result, kept off the spoken
+// lines (sound.mjs). lines: the voice's, [] without one
+async function mixSound(project, music, lines) {
+  const bed = await withAmbience(project, music)
+  return withEffects(project, lines.length ? await soundtrack(project, bed, lines) : bed, lines)
+}
+
+// The project as if every track were at its own level (gain 1): the
+// timeline's tracks, which the app plays at the person's volumes, so a
+// volume changed is heard at once and renders nothing
+const atUnitGain = project => ({
+  ...project,
+  config: {
+    ...project.config, musicGain: 1,
+    voice: { ...project.config.voice, gain: 1 },
+    sound: { ...project.config.sound, ambienceGain: 1, effectsGain: 1 }
+  }
+})
+
+// The film's sound as the timeline draws and plays it: each track on its
+// own at gain 1 (the app mixes them at the person's volumes, as mixSound
+// does for the film), with its waveform, the voice's lines and the
+// effects' cues in film seconds. The music and the ambience play as in
+// the film, dipping under the voice. A voice-over that can't be spoken
+// (its model missing) is left out and said, as in a preview
+export async function soundTimeline(project, { rate = 20 } = {}) {
+  const unit = atUnitGain(project)
+  let lines = []
+  if (voiceOn(unit)) {
+    try {
+      lines = await voiceLines(unit)
+    } catch (err) {
+      emit({ type: 'log', message: `voice-over left out: ${err.message}` })
+    }
+  }
+  const ducked = async file => (file && lines.length ? duckedMusic(unit, file, lines) : file)
+  const track = async file => (file ? { file, peaks: await peaksOf(file, project.duration, rate) } : null)
+  const voice = lines.length ? await track(await voiceTrack(unit, lines)) : null
+  return {
+    duration: project.duration,
+    rate,
+    voice: voice && { ...voice, lines: lines.map(l => ({ shot: l.shot, text: l.text, at: round(l.at, 2), end: round(l.end, 2) })) },
+    music: await track(await ducked(await musicBed(unit))),
+    ambience: await track(await ducked(await withAmbience(unit, null))),
+    effects: { cues: soundCues(project), ...((await track(await withEffects(unit, null, lines))) ?? { file: null, peaks: null }) }
+  }
+}
+
+// A bed alone (the music, or the ambience) as it plays under the voice,
+// dipping while a line is spoken, for the timeline
+function duckedMusic(project, music, lines) {
+  const curve = duckCurve(lines)
+  const key = createHash('sha256').update(`1:${path.basename(music)}:${curve}`).digest('hex').slice(0, 16)
+  return cachedFile(path.join(voiceDir(project), 'ducked', `${key}.wav`), part =>
+    ffmpeg(['-i', music, '-af', `volume='${curve}':eval=frame`, '-ar', '44100', part]))
 }
 
 // The speech models, for Settings: each with its languages, size,
@@ -357,11 +502,14 @@ export async function voiceInfo(project) {
   let available = false
   let model = null
   let voice = null
+  // The lines are timed for this voice already: turning it on needs no fit
+  let fitted = false
   try {
     const v = await voicePackage()
     available = v.speaks(lang)
     voices = v.voicesFor(lang)
     voice = available ? voiceFor(v, cfg, lang) : null
+    fitted = !!voice && cfg.fitted === fitKey(project.config.shots, lang, voice, cfg)
     const e = v.engineFor(lang)
     if (e) model = { id: e.model, name: v.MODELS[e.model].name, bytes: v.MODELS[e.model].bytes, installed: v.installed(e.model) }
   } catch (err) {
@@ -370,8 +518,8 @@ export async function voiceInfo(project) {
     emit({ type: 'log', message: `voice-over unavailable: ${err.message}` })
   }
   return {
-    on: !!cfg.on, voice, speed: cfg.speed ?? 1, gain: cfg.gain ?? 1,
-    lang, available, voices, model,
+    on: !!cfg.on, picture: !!cfg.picture, voice, speed: cfg.speed ?? 1, gain: cfg.gain ?? 1,
+    lang, available, voices, model, fitted,
     lines: project.shots.filter(s => s.say?.trim()).length
   }
 }
@@ -431,9 +579,11 @@ export async function pruneVoice(project) {
 }
 
 // Turns the voice-over on or off, or changes its voice, speed or volume
-export function setVoice(project, { on, voice, speed, gain } = {}) {
+// picture: the picture leads, so the fit never changes a shot's length
+export function setVoice(project, { on, voice, speed, gain, picture } = {}) {
   const change = {}
   if (on != null) change.on = !!on
+  if (picture != null) change.picture = !!picture
   if (voice != null) change.voice = String(voice)
   if (speed != null) {
     change.speed = Number(speed)

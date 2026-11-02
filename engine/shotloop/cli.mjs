@@ -11,7 +11,7 @@
 //   shotloop deliver-copy <project> --to <export folder> [--name] [--lang]   the publish copy, written later
 //   shotloop cover    <project> [--frame <shot>@<seconds> | --none] [--preview]
 //                     (--frame/--none: set the background frame first; --preview: to .shotloop/cover.png)
-//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>] [--no-voice]
+//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>] [--voice-over]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
 //   shotloop move     <project> --to <folder>               move a project (a draft being saved)
@@ -26,19 +26,24 @@
 //                     use <project> <id> | unuse <project> <id> | import <file.glb|sound> [--title]
 //                     the asset library: 3D models and sounds
 //   shotloop voice    <project> [--on|--off] [--voice <id>] [--speed 0.8–1.25] [--gain 0–2] [--fit]
+//                     [--lines '{"<shot>": "…"}'] [--picture]
 //                     the voice-over: settings, the voices for the project's language,
+//                     --lines: what each shot says; --picture: the picture leads (no shot changes length)
+//                     --no-fit: change the settings only (the app fits as a queue job, with progress)
 //                     --fit: speak every line and fit the shots to them (a new voice or speed fits too)
 //                     --sample: a WAV of the voice saying the first line, to choose by ear
 //   shotloop sound    <project> [--ambience room|wind|space|machine|night|none] [--ambience-gain 0–2]
 //                     [--effects on|off] [--effects-gain 0–2] [--cue <shot>@<at>:<sound> | --kind <sound>] [--off]
 //                     the ambience and the shots' sound effects (sounds.json), which are on
+//   shotloop timeline <project>                          the sound as the studio's timeline shows it: each
+//                     track alone at gain 1 with its waveform (the app mixes them), the voice's lines, the effects' cues
 //   shotloop voice-models [--download <id>]                the speech models: languages, size, license,
 //                     on this Mac or not; --download fetches one (progress in MB)
 //   shotloop check-subtitles <project> [--shot <id>]      what the voice-over's subtitles would cover
 //                     (text, data-keep elements, subtitles.keep regions); fails when it covers anything
 //   shotloop pick     <project> --shot <id>             what is where on a 2D shot's three stills,
 //                     for the person to point at what the agent should change
-//   shotloop music    <project> [--preset calm|bright|groove|tech|tense | --shuffle | --file <audio> | --none] [--gain 0–2] [--bed]
+//   shotloop music    <project> [--preset calm|bright|groove|tech|tense | --shuffle | --file <audio> | --none] [--gain 0–2]
 //   shotloop covers   list | save <project> [--title <name>] | apply <project> <id> | remove <id>
 //                     | reference <project> --file <image>     cover templates, an image to design after
 //   shotloop memory   list | add --text "…" | remove <id>       the AI's memory: the person's notes, its lessons
@@ -77,8 +82,7 @@ import * as memory from './memory.mjs'
 import * as rules from './rules.mjs'
 import { renderShot } from './render.mjs'
 import { pickMap } from './pick.mjs'
-import { musicBed } from './bed.mjs'
-import { fitVoice, pruneVoice, sampleVoice, setVoice, voiceInfo, voiceModels } from './voice.mjs'
+import { fitVoice, pruneVoice, sampleVoice, setLines, setVoice, soundTimeline, voiceInfo, voiceModels } from './voice.mjs'
 import { voiceCues, voiceOn } from './cues.mjs'
 import { AMBIENCE_NAMES, EFFECT_NAMES, projectSounds, setSound, soundCues } from './sound.mjs'
 import { checkSubtitles, describeIssues } from './check.mjs'
@@ -103,12 +107,14 @@ const OPTIONS = {
     voice: { type: 'string' },
     speed: { type: 'string' },
     fit: { type: 'boolean' },
+    'no-fit': { type: 'boolean' },
+    lines: { type: 'string' },
+    picture: { type: 'boolean' },
     sample: { type: 'boolean' },
     download: { type: 'string' },
-    'no-voice': { type: 'boolean' },
+    'voice-over': { type: 'boolean' },
     to: { type: 'string' },
     reset: { type: 'boolean' },
-    bed: { type: 'boolean' },
     all: { type: 'boolean' },
     file: { type: 'string' },
     none: { type: 'boolean' },
@@ -354,17 +360,17 @@ try {
       const project = loadProject(args[0])
       const change = values.preset || values.shuffle || values.file || values.none || values.gain != null
       const info = change ? setMusic(project, { preset: values.preset, shuffle: values.shuffle, file: values.file, none: values.none, gain: values.gain }) : musicInfo(project)
-      // --bed: the bed itself, to listen to (made now if needed)
-      result(values.bed ? { ...info, bed: await musicBed(loadProject(args[0])) } : info)
+      result(info)
       break
     }
     case 'voice': {
       let project = loadProject(args[0])
-      const change = values.on || values.off || values.voice || values.speed != null || values.gain != null
-      if (change) project = setVoice(project, { on: values.on ? true : values.off ? false : null, voice: values.voice, speed: values.speed, gain: values.gain })
+      const change = values.on || values.off || values.voice || values.speed != null || values.gain != null || values.picture
+      if (change) project = setVoice(project, { on: values.on ? true : values.off ? false : null, voice: values.voice, speed: values.speed, gain: values.gain, picture: values.picture || null })
+      if (values.lines) project = setLines(project, JSON.parse(values.lines))
       // A new voice or speed speaks every line again, so the shots are fitted
       // to it (as when asked); a project without lines keeps its timing
-      const refit = values.fit || values.on || values.voice || values.speed != null
+      const refit = values.fit || (!values['no-fit'] && (values.on || values.voice || values.speed != null || values.lines))
       const fitted = refit && voiceOn(project) ? await fitVoice(project) : null
       const sample = values.sample ? await sampleVoice(loadProject(args[0])) : null
       result({ ...(await voiceInfo(loadProject(args[0]))), ...(fitted ? { fit: fitted } : {}), ...(sample ? { sample } : {}) })
@@ -383,6 +389,10 @@ try {
       result({ ...now, ambiences: AMBIENCE_NAMES, sounds: EFFECT_NAMES, library })
       break
     }
+    case 'timeline':
+      // The film's sound as the studio's timeline draws and plays it
+      result(await soundTimeline(loadProject(args[0])))
+      break
     case 'voice-models':
       result(await voiceModels({ download: values.download }))
       break
@@ -429,7 +439,7 @@ try {
         duration: values.duration === 'auto' ? 'auto' : Number(values.duration ?? 30),
         look: values.look ?? '',
         style: values.style ?? '',
-        voice: !values['no-voice']
+        voice: !!values['voice-over']
       }))
       break
     case 'list':

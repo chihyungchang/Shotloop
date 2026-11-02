@@ -1,0 +1,35 @@
+/* The AI sound pass's dialog: the parts to make as checkable rows (each
+   in its track's colour, what it has now on the right), a wish with
+   feelings to start from, the buttons.
+   Layer and order: styles/index.css. */
+
+@layer components {
+
+.sound-ask { --dialog-w: 480px; gap: 14px;
+  --lane-voice: #4f8cff; --lane-ambience: #2fb98a; --lane-effects: #f08a2c; }
+.sound-ask-title { display: flex; flex-direction: column; gap: 2px; }
+.sound-ask-parts { display: flex; flex-direction: column; gap: 6px; }
+.sound-ask-part { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px;
+  border-radius: var(--r-md); border: 1px solid var(--border); cursor: pointer; transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease); }
+.sound-ask-part:hover { border-color: var(--border-strong); }
+.sound-ask-part.on { border-color: color-mix(in srgb, var(--lane) 55%, var(--border)); background: color-mix(in srgb, var(--lane) 6%, transparent); }
+/* Drawn here: WebKit ignores accent-color, so the box takes the track's
+   colour by hand */
+.sound-ask-part input { -webkit-appearance: none; appearance: none; flex: none; width: 18px; height: 18px; min-height: 0; margin: 0; padding: 0;
+  border: 1.5px solid var(--border-strong); border-radius: 5px; background: var(--surface) center / 12px no-repeat; cursor: pointer; }
+.sound-ask-part input:checked { border-color: var(--lane); background-color: var(--lane);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E"); }
+.sound-ask-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sound-ask-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.sound-ask-part .tag.faint { background: transparent; color: var(--text-3); font-weight: 500; }
+.sound-ask-note { display: flex; align-items: center; gap: 6px; margin-top: -6px !important; }
+.sound-ask-wish { display: flex; flex-direction: column; gap: 6px; }
+.sound-ask-label { font-weight: 600; color: var(--text-2); }
+.sound-ask-idea { display: inline-flex; align-items: center; gap: 4px; min-height: 26px; padding: 0 10px; border-radius: var(--r-pill);
+  border: 1px dashed var(--border-strong); background: transparent; font-size: 12px; color: var(--text-2); }
+.sound-ask-idea:hover:not(:disabled) { border-style: solid; color: var(--text); }
+.sound-ask textarea { resize: none; font: inherit; font-size: 12.5px; }
+.sound-ask-foot { align-items: center; }
+.sound-ask-foot > span { margin-right: auto; }
+
+}

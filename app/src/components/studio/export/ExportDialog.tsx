@@ -10,7 +10,7 @@ import { Icon } from '../../Icon'
 import { ChangesDialog } from '../ChangesDialog'
 import { rename } from '../Studio'
 import { COVER_SIZE, CoverEditor, coverSource, useCover } from './CoverEditor'
-import { CopySummary, Music, Publish, Sound, usePublishCopy, Voice } from './parts'
+import { CopySummary, Publish, SoundSummary, usePublishCopy } from './parts'
 import { readExportPrefs, readExportTo, saveExportPrefs, saveExportTo, type Parts } from './prefs'
 
 const ASPECTS: { id: string; label: Key; note: Key }[] = [
@@ -24,12 +24,14 @@ const ASPECTS: { id: string; label: Key; note: Key }[] = [
 // publish copy. Exporting turns the dialog into the run: each part's
 // progress, then the files and the copy per platform. It can close while
 // the export runs; opened again, it shows the run.
-export function ExportDialog({ project, jobs, refresh, openSettings, close }: {
+export function ExportDialog({ project, jobs, refresh, openSettings, close, openSound }: {
   project: Project
   jobs: Job[]
   refresh: () => void
   openSettings: () => void
   close: () => void
+  // The sound is made and changed under the filmstrip: back to it
+  openSound: () => void
 }) {
   const mine = jobs.filter(j => j.project === project.root)
   const exportJob = mine.filter(j => j.kind === 'export').at(-1)
@@ -140,7 +142,7 @@ export function ExportDialog({ project, jobs, refresh, openSettings, close }: {
               </div>
               {view === 'setup'
                 ? (
-                  <Setup project={project} jobs={mine} refresh={refresh} name={name} setName={setName} rename={renameTo} parts={parts} tick={tick} aspects={aspects} setAspects={setAspects}
+                  <Setup project={project} jobs={mine} openSound={openSound} name={name} setName={setName} rename={renameTo} parts={parts} tick={tick} aspects={aspects} setAspects={setAspects}
                     to={to} chooseTo={chooseTo} editCopy={() => setView('copy')} openSettings={openSettings} />
                 )
                 : view === 'copy'
@@ -196,10 +198,10 @@ export function ExportDialog({ project, jobs, refresh, openSettings, close }: {
 
 // The settings: the name and where the files go, then each part to
 // export with its own options
-function Setup({ project, jobs, refresh, name, setName, rename, parts, tick, aspects, setAspects, to, chooseTo, editCopy, openSettings }: {
+function Setup({ project, jobs, openSound, name, setName, rename, parts, tick, aspects, setAspects, to, chooseTo, editCopy, openSettings }: {
   project: Project
   jobs: Job[]
-  refresh: () => void
+  openSound: () => void
   name: string
   setName: (n: string) => void
   rename: () => void
@@ -244,9 +246,7 @@ function Setup({ project, jobs, refresh, name, setName, rename, parts, tick, asp
             })}
           </div>
         </div>
-        <Voice project={project} jobs={jobs} refresh={refresh} />
-        <Music project={project} refresh={refresh} />
-        <Sound project={project} refresh={refresh} />
+        <SoundSummary project={project} open={openSound} />
       </Part>
       <Part on={parts.cover} toggle={() => tick('cover')} label={t('export.cover')} meta={t('xd.coverMeta')} />
       <Part on={parts.copy} toggle={() => tick('copy')} label={t('export.publish')} meta={parts.copy ? '' : t('xd.copyMeta')}>

@@ -244,7 +244,7 @@ export default function App() {
         {copying && <p className="banner copying"><span className="spinner small" /> {t('example.copying')}</p>}
         {page === 'home' && <Home open={open} openSettings={() => openSettings()} ensureFolder={ensureFolder} />}
         {page === 'projects' && <Projects open={open} openFolder={openPicked} />}
-        {page === 'library' && <LibraryPage openSettings={() => openSettings('assets', 'library')} />}
+        {page === 'library' && <LibraryPage jobs={jobs} openSettings={() => openSettings('assets', 'library')} />}
       </main>
     </div>
   )
