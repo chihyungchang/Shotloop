@@ -140,8 +140,9 @@ async function shotTask(kind: ShotKind) {
     : `Review shot ${shot.id} against the checklist and report. Do not edit files.`
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent(kind === 'check' ? 'routine' : 'code', {
-    // Options are wanted quickly: the fix that follows thinks harder
-    effort: kind === 'propose' ? 'low' : 'medium',
+    // A proposal and the fix of the way picked are quick (the thinking is
+    // in the plan the person picked); a check judges every rule
+    effort: kind === 'check' ? 'medium' : 'low',
     system: { fix: fixSystem, check: checkSystem, propose: proposeSystem }[kind](project.track, !!project.voiced) + remembered(project.track, edits) + replyLanguage(values.lang),
     prompt: `${ask}\n\n${shotBrief(project, shot)}`,
     ctx
