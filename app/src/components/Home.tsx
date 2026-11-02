@@ -26,8 +26,11 @@ const TRACKS: Record<Track, { word: Key; chip: Key; hint: Key; idea: Key; icon: 
   '3d': { word: 'home.track.3d', chip: 'home.chip.3d', hint: 'home.hint.3d', idea: 'home.idea.3d', icon: 'cube' }
 }
 const NEXT_TRACK: Record<Track, Track> = { auto: '2d', '2d': '3d', '3d': 'auto' }
-// 'auto': the planner sets the length from the content
+// 'auto': the planner sets the length from the content; any other length
+// in seconds is typed in (the engine takes 6–180 s)
 const LENGTHS = ['auto', '15', '30', '45', '60']
+const CUSTOM = 'custom'
+const MIN_LENGTH = 6, MAX_LENGTH = 180
 
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 6).join('-') || 'untitled'
@@ -94,8 +97,15 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
   const [track, setTrack] = useState<Track>('auto')
   const [aspect, setAspect] = useState<Aspect>('9:16')
   const [length, setLength] = useState('auto')
-  // The voice-over: on for a new film unless turned off here
-  const [voice, setVoice] = useState(true)
+  // The voice-over: off for a new film unless turned on here (then the
+  // picture is timed to it)
+  const [voice, setVoice] = useState(false)
+  // A typed length, kept within what the engine takes once it is left
+  const custom = !LENGTHS.includes(length)
+  const clampLength = () => {
+    const n = Math.round(Number(length))
+    setLength(String(Number.isFinite(n) ? Math.min(MAX_LENGTH, Math.max(MIN_LENGTH, n)) : 30))
+  }
   // 2D: a look, or '' for the AI to pick one that fits the idea
   const [look, setLook] = useState('')
   // 2D: a visual style, or '' for the AI to pick one that fits the idea
@@ -226,12 +236,21 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
                   </button>
                 ))}
               </div>
-              {/* Length as one chip with a menu: four buttons would wrap the row */}
+              {/* Length as one chip with a menu: four buttons would wrap the row.
+                  "Custom" opens a box for any length in seconds */}
               <label className="chip-select" title={t('home.aria.length')}>
                 <Icon name="clock" size={13} />
-                <select value={length} onChange={e => setLength(e.target.value)} aria-label={t('home.aria.length')}>
+                <select value={custom ? CUSTOM : length} onChange={e => setLength(e.target.value === CUSTOM ? '20' : e.target.value)} aria-label={t('home.aria.length')}>
                   {LENGTHS.map(l => <option key={l} value={l}>{l === 'auto' ? t('home.lengthAutoShort') : t('unit.s', { n: l })}</option>)}
+                  <option value={CUSTOM}>{t('home.lengthCustom')}</option>
                 </select>
+                {custom && (
+                  <span className="length-input">
+                    <input type="number" min={MIN_LENGTH} max={MAX_LENGTH} step={1} value={length} onChange={e => setLength(e.target.value)} onBlur={clampLength}
+                      aria-label={t('home.aria.lengthSeconds')} />
+                    {t('home.lengthUnit')}
+                  </span>
+                )}
               </label>
               {/* The voice-over: a round toggle, its state in the icon and the tooltip */}
               <button className={`chip-toggle${voice ? ' on' : ''}`} aria-pressed={voice} onClick={() => setVoice(!voice)}

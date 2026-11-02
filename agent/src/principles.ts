@@ -5,7 +5,7 @@
 // before anything is built (lintPlan). Within them, the AI makes each
 // frame as rich to watch as it can.
 
-import { AMBIENCE_NAMES, EFFECT_NAMES, readTime, rules, SUBTITLE_BAND, VOICE_LEAD, VOICE_TAIL, type Rule, type Tool } from './enginelib.ts'
+import { AMBIENCE_NAMES, EFFECT_NAMES, readTime, rules, SUBTITLE_BAND, VOICE_HOLD, VOICE_LEAD, VOICE_TAIL, type Rule, type Tool } from './enginelib.ts'
 
 type Track = '2d' | '3d'
 const RULES = rules.list()
@@ -65,18 +65,19 @@ const band = (k: 'portrait' | 'landscape') => `${SUBTITLE_BAND[k].map(x => Math.
 
 // How fast a line is spoken, for planning (words, or Chinese and Japanese
 // characters, a second), and the silence its shot gets around it (the
-// engine fits shots with the same)
-const WORDS_PER_S = 2.7
+// engine fits shots with the same). English: Kokoro across the seven
+// voiced examples, 2.9 to 3.7 words a second
+const WORDS_PER_S = 3.2
 const CJK_PER_S = 4.5
 const VOICE_PAD = VOICE_LEAD + VOICE_TAIL
 
-// With a voice-over (on for a new film, engine/shotloop/voice.mjs) the
+// With a voice-over (when the person turns it on, engine/shotloop/voice.mjs) the
 // voice carries the explanation: these rules change the caption and
 // reading rules, and the rest stand
 export const PRINCIPLES_VOICE = `The voice-over (this film has one; it changes the caption and reading rules, the rest stand):
 - The voice explains, the picture shows, the screen sums up. Each shot has a spoken line ("say"): one or two short sentences, plain and conversational, about 8 to 25 words (Chinese or Japanese: 15 to 45 characters). The first shot's line hooks in its first words; the last can be a short sign-off or empty.
 - The voice's words are subtitled automatically, in a band near the bottom (portrait: ${band('portrait')} of the frame height; landscape: ${band('landscape')}). The shot keeps its own text and anything important out of that band, and never repeats the spoken sentence on screen: ${CAPTION_RULE ? 'its on-screen text shrinks to the big number or a label of 1 to 4 words' : 'its on-screen text follows the person\'s caption rule'}.
-- Time follows the voice: after planning, every line is spoken and its shot gets the line's length plus a breath. Plan durations at about ${WORDS_PER_S} words a second (Chinese or Japanese: ${CJK_PER_S} characters a second) plus ${VOICE_PAD} s.
+- Time follows the voice: after planning, every line is spoken and its shot gets the line's length plus a breath. Write each line to fill its shot: about ${WORDS_PER_S} words a second (Chinese or Japanese: ${CJK_PER_S} characters a second) plus ${VOICE_PAD} s. A shot may hold up to ${VOICE_HOLD} s past its line; any longer and it is cut to the line, so a film whose lines are short comes out shorter than planned.
 - The picture lands on the words: a number rolls in, an object appears or a chart turns as the voice says it (the shot's code gets each sentence's start and end).
 - Lines are written to be heard: short words, no lists, no parentheses, no abbreviations a voice can't say (respell an unusual name the way it sounds). Numbers as they are said: digits are fine in English and Chinese; in other languages write numbers in words. Where the screen shows ≈ the voice says "about".`
 
@@ -156,6 +157,11 @@ export function lintVoice(shots: { title?: string; duration: number; text?: stri
     if (words + numbers > 30 || cjk > 55) issues.push(`${name}: the spoken line is too long (${cjk ? `${cjk} characters` : `${words + numbers} words`}); split the beat into two shots or cut it to about 25 words (45 characters)`)
     const need = (words + numbers) / WORDS_PER_S + cjk / CJK_PER_S + VOICE_PAD
     if (s.duration + 1.5 < need) issues.push(`${name}: ${s.duration} s is short for its line (about ${need.toFixed(1)} s spoken); give it the time or cut the line`)
+    // A line far shorter than its shot: the shot would be cut to the line
+    else if (s.duration > need + VOICE_HOLD) {
+      const more = (s.duration - VOICE_HOLD - need) * (cjk ? CJK_PER_S : WORDS_PER_S)
+      issues.push(`${name}: its line (about ${need.toFixed(1)} s spoken) is short for ${s.duration} s and the shot would be cut to it; write about ${Math.ceil(more)} more ${cjk ? 'characters' : 'words'}, or shorten the shot`)
+    }
     if (CAPTION_RULE) for (const c of captions(s.text ?? '')) {
       const u = units(c)
       if (u.words > 6 || u.cjk > 12) issues.push(`${name}: the on-screen text "${c}" is long for a voiced film; the voice says it, the screen shows the number or a label of 1 to 4 words`)

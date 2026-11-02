@@ -22,7 +22,7 @@ import { cachedFile, MODES } from './cache.mjs'
 import { readJson, writeAtomic, writeJson } from './files.mjs'
 import { emit, ffmpeg, progress } from './compose.mjs'
 import { round } from './data.mjs'
-import { sentences, VOICE_LEAD, VOICE_TAIL, voiceLang, voiceOn } from './cues.mjs'
+import { sentences, VOICE_HOLD, VOICE_LEAD, VOICE_TAIL, voiceLang, voiceOn } from './cues.mjs'
 import { loadProject, localPath, projectPath, updateConfig } from './project.mjs'
 import { isStarter } from './starters.mjs'
 import { STORYBOARD_FILE } from './storyboard.mjs'
@@ -184,7 +184,12 @@ export async function fitVoice(project) {
     let duration = shot.duration
     let speed = base
     const free = !fs.existsSync(shot.code) || isStarter(shot.code)
-    if (free) duration = Math.max(MIN_SHOT, ceil1(LEAD + speech + TAIL))
+    // A shot not built yet takes its line's length, keeping the plan's
+    // when that is at most VOICE_HOLD longer (the film keeps its length)
+    if (free) {
+      const need = Math.max(MIN_SHOT, ceil1(LEAD + speech + TAIL))
+      duration = duration >= need && duration <= need + VOICE_HOLD ? duration : need
+    }
     else if (!fits(speech)) {
       // Faster, a little, rather than a longer built shot; if the faster
       // line still doesn't fit (speed isn't linear), the shot grows

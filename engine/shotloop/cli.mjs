@@ -11,7 +11,7 @@
 //   shotloop deliver-copy <project> --to <export folder> [--name] [--lang]   the publish copy, written later
 //   shotloop cover    <project> [--frame <shot>@<seconds> | --none] [--preview]
 //                     (--frame/--none: set the background frame first; --preview: to .shotloop/cover.png)
-//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>] [--no-voice]
+//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>] [--voice-over]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
 //   shotloop move     <project> --to <folder>               move a project (a draft being saved)
@@ -105,7 +105,7 @@ const OPTIONS = {
     fit: { type: 'boolean' },
     sample: { type: 'boolean' },
     download: { type: 'string' },
-    'no-voice': { type: 'boolean' },
+    'voice-over': { type: 'boolean' },
     to: { type: 'string' },
     reset: { type: 'boolean' },
     bed: { type: 'boolean' },
@@ -429,7 +429,7 @@ try {
         duration: values.duration === 'auto' ? 'auto' : Number(values.duration ?? 30),
         look: values.look ?? '',
         style: values.style ?? '',
-        voice: !values['no-voice']
+        voice: !!values['voice-over']
       }))
       break
     case 'list':

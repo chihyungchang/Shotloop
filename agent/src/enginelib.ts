@@ -34,8 +34,9 @@ export const { STYLES, styleById, lookFits, LOOKS, readTime } = await load<{
   readTime: (text: string) => number
 }>('data.mjs')
 export const { styleStills } = await load<{ styleStills: (id: string) => string[] }>('styles.mjs')
-export const { SUBTITLE_BAND, VOICE_LEAD, VOICE_TAIL } = await load<{
+export const { SUBTITLE_BAND, VOICE_HOLD, VOICE_LEAD, VOICE_TAIL } = await load<{
   SUBTITLE_BAND: Record<'portrait' | 'landscape', [number, number]>
+  VOICE_HOLD: number
   VOICE_LEAD: number
   VOICE_TAIL: number
 }>('cues.mjs')

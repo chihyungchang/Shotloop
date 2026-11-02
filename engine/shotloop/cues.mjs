@@ -13,6 +13,10 @@ export const SUBTITLE_BAND = { portrait: [0.68, 0.79], landscape: [0.72, 0.84] }
 // agent plans durations with them)
 export const VOICE_LEAD = 0.2
 export const VOICE_TAIL = 0.45
+// A planned shot may hold this much longer than its line needs (a breath
+// after it): the fit keeps the plan's length within it, so a film keeps
+// the length it was planned at
+export const VOICE_HOLD = 1
 
 // The language spoken (and written in the subtitles): the project's, else
 // read from its lines

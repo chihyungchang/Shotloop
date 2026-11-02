@@ -874,6 +874,11 @@ textarea.autotext { resize: none; overflow: hidden; line-height: 1.5; min-height
 .chip-select { position: relative; display: inline-flex; align-items: center; gap: 4px; padding: 0 4px 0 10px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--text-2); }
 .chip-select select { border: 0; background-color: transparent; min-height: 32px; width: auto; padding: 0 22px 0 0; font-size: 12px; font-weight: 600; color: var(--text); background-position: right 4px center; cursor: pointer; }
 .chip-select select:focus-visible { outline: none; }
+/* A typed length beside the menu: seconds, no spinner */
+.length-input { display: inline-flex; align-items: center; gap: 3px; padding-right: 8px; font-size: 12px; font-weight: 600; color: var(--text-2); }
+.length-input input { width: 38px; min-height: 24px; padding: 0 4px; border: 0; border-radius: var(--r-sm); background: var(--surface); font: inherit; color: var(--text); text-align: right; -moz-appearance: textfield; }
+.length-input input::-webkit-outer-spin-button, .length-input input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.length-input input:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--focus); }
 .look-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .style-row { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
 .style-row .look-row { margin-bottom: 4px; }
