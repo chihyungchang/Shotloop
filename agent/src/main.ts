@@ -27,7 +27,7 @@ import { engine, renderCover, renderStills, status, type ProjectStatus, type Sho
 import { lookFits, memory, parseFlags, rules, STILLS, type Memory } from './enginelib.ts'
 import { emit, exit, reason, setJson, warn } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
-import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, memoryPrompt, planSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, TEMPLATE_RULES } from './prompts.ts'
+import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, kindOf, memoryPrompt, planSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, TEMPLATE_RULES } from './prompts.ts'
 import { lintPlan, lintVoice } from './principles.ts'
 import { newContext, writeAtomic, type ToolContext } from './tools.ts'
 
@@ -120,7 +120,7 @@ async function shotTask(kind: 'fix' | 'check') {
   const record = path.join(project.root, '.shotloop', 'shots', shot.id, 'fixes', stamp())
   // The before stills, in the editor's quality (3D previews, 2D final),
   // the same the agent's renders make; rendered if needed
-  const current = (project.track === '3d' ? shot.draft : shot.final).stills ?? (await renderStills(project.root, shot.id)).stills
+  const current = (kindOf(project) === 'blender' ? shot.draft : shot.final).stills ?? (await renderStills(project.root, shot.id)).stills
   const before = keepStills(current, record, 'before')
 
   const ctx = context(project.root, reviewOnly ? [] : [`shots/${shot.id}/`, 'world/', 'captions.html'])
@@ -132,7 +132,7 @@ async function shotTask(kind: 'fix' | 'check') {
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent(kind === 'fix' ? 'code' : 'routine', {
     effort: kind === 'fix' ? 'high' : 'medium',
-    system: (kind === 'fix' ? fixSystem : checkSystem)(project.track, !!project.voiced) + remembered(project.track, !reviewOnly) + replyLanguage(values.lang),
+    system: (kind === 'fix' ? fixSystem : checkSystem)(kindOf(project), !!project.voiced) + remembered(project.track, !reviewOnly) + replyLanguage(values.lang),
     prompt: `${ask}\n\n${shotBrief(project, shot)}`,
     ctx
   })
@@ -182,8 +182,7 @@ async function planTask() {
   // The plan writes the lines when the voice-over is on (a new film has
   // none yet, so it isn't "voiced" until this plan)
   const speaks = !!project.voice?.on
-  const system = planSystem(project.track, speaks) + remembered(project.track, false) + replyLanguage(values.lang)
-  const threeD = await threeDPossible(project)
+  const system = planSystem(kindOf(project), speaks) + remembered(project.track, false) + replyLanguage(values.lang)
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent('copy', {
     effort: 'medium',
@@ -192,7 +191,7 @@ async function planTask() {
 
 Idea: ${ideaOf(project)}
 Title: ${project.title}
-${trackBrief(project, threeD)} · frame ${size} · target length ${project.lengthAuto ? 'auto (choose it from the content, 15 to 60 s, then make the shots add up to it)' : `${project.duration} s`}${stylesBrief(project, threeD)}${await looksBrief(project)}`,
+${trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 'auto (choose it from the content, 15 to 60 s, then make the shots add up to it)' : `${project.duration} s`}${stylesBrief(project)}${await looksBrief(project)}`,
     ctx
   })
   // The page reads it: it has to be valid
@@ -248,17 +247,6 @@ function keepChosenLook(project: ProjectStatus, before: string | null, earlier?:
   else delete next.lookChosen
   writeAtomic(file, JSON.stringify(next, null, 2) + '\n')
   return ai
-}
-
-// 3D is a choice only for a project made with "auto" and a Mac with Blender
-async function threeDPossible(project: ProjectStatus) {
-  if (!project.trackAuto) return false
-  try {
-    return !!(await engine<{ blender: unknown }>(['doctor'])).blender
-  } catch (err) {
-    warn(`could not ask the engine whether Blender is installed (${reason(err)}); planning in 2D`)
-    return false
-  }
 }
 
 // At most n at a time, in order
@@ -319,7 +307,7 @@ async function buildWorld(project: ProjectStatus, b: Build) {
   const ctx = context(project.root, ['world/', 'captions.html'])
   await runAgent('code', {
     effort: 'high',
-    system: buildWorldSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
+    system: buildWorldSystem(kindOf(project), !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
     prompt: `Design the world of ${head(project)} from its plan.\n\ncopy.md:\n${b.copy}\n\n${worldFiles(project)}\n\n${project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')}`,
     ctx
   })
@@ -367,7 +355,7 @@ async function buildShots(project: ProjectStatus, b: Build, lead: ShotStatus | u
     try {
       const summary = await runAgent('code', {
         effort: 'medium',
-        system: buildShotSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
+        system: buildShotSystem(kindOf(project), !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
         prompt: `Build shot ${shot.id} of ${head(project)} from its plan.\n\ncopy.md:\n${b.copy}\n\n${world}\n\n${shotBrief(project, shot)}`,
         ctx,
         maxTurns: 30
@@ -387,7 +375,7 @@ async function buildShots(project: ProjectStatus, b: Build, lead: ShotStatus | u
 async function renderStale(b: Build) {
   const after = await status(dir)
   for (const s of after.shots) {
-    if ((after.track === '3d' ? s.draft : s.final).stills) continue
+    if ((kindOf(after) === 'blender' ? s.draft : s.final).stills) continue
     emit({ type: 'tool', name: 'render_stills', summary: s.id })
     try {
       await renderStills(after.root, s.id)
@@ -457,7 +445,7 @@ async function coverTask() {
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent('code', {
     effort: template ? 'medium' : 'high',
-    system: coverSystem() + remembered(project.track, false) + replyLanguage(values.lang),
+    system: coverSystem(kindOf(project)) + remembered(project.track, false) + replyLanguage(values.lang),
     prompt: `${ask}${template}${values.template ? 'Fill the template for' : values.reference ? 'Recreate that design for' : 'Design the cover of'} ${head(project)}.\n\nShots:\n${shots}\n\n${docs}\n\n${page} now:\n${read(project.files.cover)}`,
     ctx
   })

@@ -146,6 +146,23 @@ const TASTE = [
     check: 'A picture that recurs across shots (the plan\'s recurring pictures, drawn from world/parts.js) keeps its layout, colors and labels; nothing mirrored or recolored between shots.'
   },
   {
+    id: 'act-it-out', track: '3d', name: 'Act a story out',
+    rule: '3D is for acting a story out, like a film at lower fidelity than real animation: something or someone does things, reacts and moves through a world, and the camera follows. One story with a beginning, a turn and an end, carried by the picture; the voice supports it. A small original character and a world you come back to give it heart and scale (the change seen there, not labelled).'
+  },
+  {
+    id: 'only-3d', track: '3d', name: 'Every shot does what only 3D can',
+    rule: 'A camera moving through space with foreground and parallax, a scale reveal, the view from the surface, riding along with the subject, orbiting round it, a crash zoom that matches into another scale. If 2D could do the shot as well, redo it.',
+    check: 'The shot uses depth: the camera moves through space, or round, along or into the subject; it is not a flat picture a 2D page could draw.'
+  },
+  {
+    id: 'first-frame', track: '3d', name: 'The first frame is the most beautiful',
+    rule: 'Frame one is the hero image of the film, with the hook line over it: the subject big and lit, a striking composition, nothing still loading in.'
+  },
+  {
+    id: 'animation', track: '3d', name: 'Animation principles',
+    rule: 'Anticipation before a big move (the wind-up, the swell before a collapse), ease in and out, overlapping action after it, holds where the beat lands; cuts and hits in step with the music.'
+  },
+  {
     id: 'words-when-needed', track: '3d', name: 'Words only when they help',
     rule: 'The picture and the voice carry a 3D video. Put words or a number on screen only when they make the point easier to grasp: a short label or one key number, on the caption layer.',
     check: 'On-screen text is at most a short label or one key number, and only where it helps.'

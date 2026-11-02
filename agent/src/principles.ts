@@ -81,6 +81,19 @@ export const CODE_2D = `2D code rules:
 - Only when a part can't be shown flat (gears that must mesh, a mechanism turning in space, motion seen from a frame that turns with it), draw that part with three.js; the rest of the shot stays DOM and SVG. const THREE = await ctx.three() in setup(), which also builds the scene once: a WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true }) whose canvas sits behind the stage, sized to the frame. It only has to read clearly, never to look real: simple geometry built in code (boxes, cylinders, extruded shapes, lathes), no model files. render(t) sets every position, rotation and the camera from t, by the mechanism's own math (a gear turned by its ratio, a piston by its crank), then calls renderer.render. Shade it in the look's colors (flat shading, EdgesGeometry lines for a drawn look). Labels and text stay in SVG or the DOM, placed each frame by projecting a point of the part (vector.project(camera)); report the part's projected extent with subtitles.keep.
 - Within a frame, keep caption, picture and source line from overlapping: give each its band of the safe area.`
 
+// How a WebGL 3D shot's code stays renderable frame by frame and reads
+// as film (after oliverzdev ep20's three.js cut)
+export const CODE_WEBGL = `WebGL code rules:
+- Every frame is a pure function of t: no Math.random (kit.hash, kit.prng), no clock, no state carried between frames; physics in closed form or stepped with fixed steps from t = 0 (in setup). Frames and stills are drawn in any order.
+- Build in setup, pose in render: geometry, materials and models are made once in setup; render(t) only sets positions, rotations, scales, visibility and material values, in this order: kit.begin(t); objects; the camera (kit.look); type, labels and kit.keep(); kit.frame().
+- Real sizes in metres, written down in the world module (a watch 0.04 m, a person 1.7 m), the same object the same size in every shot; to make something small readable, use a longer lens or a closer camera, never a bigger object between shots. A stretched size or time is said on screen ("not to scale").
+- One camera move per shot, eased in and out, a lens from 24 mm (places) to 100 mm (close-ups); position, aim and lens never all change at once. Motivate the move: reveal, follow or come closer.
+- Mechanisms by their own math: a gear turned by its ratio, a wheel by its circumference, an orbit by its period; things that touch keep touching.
+- Light reads as light: one key light, a rim, the studio's reflections; emissive parts capped (kit.glow), backgrounds dim, bloom only on small hot parts. Metal and glass need the environment to look like metal and glass.
+- No flicker: no coplanar faces (decals 1 mm proud), the near plane not too close (kit.look sets it from the subject's distance).
+- Text is never in the 3D scene: headlines, numbers and labels are DOM type (kit.caption, kit.label, kit.block) above the world, inside the safe area. Mark the subject the viewer must see each frame with kit.keep(object, 'name') after the camera is set: the subtitle check and the element picker use it, and a person picks a part by that name.
+- Characters (when the story has one): simple and original, built from rounded primitives in a joint hierarchy; poses as tables of joint angles mixed by eased keys; anticipation before a big move, overlapping action after it.`
+
 // The voice-over in a shot's code
 export const CODE_VOICE = `Voice-over in code:
 - ctx.voice is the shot's spoken line, one { text, at, end } per sentence in shot seconds (empty when the shot says nothing). Time reveals to it: a number lands at the moment its sentence says it (estimate within a sentence by its share of the words), and nothing important appears after the last sentence ends.
