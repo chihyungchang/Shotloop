@@ -218,7 +218,8 @@ export interface ShotStatus {
   start: number
   duration: number
   say: string | null
-  // The voice-over's sentences timed in the shot, as its code sees them
+  // The voice-over's sentences timed in the shot, as its code sees them; a
+  // line over a cut starts before 0 or ends after the shot
   cues: { text: string; at: number; end: number }[]
   code: string
   notes: string
@@ -377,6 +378,9 @@ export interface VoiceResult {
     // With the picture leading: lines too long for their shot even spoken
     // faster (seconds spoken, seconds the shot has)
     overruns: { shot: string; spoken: number; room: number }[]
+    // With the picture leading: lines placed over a cut, into the next shot
+    // or starting in the previous one
+    crossings: { shot: string; over: ('previous' | 'next')[] }[]
     // Words the voice can't say, per shot
     unspoken: { shot: string; words: string[] }[]
     duration: number

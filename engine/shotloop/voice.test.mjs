@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { sentences } from './cues.mjs'
-import { chunk, subtitleCues } from './subtitles.mjs'
+import { chunk, subtitleCues, subtitleWindows } from './subtitles.mjs'
 
 test('sentences split at stops, not inside numbers', () => {
   assert.deepEqual(sentences('Only 2.6% is left. Half is gone by day 69.'), ['Only 2.6% is left.', 'Half is gone by day 69.'])
@@ -26,4 +26,15 @@ test('subtitle cues share their sentence’s time in order', () => {
   assert.equal(cues[0].at, 1)
   assert.ok(Math.abs(cues.at(-1).end - 5) < 1e-9)
   for (let i = 1; i < cues.length; i++) assert.equal(cues[i].at, cues[i - 1].end)
+})
+
+test('a line over a cut is subtitled in both shots, each within its own time', () => {
+  // Shot a: 0–3 s; its line runs on to 3.8 s, into shot b (3–6 s)
+  const cues = subtitleCues([{ shot: 'a', text: 'The spring stores the energy.', at: 0.2, end: 3.8 }])
+  const a = subtitleWindows({ id: 'a', start: 0, duration: 3 }, cues)
+  const b = subtitleWindows({ id: 'b', start: 3, duration: 3 }, cues)
+  assert.ok(a.length && b.length)
+  assert.ok(Math.abs(a.at(-1).end - 3) < 1e-9)
+  assert.equal(b[0].at, 0)
+  assert.ok(Math.abs(b.at(-1).end - 0.8) < 1e-9)
 })

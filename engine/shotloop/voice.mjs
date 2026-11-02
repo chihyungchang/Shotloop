@@ -38,6 +38,11 @@ const GAP = 0.25
 const MAX_SPEEDUP = 1.08
 // A shot with a line lasts at least this long
 const MIN_SHOT = 1.5
+// With the picture leading, a line may run over a cut: it keeps this much
+// from the line after it, and starts at most this early in the shot
+// before its own (the voice leads into the cut)
+const LINE_GAP = 0.3
+const MAX_EARLY = 1
 
 // Bump when a change should speak every line again
 const VOICE_VERSION = 1
@@ -142,8 +147,11 @@ async function speakShot(project, shot, opts) {
 }
 
 // Sentences laid out from LEAD on, GAP apart
-function cuesOf(parts) {
-  let t = LEAD
+// Each sentence's time in its shot, the line starting at `start` (shot
+// seconds: LEAD, or where it was placed over a cut, before 0 or running
+// past the shot's end)
+function cuesOf(parts, start = LEAD) {
+  let t = start
   return parts.map(p => {
     const cue = { at: round(t, 2), end: round(t + p.duration, 2) }
     t += p.duration + GAP
@@ -170,8 +178,11 @@ export async function fitVoice(project) {
   tick(0)
   const changes = []
   const overruns = []
+  const crossings = []
   const unspoken = []
   let n = 0
+  // Where the last line ended, in film seconds (the picture leading)
+  let prevEnd = -Infinity
   // What the fit sets, per shot: its length and its line's timing (a shot
   // without a line loses any timing it had)
   const fitted = new Map()
@@ -189,10 +200,19 @@ export async function fitVoice(project) {
     const fits = sp => LEAD + sp + TAIL <= duration + 1e-6
     let duration = shot.duration
     let speed = base
+    let start = LEAD
     const free = !picture && (!fs.existsSync(shot.code) || isStarter(shot.code))
     // A shot not built yet takes its line's length, keeping the plan's
     // when that is at most VOICE_HOLD longer (the film keeps its length)
-    if (free) {
+    if (picture) {
+      const placed = await placeLine(project, shot, { lang, voice, base, prevEnd })
+      ;({ parts, speech, speed } = placed)
+      start = round(placed.at - shot.start, 2)
+      prevEnd = placed.end
+      if (placed.overrun) overruns.push({ shot: shot.id, spoken: round(LEAD + speech + TAIL, 1), room: duration })
+      else if (placed.over.length) crossings.push({ shot: shot.id, over: placed.over })
+    }
+    else if (free) {
       const need = Math.max(MIN_SHOT, ceil1(LEAD + speech + TAIL))
       duration = duration >= need && duration <= need + VOICE_HOLD ? duration : need
     }
@@ -204,13 +224,10 @@ export async function fitVoice(project) {
         speed = round(base * Math.min(MAX_SPEEDUP, speech / room) + 0.005, 2)
         ;({ parts, speech } = await speakShot(project, shot, { lang, voice, speed }))
       }
-      if (!fits(speech)) {
-        if (picture) overruns.push({ shot: shot.id, spoken: round(LEAD + speech + TAIL, 1), room: duration })
-        else duration = Math.max(MIN_SHOT, ceil1(LEAD + speech + TAIL))
-      }
+      if (!fits(speech)) duration = Math.max(MIN_SHOT, ceil1(LEAD + speech + TAIL))
     }
     if (duration !== shot.duration) changes.push({ shot: shot.id, from: shot.duration, to: duration })
-    fitted.set(shot.id, { say: shot.say, fit: { duration, cues: cuesOf(parts), ...(speed !== base ? { sayFast: speed } : {}) } })
+    fitted.set(shot.id, { say: shot.say, fit: { duration, cues: cuesOf(parts, start), ...(speed !== base ? { sayFast: speed } : {}), ...(start !== LEAD ? { sayAt: start } : {}) } })
     tick(++n)
   }
   // Into shotloop.json as it is now: speaking took a while, and a shot
@@ -220,12 +237,46 @@ export async function fitVoice(project) {
     shots: c.shots.map(s => {
       const f = fitted.get(s.id)
       if (!f || f.say !== s.say) return s
-      const { cues, sayFast, ...rest } = s
+      const { cues, sayFast, sayAt, ...rest } = s
       return { ...rest, ...f.fit }
     })
   }))
   syncStoryboard(project.root, shots)
-  return { lang, voice, changes, overruns, unspoken, duration: round(shots.reduce((t, s) => t + s.duration, 0), 2) }
+  return { lang, voice, changes, overruns, crossings, unspoken, duration: round(shots.reduce((t, s) => t + s.duration, 0), 2) }
+}
+
+// With the picture leading, where a line plays (film seconds): in its shot
+// when it fits there, spoken up to 8% faster if need be; else at its own
+// speed over a cut, running on into the next shot (an L-cut) or starting
+// in the last one's tail (a J-cut), as long as it meets no other line (the
+// next shot's line may wait as late as it still fits its shot); else it is
+// an overrun, for its writer to shorten. over: the cuts it crosses
+// ('previous', 'next'); end: where the next line may start after it (an
+// overrun ends where it should, so the lines after it keep their places)
+async function placeLine(project, shot, { lang, voice, base, prevEnd }) {
+  const from = shot.start, to = shot.start + shot.duration
+  const after = project.shots[project.shots.indexOf(shot) + 1]
+  // How late the line may end: before the next shot's line at its latest,
+  // through a next shot that says nothing, or at the film's end
+  const limit = !after ? project.duration - TAIL
+    : after.say?.trim() ? after.start + after.duration - TAIL - (await speakShot(project, after, { lang, voice, speed: base })).speech - LINE_GAP
+    : after.start + after.duration - TAIL
+  const start = Math.max(from + LEAD, prevEnd + LINE_GAP)
+  const spoken = await speakShot(project, shot, { lang, voice, speed: base })
+  const inShot = (r, speed) => ({ ...r, speed, at: start, end: start + r.speech, over: [] })
+  if (start + spoken.speech <= to - TAIL) return inShot(spoken, base)
+  // A little faster first, so the line stays in its shot
+  const room = to - TAIL - start
+  if (room > 0 && spoken.speech / MAX_SPEEDUP <= room) {
+    const speed = round(base * Math.min(MAX_SPEEDUP, spoken.speech / room) + 0.005, 2)
+    const quick = await speakShot(project, shot, { lang, voice, speed })
+    if (start + quick.speech <= to - TAIL) return inShot(quick, speed)
+  }
+  // Over a cut, at its own speed: on past the shot's end, or earlier
+  const earliest = Math.max(0, prevEnd + LINE_GAP, from - MAX_EARLY)
+  const at = start + spoken.speech <= limit ? start : Math.max(earliest, limit - spoken.speech)
+  if (at + spoken.speech > limit + 1e-6 || at >= to - TAIL) return { ...spoken, speed: base, at: start, end: Math.min(start + spoken.speech, limit), over: [], overrun: true }
+  return { ...spoken, speed: base, at, end: at + spoken.speech, over: [...(at < from ? ['previous'] : []), ...(at + spoken.speech > to ? ['next'] : [])] }
 }
 
 // The lines the voice says, by shot ({ "<shot id>": "…" }; "" for none),
@@ -259,7 +310,7 @@ async function voiceLines(project) {
   for (const shot of project.shots) {
     if (!sentences(shot.say).length) continue
     const { parts } = await speakShot(project, shot, { lang, voice, speed: shotSpeed(shot, cfg) })
-    const cues = shot.cues?.length === parts.length ? shot.cues : cuesOf(parts)
+    const cues = shot.cues?.length === parts.length ? shot.cues : cuesOf(parts, shot.sayAt ?? LEAD)
     parts.forEach((p, i) => out.push({ shot: shot.id, text: p.text, at: shot.start + cues[i].at, end: shot.start + cues[i].at + p.duration, file: p.file }))
   }
   return out

@@ -104,7 +104,7 @@ export function applyStoryboard(project) {
   const before = new Map(project.shots.map(s => [s.id, s]))
   const timing = s => {
     const old = before.get(s.id)
-    return old?.cues && old.say === s.say && old.duration === s.duration ? { cues: old.cues, ...(old.sayFast ? { sayFast: old.sayFast } : {}) } : {}
+    return old?.cues && old.say === s.say && old.duration === s.duration ? { cues: old.cues, ...(old.sayFast ? { sayFast: old.sayFast } : {}), ...(old.sayAt != null ? { sayAt: old.sayAt } : {}) } : {}
   }
   const fields = {
     shots: shots.map(s => ({ id: s.id, title: s.title, duration: s.duration, ...(s.say ? { say: s.say, ...timing(s) } : {}) })),

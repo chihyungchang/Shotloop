@@ -111,11 +111,12 @@ function page(size, lang, texts) {
 `
 }
 
-// When each chunk of a shot is on screen, in shot seconds: from its start
-// to the next one's when the gap is short (so the band doesn't flicker
-// between the chunks of a sentence), else to its own end
+// When each chunk is on screen during a shot, in shot seconds: every chunk
+// spoken while it plays, whichever shot's line it is (a line may run over
+// a cut), from its start to the next one's when the gap is short (so the
+// band doesn't flicker between the chunks of a sentence), else to its end
 export function subtitleWindows(shot, cues) {
-  const local = cues.filter(c => c.shot === shot.id)
+  const local = cues.filter(c => c.at < shot.start + shot.duration && c.end > shot.start)
     .map(c => ({ text: c.text, at: Math.max(0, c.at - shot.start), end: Math.min(shot.duration, c.end - shot.start) }))
   return local.map((c, i) => {
     const next = local[i + 1]

@@ -407,9 +407,11 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
       const r = await engine<VoiceResult>(['voice', ctx.root, '--on', '--picture', '--lines', JSON.stringify(lines)])
       ctx.touched.add('shotloop.json')
       const over = r.fit?.overruns ?? []
+      const crossing = r.fit?.crossings ?? []
       const unspoken = r.fit?.unspoken ?? []
       return [
-        over.length ? `Too long even spoken faster; shorten these and set the lines again:\n${over.map(o => `- ${o.shot}: ${o.spoken} s spoken, ${o.room} s of shot`).join('\n')}` : 'Every line fits its shot.',
+        over.length ? `Too long even spoken faster; shorten these and set the lines again:\n${over.map(o => `- ${o.shot}: ${o.spoken} s spoken, ${o.room} s of shot`).join('\n')}` : 'Every line fits.',
+        ...(crossing.length ? [`Over a cut: ${crossing.map(c => `${c.shot} (${c.over.map(o => (o === 'next' ? 'on into the next shot' : 'starting in the previous shot')).join(', ')})`).join('; ')}.`] : []),
         ...(unspoken.length ? [`The voice can't say ${unspoken.map(u => `${u.words.join(', ')} (${u.shot})`).join('; ')}: respell them as they sound.`] : [])
       ].join('\n')
     }
