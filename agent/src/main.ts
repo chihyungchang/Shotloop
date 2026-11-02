@@ -131,11 +131,11 @@ async function shotTask(kind: 'fix' | 'check') {
 
   const ctx = context(project.root, reviewOnly ? [] : [`shots/${shot.id}/`, 'world/'])
   const ask = kind === 'fix'
-    ? `The person says about shot ${shot.id}: "${values.request}"${element ? `\n${elementBrief(element)}` : ''}\n\nFix it, then check the shot.`
+    ? `The person says about shot ${shot.id}: "${values.request}"${element ? `\n${elementBrief(element)}` : ''}\n\nFix it.`
     : `Review shot ${shot.id} against the checklist and report. Do not edit files.`
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent(kind === 'fix' ? 'code' : 'routine', {
-    effort: kind === 'fix' ? 'high' : 'medium',
+    effort: 'medium',
     system: (kind === 'fix' ? fixSystem : checkSystem)(project.track, !!project.voiced) + remembered(project.track, !reviewOnly) + replyLanguage(values.lang),
     prompt: `${ask}\n\n${shotBrief(project, shot)}`,
     ctx
@@ -163,6 +163,9 @@ async function shotTask(kind: 'fix' | 'check') {
     record
   }
   fs.writeFileSync(path.join(record, 'fix.json'), JSON.stringify(result, null, 2) + '\n')
+  // A fix doesn't review the whole checklist: the checks of the shots it
+  // changed described the code before it, so they go (until the next check)
+  for (const id of result.affectedShots) fs.rmSync(path.join(project.root, '.shotloop', 'shots', id, 'checks.json'), { force: true })
   saveChecks(project, ctx)
   const failed = ctx.checks.find(c => c.shot === shot.id)?.results.filter(r => !r.pass).map(r => r.rule) ?? []
   appendHistory(shot, kind === 'fix'

@@ -30,12 +30,18 @@ ${LAYOUT[track]}
 
 Rules of the format: a shot sees the world and its own code only. Anything two shots share lives in the world, and a world change affects every shot.`
 
+// Reading and changing a shot, the same for every task that edits one
 const CRAFT = `How to work:
 - Read before you write: the shot's code, its notes, and the parts of the world it uses.
 - Make the smallest change that fixes the problem. Keep the shot's single camera move and its lens unless the problem is the move itself. Keep code style and comments as they are; comments are English.
-- Change only this shot's files when you can. Change the world only when the fix cannot live in the shot (a prop that blocks every view, a shared material); then say plainly that the world changed and that every shot will re-render.
-- After your changes, render the stills of the shot and look at all three. Judge them against every checklist rule. If something still fails and you can fix it, fix it and render again; stop after three renders of the same shot and report what is left.
-- Call report_checks for the shot after its last render, with a result for every rule.
+- Change only this shot's files when you can. Change the world only when the fix cannot live in the shot (a prop that blocks every view, a shared material); then say plainly that the world changed and that every shot will re-render.`
+
+// A fix does what the person asked, quickly: one render to see it, one
+// more only when it didn't land or broke the frame; a full review is the
+// person's check
+const FIX_LOOP = `- Fix what the person asked, nothing else. Other problems you notice: name them in a sentence (the person can run a check); don't fix them unasked.
+- Render the stills once and look: is the change there, and is the frame unbroken (nothing covered, clipped, blank or unreadable)? Only if not, change it and render once more; never more than two renders.
+- Don't call report_checks: the person runs a check when they want the whole checklist.
 - End with two or three sentences for the person: what you changed and what they should look at. No headings, no lists.`
 
 export function fixSystem(track: Track, voice = false) {
@@ -45,7 +51,8 @@ ${format(track)}${coding(track, voice)}
 
 ${SOUND_KEEP}
 
-${CRAFT}`
+${CRAFT}
+${FIX_LOOP}`
 }
 
 export function checkSystem(track: Track, voice = false) {
@@ -53,9 +60,7 @@ export function checkSystem(track: Track, voice = false) {
 
 ${format(track)}${coding(track, voice)}
 
-${CRAFT}
-
-A check only reviews: look at the stills (render them once if they are missing or out of date), judge each rule, and report. Never edit files; the person asks for a fix of what you found.
+A check only reviews: read the shot's code and notes, look at the stills (render them once if they are missing or out of date), judge every checklist rule, and call report_checks with a result for each. Never edit files; the person asks for a fix of what you found.
 
 The report, in Markdown, each item on its own line: one sentence on how the shot did, then a bullet per failed rule ("- **<rule id>**: what is wrong and where"), then, if any, a bullet or two on what else is worth a look. No headings.`
 }
