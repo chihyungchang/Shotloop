@@ -79,3 +79,13 @@ test('a 3D film is drawn in WebGL or Blender; one from before the choice is Blen
 
   assert.throws(() => newProject(path.join(tmp(), 'bad'), { idea: 'x', track: '3d', renderer: 'unity', duration: 12 }), /renderer/)
 })
+
+test('a WebGL film\'s kit page is brought up to the engine\'s before a command reads it', () => {
+  const dir = path.join(tmp(), 'kit')
+  newProject(dir, { idea: 'How gears mesh', track: '3d', duration: 12 })
+  const page = path.join(dir, 'world', 'page.html')
+  const current = fs.readFileSync(page, 'utf8')
+  fs.writeFileSync(page, current.replace('function frame()', 'function frameOld()'))
+  run('status', dir)
+  assert.equal(fs.readFileSync(page, 'utf8'), current)
+})

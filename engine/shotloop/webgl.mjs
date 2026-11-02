@@ -11,8 +11,14 @@ const ADDONS = {
   RoomEnvironment: 'environments/RoomEnvironment.js',
   EffectComposer: 'postprocessing/EffectComposer.js',
   RenderPass: 'postprocessing/RenderPass.js',
+  GTAOPass: 'postprocessing/GTAOPass.js',
+  TexturePass: 'postprocessing/TexturePass.js',
+  FullScreenQuad: 'postprocessing/Pass.js',
   UnrealBloomPass: 'postprocessing/UnrealBloomPass.js',
   OutputPass: 'postprocessing/OutputPass.js',
+  ShaderPass: 'postprocessing/ShaderPass.js',
+  VignetteShader: 'shaders/VignetteShader.js',
+  FilmPass: 'postprocessing/FilmPass.js',
   GLTFLoader: 'loaders/GLTFLoader.js',
   RoundedBoxGeometry: 'geometries/RoundedBoxGeometry.js',
   Line2: 'lines/Line2.js',
@@ -50,14 +56,24 @@ export function webglPage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
     float(t, amp = 4, period = 3, phase = 0), readTime(text), hash(a, b), prng(seed),
     count(p, from, to, digits = 0), fmt(x, digits = 0), mix(a, b, p) (arrays)
 
-    await init(ctx, { background = '#06080d', exposure = 1, bloom = 0.35, env = 1 })
-                                    once, in setup: three.js, the renderer (ACES tone
-                                    mapping, soft shadows), a studio environment that
-                                    metal and glass reflect (env: its strength), bloom.
-                                    Then kit.THREE, kit.scene, kit.camera, kit.renderer
+    await init(ctx, { background = '#06080d', exposure = 1.2, bloom = 0.15, env = 1, tone = 'agx' })
+                                    once, in setup: three.js, the renderer, a studio
+                                    environment metal and glass reflect (env: its
+                                    strength), tone mapping (agx like Blender, neutral
+                                    for true product colours, aces), bloom on what is
+                                    brighter than white. Then kit.THREE, kit.scene,
+                                    kit.camera, kit.renderer
     begin(t)                        starts a frame: clears the type layer
-    frame()                         draws the frame (after everything is set)
-    post({ bloom, exposure })       change them for this shot or moment
+    frame(pose?)                    draws the frame like an offline renderer: samples
+                                    sub-frames averaged (antialiasing, soft shadows from
+                                    the studio's key light, ambient occlusion, depth of
+                                    field). Pass pose(dt), which sets the scene and camera
+                                    at t + dt, for true motion blur on moving things
+    post({ samples = 8, shutter = 0.5, fstop = 0, focus, ao = 0.8, bloom, exposure,
+           tone, grain = 0.04, vignette = 1 })
+                                    the look of this shot or moment: fstop 2.8 for a
+                                    shallow focus (on the last look's target, or focus
+                                    metres away; 16+ samples), samples 16+ for fast motion
 
     Camera, in metres (1 unit = 1 m; keep real sizes, a watch is 0.04 wide):
     look(from, at, mm = 35)         camera at from [x, y, z], aimed at at, a lens in mm
@@ -66,10 +82,11 @@ export function webglPage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
     One move per shot, eased: mix(from0, from1, ease(...)) between two positions.
 
     Light and sets (call in setup):
-    studio({ floor = '#0b0d12', key = 2.5, rim = '#7aa2ff', fade = 4 })
+    studio({ size = 1, floor = '#0b0d12', key = 2.5, rim = '#7aa2ff', fade = 4 * size })
                                     product light: key light with soft shadows, a rim
                                     light, a fill, a dark floor that fades into the
-                                    background from fade metres away
+                                    background; size: the subject's size in metres
+                                    (0.05 for a watch), so its shadow is crisp
     space({ stars = 5000, seed = 1 }) a star field at infinity (never swims)
     sky(top, horizon)               a gradient dome for outdoor scenes
 
@@ -161,51 +178,169 @@ ${KIT_CORE}      const fall = (t, a, d = 0.4) => 1 - ease((t - a) / d)
       const mix = (a, b, p) => a.map((v, i) => lerp(v, b[i], p))
 
 ${kitType({ headTop, headSize })}      // ---- 3D ----
-      let THREE, A, scene, camera, renderer, composer, bloomPass
+      let THREE, A, scene, camera, renderer, sceneComposer, postComposer, bloomPass, gtaoPass, vignettePass, filmPass, accTarget, addQuad, FPS = 30
+      // The shot time begun, the last aim (for depth of field and the AO's
+      // reach) and the studio's key light (moved for soft shadows)
+      let now = 0, aim = { dist: 1, mm: 35 }, key = null
+      const opts = { samples: 8, shutter: 0.5, fstop: 0, focus: null, ao: 0.8, grain: 0.04, vignette: 1 }
       const kit = {}
+      // Fixed low-discrepancy points for the sub-samples (Halton), never random
+      const halton = (i, b) => { let f = 1, r = 0; while (i > 0) { f /= b; r += f * (i % b); i = Math.floor(i / b) } return r }
 
-      async function init(ctx, { background = '#06080d', exposure = 1, bloom = 0.35, env = 1 } = {}) {
+      async function init(ctx, { background = '#06080d', exposure = 1.2, bloom = 0.15, env = 1, tone = 'agx' } = {}) {
         if (THREE) return kit
         THREE = await ctx.three()
         const names = ${JSON.stringify(Object.keys(ADDONS))}
         const files = ${JSON.stringify(Object.values(ADDONS))}
         const mods = await Promise.all(files.map(f => ctx.three('addons/' + f)))
         A = Object.fromEntries(names.map((n, i) => [n, mods[i][n]]))
+        FPS = ctx.fps ?? 30
 
-        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' })
+        // No hardware antialiasing: the sub-samples are jittered instead
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' })
         renderer.setPixelRatio(DPR)
         renderer.setSize(W, H, false)
         renderer.shadowMap.enabled = true
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap
+        // r186 removed PCFSoftShadowMap; the new PCF is soft, widened by shadow.radius
+        renderer.shadowMap.type = THREE.PCFShadowMap
+        renderer.transmissionResolutionScale = 1
         scene = new THREE.Scene()
         scene.background = new THREE.Color(background)
         const pmrem = new THREE.PMREMGenerator(renderer)
-        scene.environment = pmrem.fromScene(new A.RoomEnvironment(), 0.04).texture
+        scene.environment = pmrem.fromScene(studioLight(), 0.02, 0.1, 50).texture
         scene.environmentIntensity = env
         camera = new THREE.PerspectiveCamera(40, W / H, 0.01, 2000)
-        composer = new A.EffectComposer(renderer)
-        composer.setPixelRatio(DPR)
-        composer.setSize(W, H)
-        composer.addPass(new A.RenderPass(scene, camera))
-        bloomPass = new A.UnrealBloomPass(new THREE.Vector2(W * DPR, H * DPR), bloom, 0.45, 0.9)
-        composer.addPass(bloomPass)
-        // Tone mapping (ACES) and sRGB at the end, after bloom
-        renderer.toneMapping = THREE.ACESFilmicToneMapping
+
+        const px = new THREE.Vector2(Math.round(W * DPR), Math.round(H * DPR))
+        const target = () => new THREE.WebGLRenderTarget(px.x, px.y, { type: THREE.HalfFloatType })
+        // One sub-sample: the scene and its ambient occlusion, in linear HDR
+        sceneComposer = new A.EffectComposer(renderer, target())
+        sceneComposer.renderToScreen = false
+        sceneComposer.addPass(new A.RenderPass(scene, camera))
+        // GTAO makes its denoise noise with Math.random when built: seeded
+        // here, so every page (and every still) draws the same
+        const random = Math.random
+        Math.random = prng(7)
+        try {
+          gtaoPass = new A.GTAOPass(scene, camera, px.x, px.y)
+        } finally {
+          Math.random = random
+        }
+        gtaoPass.output = A.GTAOPass.OUTPUT.Default
+        sceneComposer.addPass(gtaoPass)
+        // The sub-samples, averaged
+        accTarget = target()
+        addQuad = new A.FullScreenQuad(new THREE.ShaderMaterial({
+          uniforms: { map: { value: null }, weight: { value: 1 } },
+          vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+          fragmentShader: 'uniform sampler2D map; uniform float weight; varying vec2 vUv; void main() { gl_FragColor = texture2D(map, vUv) * weight; }',
+          blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false, transparent: true
+        }))
+        // Once a frame, on the average: bloom, tone mapping, vignette, grain
+        postComposer = new A.EffectComposer(renderer)
+        postComposer.setPixelRatio(DPR)
+        postComposer.setSize(W, H)
+        postComposer.addPass(new A.TexturePass(accTarget.texture))
+        // Only what is brighter than white glows (emissives, hot highlights)
+        bloomPass = new A.UnrealBloomPass(px, bloom, 0.35, 1.0)
+        postComposer.addPass(bloomPass)
+        renderer.toneMapping = TONES[tone] ?? TONES.agx
         renderer.toneMappingExposure = exposure
-        composer.addPass(new A.OutputPass())
+        postComposer.addPass(new A.OutputPass())
+        vignettePass = new A.ShaderPass(A.VignetteShader)
+        vignettePass.uniforms.offset.value = 1.0
+        postComposer.addPass(vignettePass)
+        filmPass = new A.FilmPass(opts.grain, false)
+        postComposer.addPass(filmPass)
         Object.assign(kit, { THREE, scene, camera, renderer })
         return kit
       }
+      const TONES = { get agx() { return THREE.AgXToneMapping }, get neutral() { return THREE.NeutralToneMapping }, get aces() { return THREE.ACESFilmicToneMapping } }
 
-      function post({ bloom, exposure } = {}) {
-        if (bloom != null) bloomPass.strength = bloom
-        if (exposure != null) renderer.toneMappingExposure = exposure
+      // The light metal and glass reflect: three.js's room (an even, bright
+      // base, so no face goes black) with product lights in it: a large
+      // softbox above, two tall strips at the sides, a rim behind and a soft
+      // fill from the camera's side
+      function studioLight() {
+        const env = new A.RoomEnvironment()
+        const panel = (w, h, power, pos, tint = '#ffffff') => {
+          const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(tint).multiplyScalar(power), side: THREE.DoubleSide }))
+          m.position.set(...pos)
+          m.lookAt(0, 0, 0)
+          env.add(m)
+        }
+        panel(6, 3, 6, [0, 6.5, 1])
+        panel(1.5, 6, 8, [-6.5, 1.5, 2])
+        panel(1.5, 6, 4, [6.5, 1.5, -1], '#dfe8ff')
+        panel(5, 1.5, 3, [0, 2.5, -6.5], '#ffe9d6')
+        return env
       }
 
-      const begin = () => { parts = []; ui.innerHTML = '' }
-      function frame() {
-        scene.updateMatrixWorld()
-        composer.render()
+      // samples: sub-samples a frame (8; 16+ for fast motion or depth of
+      // field); shutter: the fraction of a frame the shutter is open; fstop:
+      // depth of field (0 off, 2.8 shallow), focused at the last look's
+      // target or at focus metres; ao: ambient occlusion 0–1; grain; vignette
+      function post({ bloom, exposure, tone, samples, shutter, fstop, focus, ao, grain, vignette } = {}) {
+        if (bloom != null) bloomPass.strength = bloom
+        if (exposure != null) renderer.toneMappingExposure = exposure
+        if (tone != null) renderer.toneMapping = TONES[tone] ?? TONES.agx
+        Object.assign(opts, Object.fromEntries(Object.entries({ samples, shutter, fstop, focus, ao, grain, vignette }).filter(([, v]) => v !== undefined)))
+      }
+
+      const begin = t => { now = t ?? 0; parts = []; ui.innerHTML = '' }
+      // Draws the frame: opts.samples sub-samples, each jittered by a
+      // fraction of a pixel (antialiasing), with the key light moved over its
+      // disk (soft shadows), the lens over its aperture (depth of field) and,
+      // when the shot passes pose(dt), the scene at t + dt within the shutter
+      // (motion blur); averaged in linear light, then bloom, tone, grade once
+      function frame(pose) {
+        const n = Math.max(1, Math.round(opts.samples))
+        const w = accTarget.width, h = accTarget.height
+        const focalPx = (h / 2) / Math.tan(camera.fov * Math.PI / 360)
+        const focus = opts.focus ?? aim.dist
+        const lens = opts.fstop > 0 ? aim.mm / 1000 / (2 * opts.fstop) : 0
+        const right = new THREE.Vector3(), up = new THREE.Vector3(), home = camera.position.clone()
+        const autoClear = renderer.autoClear
+        renderer.setRenderTarget(accTarget)
+        renderer.setClearColor(0x000000, 0)
+        renderer.clear()
+        gtaoPass.blendIntensity = opts.ao
+        for (let i = 0; i < n; i++) {
+          if (pose && opts.shutter > 0) pose(((i + 0.5) / n - 0.5) * opts.shutter / FPS)
+          camera.updateMatrixWorld()
+          camera.matrixWorld.extractBasis(right, up, new THREE.Vector3())
+          // The lens over its aperture, the image shifted so the focus plane stays put
+          const r = lens * Math.sqrt(halton(i + 1, 5)), a = 2 * Math.PI * halton(i + 1, 7)
+          const lx = r * Math.cos(a), ly = r * Math.sin(a)
+          const base = camera.position.clone()
+          camera.position.addScaledVector(right, lx).addScaledVector(up, ly)
+          camera.setViewOffset(w, h, halton(i + 1, 2) - 0.5 - lx * focalPx / focus, halton(i + 1, 3) - 0.5 + ly * focalPx / focus, w, h)
+          camera.updateMatrixWorld()
+          if (key) {
+            const kr = key.r * Math.sqrt(halton(i + 1, 11)), ka = 2 * Math.PI * halton(i + 1, 13)
+            key.light.position.copy(key.home).add(new THREE.Vector3(Math.cos(ka) * kr, 0, Math.sin(ka) * kr))
+          }
+          scene.updateMatrixWorld()
+          sceneComposer.render(0)
+          renderer.autoClear = false
+          renderer.setRenderTarget(accTarget)
+          addQuad.material.uniforms.map.value = sceneComposer.readBuffer.texture
+          addQuad.material.uniforms.weight.value = 1 / n
+          addQuad.render(renderer)
+          renderer.autoClear = autoClear
+          camera.position.copy(base)
+        }
+        camera.clearViewOffset()
+        camera.position.copy(home)
+        camera.updateMatrixWorld()
+        if (key) key.light.position.copy(key.home)
+        if (pose && opts.shutter > 0) pose(0)
+        renderer.setRenderTarget(null)
+        vignettePass.uniforms.darkness.value = opts.vignette
+        filmPass.uniforms.intensity.value = opts.grain
+        // Grain seeded by the shot time: the same frame draws the same
+        filmPass.uniforms.time.value = now
+        postComposer.render(0)
       }
 
       // ---- Camera ----
@@ -215,11 +350,15 @@ ${kitType({ headTop, headSize })}      // ---- 3D ----
       function look(from, at, mm = 35) {
         camera.position.set(...from)
         camera.fov = lensFov(mm)
-        camera.near = Math.max(0.005, camera.position.distanceTo(new THREE.Vector3(...at)) / 200)
+        const dist = camera.position.distanceTo(new THREE.Vector3(...at))
+        aim = { dist, mm }
+        camera.near = Math.max(0.005, dist / 200)
         camera.far = camera.near * 4000
         camera.updateProjectionMatrix()
         camera.lookAt(...at)
         camera.updateMatrixWorld()
+        // Occlusion reaches a few percent of the distance to the subject
+        gtaoPass?.updateGtaoMaterial({ radius: dist * 0.05, thickness: dist * 0.1, distanceFallOff: 1, scale: 1, samples: 16 })
       }
       const orbit = (at, r, deg, y = 0) => [at[0] + r * Math.sin(deg * Math.PI / 180), at[1] + y, at[2] + r * Math.cos(deg * Math.PI / 180)]
 
@@ -316,21 +455,27 @@ ${kitType({ headTop, headSize })}      // ---- 3D ----
       }
 
       // ---- Light and sets ----
-      function studio({ floor = '#0b0d12', key = 2.5, rim = '#7aa2ff', fade = 4 } = {}) {
+      // size: the subject's size in metres: the lights, the shadow's reach
+      // (fitted tight: that, more than its resolution, makes it crisp) and
+      // the floor's fade follow it
+      function studio({ size = 1, floor = '#0b0d12', key: power = 2.5, rim = '#7aa2ff', fade = 4 * size } = {}) {
         const g = new THREE.Group()
-        const k = new THREE.DirectionalLight('#fff4e6', key)
-        k.position.set(2, 4, 3)
+        const k = new THREE.DirectionalLight('#fff4e6', power)
+        k.position.set(2 * size, 4 * size, 3 * size)
         k.castShadow = true
-        k.shadow.mapSize.set(2048, 2048)
-        k.shadow.radius = 6
-        k.shadow.bias = -0.0002
-        Object.assign(k.shadow.camera, { left: -2, right: 2, top: 2, bottom: -2, near: 0.1, far: 20 })
-        const r = new THREE.DirectionalLight(rim, key * 0.8)
-        r.position.set(-3, 2, -3)
-        g.add(k, r, new THREE.HemisphereLight('#cfd8ff', '#0b0b10', 0.35))
+        k.shadow.mapSize.set(4096, 4096)
+        k.shadow.radius = 3
+        k.shadow.bias = -0.0004
+        k.shadow.normalBias = 0.02 * size
+        Object.assign(k.shadow.camera, { left: -1.5 * size, right: 1.5 * size, top: 1.5 * size, bottom: -1.5 * size, near: 0.5 * size, far: 12 * size })
+        // Moved over a disk each sub-sample: an area light's soft shadow
+        key = { light: k, home: k.position.clone(), r: 0.6 * size }
+        const r = new THREE.DirectionalLight(rim, power * 0.8)
+        r.position.set(-3 * size, 2 * size, -3 * size)
+        g.add(k, r, new THREE.HemisphereLight('#cfd8ff', '#0b0b10', 0.25))
         // Dark and rough: it takes shadows and a little light, and barely
         // mirrors the studio, so it never reads as a wall
-        const f = new THREE.Mesh(new THREE.CircleGeometry(30, 64), new THREE.MeshStandardMaterial({ color: floor, roughness: 0.9, envMapIntensity: 0.12 }))
+        const f = new THREE.Mesh(new THREE.CircleGeometry(30 * size, 64), new THREE.MeshStandardMaterial({ color: floor, roughness: 0.9, envMapIntensity: 0.12 }))
         f.rotation.x = -Math.PI / 2
         f.receiveShadow = true
         g.add(f)

@@ -62,9 +62,9 @@ import { readJson, writeJson } from './files.mjs'
 import { deliverCopy } from './deliver.mjs'
 import { emit, setJson } from './compose.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
-import { isStarterCover } from './starters.mjs'
+import { freshWebglPage, isStarterCover } from './starters.mjs'
 import { assemble, exportFilm, filmPreview, renderCover, setCoverFrame } from './film.mjs'
-import { finalSamples, findShot, loadProject } from './project.mjs'
+import { finalSamples, findShot, isProject, loadProject } from './project.mjs'
 import { musicInfo, samplesInfo, setMusic, setSamples, setStyle, setTitle } from './settings.mjs'
 import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
 import * as covers from './covers.mjs'
@@ -133,6 +133,9 @@ const OPTIONS = {
 const { values, positionals } = parseFlags(process.argv.slice(2), OPTIONS)
 setJson(!!values.json)
 const [cmd, ...args] = positionals
+
+// A WebGL film's kit is kept current before any command reads the film
+if (args[0] && isProject(args[0])) freshWebglPage(args[0])
 
 const result = value => {
   if (values.json) emit({ type: 'result', value })

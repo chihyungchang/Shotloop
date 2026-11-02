@@ -10,7 +10,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { DEFAULT_LOOK, HUES, lookById, round } from './data.mjs'
 import { lookPage, pageLayout, styleFiles } from './looks.mjs'
-import { codeFile, cssSize } from './project.mjs'
+import { codeFile, cssSize, rendererOf } from './project.mjs'
+import { readJson, writeAtomic } from './files.mjs'
 import { webglPage } from './webgl.mjs'
 
 // Code nobody has touched yet: the starter the engine wrote
@@ -138,13 +139,28 @@ for fc in kit.fcurves(subject.animation_data.action):
         k.interpolation = 'LINEAR'
 `
 
+const webglWorld = size => webglPage(lookById(DEFAULT_LOOK), { ...pageLayout(size), hue: HUES.dark })
+
+// A WebGL film's world page is the engine's (its kit; the film's own
+// world is in world/*.js): brought up to this engine's kit before a
+// command reads the project, so an improved kit reaches every film (its
+// shots render again, as for any world change)
+export function freshWebglPage(root) {
+  const cfg = readJson(path.join(root, 'shotloop.json'), null)
+  if (!cfg || rendererOf(root, cfg) !== 'webgl') return
+  const file = path.join(root, 'world', 'page.html')
+  if (!fs.existsSync(file) || !fs.readFileSync(file, 'utf8').includes('shotloop-renderer: webgl')) return
+  const page = webglWorld(cfg.size)
+  if (fs.readFileSync(file, 'utf8') !== page) writeAtomic(file, page)
+}
+
 // The 3D starter world for a film of this length and size: a WebGL page
 // (world/page.html), its type in the default look, or a Blender scene
 // (world/world.py)
 export function writeWorld3d(root, renderer, duration, size) {
   fs.mkdirSync(path.join(root, 'world'), { recursive: true })
   if (renderer === 'webgl') {
-    fs.writeFileSync(path.join(root, 'world', 'page.html'), webglPage(lookById(DEFAULT_LOOK), { ...pageLayout(size), hue: HUES.dark }))
+    fs.writeFileSync(path.join(root, 'world', 'page.html'), webglWorld(size))
     return
   }
   fs.writeFileSync(path.join(root, 'world', 'world.py'),
