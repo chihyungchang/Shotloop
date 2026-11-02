@@ -5,6 +5,7 @@ import { isActive } from '../../model'
 import { AgentError } from '../AgentError'
 import { Icon } from '../Icon'
 import { RuleRef } from '../RuleRef'
+import { Markdown } from './code'
 import { CompareStills } from './CompareStills'
 import { ElementChip, type PickerState } from './Picker'
 import type { Key } from '../../i18n/en'
@@ -140,7 +141,8 @@ function Exchange({ fix, openRule, fixFound }: { fix: FixRecord; openRule: (id: 
         {fix.at && <span className="time">{formatDate(fix.at, { hour: '2-digit', minute: '2-digit' })}</span>}
       </div>
       <div className="bubble agent">
-        <p>{fix.summary}</p>
+        {/* The reply as the AI wrote it: bold, lists and code in Markdown */}
+        <Markdown source={fix.summary} />
         {fix.worldTouched && (
           <p className="world-note">
             {t('agent.worldChanged', { files: fix.touched.filter(f => !f.startsWith('shots/')).join(', '), n: fix.affectedShots.length })}

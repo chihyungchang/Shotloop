@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent as KeyEvent, type MouseEvent, type RefObject } from 'react'
 import { api, fileUrl, relPath, type Mode, type PickMap, type Project, type Shot, type Take } from '../../api'
 import { useErrorLine } from '../../hooks'
-import { estimate, formatSeconds, isWide, shotTime, stageName, STILL_NAMES, type ShotView } from '../../model'
+import { estimate, formatSeconds, shotTime, stageName, STILL_NAMES, type ShotView } from '../../model'
 import { baseName } from '../../recent'
 import { CodeArea, Markdown } from './code'
 import { framePoint, Highlight, lookup, type Pick, type PickerState } from './Picker'
@@ -32,11 +32,18 @@ export function Stage({ project, shot, view, mode, refresh, picker, follow }: {
   const busy = view.state === 'rendering' || view.state === 'queued'
   const clip = take ? take.preview ?? take.clip : view.clip
   const version = take?.take ?? view.take?.take
-  const wide = isWide(project.size)
   const takes = [...shot.takes].reverse()
   const { error, guard } = useErrorLine()
   const stage = useRef<HTMLDivElement>(null)
-  const fit = useFit(stage, project.size.width / project.size.height)
+  // The clip, and the three stills side by side or one above another,
+  // whichever shows them bigger on the stage as it is now
+  const inner = useInnerSize(stage)
+  const aspect = project.size.width / project.size.height
+  const clipBox = inner && fitIn(inner.w, inner.h, aspect)
+  const across = inner && fitIn((inner.w - 2 * STILL_GAP) / 3, inner.h - CAPTION, aspect)
+  const down = inner && fitIn(inner.w, (inner.h - 2 * STILL_GAP) / 3 - CAPTION, aspect)
+  const stacked = !!down && !!across && down.width > across.width
+  const stillBox = stacked ? down : across
   const picking = picker.picking && tab === 'stills'
   // The pick map of the shot's code as it is now (its cache key), one
   // that could not be made (its key), the thing under the pointer, and a
@@ -153,27 +160,27 @@ export function Stage({ project, shot, view, mode, refresh, picker, follow }: {
           <pre className="stage-error">{t('stage.failed', { mode: t(`mode.${shot.error.mode}`), message: shot.error.message })}</pre>
         )}
         {tab === 'preview' && (clip
-          ? <VideoPlayer key={clip} src={fileUrl(clip, version)} className="shot" style={fit ?? undefined} follow={follow} />
+          ? <VideoPlayer key={clip} src={fileUrl(clip, version)} className="shot" style={clipBox ?? undefined} follow={follow} />
           : <div className="stage-empty">
               <p>{t('stage.noClip', { mode: t(`mode.${mode}`) })}</p>
               <button onClick={() => render(mode, false)}>{t('stage.renderMode', { mode: t(`mode.${mode}`), time: formatSeconds(estimate(project, shot, mode)) })}</button>
             </div>)}
         {tab === 'stills' && (stills
-          ? <div className={`stage-stills${wide ? ' wide' : ''}`}>
+          ? <div className={`stage-stills${stacked ? ' stacked' : ''}`}>
               {STILL_NAMES.map((name, i) => (
                 <figure key={name}>
-                  <img src={fileUrl(stills[i], version)} alt={t(name)} data-still={i} onClick={() => guard(api.openPath(stills[i]))} />
+                  <img src={fileUrl(stills[i], version)} alt={t(name)} data-still={i} style={stillBox ?? undefined} onClick={() => guard(api.openPath(stills[i]))} />
                   <figcaption>{view.stale && !take ? t('stage.staleTag', { name: t(name) }) : t(name)}</figcaption>
                 </figure>
               ))}
             </div>
           : (
             // Where the three stills will be, with the way to get them
-            <div className={`stage-stills placeholder${wide ? ' wide' : ''}${busy ? ' busy' : ''}`}>
+            <div className={`stage-stills placeholder${stacked ? ' stacked' : ''}${busy ? ' busy' : ''}`}>
               {STILL_NAMES.map(name => (
                 <figure key={name}>
-                  {/* A transparent image of the frame's shape, laid out like a still */}
-                  <img className="still-ph" src={wide ? SPACER_WIDE : SPACER_TALL} alt="" />
+                  {/* The frame's shape, where the still will be */}
+                  <span className="still-ph" style={stillBox ?? undefined} />
                   {busy && <span className="shimmer sweep" />}
                   <figcaption>{t(name)}</figcaption>
                 </figure>
@@ -306,9 +313,9 @@ function Editor({ project, file, version, onSaved }: { project: Project; file: s
   )
 }
 
-const spacer = (w: number, h: number) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"/>`)}`
-const SPACER_TALL = spacer(9, 16)
-const SPACER_WIDE = spacer(16, 9)
+// Between the three stills, and under each its caption (Studio.css)
+const STILL_GAP = 14
+const CAPTION = 22
 
 // Lines of code in outline while the file loads
 function CodeSkeleton() {
@@ -320,12 +327,12 @@ function CodeSkeleton() {
   )
 }
 
-// The largest box of an aspect that fits in an element (inside its
-// padding), measured again whenever the element changes size. A video
-// sized by height: 100% alone keeps, in WebKit, the width it first got
-// from a smaller stage and shows squeezed once the stage grows
-function useFit(ref: RefObject<HTMLElement | null>, aspect: number) {
-  const [fit, setFit] = useState<{ width: number; height: number } | null>(null)
+// An element's inner size (inside its padding), measured again whenever
+// it changes. The stage sizes its clip and stills from it: sized by a
+// percentage alone, WebKit keeps the size a smaller stage first gave them
+// and shows them squeezed or small once the stage grows
+function useInnerSize(ref: RefObject<HTMLElement | null>) {
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null)
   useEffect(() => {
     const el = ref.current
     if (!el) return
@@ -333,13 +340,18 @@ function useFit(ref: RefObject<HTMLElement | null>, aspect: number) {
       const cs = getComputedStyle(el)
       const w = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
       const h = el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)
-      const width = Math.max(0, Math.floor(Math.min(w, h * aspect)))
-      setFit(f => (f?.width === width ? f : { width, height: Math.floor(width / aspect) }))
+      setSize(s => (s?.w === w && s.h === h ? s : { w, h }))
     }
     measure()
     const watch = new ResizeObserver(measure)
     watch.observe(el)
     return () => watch.disconnect()
-  }, [ref, aspect])
-  return fit
+  }, [ref])
+  return size
+}
+
+// The largest box of an aspect inside w × h
+function fitIn(w: number, h: number, aspect: number) {
+  const width = Math.max(0, Math.floor(Math.min(w, h * aspect)))
+  return { width, height: Math.floor(width / aspect) }
 }
