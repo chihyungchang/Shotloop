@@ -11,15 +11,17 @@ import type { useTheme } from '../theme/theme'
 import { AiSettings } from './AiSettings'
 import { Icon } from './Icon'
 import { MemorySettings } from './MemorySettings'
+import { RulesSettings } from './RulesSettings'
 import { Setup } from './Setup'
 import { ThemeToggle } from './ThemeToggle'
 import { VoiceDownload } from './VoiceDownload'
 import licenses from '../licenses.json'
 
-export type Section = 'ai' | 'memory' | 'assets' | 'general' | 'deps' | 'about'
+export type Section = 'ai' | 'rules' | 'memory' | 'assets' | 'general' | 'deps' | 'about'
 
 const SECTIONS: [Section, Key, Parameters<typeof Icon>[0]['name']][] = [
   ['ai', 'settings.ai', 'spark'],
+  ['rules', 'settings.rules', 'rules'],
   ['memory', 'settings.memory', 'book'],
   ['assets', 'settings.assets', 'cube'],
   ['general', 'settings.general', 'settings'],
@@ -83,11 +85,12 @@ export function SettingsPage({ theme, language, jobs, back, start = 'ai', backLa
             </div>
           )}
           {/* Not read (yet, or at all: the app's banner says why) */}
-          {!settings && section !== 'about' && section !== 'memory' && <p className="muted">{t('common.loading')}</p>}
+          {!settings && section !== 'about' && section !== 'memory' && section !== 'rules' && <p className="muted">{t('common.loading')}</p>}
           {settings && section === 'ai' && <AiSettings settings={settings} update={update} />}
           {settings && section === 'general' && <General settings={settings} savePref={savePref} theme={theme} language={language} />}
           {settings && section === 'deps' && <><Setup settings={settings} update={update} /><VoiceModels jobs={jobs} /></>}
           {settings && section === 'assets' && <AssetSources settings={settings} update={update} />}
+          {section === 'rules' && <RulesSettings />}
           {section === 'memory' && <MemorySettings />}
           {section === 'about' && <AboutSection />}
         </div>

@@ -236,6 +236,21 @@ export interface CoverTemplate {
   preview: string | null
 }
 
+// The video rules (engine/shotloop/rules.mjs): fixed ones, the person's
+// taste as they set it (built-in ones reworded or off, their own), and
+// the toolbox with a picture per tool (a file path, or null)
+export interface Rule {
+  id: string
+  track: 'all' | '2d' | '3d'
+  name: string | null
+  rule?: string
+  builtIn?: boolean
+  edited?: boolean
+  off?: boolean
+}
+export interface RuleTool { id: string; group: 'story' | 'science' | 'mine'; name: string; text: string; builtIn: boolean; image: string | null }
+export interface Rules { fixed: Rule[]; taste: Rule[]; tools: RuleTool[] }
+
 // One entry of the AI's memory (engine/shotloop/memory.mjs): a note the
 // person wrote, or a lesson the AI kept while building
 export interface Memory {
@@ -328,6 +343,14 @@ export const api = {
   memory: () => invoke<Memory[]>('memory', { action: 'list' }),
   addMemory: (text: string) => invoke<Memory>('memory', { action: 'add', text }),
   removeMemory: (id: string) => invoke<void>('memory', { action: 'remove', id }),
+  // The video rules; every change answers with the rules as they now stand
+  rules: () => invoke<Rules>('rules', { action: 'list' }),
+  editRule: (id: string, text: string) => invoke<Rules>('rules', { action: 'edit', id, text }),
+  removeRule: (id: string) => invoke<Rules>('rules', { action: 'remove', id }),
+  resetRule: (id: string) => invoke<Rules>('rules', { action: 'reset', id }),
+  addRule: (text: string) => invoke<Rules>('rules', { action: 'add', text }),
+  addTool: (name: string, text: string, file: string | null) => invoke<Rules>('rules', { action: 'add-tool', name, text, file }),
+  removeTool: (id: string) => invoke<Rules>('rules', { action: 'remove-tool', id }),
   // The publish copy into an export's folder, written after the export
   deliverCopy: (path: string, folder: string, name: string) => invoke<string>('deliver_copy', { path, folder, name, lang: lang() }),
   defaultWorkspace: () => invoke<string>('default_workspace'),

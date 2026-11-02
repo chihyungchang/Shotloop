@@ -9,3 +9,4 @@ pub mod media;
 pub mod memory;
 pub mod os;
 pub mod projects;
+pub mod rules;

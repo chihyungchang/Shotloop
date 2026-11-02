@@ -68,7 +68,7 @@ L’IA sceglie lo stile adatto al tema e ti spiega perché; puoi cambiarlo nel p
 </tr>
 </table>
 
-I video 2D seguono un insieme fisso di principi: prima le immagini, una didascalia condensata per inquadratura, ogni riga a schermo abbastanza a lungo da essere letta, ogni numero in movimento, onestà su ciò che si mostra, fonti in piccolo sullo schermo. Sono in [agent/src/principles.ts](agent/src/principles.ts) e in ogni prompt 2D.
+I video 2D seguono un insieme di regole: quelle fisse, che mantengono pulito ogni fotogramma e fedele il video (niente coperto, nessun fotogramma difettoso, il tempo di leggere ogni riga, onestà, fonti citate), e un gusto della casa che puoi riformulare, disattivare o arricchire in Impostazioni → Regole, insieme a una cassetta degli attrezzi di espedienti di animazione che puoi ampliare con i tuoi. Sono in [engine/shotloop/rules.mjs](engine/shotloop/rules.mjs) e arrivano in ogni prompt 2D.
 
 ## Tour del prodotto
 

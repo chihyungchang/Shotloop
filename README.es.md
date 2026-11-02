@@ -68,7 +68,7 @@ La IA elige el estilo que encaja con el tema y te explica por qué; puedes cambi
 </tr>
 </table>
 
-Los videos 2D siguen un conjunto fijo de principios: lo visual primero, un subtítulo condensado por plano, cada línea en pantalla el tiempo suficiente para leerla, cada número en movimiento, honestidad sobre lo que se muestra y las fuentes en pequeño en pantalla. Están en [agent/src/principles.ts](agent/src/principles.ts) y en cada prompt 2D.
+Los vídeos 2D siguen un conjunto de reglas: unas fijas que mantienen limpio cada fotograma y fiel el vídeo (nada tapado, sin fotogramas rotos, tiempo para leer cada línea, honestidad, fuentes citadas) y un gusto de la casa que puedes reescribir, desactivar o ampliar en Ajustes → Reglas, junto con una caja de herramientas de recursos de animación que puedes ampliar con los tuyos. Están en [engine/shotloop/rules.mjs](engine/shotloop/rules.mjs) y llegan a cada prompt 2D.
 
 ## Recorrido por la app
 

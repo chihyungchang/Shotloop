@@ -46,7 +46,7 @@ function templatePage(id, size, style, tune) {
   const { width: w, height: h } = cssSize(size)
   const tall = h > w
   const pad = Math.round(w * (tall ? 0.056 : 0.045))
-  // The safe area (engine/shotloop/checklist.md, safe-area): on a tall
+  // The safe area (engine/shotloop/rules.mjs, safe-area): on a tall
   // frame the right edge and the bottom 20% carry the platforms' buttons
   const safeTop = Math.round(h * (tall ? 0.086 : 0.06))
   const safeRight = tall ? Math.round(w * 0.861) : w - pad

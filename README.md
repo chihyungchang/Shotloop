@@ -68,7 +68,7 @@ The AI picks the style that fits the subject and tells you why; you can switch o
 </tr>
 </table>
 
-2D videos follow a fixed set of principles: visual first, one condensed caption per shot, every line up long enough to read, every number moving, honest about what it shows, sources small on screen. They are in [agent/src/principles.ts](agent/src/principles.ts) and in every 2D prompt.
+2D videos follow a set of rules: fixed ones that keep every frame clean and the video true (nothing covered, no broken frames, time to read every line, honest, sourced), and a house taste you can reword, switch off or add to in Settings → Rules, together with a toolbox of animation devices you can extend with your own. They live in [engine/shotloop/rules.mjs](engine/shotloop/rules.mjs) and reach every 2D prompt.
 
 ## Product tour
 

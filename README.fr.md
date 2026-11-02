@@ -68,7 +68,7 @@ L’IA choisit le style adapté au sujet et vous explique pourquoi ; vous pouvez
 </tr>
 </table>
 
-Les vidéos 2D suivent un ensemble fixe de principes : le visuel d’abord, une légende condensée par plan, chaque ligne affichée assez longtemps pour être lue, chaque chiffre en mouvement, honnêteté sur ce qui est montré, sources en petit à l’écran. Ils sont décrits dans [agent/src/principles.ts](agent/src/principles.ts) et repris dans chaque prompt 2D.
+Les vidéos 2D suivent un ensemble de règles : des règles fixes qui gardent chaque image propre et la vidéo fidèle (rien de masqué, aucune image ratée, le temps de lire chaque ligne, honnêteté, sources citées), et un goût maison que vous pouvez reformuler, désactiver ou compléter dans Réglages → Règles, avec une boîte à outils de procédés d’animation que vous pouvez enrichir des vôtres. Elles sont décrites dans [engine/shotloop/rules.mjs](engine/shotloop/rules.mjs) et reprises dans chaque prompt 2D.
 
 ## Visite guidée
 

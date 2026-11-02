@@ -1,8 +1,8 @@
 // The engine modules the agent runs in-process, imported once, typed, from
 // the same engine the CLI bridge runs (engine.ts, SHOTLOOP_ENGINE): its
 // shared data (styles, looks, the reading time), the voice-over's timing
-// and subtitle band, its stills, the AI's memory and the JSON-lines side
-// of a command.
+// and subtitle band, its stills, the AI's memory, the video rules and the
+// JSON-lines side of a command.
 
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -51,6 +51,13 @@ export const memory = await load<{
   list: () => Memory[]
   add: (m: { text: string; by: 'ai'; track: string; from: string | null; replaces: string | null }) => Memory
 }>('memory.mjs')
+export interface Rule { id: string; name: string | null; rule?: string; off?: boolean }
+export interface Tool { id: string; group: 'story' | 'science' | 'mine'; name: string; text: string }
+export const rules = await load<{
+  list: () => { fixed: Rule[]; taste: Rule[]; tools: Tool[] }
+  asBuilt: (id: string) => boolean
+  checklist: (track: string) => string
+}>('rules.mjs')
 export const { STILLS } = await load<{ STILLS: readonly string[] }>('cache.mjs')
 export const { emit: emitLine, exit, parseFlags } = await load<{
   emit: (event: object) => void

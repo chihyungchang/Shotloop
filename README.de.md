@@ -68,7 +68,7 @@ Die KI wählt den Stil, der zum Thema passt, und begründet ihn; du kannst im Pl
 </tr>
 </table>
 
-2D-Videos folgen festen Prinzipien: Bild zuerst, eine verdichtete Untertitelzeile pro Shot, jede Zeile lange genug sichtbar zum Lesen, jede Zahl in Bewegung, ehrlich in dem, was gezeigt wird, Quellen klein im Bild. Sie stehen in [agent/src/principles.ts](agent/src/principles.ts) und in jedem 2D-Prompt.
+2D-Videos folgen einem Satz von Regeln: festen Regeln, die jedes Bild sauber und das Video wahr halten (nichts verdeckt, keine kaputten Frames, Zeit zum Lesen jeder Zeile, ehrlich, mit Quellen), und einem Hausgeschmack, den du unter Einstellungen → Regeln umformulieren, abschalten oder ergänzen kannst, dazu einer Werkzeugkiste mit Animationsmitteln, die du um eigene erweitern kannst. Sie stehen in [engine/shotloop/rules.mjs](engine/shotloop/rules.mjs) und gehen in jeden 2D-Prompt ein.
 
 ## Rundgang
 

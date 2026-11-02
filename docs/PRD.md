@@ -73,7 +73,7 @@ where the time goes:
 | Shot | A slice of the film with its own camera, timing and animation, written in shot-local time (0 = the shot's first frame). |
 | Take | One render of a shot. A shot keeps its takes; the person picks one. |
 | Draft / final | Draft: half resolution, few samples, ~0.3 s a frame. Final: full resolution, motion blur, ~2–4 s a frame. |
-| Checklist | The rules a shot must pass (sightline clear, subject readable, clear of the caption zone, something moves…). Seeded from the 3D notes (`engine/shotloop/blender/kit/README.md`); `engine/shotloop/checklist.md`. |
+| Checklist | The rules a shot must pass (sightline clear, subject readable, clear of the caption zone, something moves…). Seeded from the 3D notes (`engine/shotloop/blender/kit/README.md`); `engine/shotloop/rules.mjs` (fixed rules, the person's taste, the toolbox). |
 
 ## 6. Workflow
 

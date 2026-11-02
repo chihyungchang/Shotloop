@@ -68,7 +68,7 @@ AI chọn phong cách hợp với chủ đề và giải thích lý do; bạn c�
 </tr>
 </table>
 
-Video 2D theo một bộ nguyên tắc cố định: hình ảnh trước tiên, mỗi cảnh một phụ đề cô đọng, mỗi dòng ở lại đủ lâu để đọc, mọi con số đều chuyển động, trung thực về những gì được thể hiện, nguồn ghi nhỏ trên màn hình. Xem trong [agent/src/principles.ts](agent/src/principles.ts) và trong mọi prompt 2D.
+Video 2D tuân theo một bộ quy tắc: các quy tắc cố định giữ mọi khung hình sạch sẽ và video trung thực (không che khuất, không có khung hình lỗi, đủ thời gian đọc mọi dòng, trung thực, ghi nguồn), và một gu mặc định mà bạn có thể viết lại, tắt hoặc thêm vào trong Cài đặt → Quy tắc, cùng một hộp công cụ gồm các thủ pháp hoạt hình mà bạn có thể bổ sung thủ pháp của riêng mình. Chúng nằm trong [engine/shotloop/rules.mjs](engine/shotloop/rules.mjs) và có mặt trong mọi prompt 2D.
 
 ## Tham quan sản phẩm
 

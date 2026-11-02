@@ -1,17 +1,17 @@
 // System prompts per task. Kept stable (no dates, no ids) so the prefix
-// caches across requests. A 2D project's prompts carry the 2D principles
-// (principles.ts).
+// caches across requests. A 2D project's prompts carry the 2D rules
+// (principles.ts), a 3D one the person's own rules.
 
 import type { Memory } from './enginelib.ts'
-import { CODE_2D, CODE_VOICE, PRINCIPLES_2D, PRINCIPLES_VOICE } from './principles.ts'
+import { CODE_2D, CODE_VOICE, OWN_RULES, PRINCIPLES_2D, PRINCIPLES_VOICE } from './principles.ts'
 
 type Track = '2d' | '3d'
+const rules = (track: Track) => (track === '2d' ? `\n\n${PRINCIPLES_2D}` : OWN_RULES ? `\n\n${OWN_RULES}` : '')
 // voice: the film has a voice-over (engine/shotloop/voice.mjs)
-const principles = (track: Track, voice = false) =>
-  (track === '2d' ? `\n\n${PRINCIPLES_2D}` : '') + (voice ? `\n\n${PRINCIPLES_VOICE}` : '')
+const principles = (track: Track, voice = false) => rules(track) + (voice ? `\n\n${PRINCIPLES_VOICE}` : '')
 // What builds and fixes code also needs the 2D code rules
 const coding = (track: Track, voice = false) =>
-  (track === '2d' ? `\n\n${PRINCIPLES_2D}${voice ? `\n\n${PRINCIPLES_VOICE}` : ''}\n\n${CODE_2D}${voice ? `\n\n${CODE_VOICE}` : ''}` : voice ? `\n\n${PRINCIPLES_VOICE}` : '')
+  principles(track, voice) + (track === '2d' ? `\n\n${CODE_2D}${voice ? `\n\n${CODE_VOICE}` : ''}` : '')
 
 const FORMAT = `A Shotloop project is one short video split into shots. Layout:
 - shotloop.json: title, track (2d or 3d), size, fps and the shot order with durations.
@@ -143,9 +143,9 @@ How to plan:
 - 4 to 8 shots, one idea each. The first shot is the hook (3–4 s), the last an end card (2–3 s). ${voice ? 'The durations follow the lines (spoken and fitted after you plan) and add up to about the target: write as many words as the target holds.' : 'The durations add up to the target within half a second.'}
 - Pick the visual style first, from what the subject IS, using the list in the request (its "use when" and "avoid when"): a real thing or process you could film is a cinematic scene; numbers and their relations an infographic; places and routes a map; something on a screen an interface demo; how a machine works inside a blueprint; words themselves kinetic type (only then); an event that happened (a hack, a heist, a crash, a ruling), told as it unfolded, a news story; real geometry or a camera through space 3D (when offered). Look at the reference stills of each candidate (view_style) before deciding, and plan every shot in the style you picked, with its kit's devices.
 - Write for the track. 2D: animated typography, numbers, charts, diagrams, icons, lit scenes drawn in HTML, SVG and canvas, and, for a part no flat drawing can show (gears that mesh, a mechanism turning in space), that part in three.js inside the 2D frame. 3D: objects and places in a Blender scene, one camera move per shot.
-- Length "auto": as long as the content needs at the principles' reading pace, no padding: usually 20 to 45 s, never under 15 or over 60.
+- Length "auto": as long as the content needs at the reading pace of the rules, no padding: usually 20 to 45 s, never under 15 or over 60.
 - On-screen text is short: a headline or a number, never a paragraph. Write it, and the copy${voice ? ' and the spoken lines' : ''}, in the language of the idea.
-- 2D: plan by the 2D principles. Design each shot from what the viewer sees: its "show" is a picture in motion that fills the frame, built from the toolbox where one fits (name the device); its "text" is the one condensed caption; its "source" is the small source line. Alternate big-number shots with diagram shots, and give the story's turns their colors. ${voice ? 'Write each shot\'s "say" first (the voice-over rules), then the picture that shows it, and give the shot the time its line takes to speak' : 'Give each shot the time its captions need to be read (the principles\' reading time, plus about 0.5 s to enter)'}; when a beat needs more words, split it into two shots rather than crowd one. The plan is measured against these limits after you write it.
+- 2D: plan by the 2D rules. Design each shot from what the viewer sees: its "show" is a picture in motion that fills the frame, built from the toolbox where one fits (name the device); its "text" is the one condensed caption; its "source" is the small source line. ${voice ? 'Write each shot\'s "say" first (the voice-over rules), then the picture that shows it, and give the shot the time its line takes to speak' : 'Give each shot the time its captions need to be read (the reading time in the rules, plus about 0.5 s to enter)'}; when a beat needs more words, split it into two shots rather than crowd one. The plan is measured against these limits after you write it.
 - Every number and claim in the video is in copy.facts with a source you are confident of. Prefer English-language sources; use a source in the language of the idea only when no good English one exists, and name it as it is published. Never invent statistics; when unsure, say it qualitatively and leave the number out.
 - No brand names or people unless the idea asks for them; a news story names the companies, agencies and people its sources name, dates every event, and keeps "alleged" or "says" where its sources do.
 - 2D: pick the look that fits the idea's tone from the list in the request (or keep the one the person chose). Every shot is drawn in it, so plan visuals it can carry: typography, charts, diagrams, simple icons.
@@ -186,7 +186,7 @@ How to build the parts:
 - Write world/parts.js, an ES module. Each recurring picture is one exported function, for example batteryCutaway(kit, { x, y, scale, t, ions, trapped }): position, size and the states the shots need (what is lit, how far a fill goes, how many items) are options; the design itself (layout, colors, labels, proportions) is fixed inside. On an infographic page (an SVG stage) it returns SVG markup for kit.stage(); on a scene page (a canvas world, see the top of world/page.html) it draws on kit.c with the kit's light helpers (light, sphere, halo, beam, trail, particles) at the camera, and returns nothing. Document every function and its options in a comment at the top: the shot agents read only that.
 - Pure functions of their options; colors from kit.C; text from kit.FONT; layout inside the kit's safe area when drawn at the default position.
 - A shot imports them: import { batteryCutaway } from '../../world/parts.js'.
-- Then build the shot you are given with them (it is your proof that the parts draw), by the shot's notes and the principles: render its stills, look, fix, render again; stop after three renders. Call report_checks for it after its last render.
+- Then build the shot you are given with them (it is your proof that the parts draw), by the shot's notes and the rules: render its stills, look, fix, render again; stop after three renders. Call report_checks for it after its last render.
 - Do not change world/page.html.
 - End with one sentence for the person about the shared pictures.`
 }
@@ -201,7 +201,7 @@ How to build the shot:
 - You may write only this shot's folder. The world is fixed: use its helpers (2D: window.kit, documented at the top of world/page.html), and draw anything only this shot needs in the shot itself.
 - The shot does what its notes say; its on-screen text is exactly the "On screen" text.
 - 2D: a recurring picture listed for the shot is drawn with its function from world/parts.js (documented at its top), never redrawn by hand, so it matches the other shots.
-- 2D: make the frame as rich to watch as the principles allow: the picture carries the point, fills the frame and keeps changing (the toolbox device the notes name, staggered reveals, a camera move on the stage, rolling numbers, lines drawing on, gentle idle motion), while the caption stays still and readable for its reading time (the kit's readTime and hold). Draw with the kit documented at the top of world/page.html: on an infographic page, pictures in SVG on the stage and the caption through frame(); on a scene page, a lit canvas world (stage(t, { camera }) first, then light, sphere, beam, trail, particles; labels placed with screen()) and the caption through caption(). The notes' source line sits small under the picture (source() on a scene page).
+- 2D: make the frame as rich to watch as the rules allow: the picture carries the point, fills the frame and keeps changing (the toolbox device the notes name, staggered reveals, a camera move on the stage, rolling numbers, lines drawing on, gentle idle motion), while the caption stays still and readable for its reading time (the kit's readTime and hold). Draw with the kit documented at the top of world/page.html: on an infographic page, pictures in SVG on the stage and the caption through frame(); on a scene page, a lit canvas world (stage(t, { camera }) first, then light, sphere, beam, trail, particles; labels placed with screen()) and the caption through caption(). The notes' source line sits small under the picture (source() on a scene page).
 ${TYPE_RULES}
 - After writing the shot, render its stills and look at all three. Fix what is off (overlaps, clipped text, nothing moving, poor contrast) and render again; stop after three renders.
 - Call report_checks for the shot after its last render, with a result for every checklist rule.
@@ -218,7 +218,7 @@ export function memoryPrompt(entries: Memory[], track: Track, learn: boolean) {
   const list = (ms: Memory[]) => ms.map(m => `- [${m.id}]${m.track === 'all' ? '' : ` (${m.track.toUpperCase()})`} ${m.text}`).join('\n')
   return (mine.length ? `\n\nThe person's notes (follow them in every video, unless this request says otherwise):\n${list(mine)}` : '')
     + (lessons.length ? `\n\nLessons from earlier videos (what worked; use them where they fit):\n${list(lessons)}` : '')
-    + (learn ? `\n\nKeeping lessons: when something took more than one render to get right and what fixed it would help in another video, call remember with it before you end: one or two general sentences, what to do and why, naming nothing from this video. Not for this video's own slips, nor what the principles, the notes or the lessons already say. When it is close to a lesson above, pass that lesson's id as replaces with one merged text, so the memory stays short. At most two per task; most tasks keep none.` : '')
+    + (learn ? `\n\nKeeping lessons: when something took more than one render to get right and what fixed it would help in another video, call remember with it before you end: one or two general sentences, what to do and why, naming nothing from this video. Not for this video's own slips, nor what the rules, the notes or the lessons already say. When it is close to a lesson above, pass that lesson's id as replaces with one merged text, so the memory stays short. At most two per task; most tasks keep none.` : '')
 }
 
 // The language of the publish posts: the app's UI language, the one the
@@ -242,7 +242,7 @@ export function revisePlanPrompt(issues: string[], voiced: boolean, target: numb
   const how = voiced
     ? 'shorten a spoken line, cut the on-screen text to the number or a short label, split a crowded beat into two shots, or give a shot the time its line needs'
     : `sum captions up shorter, move words into the picture, split a crowded beat into two shots, or give a shot more time${target ? ` while the total stays ${target} s` : ''}`
-  return `storyboard.json breaks the ${voiced ? 'voice-over rules' : '2D principles'} where they can be measured:
+  return `storyboard.json breaks the ${voiced ? 'voice-over rules' : '2D rules'} where they can be measured:
 ${issues.map(i => `- ${i}`).join('\n')}
 
 Fix it: ${how}. Keep everything else.

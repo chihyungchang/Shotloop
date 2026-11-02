@@ -1,44 +1,41 @@
-// The principles of a 2D Shotloop video, set by Oliver with a viewer who
-// watches a lot of English short video (31 Oct 2026). This file is their
-// one source; other docs link here. They are fixed: every planning,
-// building, fixing and checking prompt carries them, and a plan is
-// measured against them before anything is built (lintPlan). Within them,
-// the AI makes each frame as rich to watch as it can.
+// The rules of a 2D Shotloop video in every planning, building, fixing
+// and checking prompt, made from their one source (engine/shotloop/
+// rules.mjs): the fixed rules, the person's taste as they set it, and the
+// toolbox with their own tools. A plan is measured against them before
+// anything is built (lintPlan). Within them, the AI makes each frame as
+// rich to watch as it can.
 
-import { readTime, SUBTITLE_BAND, VOICE_LEAD, VOICE_TAIL } from './enginelib.ts'
+import { readTime, rules, SUBTITLE_BAND, VOICE_LEAD, VOICE_TAIL, type Rule, type Tool } from './enginelib.ts'
 
-export const PRINCIPLES_2D = `The 2D principles (fixed; only how richly they are done changes):
-1. Visual first. A short video is not an info journal. Design each shot from "what does the viewer SEE?" before writing a word. If a fact can be shown, show it.
-2. The animation explains; the caption sums up. One condensed line per shot: about 6 to 8 words plus the big number (Chinese: at most 14 characters plus the number). Cut every word the picture already says. Short labels inside the picture are fine.
-3. Nobody pauses to read. Fast content, not rushed: every line stays up long enough to read at full speed (1 s, plus 0.3 s per word or number, or 0.15 s per Chinese character; never less than a bar of the music). Time follows reading, not the bar grid.
-4. Nothing sits still, and nothing is half empty. Every shot moves for its whole length and fills the frame: a big number alone on a half-empty screen is a slide. A shot with nothing to animate gets shorter or gets cut.
-5. Every number moves. Counters roll, charts grow, ratios become quantities, flows run.
-6. Honest while it moves. An animation never implies more than the source says; condensed lines keep the source's meaning (and quoted words exactly); any arithmetic is "≈" on screen and spelled out in the source line; illustrations are labelled as such.
-7. Sources are English first, small and secondary on screen. Prefer English-language sources; only when no good English source exists, use one in the language of the person's idea. The source line keeps the source's own name and language (never translated), sits under the picture for anyone who pauses, and never competes with the caption.
+const RULES = rules.list()
+const said = (r: Rule) => (r.name ? `${r.name}. ${r.rule}` : r.rule)
+const tools = (group: Tool['group']) => RULES.tools.filter(t => t.group === group).map(t => `- ${t.name}${t.text ? `: ${t.text}` : ''}`)
+const mine = tools('mine')
+
+// The taste rules that are on, the person's own among them
+const TASTE = RULES.taste.filter(r => !r.off)
+
+export const PRINCIPLES_2D = `The 2D rules.
+Fixed (never broken, whatever else is asked):
+${RULES.fixed.filter(r => r.rule).map(r => `- ${said(r)}`).join('\n')}
+
+The person's taste (the house defaults as they kept, reworded or removed them, and their own; follow each as it stands):
+${TASTE.length ? TASTE.map(r => `- ${said(r)}`).join('\n') : '(none: the fixed rules only)'}
 
 Within them, make it rich: aim for the richest, most dynamic picture the shot allows. A toolbox to pick from (and add to):
-- Rolling counter: the hook's big figure, rolling up and landing with a bounce.
-- Draining stock: an amount leaving while the counter rolls (items turning red and flying off, leaving empty slots).
-- Breaking banner: a bar that wipes over a finished picture to say "this is big", a sourced line crawling under it.
-- Bar race: "biggest ever" and comparisons; bars grow in turn and one overtakes.
-- Clock and particles: speed; streams pouring out while a clock runs.
-- Infection fill: something being compromised, filling cell by cell (label it illustrative).
-- Hop path: how something moves through a system, each box lighting as it is reached.
-- Untouched object: what was NOT affected, glowing while the rest flows past.
-- Bypass: a control that was skipped; the flow goes round the gate, an alarm border flashes.
-- Routine log: "it looked normal"; rows of checks scrolling while a total climbs (illustrative).
-- Pulse through a pattern: "same playbook"; one pulse through two identical strips, ending on "=".
-- Trace graph and stamp: attribution; lines branching out, a SUSPECTED stamp, NOT CONFIRMED typed.
-- Split bar: part of a whole, splitting into its shares.
-- Shared timeline: wildly different durations on one axis, a cursor running.
-- Waffle: a small share of a big total (1,000 squares, 32 lit).
-- Drawn fix: the defence; a request travelling, a lock snapping shut.
-- Running clock: time pressure; a timestamp that keeps ticking while the event unfolds, red flashing on the hits.
-- Money trail: funds splitting into ever more wallets, coins running down the branches (illustrative).
-- Event timeline: the story's dates on one axis, landing in turn, the beat that matters glowing.
-- Attributed statement: an agency badge, its words typed in exactly, the date under it.
-Color: the look sets only the ground and the type (background, text, headlines, the highlighted word, the source line). Pictures and data take the colors their subject needs, from the kit's C.hue: real-world colors (the sky blue, the sun gold, a leaf green) and colors with a meaning (one for what held or the good answer, another for what was lost or abused), never just the look's accents, always readable on its ground. Keep each meaning for the whole video.
-Rhythm across the video: alternate big-number shots with diagram shots; change the dominant color as the story turns. A picture that comes back in another shot keeps its design (same layout, colors and labels), so the viewer recognises it at once.`
+${tools('story').join('\n')}
+For a science subject (a mechanism, a law, a process):
+${tools('science').join('\n')}${mine.length ? `\nThe person's own tools (they added these; reach for them where they fit):\n${mine.join('\n')}` : ''}`
+
+// 3D prompts carry no 2D rules, only the person's own taste rules
+export const OWN_RULES = (() => {
+  const own = TASTE.filter(r => !r.name)
+  return own.length ? `The person's rules (follow them in every video):\n${own.map(r => `- ${r.rule}`).join('\n')}` : ''
+})()
+
+// lintPlan measures caption lengths by the house caption rule: only while
+// the person keeps it as it shipped
+export const CAPTION_RULE = rules.asBuilt('caption')
 
 // Where the subtitles sit (engine/shotloop/cues.mjs), as "68–79%"
 const band = (k: 'portrait' | 'landscape') => `${SUBTITLE_BAND[k].map(x => Math.round(x * 100)).join('–')}%`
@@ -51,9 +48,9 @@ const CJK_PER_S = 4.5
 const VOICE_PAD = VOICE_LEAD + VOICE_TAIL
 
 // With a voice-over (on for a new film, engine/shotloop/voice.mjs) the
-// voice carries the explanation: these rules change principles 2 and 3,
-// and the rest stand
-export const PRINCIPLES_VOICE = `The voice-over (this film has one; it changes principles 2 and 3, the rest stand):
+// voice carries the explanation: these rules change the caption and
+// reading rules, and the rest stand
+export const PRINCIPLES_VOICE = `The voice-over (this film has one; it changes the caption and reading rules, the rest stand):
 - The voice explains, the picture shows, the screen sums up. Each shot has a spoken line ("say"): one or two short sentences, plain and conversational, about 8 to 25 words (Chinese or Japanese: 15 to 45 characters). The first shot's line hooks in its first words; the last can be a short sign-off or empty.
 - The voice's words are subtitled automatically, in a band near the bottom (portrait: ${band('portrait')} of the frame height; landscape: ${band('landscape')}). The shot keeps its own text and anything important out of that band, and never repeats the spoken sentence on screen: its on-screen text shrinks to the big number or a label of 1 to 4 words.
 - Time follows the voice: after planning, every line is spoken and its shot gets the line's length plus a breath. Plan durations at about ${WORDS_PER_S} words a second (Chinese or Japanese: ${CJK_PER_S} characters a second) plus ${VOICE_PAD} s.
@@ -67,6 +64,7 @@ export const CODE_2D = `2D code rules:
 - Name each part a person might point at: data-name="headline", "wallet", "arrow" on its element or group (data-keep names it too). On a canvas, name it each frame where it is drawn with window.picker?.part(x, y, w, h, 'name') (page CSS px; it exists only while the picker maps the stills, so it costs a render nothing), best inside the kit's drawing helper so every shot gets it. The person can pick a part in the frame to ask for a change, and the picker reports it by that name, so name parts after what they show and keep the names when you rewrite the markup.
 - Don't animate the CSS transform of an SVG element that has a transform attribute (the CSS one replaces it and the element jumps): wrap it in a <g> that holds the position.
 - A clipPath's rectangle is in the user space of the element that uses it: clip the parent group, not rows that are themselves translated.
+- Motion driven by a law (the science tools) is a pure function of t, since frames and stills are drawn in any order: use the closed-form solution when there is one (an orbit's angle, a decay's e^(−t/τ), a wave's sin(kx − ωt)); otherwise integrate with a fixed step from t = 0, keeping the states in a module-level array so each step is computed once, never from the time since the last call. Compute in real units (metres, seconds, the real constants), then map the result to the screen through one stated scale for the whole shot (px per metre, film seconds per real second, an exaggeration factor for an effect too small to see); the labels come from the real values, so a number on screen is the model's own.
 - A little depth is fine with CSS 3D (perspective, transform-style: preserve-3d) on DOM elements.
 - Only when a part can't be shown flat (gears that must mesh, a mechanism turning in space, motion seen from a frame that turns with it), draw that part with three.js; the rest of the shot stays DOM and SVG. const THREE = await ctx.three() in setup(), which also builds the scene once: a WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true }) whose canvas sits behind the stage, sized to the frame. It only has to read clearly, never to look real: simple geometry built in code (boxes, cylinders, extruded shapes, lathes), no model files. render(t) sets every position, rotation and the camera from t, by the mechanism's own math (a gear turned by its ratio, a piston by its crank), then calls renderer.render. Shade it in the look's colors (flat shading, EdgesGeometry lines for a drawn look). Labels and text stay in SVG or the DOM, placed each frame by projecting a point of the part (vector.project(camera)); report the part's projected extent with subtitles.keep.
 - Within a frame, keep caption, picture and source line from overlapping: give each its band of the safe area.`
@@ -119,15 +117,16 @@ export function lintVoice(shots: { title?: string; duration: number; text?: stri
   return issues
 }
 
-// The plan's breaks of the principles that can be measured: captions too
-// long (the big number aside), shots too short to read their captions,
-// a caption up for less than a bar of the music (bar: seconds)
+// The plan's breaks of the rules that can be measured: captions too long
+// (the big number aside; while the caption rule stands as it shipped),
+// shots too short to read their captions, a caption up for less than a
+// bar of the music (bar: seconds)
 export function lintPlan(shots: { title?: string; duration: number; text?: string }[], bar = 0) {
   const issues: string[] = []
   shots.forEach((s, i) => {
     const name = `shot ${i + 1}${s.title ? ` (${s.title})` : ''}`
     const list = captions(s.text ?? '')
-    for (const c of list) {
+    if (CAPTION_RULE) for (const c of list) {
       const { cjk, words } = units(c)
       if (words / 8 + cjk / 14 > 1) issues.push(`${name}: the caption "${c}" is too long (about 6 to 8 words, or 14 Chinese characters, plus the number); cut what the picture already says`)
     }

@@ -40,6 +40,8 @@ pub(crate) struct Dirs {
     covers: PathBuf,
     /// The AI's memory: the person's notes and its lessons
     memory: PathBuf,
+    /// The video rules as the person set them, and their tools' pictures
+    rules: PathBuf,
 }
 
 impl Dirs {
@@ -51,6 +53,7 @@ impl Dirs {
             ("SHOTLOOP_VOICES", &self.voices),
             ("SHOTLOOP_COVERS", &self.covers),
             ("SHOTLOOP_MEMORY", &self.memory),
+            ("SHOTLOOP_RULES", &self.rules),
         ]
         .into_iter()
         .map(|(k, v)| (k.to_string(), v.display().to_string()))
@@ -144,7 +147,7 @@ pub fn run() {
             } else {
                 root.join("examples")
             };
-            let dirs = Dirs { examples, drafts: data.join("drafts"), library: data.join("library"), voices: data.join("voices"), covers: data.join("covers"), memory: data.join("memory") };
+            let dirs = Dirs { examples, drafts: data.join("drafts"), library: data.join("library"), voices: data.join("voices"), covers: data.join("covers"), memory: data.join("memory"), rules: data.join("rules") };
             // Drafts left from the last session are thrown away
             if let Err(e) = std::fs::remove_dir_all(&dirs.drafts) {
                 if e.kind() != std::io::ErrorKind::NotFound {
@@ -152,12 +155,14 @@ pub fn run() {
                 }
             }
             // Without these folders, opening an example or the library fails
-            for dir in [&dirs.drafts, &dirs.library, &dirs.covers] {
+            for dir in [&dirs.drafts, &dirs.library, &dirs.covers, &dirs.rules] {
                 std::fs::create_dir_all(dir)?;
             }
-            // The library and the cover templates are shown by the UI
+            // The library, the cover templates and the tools' pictures are
+            // shown by the UI
             allow_dir(app.handle(), &dirs.library);
             allow_dir(app.handle(), &dirs.covers);
+            allow_dir(app.handle(), &dirs.rules);
             let queue = Queue::new(launch_for(&root, &dirs, &settings));
             queue.start(app.handle().clone());
             app.manage(App { queue, config_dir, root, dirs });
@@ -211,6 +216,7 @@ pub fn run() {
             commands::media::voice,
             commands::media::voice_models,
             commands::memory::memory,
+            commands::rules::rules,
             commands::library::library_search,
             commands::library::library,
             commands::ai::ai_detect,

@@ -68,7 +68,7 @@ Yapay zekâ konuya uyan stili seçer ve nedenini söyler; planda değiştirebili
 </tr>
 </table>
 
-2D videolar sabit ilkelere uyar: önce görsel, her çekimde tek bir yoğun altyazı, her satır okunacak kadar ekranda kalır, her sayı hareket eder, gösterdiği şey konusunda dürüsttür, kaynaklar ekranda küçük yazılır. Bu ilkeler [agent/src/principles.ts](agent/src/principles.ts) dosyasında ve her 2D isteminde yer alır.
+2D videolar bir dizi kurala uyar: her kareyi temiz ve videoyu doğru tutan sabit kurallar (hiçbir şey örtülmez, bozuk kare yok, her satırı okumaya zaman, dürüstlük, kaynak gösterme) ve Ayarlar → Kurallar bölümünde yeniden yazabileceğin, kapatabileceğin ya da ekleme yapabileceğin bir ev zevki; bunlara kendi tekniklerinle genişletebileceğin bir animasyon teknikleri araç kutusu eşlik eder. Kurallar [engine/shotloop/rules.mjs](engine/shotloop/rules.mjs) dosyasında yer alır ve her 2D istemine ulaşır.
 
 ## Ürün turu
 

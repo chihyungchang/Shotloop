@@ -39,6 +39,9 @@
 //   shotloop covers   list | save <project> [--title <name>] | apply <project> <id> | remove <id>
 //                     | reference <project> --file <image>     cover templates, an image to design after
 //   shotloop memory   list | add --text "…" | remove <id>       the AI's memory: the person's notes, its lessons
+//   shotloop rules    list | edit <id> --text "…" | remove <id> | reset <id> | add --text "…"
+//                     | add-tool --name "…" [--text "…"] [--file <image>] | remove-tool <id> | checklist [--track 2d|3d]
+//                     the video rules: fixed, the person's taste (editable), the toolbox
 //   shotloop prune    <project>                          drop unused cache entries (shots and voice-over)
 //   shotloop doctor                                      Chrome, ffmpeg, Blender
 //
@@ -65,6 +68,7 @@ import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
 import * as covers from './covers.mjs'
 import * as library from './library.mjs'
 import * as memory from './memory.mjs'
+import * as rules from './rules.mjs'
 import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
 import { pickMap } from './pick.mjs'
@@ -306,6 +310,19 @@ try {
       else if (sub === 'add') result(memory.add({ text: values.text }))
       else if (sub === 'remove') result(memory.remove(a))
       else throw new Error('memory list|add|remove')
+      break
+    }
+    case 'rules': {
+      const [sub, a] = args
+      if (sub === 'list') result(rules.list())
+      else if (sub === 'edit') result(rules.edit(a, values.text))
+      else if (sub === 'remove') result(rules.remove(a))
+      else if (sub === 'reset') result(rules.reset(a))
+      else if (sub === 'add') result(rules.add(values.text))
+      else if (sub === 'add-tool') result(rules.addTool({ name: values.name, text: values.text, image: values.file }))
+      else if (sub === 'remove-tool') result(rules.removeTool(a))
+      else if (sub === 'checklist') result(rules.checklist(values.track ?? '2d'))
+      else throw new Error('rules list|edit|remove|reset|add|add-tool|remove-tool|checklist')
       break
     }
     case 'storyboard':

@@ -21,11 +21,10 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { credits, elementBrief, head, ideaOf, looksBrief, read, recurring, shotBrief, stylesBrief, trackBrief, worldFiles } from './briefs.ts'
 import type { PickedElement } from '../../engine/shotloop/protocol.d.ts'
 import { engine, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
-import { lookFits, memory, parseFlags, STILLS, type Memory } from './enginelib.ts'
+import { lookFits, memory, parseFlags, rules, STILLS, type Memory } from './enginelib.ts'
 import { emit, exit, reason, setJson, warn } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
 import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, memoryPrompt, planSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, TEMPLATE_RULES } from './prompts.ts'
@@ -64,11 +63,16 @@ const remembered = (track: ProjectStatus['track'], learn: boolean) => memoryProm
 const stamp = () => new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15)
 const today = () => new Date().toISOString().slice(0, 10)
 
+// The project's own checklist (shotloop.json "checklist"), else the one
+// made from the rules as the person set them, written for this task
 function checklistPath(root: string) {
   const cfg = JSON.parse(fs.readFileSync(path.join(root, 'shotloop.json'), 'utf8'))
   const own = cfg.checklist && path.join(root, cfg.checklist)
   if (own && fs.existsSync(own)) return own
-  return fileURLToPath(new URL('../../engine/shotloop/checklist.md', import.meta.url))
+  const made = path.join(root, '.shotloop', 'checklist.md')
+  fs.mkdirSync(path.dirname(made), { recursive: true })
+  writeAtomic(made, rules.checklist(cfg.track === '3d' ? '3d' : '2d'))
+  return made
 }
 
 const context = (root: string, writable: string[]) => newContext(root, checklistPath(root), writable)
@@ -196,7 +200,7 @@ ${trackBrief(project, threeD)} · frame ${size} · target length ${project.lengt
   let sb = load()
   const aiLook = keepChosenLook(project, existing)
   sb = load()
-  // 2D: measured against the principles; what breaks them goes back once
+  // 2D: measured against the rules; what breaks them goes back once
   // A bar of the music: no caption is up for less (the bed may be tuned
   // up to 12% faster to land the cuts, engine/shotloop/bed.mjs)
   const bpm = Number(JSON.parse(read(path.join(project.root, 'music.json')).replace(/^\(missing\)$/, '{}')).bpm) || 0

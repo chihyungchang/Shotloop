@@ -13,7 +13,6 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { DEFAULT_SAMPLES, round } from './data.mjs'
 import { readJson, writeJson } from './files.mjs'
 
@@ -75,7 +74,6 @@ export function loadProject(dir) {
     music: opt('music'),
     cover: opt('cover'),
     publish: opt('publish'),
-    checklist: opt('checklist') ?? fileURLToPath(new URL('checklist.md', import.meta.url)),
     state: path.join(root, '.shotloop'),
     out: path.join(root, 'out')
   }

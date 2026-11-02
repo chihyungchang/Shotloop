@@ -68,7 +68,7 @@ AI memilih gaya yang cocok dengan topiknya dan menjelaskan alasannya; Anda bisa 
 </tr>
 </table>
 
-Video 2D mengikuti prinsip yang tetap: visual dulu, satu teks ringkas per adegan, setiap baris tampil cukup lama untuk dibaca, setiap angka bergerak, jujur tentang apa yang ditampilkan, sumber ditulis kecil di layar. Prinsip ini ada di [agent/src/principles.ts](agent/src/principles.ts) dan di setiap prompt 2D.
+Video 2D mengikuti seperangkat aturan: aturan tetap yang menjaga setiap bingkai bersih dan videonya jujur (tak ada yang tertutup, tanpa bingkai rusak, waktu untuk membaca setiap baris, jujur, bersumber), dan selera bawaan yang bisa kamu tulis ulang, matikan, atau tambah di Pengaturan → Aturan, bersama kotak alat berisi teknik animasi yang bisa kamu perluas dengan milikmu sendiri. Semuanya ada di [engine/shotloop/rules.mjs](engine/shotloop/rules.mjs) dan masuk ke setiap prompt 2D.
 
 ## Tur produk
 

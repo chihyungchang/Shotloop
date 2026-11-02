@@ -15,7 +15,6 @@ import { fileURLToPath } from 'node:url'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const EXAMPLE = path.resolve(HERE, '..', '..', 'fixtures', 'ep01-password-crack-time')
-const CHECKLIST = path.resolve(HERE, '..', '..', 'engine', 'shotloop', 'checklist.md')
 const SHOT = '09-end-card-source'
 
 function copyExample() {
@@ -27,6 +26,8 @@ function copyExample() {
 test('MCP server: the narrow tools only, scoped writes, session recorded', async () => {
   const project = copyExample()
   const session = path.join(project, 'session.json')
+  const checklist = path.join(project, 'checklist.md')
+  fs.writeFileSync(checklist, '- **clean**: no broken frames\n')
   const client = new Client({ name: 'test', version: '0' })
   await client.connect(new StdioClientTransport({
     command: process.execPath,
@@ -35,7 +36,7 @@ test('MCP server: the narrow tools only, scoped writes, session recorded', async
       ...process.env as Record<string, string>,
       SHOTLOOP_ROOT: project,
       SHOTLOOP_WRITABLE: `shots/${SHOT}/`,
-      SHOTLOOP_CHECKLIST: CHECKLIST,
+      SHOTLOOP_CHECKLIST: checklist,
       SHOTLOOP_SESSION: session
     }
   }))
