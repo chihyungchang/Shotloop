@@ -147,7 +147,8 @@ function Exchange({ fix, fixFound }: { fix: FixRecord; fixFound?: (request: stri
         {fix.touched.length > 0 && (
           <div className="files">{fix.touched.map(f => <code key={f}>{f}</code>)}</div>
         )}
-        {fix.before && fix.after && <CompareStills before={fix.before} after={fix.after} />}
+        {/* Before and after only for a fix: a check changes nothing */}
+        {fix.task === 'fix' && fix.before && fix.after && <CompareStills before={fix.before} after={fix.after} />}
         {own && (
           <span className={`check-pill ${failed.length ? 'bad' : 'ok'}`}>
             <Icon name={failed.length ? 'x' : 'check'} size={12} />
