@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { t } from '../../i18n'
 import { Icon } from '../Icon'
 
@@ -12,9 +12,10 @@ export interface Follow { at: number; playing: boolean; since: number }
 // on hover, a thin bar fades in with play, a scrubber and the time (and
 // sound, when the clip has it). With follow, it keeps to the film's sound
 // instead: there, playing or paused with it, and not looping.
-export function VideoPlayer({ src, className = '', autoPlay = true, loop = true, muted = true, sound = false, follow = null }: {
+export function VideoPlayer({ src, className = '', style, autoPlay = true, loop = true, muted = true, sound = false, follow = null }: {
   src: string
   className?: string
+  style?: CSSProperties
   autoPlay?: boolean
   loop?: boolean
   muted?: boolean
@@ -81,7 +82,7 @@ export function VideoPlayer({ src, className = '', autoPlay = true, loop = true,
   }
 
   return (
-    <div className={`player ${className}`}>
+    <div className={`player ${className}`} style={style}>
       <video ref={ref} src={src} loop={loop && !follow} muted={isMuted} playsInline onClick={toggle} />
       {!playing && (
         <button className="player-big" onClick={toggle} aria-label={t('player.play')}>

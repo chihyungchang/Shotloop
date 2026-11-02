@@ -175,7 +175,7 @@ export const ja: Record<Key, string> = {
 
   'agent.title': 'AI ショットアシスタント',
   'agent.runChecks': 'チェック',
-  'agent.runChecksHint': '静止画をレンダリングし、チェックリストと照らして確認、直せるところは直します',
+  'agent.runChecksHint': '静止画をレンダリングしてチェックリストで確認します。報告のみで変更はしません',
   'agent.empty': 'このショットのどこがおかしいか、「数字をもっと大きく」のように普段の言葉で教えてください。このショットだけを変更し、レンダリングして確認してからお見せします。',
   'agent.queued': '待機中',
   'agent.working': '作業中',
@@ -200,6 +200,8 @@ export const ja: Record<Key, string> = {
   'agent.after': '変更後',
   'agent.allPass': 'すべてのチェックに合格',
   'agent.left': '残りのチェック {n} 件：{rules}',
+  'agent.fixFound': 'AI に直してもらう',
+  'agent.fixFoundAsk': 'チェックで見つかった問題を直して：\n{list}',
   'agent.left.one': '残りのチェック 1 件：{rules}',
 
   'state.cached': 'キャッシュ済み',

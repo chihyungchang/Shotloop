@@ -67,7 +67,9 @@ export function AgentPanel({ project, shot, jobs, openSettings, picker }: {
             <p>{t('agent.empty')}</p>
           </div>
         )}
-        {shot.fixes.map((f, i) => <Exchange key={i} fix={f} />)}
+        {/* The last check's failures can be fixed in one click (a check
+            only reports) */}
+        {shot.fixes.map((f, i, all) => <Exchange key={i} fix={f} fixFound={i === all.length - 1 && !active ? send : undefined} />)}
         {active && (
           <>
             <div className="bubble me">
@@ -124,9 +126,10 @@ export function AgentPanel({ project, shot, jobs, openSettings, picker }: {
   )
 }
 
-function Exchange({ fix }: { fix: FixRecord }) {
+function Exchange({ fix, fixFound }: { fix: FixRecord; fixFound?: (request: string) => void }) {
   const own = fix.checks.find(c => c.shot === fix.shot)
   const failed = own?.results.filter(r => !r.pass) ?? []
+  const found = failed.map(r => `- ${r.rule}${r.note ? `: ${r.note}` : ''}`).join('\n')
   return (
     <>
       <div className="bubble me">
@@ -150,6 +153,11 @@ function Exchange({ fix }: { fix: FixRecord }) {
             <Icon name={failed.length ? 'x' : 'check'} size={12} />
             {failed.length ? t('agent.left', { n: failed.length, rules: failed.map(r => r.rule).join(', ') }) : t('agent.allPass')}
           </span>
+        )}
+        {fix.task === 'check' && failed.length > 0 && fixFound && (
+          <button className="small fix-found" onClick={() => fixFound(t('agent.fixFoundAsk', { list: found }))}>
+            <Icon name="spark" size={12} /> {t('agent.fixFound')}
+          </button>
         )}
       </div>
     </>

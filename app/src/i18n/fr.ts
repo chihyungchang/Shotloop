@@ -175,7 +175,7 @@ export const fr: Record<Key, string> = {
 
   'agent.title': 'Assistant IA des plans',
   'agent.runChecks': 'Vérifier',
-  'agent.runChecksHint': 'Rend des images, les contrôle selon la liste de vérification et corrige ce qu’il peut',
+  'agent.runChecksHint': 'Rend les images et les vérifie selon la liste ; rapport seulement, rien n’est modifié',
   'agent.empty': 'Dites-moi simplement ce qui ne va pas dans ce plan, par exemple « agrandis le chiffre ». Je ne modifie que ce plan, j’en fais le rendu et je le vérifie avant que vous le regardiez.',
   'agent.queued': 'En file',
   'agent.working': 'En cours',
@@ -200,6 +200,8 @@ export const fr: Record<Key, string> = {
   'agent.after': 'Après',
   'agent.allPass': 'Toutes les vérifications sont réussies',
   'agent.left': '{n} vérifications restantes : {rules}',
+  'agent.fixFound': 'Laisser l’IA corriger',
+  'agent.fixFoundAsk': 'Corrige ce que la vérification a trouvé :\n{list}',
   'agent.left.one': '1 vérification restante : {rules}',
 
   'state.cached': 'En cache',

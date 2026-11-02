@@ -175,7 +175,7 @@ export const tr: Record<Key, string> = {
 
   'agent.title': 'YZ çekim asistanı',
   'agent.runChecks': 'Denetle',
-  'agent.runChecksHint': 'Kareleri işle, kontrol listesine göre incele, düzeltebildiklerini düzelt',
+  'agent.runChecksHint': 'Kareleri işleyip kontrol listesine göre inceler; yalnızca raporlar, hiçbir şeyi değiştirmez',
   'agent.empty': 'Bu çekimde neyin yanlış olduğunu sade bir dille söyleyin, örneğin “sayıyı büyüt”. Yalnızca bu çekimi değiştiririm, siz bakmadan önce işleyip denetlerim.',
   'agent.queued': 'Kuyrukta',
   'agent.working': 'Çalışıyor',
@@ -200,6 +200,8 @@ export const tr: Record<Key, string> = {
   'agent.after': 'Sonra',
   'agent.allPass': 'Tüm denetimler geçti',
   'agent.left': '{n} denetim kaldı: {rules}',
+  'agent.fixFound': 'Yapay zekâ düzeltsin',
+  'agent.fixFoundAsk': 'Denetimin bulduklarını düzelt:\n{list}',
   'agent.left.one': '1 denetim kaldı: {rules}',
 
   'state.cached': 'Önbellekte',

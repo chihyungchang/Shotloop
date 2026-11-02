@@ -2,7 +2,7 @@
 // Shotloop agent sidecar (docs/PRD.md §7.5, §7.6, §7.10).
 //
 //   shotloop-agent fix     <project> --shot <id> --request "the cable is hidden" [--element '<pick result>']
-//   shotloop-agent check   <project> --shot <id> [--review-only]
+//   shotloop-agent check   <project> --shot <id>   review the shot against the checklist (no edits)
 //   shotloop-agent publish <project>
 //   shotloop-agent cover   <project> [--request "…"] [--template <id> | --reference]
 //                                             design the cover (thumb.html) in the video's look,
@@ -43,7 +43,6 @@ const OPTIONS = {
     reference: { type: 'boolean' },
     parts: { type: 'string' },
     model: { type: 'string' },
-    'review-only': { type: 'boolean' },
     lang: { type: 'string' },
     url: { type: 'string' },
     key: { type: 'string' },
@@ -119,7 +118,9 @@ async function shotTask(kind: 'fix' | 'check') {
   const shot = project.shots.find(s => s.id === values.shot)
   if (!shot) throw new Error(`no shot ${values.shot}`)
 
-  const reviewOnly = kind === 'check' && !!values['review-only']
+  // A check only looks and reports, so it is quick; fixing what it found
+  // is a fix the person asks for
+  const reviewOnly = kind === 'check'
   // What the person picked in the frame (engine pick), when they did
   const element: PickedElement | null = values.element ? JSON.parse(values.element) : null
   const record = path.join(project.root, '.shotloop', 'shots', shot.id, 'fixes', stamp())
@@ -131,9 +132,7 @@ async function shotTask(kind: 'fix' | 'check') {
   const ctx = context(project.root, reviewOnly ? [] : [`shots/${shot.id}/`, 'world/'])
   const ask = kind === 'fix'
     ? `The person says about shot ${shot.id}: "${values.request}"${element ? `\n${elementBrief(element)}` : ''}\n\nFix it, then check the shot.`
-    : reviewOnly
-      ? `Review shot ${shot.id} against the checklist and report. Do not edit files.`
-      : `Check shot ${shot.id} against the checklist. Fix what you can, then report the rest.`
+    : `Review shot ${shot.id} against the checklist and report. Do not edit files.`
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent(kind === 'fix' ? 'code' : 'routine', {
     effort: kind === 'fix' ? 'high' : 'medium',

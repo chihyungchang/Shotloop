@@ -175,7 +175,7 @@ export const ko: Record<Key, string> = {
 
   'agent.title': 'AI 샷 어시스턴트',
   'agent.runChecks': '검사 실행',
-  'agent.runChecksHint': '스틸을 렌더링하고 체크리스트와 대조해 검토한 뒤, 고칠 수 있는 것은 고칩니다',
+  'agent.runChecksHint': '스틸을 렌더링해 체크리스트로 검토합니다. 보고만 하고 바꾸지 않습니다',
   'agent.empty': '이 샷에서 무엇이 잘못됐는지 “숫자를 더 크게”처럼 편하게 말해 주세요. 이 샷만 고치고, 보여 드리기 전에 렌더링해서 확인합니다.',
   'agent.queued': '대기 중',
   'agent.working': '작업 중',
@@ -200,6 +200,8 @@ export const ko: Record<Key, string> = {
   'agent.after': '이후',
   'agent.allPass': '모든 검사 통과',
   'agent.left': '남은 검사 {n}개: {rules}',
+  'agent.fixFound': 'AI에게 고치게 하기',
+  'agent.fixFoundAsk': '검사에서 찾은 문제를 고쳐 줘:\n{list}',
   'agent.left.one': '남은 검사 1개: {rules}',
 
   'state.cached': '캐시됨',

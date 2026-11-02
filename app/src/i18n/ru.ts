@@ -175,7 +175,7 @@ export const ru: Record<Key, string> = {
 
   'agent.title': 'ИИ-ассистент кадров',
   'agent.runChecks': 'Проверить',
-  'agent.runChecksHint': 'Отрендерить стоп-кадры, сверить их с чек-листом и исправить что получится',
+  'agent.runChecksHint': 'Отрисовать кадры и проверить по списку; только отчёт, ничего не меняется',
   'agent.empty': 'Расскажите простыми словами, что не так с этим кадром, например «сделай число крупнее». Я меняю только этот кадр, рендерю и проверяю его, прежде чем показать вам.',
   'agent.queued': 'В очереди',
   'agent.working': 'В работе',
@@ -200,6 +200,8 @@ export const ru: Record<Key, string> = {
   'agent.after': 'После',
   'agent.allPass': 'Все проверки пройдены',
   'agent.left': 'Осталось проверок: {n} — {rules}',
+  'agent.fixFound': 'Пусть ИИ исправит',
+  'agent.fixFoundAsk': 'Исправь то, что нашла проверка:\n{list}',
   'agent.left.one': 'Осталась 1 проверка: {rules}',
 
   'state.cached': 'В кэше',

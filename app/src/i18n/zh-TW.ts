@@ -175,7 +175,7 @@ export const zhTW: Record<Key, string> = {
 
   'agent.title': 'AI 鏡頭助理',
   'agent.runChecks': '執行檢查',
-  'agent.runChecksHint': '渲染靜態影格，依檢查清單逐項審核，能修的直接修',
+  'agent.runChecksHint': '算繪靜態畫面，依檢查清單逐項審核，只回報不修改',
   'agent.empty': '用白話告訴我這個鏡頭哪裡不對，例如「數字再大一點」。我只改這個鏡頭，改完會先渲染、自我檢查，再給你看。',
   'agent.queued': '排隊中',
   'agent.working': '處理中',
@@ -200,6 +200,8 @@ export const zhTW: Record<Key, string> = {
   'agent.after': '修改後',
   'agent.allPass': '全部檢查通過',
   'agent.left': '還有 {n} 項未通過：{rules}',
+  'agent.fixFound': '讓 AI 修正這些問題',
+  'agent.fixFoundAsk': '修正檢查發現的問題：\n{list}',
   'agent.left.one': '還有 1 項未通過：{rules}',
 
   'state.cached': '已快取',
