@@ -392,8 +392,11 @@ export interface SoundResult {
   // The person chose the ambience (a plan keeps it)
   chosen?: boolean
   cues: SoundCue[]
+  // The synth's ambiences and effects, by name
   ambiences: string[]
   sounds: string[]
+  // Sounds added from the asset library: effects or the ambience, by id
+  library: { id: string; name: string; duration: number | null; license: string }[]
 }
 
 export interface MusicResult {

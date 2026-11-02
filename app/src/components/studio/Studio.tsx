@@ -163,11 +163,9 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
             <Icon name="x" size={14} />
           </button>
         )}
-        {project.track === '3d' && (
-          <button className={drawer === 'assets' ? 'ghost on' : 'ghost'} onClick={() => toggle('assets')}>
-            <Icon name="cube" size={14} /> {t('studio.assets')}
-          </button>
-        )}
+        <button className={drawer === 'assets' ? 'ghost on' : 'ghost'} onClick={() => toggle('assets')}>
+          <Icon name={project.track === '3d' ? 'cube' : 'volume'} size={14} /> {t('studio.assets')}
+        </button>
         <button className={drawer === 'queue' ? 'ghost on' : 'ghost'} onClick={() => toggle('queue')}>
           <Icon name="queue" size={14} /> {t('studio.queue')}{active.length ? <span className="count">{active.length}</span> : null}
         </button>

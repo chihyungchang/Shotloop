@@ -125,7 +125,7 @@ flowchart LR
 - **Озвучка, синтезированная на вашем Mac.** У каждого кадра есть реплика, и голос ведёт монтаж: кадр длится столько, сколько его реплика, а картинка попадает в слова. Kokoro говорит по-английски, CosyVoice 2 — по-китайски, Supertonic — на остальных языках, всё офлайн. Субтитры произнесённых слов добавляются автоматически, а проверка перечисляет всё, что они закрыли бы (текст и отмеченный объект), так что фильм с закрытым содержимым не экспортируется. Для фильма только с подписями озвучку можно отключить.
 - **Музыка под монтаж.** Синтезированный фон подстроен так, что склейки попадают в бит; он звучит до последнего кадра и плавно затихает. Под озвучкой он тише и приглушается, пока звучит реплика.
 - **3D уровня офлайн-рендерера за минуты.** Каждый 3D-кадр усредняет несколько подкадров (сглаживание, мягкие тени, ambient occlusion, глубина резкости, размытие движения) примерно за полсекунды, так что 30-секундный фильм рендерится за несколько минут, и ничего не нужно устанавливать.
-- **Библиотека ресурсов для 3D.** Ищите CC0-модели на [Poly Pizza](https://poly.pizza) и [Smithsonian Open Access](https://www.si.edu/openaccess) со своим ключом. Каждая модель скачивается один раз и добавляется в любой 3D-проект.
+- **Библиотека ресурсов: модели и звуки.** Ищите CC0-модели на [Poly Pizza](https://poly.pizza) и [Smithsonian Open Access](https://www.si.edu/openaccess) со своим ключом, а звуковые эффекты, атмосферы и музыку — на [Openverse](https://openverse.org) (Freesound, Wikimedia, Jamendo) без ключа; перед скачиванием их можно прослушать. Каждый ресурс скачивается один раз и добавляется в любой проект: модель — в 3D-мир, звук — на бит картинки или атмосферой под весь фильм.
 
 ## Какой ИИ им управляет
 
@@ -198,7 +198,7 @@ my-video/
   world/               page.html (2D: набор стиля; 3D: набор WebGL), 2D: parts.js (повторяющиеся
                        картинки, нарисованные один раз), geo.data.js (страны для стиля «Карта»); 3D: *.js (декорации, механизмы)
   shots/<id>/          shot.js, notes.md (что показать, текст на экране, движение, звук), sounds.json (его звуковые эффекты)
-  assets/<id>/         3D-модели из библиотеки ресурсов
+  assets/<id>/         модели и звуки из библиотеки ресурсов
   copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           кеш: по кадру и хешу входных данных, дубли, проверки, правки; voice/: произнесённые реплики, субтитры
   out/                 экспорты движка (с отметкой времени); приложение копирует каждый в новую папку, где вы укажете
@@ -231,7 +231,7 @@ Shotloop стоит на работе open source. Спасибо людям, к
 - **Озвучка:** [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) от hexgrad и [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (английский); [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) от FunAudioLLM с [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) и [Transformers](https://github.com/huggingface/transformers) (китайский); [Supertonic](https://huggingface.co/Supertone/supertonic-3) от Supertone (остальные языки); [ONNX Runtime](https://onnxruntime.ai); [uv](https://github.com/astral-sh/uv) и [Python](https://www.python.org), на которых работает китайский голос.
 - **Рендер и фильм:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) через протокол DevTools, [three.js](https://threejs.org) и [Node.js](https://nodejs.org).
 - **Приложение:** [Tauri](https://tauri.app), [React](https://react.dev), [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) и [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
-- **Ресурсы и данные:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess) и [Natural Earth](https://www.naturalearthdata.com) через [world-atlas](https://github.com/topojson/world-atlas).
+- **Ресурсы и данные:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), [Openverse](https://openverse.org) и [Natural Earth](https://www.naturalearthdata.com) через [world-atlas](https://github.com/topojson/world-atlas).
 
 В «Настройки → О программе» перечислены все компоненты с версиями и лицензиями, а подробности — в [NOTICE](NOTICE).
 
@@ -241,4 +241,4 @@ Shotloop стоит на работе open source. Спасибо людям, к
 
 ## Лицензия
 
-[Apache License 2.0](LICENSE); см. также [NOTICE](NOTICE). Модели из библиотеки ресурсов сохраняют собственные лицензии (CC0 или CC-BY, с указанием авторства в проекте), как и голосовые модели (Kokoro и CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).
+[Apache License 2.0](LICENSE); см. также [NOTICE](NOTICE). Модели и звуки из библиотеки ресурсов сохраняют собственные лицензии (CC0 или CC-BY, с указанием авторства в проекте), как и голосовые модели (Kokoro и CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).

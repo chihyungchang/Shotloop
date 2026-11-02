@@ -1,5 +1,6 @@
-//! The asset library: 3D models found on free sources (Poly Pizza, the
-//! Smithsonian) with the person's own keys, kept once on this Mac.
+//! The asset library: 3D models and sounds found on free sources (Poly
+//! Pizza and the Smithsonian with the person's own keys, Openverse with
+//! none), kept once on this Mac.
 
 use crate::runner::Args;
 use crate::settings::{self, Settings};
@@ -22,7 +23,11 @@ fn given(key: String) -> Option<String> {
 pub async fn library_search(handle: AppHandle, source: String, query: String, cursor: Option<String>, all: bool, category: Option<String>) -> Result<Value, String> {
     blocking(move || {
         let s = saved(&handle);
-        let key = if source == "polypizza" { s.polypizza_key } else { s.smithsonian_key };
+        let key = match source.as_str() {
+            "polypizza" => s.polypizza_key,
+            "smithsonian" => s.smithsonian_key,
+            _ => String::new(),
+        };
         let args = Args::new(["library", "search", "--source", &source, "--query", &query])
             .opt("--key", given(key))
             .opt("--cursor", cursor)
@@ -33,7 +38,7 @@ pub async fn library_search(handle: AppHandle, source: String, query: String, cu
     .await
 }
 
-/// Download a search result, list, remove, use in a project
+/// Download a search result, hear a sound first, list, remove, use in a project
 #[tauri::command]
 pub async fn library(handle: AppHandle, action: String, item: Option<Value>, id: Option<String>, project: Option<String>) -> Result<Value, String> {
     blocking(move || {
@@ -45,6 +50,7 @@ pub async fn library(handle: AppHandle, action: String, item: Option<Value>, id:
                 let key = if poly { given(saved(&handle).polypizza_key) } else { None };
                 base.arg("--item").arg(item.map_or("null".into(), |i| i.to_string())).opt("--key", key)
             }
+            "preview" => base.arg("--item").arg(item.map_or("null".into(), |i| i.to_string())),
             "list" => base.args(project),
             "remove" | "import" => base.args(id),
             "use" | "unuse" => base.args(project).args(id),

@@ -353,6 +353,9 @@ export const MUSIC_MOODS = Object.keys(MOODS)
 // Poly Pizza's categories, in the order of its API's numbers (library.mjs)
 export const POLY_CATEGORIES = ['food', 'clutter', 'weapons', 'transport', 'furniture', 'objects', 'nature', 'animals', 'buildings', 'people', 'scenes', 'other']
 
+// The sound files the asset library takes (library.mjs; the app's import dialog)
+export const AUDIO_EXTS = ['mp3', 'ogg', 'oga', 'wav', 'flac', 'm4a', 'aac', 'opus']
+
 // The idea's first sentence as a title, at most 60 characters, cut at a
 // word (an ellipsis marks the cut) so no word is left half-written
 export function firstLine(idea, max = 60) {

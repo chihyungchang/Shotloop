@@ -125,7 +125,7 @@ flowchart LR
 - **配音，在你的 Mac 上配音。** 每个镜头有一句台词，由配音带动剪辑：镜头长度跟着台词走，画面落在说到的词上。英文用 Kokoro，中文用 CosyVoice 2，其他语言用 Supertonic，全部离线运行。字幕按说出的话自动生成，并会检查列出字幕会遮住的内容（文字和标记的主体），被遮住的片子不会导出。只想要字幕卡的片子可以关掉配音。
 - **配乐贴合剪辑。** 合成的配乐会调整节拍，让剪切点落在拍子上；音乐一直响到最后一帧，再平滑淡出。有配音时音乐会压低，说话时再让一让。
 - **3D 像离线渲染器一样精致，几分钟出片。** 每一帧 3D 都由多个子帧平均而成（抗锯齿、软阴影、环境光遮蔽、景深、运动模糊），约半秒一帧，30 秒的片子几分钟就能渲染完，无需安装任何东西。
-- **3D 素材库。** 用你自己的 key 在 [Poly Pizza](https://poly.pizza) 和 [Smithsonian 开放资源](https://www.si.edu/openaccess)中搜索免费模型。每个模型只下载一次，任何 3D 项目都能用。
+- **素材库：模型和音频。** 用你自己的 key 在 [Poly Pizza](https://poly.pizza) 和 [Smithsonian 开放资源](https://www.si.edu/openaccess)中搜索免费模型；在 [Openverse](https://openverse.org)（Freesound、Wikimedia、Jamendo）里搜索音效、环境音和音乐，不需要 key，下载前可以先试听。每个素材只下载一次，任何项目都能用：模型放进 3D 世界，音频放在画面节拍上，或者铺在整片下面做环境音。
 
 ## 支持的 AI
 
@@ -198,7 +198,7 @@ my-video/
   world/               page.html（2D：画面方式的工具包；3D：WebGL 工具包）、2D：parts.js（反复出现的画面，
                        只画一次）、geo.data.js（地图方式的国家数据）；3D：*.js（布景、机械）
   shots/<id>/          shot.js、notes.md（必须呈现、屏幕文字、动作、声音）、sounds.json（它的音效）
-  assets/<id>/         从素材库加入的 3D 模型
+  assets/<id>/         从素材库加入的模型和音频
   copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           缓存：按镜头和输入哈希保存的渲染、记录、检查、修改；voice/：配音语音、字幕
   out/                 引擎的导出文件（带时间戳）；App 会把每次导出复制到你选的位置，新建一个文件夹
@@ -227,7 +227,7 @@ Shotloop 建立在开源成果之上。感谢以下项目背后的人：
 - **配音：** hexgrad 的 [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) 和 [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)（英文）；FunAudioLLM 的 [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice)，以及 [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS)、[WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing)、[Whisper](https://github.com/openai/whisper)、[PyTorch](https://pytorch.org) 和 [Transformers](https://github.com/huggingface/transformers)（中文）；Supertone 的 [Supertonic](https://huggingface.co/Supertone/supertonic-3)（其他语言）；[ONNX Runtime](https://onnxruntime.ai)；运行中文配音的 [uv](https://github.com/astral-sh/uv) 和 [Python](https://www.python.org)。
 - **渲染与成片：** [FFmpeg](https://ffmpeg.org)、通过 DevTools 协议驱动的 [Google Chrome](https://www.google.com/chrome/)、[three.js](https://threejs.org) 和 [Node.js](https://nodejs.org)。
 - **应用：** [Tauri](https://tauri.app)、[React](https://react.dev)、[Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) 和 [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk)。
-- **素材与数据：** [Kenney](https://kenney.nl)、[Poly Haven](https://polyhaven.com)、[Quaternius](https://quaternius.com)、[Poly Pizza](https://poly.pizza)、[Smithsonian Open Access](https://www.si.edu/openaccess)，以及经由 [world-atlas](https://github.com/topojson/world-atlas) 提供的 [Natural Earth](https://www.naturalearthdata.com)。
+- **素材与数据：** [Kenney](https://kenney.nl)、[Poly Haven](https://polyhaven.com)、[Quaternius](https://quaternius.com)、[Poly Pizza](https://poly.pizza)、[Smithsonian Open Access](https://www.si.edu/openaccess)、[Openverse](https://openverse.org)，以及经由 [world-atlas](https://github.com/topojson/world-atlas) 提供的 [Natural Earth](https://www.naturalearthdata.com)。
 
 "设置 → 关于"列出了每个组件的版本和许可证，详情见 [NOTICE](NOTICE)。
 
@@ -237,4 +237,4 @@ Shotloop 每天最多一次向开发者发送匿名计数：版本、芯片架�
 
 ## 许可证
 
-[Apache License 2.0](LICENSE)，另见 [NOTICE](NOTICE)。素材库里的模型保留各自的许可（CC0 或 CC-BY，署名会写进项目里），语音模型也一样（Kokoro 和 CosyVoice 2：Apache-2.0；Supertonic：OpenRAIL-M）。
+[Apache License 2.0](LICENSE)，另见 [NOTICE](NOTICE)。素材库里的模型和音频保留各自的许可（CC0 或 CC-BY，署名会写进项目里），语音模型也一样（Kokoro 和 CosyVoice 2：Apache-2.0；Supertonic：OpenRAIL-M）。

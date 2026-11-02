@@ -1,19 +1,27 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
-import { useEffect, useRef, useState } from 'react'
-import { POLY_CATEGORIES } from '../../../engine/shotloop/data.mjs'
-import { api, fileUrl, KEY_PAGES, type Asset, type LibraryItem } from '../api'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { AUDIO_EXTS, POLY_CATEGORIES } from '../../../engine/shotloop/data.mjs'
+import { api, fileUrl, KEY_PAGES, type Asset, type AssetKind, type LibraryItem } from '../api'
 import { useErrorLine } from '../hooks'
 import { t } from '../i18n'
 import type { Key } from '../i18n/en'
-import { formatMB, formatNumber } from '../model'
+import { formatMB, formatNumber, formatSeconds } from '../model'
 import { Icon } from './Icon'
+import { PlayButton } from './PlayButton'
 
 type Tab = 'search' | 'mine'
 type Source = LibraryItem['source']
 
-const SOURCES: { id: Source; name: string; note: Key }[] = [
-  { id: 'polypizza', name: 'Poly Pizza', note: 'assets.polypizzaShort' },
-  { id: 'smithsonian', name: 'Smithsonian', note: 'assets.smithsonianShort' }
+const SOURCES: Record<AssetKind, { id: Source; name: string; note: Key }[]> = {
+  model: [
+    { id: 'polypizza', name: 'Poly Pizza', note: 'assets.polypizzaShort' },
+    { id: 'smithsonian', name: 'Smithsonian', note: 'assets.smithsonianShort' }
+  ],
+  sound: [{ id: 'openverse', name: 'Openverse', note: 'library.openverseShort' }]
+}
+const KINDS: { id: AssetKind; label: Key; icon: 'cube' | 'volume' }[] = [
+  { id: 'model', label: 'library.kind.models', icon: 'cube' },
+  { id: 'sound', label: 'library.kind.sounds', icon: 'volume' }
 ]
 
 // A preview, or a quiet placeholder when there is none or it won't load
@@ -26,6 +34,29 @@ function Thumb({ src }: { src: string | null }) {
   )
 }
 
+// A licence as a badge: green when nothing is owed (CC0, public domain)
+function License({ license }: { license: string }) {
+  return <span className={`license${/^(cc0|public domain)/i.test(license) ? ' cc0' : ''}`}>{license || '?'}</span>
+}
+
+// A sound as a row: played in place, then its name, author, length and
+// licence, and the row's own actions after
+function SoundRow({ name, author, duration, license, src, onError, children }: {
+  name: string; author: string; duration?: number | null; license: string; src: () => Promise<string>; onError: (e: string) => void; children: ReactNode
+}) {
+  return (
+    <div className="audio-row">
+      <PlayButton src={src} onError={onError} />
+      <span className="audio-text">
+        <strong className="ellipsis" title={name}>{name}</strong>
+        <span className="small muted ellipsis">{author}{duration ? ` · ${formatSeconds(duration)}` : ''}</span>
+      </span>
+      <License license={license} />
+      {children}
+    </div>
+  )
+}
+
 // Results already fetched this session, by source, query, page and filter
 const seen = new Map<string, { results: LibraryItem[]; cursor: string | null }>()
 
@@ -34,15 +65,17 @@ function AssetSkeleton() {
   return <div className="asset-grid" aria-busy>{Array.from({ length: 8 }, (_, i) => <div key={i} className="asset-card skeleton"><span className="shimmer" /></div>)}</div>
 }
 
-// The asset library: 3D models found on free sources and downloaded once
-// to this Mac, then added to the 3D projects that use them (in the
-// studio's Assets drawer)
+// The asset library: 3D models and sounds found on free sources and
+// downloaded once to this Mac, then added to the projects that use them
+// (in the studio's Assets drawer)
 export function LibraryPage({ openSettings }: { openSettings: () => void }) {
   const [tab, setTab] = useState<Tab>('search')
-  const [mine, setMine] = useState<Asset[] | null>(null)
+  const [kind, setKind] = useState<AssetKind>('model')
+  const [all, setAll] = useState<Asset[] | null>(null)
+  const mine = all?.filter(a => a.kind === kind) ?? null
   const [error, setError] = useState<string | null>(null)
-  const reload = () => api.libraryList().then(setMine, e => {
-    setMine([])
+  const reload = () => api.libraryList().then(setAll, e => {
+    setAll([])
     setError(String(e))
   })
   useEffect(() => {
@@ -60,17 +93,26 @@ export function LibraryPage({ openSettings }: { openSettings: () => void }) {
           </button>
         </div>
       </div>
+      {/* Models or sounds, as the projects page picks recent or examples */}
+      <div className="subtabs library-kinds" role="tablist">
+        {KINDS.map(k => (
+          <button key={k.id} role="tab" aria-selected={kind === k.id} className={kind === k.id ? 'on' : ''} onClick={() => setKind(k.id)}>
+            <Icon name={k.icon} size={13} /> {t(k.label)}
+          </button>
+        ))}
+      </div>
       <p className="hint">{t('library.intro')}</p>
       {error && <div className="error-box small">{error}</div>}
       {tab === 'search'
-        ? <Search have={new Set(mine?.map(a => a.id))} onAdded={reload} openSettings={openSettings} />
-        : <Mine assets={mine} reload={reload} />}
+        ? <Search key={kind} kind={kind} have={new Set(all?.map(a => a.id))} onAdded={reload} openSettings={openSettings} />
+        : <Mine key={kind} kind={kind} assets={mine} reload={reload} />}
     </div>
   )
 }
 
-function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: () => void; openSettings: () => void }) {
-  const [source, setSource] = useState<Source>('polypizza')
+function Search({ kind, have, onAdded, openSettings }: { kind: AssetKind; have: Set<string>; onAdded: () => void; openSettings: () => void }) {
+  const sources = SOURCES[kind]
+  const [source, setSource] = useState<Source>(sources[0].id)
   const [query, setQuery] = useState('')
   const [all, setAll] = useState(false)
   const [results, setResults] = useState<LibraryItem[] | null>(null)
@@ -89,8 +131,8 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
       setResults(null)
       setCursor(null)
     }
-    // Poly Pizza needs a keyword or a category
-    if (source === 'polypizza' && !q.trim() && !cat) return
+    // Poly Pizza needs a keyword or a category, Openverse a keyword
+    if ((source === 'polypizza' && !q.trim() && !cat) || (source === 'openverse' && !q.trim())) return
     setBusy(true)
     setError(null)
     try {
@@ -128,31 +170,52 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
     }
   }
   const needsKey = error && /api key|needs an api key/i.test(error)
+  // What every result ends with: a link to its page, then Download (or
+  // Downloaded)
+  const foot = (it: LibraryItem) => {
+    const state = getting[it.id]
+    return (
+      <>
+        {it.page && (
+          <button className="icon-button" title={t('library.openPage')} onClick={() => api.openUrl(it.page!).catch(e => setError(String(e)))}><Icon name="arrow" size={13} /></button>
+        )}
+        {have.has(it.id)
+          ? <span className="small ok-note"><Icon name="check" size={12} /> {t('library.have')}</span>
+          : (
+            <button className="small" onClick={() => get(it)} disabled={!!state && 'busy' in state} title={state && 'error' in state ? state.error : undefined}>
+              {state && 'busy' in state ? <span className="spinner small" /> : <Icon name="download" size={12} />} {t(state && 'error' in state ? 'plan.retry' : 'library.get')}
+            </button>
+          )}
+      </>
+    )
+  }
 
   return (
     <>
       <div className="library-bar">
-        <div className="seg-control" role="radiogroup">
-          {SOURCES.map(s => (
-            <button key={s.id} role="radio" aria-checked={source === s.id} className={source === s.id ? 'on' : ''} onClick={() => setSource(s.id)}>{s.name}</button>
-          ))}
-        </div>
+        {sources.length > 1 && (
+          <div className="seg-control" role="radiogroup">
+            {sources.map(s => (
+              <button key={s.id} role="radio" aria-checked={source === s.id} className={source === s.id ? 'on' : ''} onClick={() => setSource(s.id)}>{s.name}</button>
+            ))}
+          </div>
+        )}
         <label className="library-search">
           <Icon name="search" size={15} />
-          <input value={query} placeholder={t('library.placeholder')} onChange={e => setQuery(e.target.value)} onKeyDown={e => {
+          <input value={query} placeholder={t(kind === 'sound' ? 'library.placeholderSound' : 'library.placeholder')} onChange={e => setQuery(e.target.value)} onKeyDown={e => {
             if (e.key === 'Enter') {
               setCategory(null)
               run(false, query, null)
             }
           }} />
         </label>
-        {source === 'polypizza' && (
+        {source !== 'smithsonian' && (
           <label className="check-inline">
             <input type="checkbox" checked={!all} onChange={e => setAll(!e.target.checked)} /> {t('library.cc0Only')}
           </label>
         )}
       </div>
-      <p className="small muted">{t(SOURCES.find(s => s.id === source)!.note)}</p>
+      <p className="small muted">{t(sources.find(s => s.id === source)!.note)}</p>
       {needsKey
         ? (
           <div className="connect-card">
@@ -176,12 +239,20 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
           ))}
         </div>
       )}
-      {busy && !results?.length && <AssetSkeleton />}
-      {results && results.length === 0 && !busy && !error && <p className="empty">{t('library.none')}</p>}
+      {busy && !results?.length && (kind === 'sound' ? <SoundSkeleton /> : <AssetSkeleton />)}
+      {results && results.length === 0 && !busy && !error && query.trim() && <p className="empty">{t(kind === 'sound' ? 'library.noneSounds' : 'library.none')}</p>}
+      {kind === 'sound' && results?.length ? (
+        <div className="audio-list">
+          {results.map(it => (
+            <SoundRow key={it.id} name={it.name} author={it.author} duration={it.duration} license={it.license}
+              src={async () => fileUrl((await api.libraryPreview(it)).file)} onError={setError}>
+              {foot(it)}
+            </SoundRow>
+          ))}
+        </div>
+      ) : null}
       <div className="asset-grid">
-        {results?.map(it => {
-          const owned = have.has(it.id)
-          const state = getting[it.id]
+        {kind === 'model' && results?.map(it => {
           const size = it.size ? formatMB(it.size, 1) : null
           return (
             <div key={it.id} className="asset-card">
@@ -191,17 +262,8 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
                 <span className="small muted ellipsis">{it.author}{it.triangles ? ` · ${formatNumber(it.triangles)} △` : ''}{size ? ` · ${size}` : ''}</span>
               </div>
               <div className="asset-foot">
-                <span className={`license${/^cc0/i.test(it.license) ? ' cc0' : ''}`}>{it.license || '?'}</span>
-                {it.page && (
-                  <button className="icon-button" title={t('library.openPage')} onClick={() => api.openUrl(it.page!).catch(e => setError(String(e)))}><Icon name="arrow" size={13} /></button>
-                )}
-                {owned
-                  ? <span className="small ok-note"><Icon name="check" size={12} /> {t('library.have')}</span>
-                  : (
-                    <button className="small" onClick={() => get(it)} disabled={!!state && 'busy' in state} title={state && 'error' in state ? state.error : undefined}>
-                      {state && 'busy' in state ? <span className="spinner small" /> : <Icon name="download" size={12} />} {t(state && 'error' in state ? 'plan.retry' : 'library.get')}
-                    </button>
-                  )}
+                <License license={it.license} />
+                {foot(it)}
               </div>
             </div>
           )
@@ -214,10 +276,16 @@ function Search({ have, onAdded, openSettings }: { have: Set<string>; onAdded: (
   )
 }
 
-function Mine({ assets, reload }: { assets: Asset[] | null; reload: () => void }) {
-  const { error, guard } = useErrorLine()
+// Sound rows in outline while results load
+function SoundSkeleton() {
+  return <div className="audio-list" aria-busy>{Array.from({ length: 6 }, (_, i) => <div key={i} className="audio-row skeleton"><span className="shimmer" /></div>)}</div>
+}
+
+function Mine({ kind, assets, reload }: { kind: AssetKind; assets: Asset[] | null; reload: () => void }) {
+  const { error, setError, guard } = useErrorLine()
   const importFile = async () => {
-    const file = await pick({ title: t('library.import'), filters: [{ name: t('filter.glb'), extensions: ['glb'] }] })
+    const filter = kind === 'sound' ? { name: t('filter.audio'), extensions: AUDIO_EXTS } : { name: t('filter.glb'), extensions: ['glb'] }
+    const file = await pick({ title: t('library.import'), filters: [filter] })
     if (typeof file === 'string' && (await guard(api.libraryImport(file)))) reload()
   }
   const remove = async (id: string) => {
@@ -226,12 +294,31 @@ function Mine({ assets, reload }: { assets: Asset[] | null; reload: () => void }
   }
   const bar = (
     <div className="row between">
-      <span className="small muted">{t('library.importNote')}</span>
+      <span className="small muted">{t(kind === 'sound' ? 'library.importNoteSound' : 'library.importNote')}</span>
       <button onClick={importFile}><Icon name="plus" size={13} /> {t('library.import')}</button>
     </div>
   )
-  if (!assets) return <AssetSkeleton />
-  if (!assets.length) return <>{bar}{error && <div className="error-box small">{error}</div>}<p className="empty">{t('library.emptyMine')}</p></>
+  if (!assets) return kind === 'sound' ? <SoundSkeleton /> : <AssetSkeleton />
+  if (!assets.length) return <>{bar}{error && <div className="error-box small">{error}</div>}<p className="empty">{t(kind === 'sound' ? 'library.emptyMineSounds' : 'library.emptyMine')}</p></>
+  const actions = (a: Asset) => (
+    <span className="row">
+      <button className="icon-button" title={t('studio.revealFinder')} onClick={() => guard(api.reveal(a.file))}><Icon name="folder" size={14} /></button>
+      <button className="icon-button" title={t('plan.remove')} onClick={() => remove(a.id)}><Icon name="x" size={14} /></button>
+    </span>
+  )
+  if (kind === 'sound') return (
+    <>
+    {bar}
+    {error && <div className="error-box small">{error}</div>}
+    <div className="audio-list">
+      {assets.map(a => (
+        <SoundRow key={a.id} name={a.name} author={a.author} duration={a.duration} license={a.license} src={async () => fileUrl(a.file)} onError={setError}>
+          {actions(a)}
+        </SoundRow>
+      ))}
+    </div>
+    </>
+  )
   return (
     <>
     {bar}
@@ -245,11 +332,8 @@ function Mine({ assets, reload }: { assets: Asset[] | null; reload: () => void }
             <span className="small muted ellipsis">{a.author}</span>
           </div>
           <div className="asset-foot">
-            <span className={`license${/^cc0/i.test(a.license) ? ' cc0' : ''}`}>{a.license}</span>
-            <span className="row">
-              <button className="icon-button" title={t('studio.revealFinder')} onClick={() => guard(api.reveal(a.model))}><Icon name="folder" size={14} /></button>
-              <button className="icon-button" title={t('plan.remove')} onClick={() => remove(a.id)}><Icon name="x" size={14} /></button>
-            </span>
+            <License license={a.license} />
+            {actions(a)}
           </div>
         </div>
       ))}

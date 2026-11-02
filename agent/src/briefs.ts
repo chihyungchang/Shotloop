@@ -13,7 +13,7 @@ import { LOOKS, STYLES } from './enginelib.ts'
 
 export const read = (f: string) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '(missing)')
 
-// The models in the project's assets/ (from the asset library)
+// The models and sounds in the project's assets/ (from the asset library)
 function assetList(project: ProjectStatus) {
   const dir = path.join(project.root, 'assets')
   if (!fs.existsSync(dir)) return []
@@ -21,17 +21,23 @@ function assetList(project: ProjectStatus) {
     const meta = path.join(dir, id, 'asset.json')
     if (!fs.existsSync(meta)) return []
     const a = JSON.parse(fs.readFileSync(meta, 'utf8'))
-    return [{ id, name: String(a.name ?? id), license: String(a.license ?? ''), author: String(a.author ?? ''), page: a.page ? String(a.page) : '', attribution: a.attribution ? String(a.attribution) : '' }]
+    return [{
+      id, kind: a.kind === 'sound' ? 'sound' : 'model', file: String(a.file ?? 'model.glb'), duration: typeof a.duration === 'number' ? a.duration : null,
+      name: String(a.name ?? id), license: String(a.license ?? ''), author: String(a.author ?? ''), page: a.page ? String(a.page) : '', attribution: a.attribution ? String(a.attribution) : ''
+    }]
   })
 }
 
-// CC-BY models need their authors credited in every post
+// CC-BY models and sounds need their authors credited in every post
 export const credits = (project: ProjectStatus) => creditsPrompt(assetList(project).filter(a => /cc-by/i.test(a.license)))
 
 function assetsBrief(project: ProjectStatus) {
   const assets = assetList(project)
-  if (!assets.length) return ''
-  return `\n\nModels in assets/ (import them as the format describes):\n${assets.map(a => `- assets/${a.id}/model.glb: ${a.name} (${a.license}${a.author ? `, ${a.author}` : ''})`).join('\n')}`
+  const by = (a: ReturnType<typeof assetList>[number]) => `${a.license}${a.author ? `, ${a.author}` : ''}`
+  const models = assets.filter(a => a.kind === 'model')
+  const sounds = assets.filter(a => a.kind === 'sound')
+  return (models.length ? `\n\nModels in assets/ (import them as the format describes):\n${models.map(a => `- assets/${a.id}/${a.file}: ${a.name} (${by(a)})`).join('\n')}` : '')
+    + (sounds.length ? `\n\nSounds in assets/ (use one by its id as "sound" in sounds.json):\n${sounds.map(a => `- ${a.id}: ${a.name}${a.duration ? `, ${a.duration.toFixed(1)} s` : ''} (${by(a)})`).join('\n')}` : '')
 }
 
 // A project in one line, for prompts

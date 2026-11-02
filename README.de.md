@@ -125,7 +125,7 @@ flowchart LR
 - **Ein Sprecher, gesprochen auf deinem Mac.** Jeder Shot hat einen Sprechtext, und die Stimme führt den Schnitt: Ein Shot dauert so lange wie sein Text, und das Bild trifft die Worte. Kokoro spricht Englisch, CosyVoice 2 Chinesisch und Supertonic die übrigen Sprachen, alles offline. Untertitel der gesprochenen Worte kommen automatisch dazu, und eine Prüfung listet alles auf, was sie verdecken würden (Text und das markierte Motiv), sodass ein verdeckter Film nie exportiert wird. Für einen Film nur mit Texteinblendungen schaltest du den Sprecher aus.
 - **Musik passend zum Schnitt.** Der synthetisierte Klangteppich ist so abgestimmt, dass die Schnitte auf seine Beats fallen; er läuft bis zum letzten Frame und blendet aus. Unter einem Sprecher liegt er leiser und duckt sich, während ein Satz gesprochen wird.
 - **3D, das rendert wie ein Offline-Renderer, in Minuten.** Jedes 3D-Bild mittelt mehrere Teilbilder (Kantenglättung, weiche Schatten, Ambient Occlusion, Tiefenschärfe, Bewegungsunschärfe) in etwa einer halben Sekunde, sodass ein 30-Sekunden-Film in wenigen Minuten gerendert ist, ohne dass du etwas installieren musst.
-- **Asset-Bibliothek für 3D.** Suche CC0-Modelle auf [Poly Pizza](https://poly.pizza) und [Smithsonian Open Access](https://www.si.edu/openaccess) mit deinem eigenen Schlüssel. Jedes Modell wird einmal geladen und lässt sich in jedes 3D-Projekt einfügen.
+- **Asset-Bibliothek: Modelle und Sounds.** Suche CC0-Modelle auf [Poly Pizza](https://poly.pizza) und [Smithsonian Open Access](https://www.si.edu/openaccess) mit deinem eigenen Schlüssel, und Soundeffekte, Atmos und Musik auf [Openverse](https://openverse.org) (Freesound, Wikimedia, Jamendo) ohne Schlüssel; vor dem Download kannst du reinhören. Alles wird einmal geladen und lässt sich in jedes Projekt einfügen: ein Modell in eine 3D-Welt, ein Sound auf einen Beat im Bild oder als Atmo unter den Film.
 
 ## Die KI dahinter
 
@@ -198,7 +198,7 @@ my-video/
   world/               page.html (2D: Kit des Stils; 3D: das WebGL-Kit), 2D: parts.js (wiederkehrende
                        Bilder, einmal gezeichnet), geo.data.js (Länder des Kartenstils); 3D: *.js (Sets, Maschinen)
   shots/<id>/          shot.js, notes.md (muss zeigen, im Bild, Bewegung, Ton), sounds.json (seine Soundeffekte)
-  assets/<id>/         3D-Modelle aus der Asset-Bibliothek
+  assets/<id>/         Modelle und Sounds aus der Asset-Bibliothek
   copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           Cache: pro Shot und Eingabe-Hash, Takes, Prüfungen, Korrekturen; voice/: gesprochene Texte, Untertitel
   out/                 Exporte der Engine (mit Zeitstempel); die App kopiert jeden in einen neuen Ordner deiner Wahl
@@ -231,7 +231,7 @@ Shotloop baut auf Open-Source-Arbeit auf. Danke an die Menschen hinter:
 - **Der Sprecher:** [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) von hexgrad und [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (Englisch); [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) von FunAudioLLM mit [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) und [Transformers](https://github.com/huggingface/transformers) (Chinesisch); [Supertonic](https://huggingface.co/Supertone/supertonic-3) von Supertone (die übrigen Sprachen); [ONNX Runtime](https://onnxruntime.ai); [uv](https://github.com/astral-sh/uv) und [Python](https://www.python.org), die die chinesische Stimme ausführen.
 - **Rendering und Film:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) über das DevTools-Protokoll, [three.js](https://threejs.org) und [Node.js](https://nodejs.org).
 - **Die App:** [Tauri](https://tauri.app), [React](https://react.dev), das [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) und das [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
-- **Assets und Daten:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess) und [Natural Earth](https://www.naturalearthdata.com) über [world-atlas](https://github.com/topojson/world-atlas).
+- **Assets und Daten:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), [Openverse](https://openverse.org) und [Natural Earth](https://www.naturalearthdata.com) über [world-atlas](https://github.com/topojson/world-atlas).
 
 Einstellungen → Über listet jede Komponente mit Version und Lizenz, und [NOTICE](NOTICE) enthält die Details.
 
@@ -241,4 +241,4 @@ Einmal am Tag sendet Shotloop anonyme Zahlen an den Entwickler: Version, Chip, S
 
 ## Lizenz
 
-[Apache License 2.0](LICENSE); siehe [NOTICE](NOTICE). Modelle aus der Asset-Bibliothek behalten ihre eigenen Lizenzen (CC0 oder CC-BY, mit Namensnennung im Projekt), ebenso die Stimmmodelle (Kokoro und CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).
+[Apache License 2.0](LICENSE); siehe [NOTICE](NOTICE). Modelle und Sounds aus der Asset-Bibliothek behalten ihre eigenen Lizenzen (CC0 oder CC-BY, mit Namensnennung im Projekt), ebenso die Stimmmodelle (Kokoro und CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).

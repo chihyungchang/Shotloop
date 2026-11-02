@@ -258,7 +258,7 @@ ${storyboard}`
 export interface Credit { name: string; author: string; license: string; page: string; attribution: string }
 export function creditsPrompt(models: Credit[]) {
   if (!models.length) return ''
-  return `\n\nThe video uses these CC-BY models: credit each one in every platform's description or caption, as "<name>" by <author> (<license>)<link if any>:
+  return `\n\nThe video uses these CC-BY models and sounds: credit each one in every platform's description or caption, as "<name>" by <author> (<license>)<link if any>:
 ${models.map(a => `- ${a.attribution || `"${a.name}" by ${a.author || 'unknown'} (${a.license})${a.page ? ` ${a.page}` : ''}`}`).join('\n')}`
 }
 

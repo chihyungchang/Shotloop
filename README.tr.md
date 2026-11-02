@@ -125,7 +125,7 @@ flowchart LR
 - **Mac'inizde üretilen seslendirme.** Her çekimin bir repliği vardır ve kurguyu ses yönetir: bir çekim repliği kadar sürer, görüntü de sözcüklere denk gelir. Kokoro İngilizce, CosyVoice 2 Çince, Supertonic diğer dilleri konuşur; hepsi çevrimdışı. Söylenen sözcüklerin altyazıları otomatik eklenir ve bir denetim bunların örteceği her şeyi (yazıları ve işaretlenmiş özneyi) listeler; böylece örtülmüş bir film asla dışa aktarılmaz. Yalnızca ekran yazıları olan bir film için seslendirmeyi kapatın.
 - **Kurguya uyan müzik.** Sentezlenen fon müziği, kesmeler vuruşlarına denk gelecek şekilde ayarlanır, son kareye kadar sürer ve yavaşça kısılır. Seslendirmenin altında daha kısık çalar ve bir replik söylenirken sesini alçaltır.
 - **Çevrimdışı bir işleyici gibi işlenen 3D, dakikalar içinde.** Her 3D kare, birkaç alt kareyi (kenar yumuşatma, yumuşak gölgeler, ortam perdelemesi, alan derinliği, hareket bulanıklığı) yaklaşık yarım saniyede ortalar; böylece 30 saniyelik bir film birkaç dakikada işlenir ve hiçbir şey kurmanız gerekmez.
-- **3D için varlık kütüphanesi.** Kendi anahtarınızla [Poly Pizza](https://poly.pizza) ve [Smithsonian Open Access](https://www.si.edu/openaccess) üzerinde CC0 modeller arayın. Her model bir kez indirilir ve herhangi bir 3D projeye eklenebilir.
+- **Varlık kütüphanesi: modeller ve sesler.** Kendi anahtarınızla [Poly Pizza](https://poly.pizza) ve [Smithsonian Open Access](https://www.si.edu/openaccess) üzerinde CC0 modeller, anahtarsız olarak [Openverse](https://openverse.org) (Freesound, Wikimedia, Jamendo) üzerinde ses efektleri, ortam sesleri ve müzik arayın; indirmeden önce dinleyebilirsiniz. Her varlık bir kez indirilir ve herhangi bir projeye eklenebilir: model bir 3D dünyaya, ses görüntüdeki bir vuruşa ya da tüm filmin altında ortam sesi olarak.
 
 ## Arkasındaki yapay zekâ
 
@@ -198,7 +198,7 @@ my-video/
   world/               page.html (2D: stilin kiti; 3D: WebGL kiti), 2D: parts.js (tekrar eden,
                        bir kez çizilen görseller), geo.data.js (harita stilinin ülkeleri); 3D: *.js (dekorlar, makineler)
   shots/<id>/          shot.js, notes.md (gösterilmesi gerekenler, ekran yazısı, hareket, ses), sounds.json (ses efektleri)
-  assets/<id>/         varlık kütüphanesinden 3D modeller
+  assets/<id>/         varlık kütüphanesinden modeller ve sesler
   copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           önbellek: çekim ve girdi hash'ine göre; denemeler, denetimler, düzeltmeler; voice/: söylenen replikler, altyazılar
   out/                 motorun dışa aktarımları (zaman damgalı); uygulama her birini seçtiğiniz yerde yeni bir klasöre kopyalar
@@ -231,7 +231,7 @@ Shotloop açık kaynak emeğinin üzerinde duruyor. Şunların arkasındaki insa
 - **Seslendirme:** hexgrad'ın [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) modeli ve [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (İngilizce); FunAudioLLM'in [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) modeli ile [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) ve [Transformers](https://github.com/huggingface/transformers) (Çince); Supertone'un [Supertonic](https://huggingface.co/Supertone/supertonic-3) modeli (diğer diller); [ONNX Runtime](https://onnxruntime.ai); Çince sesi çalıştıran [uv](https://github.com/astral-sh/uv) ve [Python](https://www.python.org).
 - **Render ve film:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) (DevTools protokolü üzerinden), [three.js](https://threejs.org) ve [Node.js](https://nodejs.org).
 - **Uygulama:** [Tauri](https://tauri.app), [React](https://react.dev), [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) ve [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
-- **Varlıklar ve veriler:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess) ve [world-atlas](https://github.com/topojson/world-atlas) aracılığıyla [Natural Earth](https://www.naturalearthdata.com).
+- **Varlıklar ve veriler:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), [Openverse](https://openverse.org) ve [world-atlas](https://github.com/topojson/world-atlas) aracılığıyla [Natural Earth](https://www.naturalearthdata.com).
 
 Ayarlar → Hakkında her bileşeni sürümü ve lisansıyla listeler; ayrıntılar [NOTICE](NOTICE) dosyasındadır.
 
@@ -241,4 +241,4 @@ Shotloop günde en fazla bir kez geliştiricisine anonim sayılar gönderir: sü
 
 ## Lisans
 
-[Apache License 2.0](LICENSE); bkz. [NOTICE](NOTICE). Varlık kütüphanesindeki modeller kendi lisanslarını korur (CC0 veya CC-BY; atıf projeye yazılır), ses modelleri de öyle (Kokoro ve CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).
+[Apache License 2.0](LICENSE); bkz. [NOTICE](NOTICE). Varlık kütüphanesindeki modeller ve sesler kendi lisanslarını korur (CC0 veya CC-BY; atıf projeye yazılır), ses modelleri de öyle (Kokoro ve CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).

@@ -125,7 +125,7 @@ flowchart LR
 - **Uma narração, gerada no seu Mac.** Cada cena tem uma fala, e a voz conduz a edição: uma cena dura o tempo da sua fala, e a imagem cai sobre as palavras. O Kokoro fala inglês, o CosyVoice 2 chinês e o Supertonic os outros idiomas, tudo offline. As legendas do que é falado são adicionadas automaticamente, e uma verificação lista tudo o que elas cobririam (texto e o objeto marcado), então um filme coberto nunca é exportado. Desative para um filme só com textos na tela.
 - **Música no ritmo da edição.** A trilha sintetizada é ajustada para que os cortes caiam nas batidas, vai até o último quadro e termina em fade-out. Sob uma narração, ela fica mais baixa e abaixa ainda mais enquanto uma fala é dita.
 - **3D que renderiza como um renderizador offline, em minutos.** Cada quadro 3D tira a média de vários subquadros (antialiasing, sombras suaves, oclusão de ambiente, profundidade de campo, desfoque de movimento) em cerca de meio segundo, então um filme de 30 segundos fica pronto em poucos minutos, sem nada para instalar.
-- **Biblioteca 3D.** Busque modelos CC0 no [Poly Pizza](https://poly.pizza) e no [Smithsonian Open Access](https://www.si.edu/openaccess) com a sua própria chave. Cada modelo é baixado uma vez e pode ser adicionado a qualquer projeto 3D.
+- **Biblioteca de recursos: modelos e sons.** Busque modelos CC0 no [Poly Pizza](https://poly.pizza) e no [Smithsonian Open Access](https://www.si.edu/openaccess) com a sua própria chave, e efeitos sonoros, ambientes e músicas no [Openverse](https://openverse.org) (Freesound, Wikimedia, Jamendo) sem chave; ouça antes de baixar. Cada recurso é baixado uma vez e pode ser adicionado a qualquer projeto: um modelo a um mundo 3D, um som a um momento da imagem ou como ambiente sob o filme inteiro.
 
 ## A IA por trás
 
@@ -198,7 +198,7 @@ my-video/
   world/               page.html (2D: o kit do estilo; 3D: o kit WebGL), 2D: parts.js (imagens
                        que se repetem, desenhadas uma vez), geo.data.js (os países do estilo mapa); 3D: *.js (cenários, máquinas)
   shots/<id>/          shot.js, notes.md (o que deve mostrar, texto na tela, movimento, som), sounds.json (os seus efeitos sonoros)
-  assets/<id>/         modelos 3D da biblioteca
+  assets/<id>/         modelos e sons da biblioteca de recursos
   copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           cache: por cena e hash das entradas, tomadas, verificações, correções; voice/: falas, legendas
   out/                 as exportações do motor (com data e hora); o app copia cada uma para uma pasta nova onde você escolher
@@ -231,7 +231,7 @@ O Shotloop se apoia em trabalho de código aberto. Obrigado às pessoas por trá
 - **A narração:** [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M), da hexgrad, e [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (inglês); [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice), da FunAudioLLM, com [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) e [Transformers](https://github.com/huggingface/transformers) (chinês); [Supertonic](https://huggingface.co/Supertone/supertonic-3), da Supertone (os outros idiomas); [ONNX Runtime](https://onnxruntime.ai); [uv](https://github.com/astral-sh/uv) e [Python](https://www.python.org), que rodam a voz em chinês.
 - **A renderização e o filme:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) pelo protocolo DevTools, [three.js](https://threejs.org) e [Node.js](https://nodejs.org).
 - **O app:** [Tauri](https://tauri.app), [React](https://react.dev), o [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) e o [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
-- **Recursos e dados:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess) e [Natural Earth](https://www.naturalearthdata.com) via [world-atlas](https://github.com/topojson/world-atlas).
+- **Recursos e dados:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), [Openverse](https://openverse.org) e [Natural Earth](https://www.naturalearthdata.com) via [world-atlas](https://github.com/topojson/world-atlas).
 
 Configurações → Sobre lista cada componente com a sua versão e licença, e o [NOTICE](NOTICE) traz os detalhes.
 
@@ -241,4 +241,4 @@ Uma vez por dia, o Shotloop envia ao autor contagens anônimas: a versão, o chi
 
 ## Licença
 
-[Apache License 2.0](LICENSE); veja [NOTICE](NOTICE). Os modelos da biblioteca 3D mantêm as próprias licenças (CC0 ou CC-BY, com o crédito escrito no projeto), assim como os modelos de voz (Kokoro e CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).
+[Apache License 2.0](LICENSE); veja [NOTICE](NOTICE). Os modelos e sons da biblioteca de recursos mantêm as próprias licenças (CC0 ou CC-BY, com o crédito escrito no projeto), assim como os modelos de voz (Kokoro e CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).
