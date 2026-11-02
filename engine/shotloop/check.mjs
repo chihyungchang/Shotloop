@@ -1,5 +1,5 @@
 // The subtitle check: nothing the viewer must see sits under a subtitle.
-// Each voiced shot drawn by a page (2D, or 3D in WebGL) is drawn every 0.1 s (no frames captured, so it
+// Each voiced shot is drawn every 0.1 s (no frames captured, so it
 // takes seconds) with the subtitle on screen at that moment laid out in
 // the shot's own page, and what the box covers is listed:
 //
@@ -15,7 +15,6 @@
 // may pass under the subtitles.
 
 import { saveSubtitleResult } from './cache.mjs'
-import { paged } from './project.mjs'
 import { emit, progress } from './compose.mjs'
 import { openShot } from './render2d.mjs'
 import { subtitleCss, subtitleCues, subtitleWindows } from './subtitles.mjs'
@@ -62,13 +61,13 @@ const COVERED = `(text => {
   return [...new Set(out)]
 })`
 
-// The voiced shots drawn by a page (or the one asked for) checked, each result saved
+// The voiced shots (or the one asked for) checked, each result saved
 // with its shot: { checked, issues: [{ shot, from, to, what }] }, time
 // ranges in shot seconds. The times come from the fitted cues in
 // shotloop.json: no speech is made. Shots are drawn in final quality, the
 // geometry the subtitles are laid out in
 export async function checkSubtitles(project, { shot: only } = {}) {
-  if (!paged(project) || !voiceOn(project)) return { checked: 0, issues: [] }
+  if (!voiceOn(project)) return { checked: 0, issues: [] }
   const cues = subtitleCues(timedLines(project))
   const shots = project.shots.filter(s => (!only || s.id === only) && subtitleWindows(s, cues).length)
   const all = []

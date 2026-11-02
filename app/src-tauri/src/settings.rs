@@ -31,8 +31,6 @@ pub struct Settings {
     pub local_url: String,
     pub local_model: String,
     pub local_key: String,
-    /// Blender binary, if not in /Applications
-    pub blender: String,
     /// Chrome or headless shell binary, if not in /Applications
     pub chrome: String,
     /// A sound and a desktop notification when the queue runs dry
@@ -210,9 +208,6 @@ impl Settings {
             if !v.is_empty() {
                 env.push((k.into(), v.clone()));
             }
-        }
-        if !self.blender.is_empty() {
-            env.push(("BLENDER".into(), self.blender.clone()));
         }
         if !self.chrome.is_empty() {
             env.push(("CHROME".into(), self.chrome.clone()));

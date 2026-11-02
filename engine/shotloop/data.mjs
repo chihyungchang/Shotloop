@@ -313,10 +313,10 @@ export const STYLES = [
     track: '3d',
     name: { en: '3D' },
     when: 'The idea needs real geometry, light or a camera moving through space: an object taken apart layer by layer, a room or a building, a mechanism seen from changing angles.',
-    avoid: 'Numbers, charts and anything flat; and machines without Blender.',
-    frames: 'A Blender scene: real materials and light, one camera move per shot, captions over it.',
-    example: 'phone-teardown-en',
-    why: 'Phone teardown: the phone floats in a dark studio, its layers fly apart into an exploded view, each part lit and labelled.',
+    avoid: 'Numbers, charts and anything flat.',
+    frames: 'A WebGL (three.js) world: real metres, studio light that metal and glass reflect, soft shadows and ambient occlusion, one motivated camera move per shot, type above it.',
+    example: 'watch-3d-en',
+    why: 'Mechanical watch: the watch turns in a dark studio, its parts fly apart into an exploded view, then the mainspring, gear train, escapement and balance wheel each take a shot, lit and moving by their real ratios.',
     looks: []
   }
 ]
@@ -352,11 +352,6 @@ export const MUSIC_MOODS = Object.keys(MOODS)
 
 // Poly Pizza's categories, in the order of its API's numbers (library.mjs)
 export const POLY_CATEGORIES = ['food', 'clutter', 'weapons', 'transport', 'furniture', 'objects', 'nature', 'animals', 'buildings', 'people', 'scenes', 'other']
-
-// 3D final quality: EEVEE render samples per frame. 24 looks the same as
-// 64 on these scenes (SSIM 0.9999) at well under half the time; more
-// helps fine glossy detail and fast motion blur
-export const DEFAULT_SAMPLES = 24
 
 // The idea's first sentence as a title, at most 60 characters, cut at a
 // word (an ellipsis marks the cut) so no word is left half-written

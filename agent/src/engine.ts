@@ -27,8 +27,6 @@ export interface ProjectStatus {
   title: string
   slug: string
   track: '2d' | '3d'
-  // How its frames are drawn: a page (2D), WebGL or Blender (3D)
-  renderer: 'page' | 'webgl' | 'blender'
   size: { width: number; height: number }
   duration: number
   files: { captions: string | null; music: string | null; cover: string | null; publish: string | null }

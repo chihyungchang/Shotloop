@@ -1,0 +1,62 @@
+[
+  {
+    "take": 1,
+    "at": "2026-10-29T05:17:35.362Z",
+    "mode": "draft",
+    "kind": "stills",
+    "key": "0f86eeb7f3b9fdc3",
+    "seconds": 6,
+    "stills": [
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-0f86eeb7f3b9fdc3/stills/start.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-0f86eeb7f3b9fdc3/stills/middle.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-0f86eeb7f3b9fdc3/stills/end.png"
+    ],
+    "clip": null,
+    "preview": null
+  },
+  {
+    "take": 2,
+    "at": "2026-10-29T05:19:11.601Z",
+    "mode": "draft",
+    "kind": "stills",
+    "key": "af5cafd764458931",
+    "seconds": 3.1,
+    "stills": [
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-af5cafd764458931/stills/start.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-af5cafd764458931/stills/middle.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-af5cafd764458931/stills/end.png"
+    ],
+    "clip": null,
+    "preview": null
+  },
+  {
+    "take": 3,
+    "at": "2026-10-29T05:19:41.264Z",
+    "mode": "draft",
+    "kind": "clip",
+    "key": "af5cafd764458931",
+    "seconds": 8.9,
+    "stills": [
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-af5cafd764458931/stills/start.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-af5cafd764458931/stills/middle.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-af5cafd764458931/stills/end.png"
+    ],
+    "clip": "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-af5cafd764458931/clip.mp4",
+    "preview": "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-af5cafd764458931/preview-9916bf436b2c.mp4"
+  },
+  {
+    "take": 4,
+    "at": "2026-10-29T05:19:53.220Z",
+    "mode": "draft",
+    "kind": "clip",
+    "key": "4ef56e55b22febfe",
+    "seconds": 8.7,
+    "stills": [
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-4ef56e55b22febfe/stills/start.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-4ef56e55b22febfe/stills/middle.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-4ef56e55b22febfe/stills/end.png"
+    ],
+    "clip": "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-4ef56e55b22febfe/clip.mp4",
+    "preview": "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/02-close/draft-4ef56e55b22febfe/preview-9916bf436b2c.mp4"
+  }
+]

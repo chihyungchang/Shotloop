@@ -2,8 +2,8 @@
 # agent, the tests of the engine, the agent and the voice-over, and the
 # app shell's Rust tests. On macOS, the only platform Shotloop ships for.
 # The agent's tests render stills as the app does, with the runner's
-# Google Chrome and ffmpeg (installed here); no test needs Blender or a
-# speech model.
+# Google Chrome and ffmpeg (installed here); no test needs a speech
+# model.
 
 name: CI
 

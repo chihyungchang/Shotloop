@@ -29,7 +29,7 @@
 
 ## Shotloop 是什麼
 
-Shotloop 是一款桌面應用程式，用程式碼「畫」出短影片：產品宣傳、科普解說、數據故事和簡報式動畫都適用。可以做 2D（逐格渲染的網頁）或 3D（Blender 場景），共有八種視覺風格。
+Shotloop 是一款桌面應用程式，用程式碼「畫」出短影片：產品宣傳、科普解說、數據故事和簡報式動畫都適用。可以做 2D（逐格渲染的網頁）或 3D（像離線渲染器那樣渲染的 three.js 世界），共有八種視覺風格。
 
 你只要寫一句話。AI 會挑選呈現方式（電影感場景、資訊圖表、地圖、介面示範、藍圖、動態文字、新聞敘事或 3D）和主題，你也可以自己選。接著它寫好開場鉤子、腳本和附來源的事實，再拆成分鏡，並寫好配音在每個鏡頭要說的台詞。你修改分鏡後，AI 建構每個鏡頭。在編輯器裡逐一檢視鏡頭，哪裡不對就用白話說，例如「字太小了」或「太靜了，加點動態」。AI 只改那個鏡頭，渲染後對照說明檢查，再給你看修改前後的對比。整支影片順了之後按「匯出」：鏡頭合併成片，鋪上配音和字幕，底下再墊上音樂；AI 依影片風格設計封面（或套用你的系列範本），並為各平台寫好發布文案，全部放進專屬的資料夾。
 
@@ -43,7 +43,7 @@ Shotloop 是一款桌面應用程式，用程式碼「畫」出短影片：產�
 
 <table>
 <tr>
-<td width="25%" valign="top"><img src="docs/screenshots/film-3d.gif" alt="手機逐層展開成爆炸圖" /><br/><sub><b>3D</b>：用 Blender 做的手機拆解。</sub></td>
+<td width="25%" valign="top"><img src="docs/screenshots/film-3d.gif" alt="機械錶轉動，再展開成機芯的爆炸圖" /><br/><sub><b>3D</b>：用 WebGL 做的機械錶。</sub></td>
 <td width="25%" valign="top"><img src="docs/screenshots/film-2d.gif" alt="一道光從太陽飛向地球，旁邊有計時器" /><br/><sub><b>2D</b>：陽光要多久才會到達地球。</sub></td>
 <td width="50%" valign="top"><img src="docs/screenshots/film-chart.gif" alt="0.99 的 365 次方曲線一路降到 0.027" /><br/><sub><b>2D 數據</b>：每天進步 1%，用圖表說明（16:9）。</sub></td>
 </tr>
@@ -64,7 +64,7 @@ AI 會依題材挑選合適的風格並說明理由；你可以在規劃頁切�
 <td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="藍圖" /></a><br/><sub><b>藍圖</b>：格線上的線稿、爆炸圖和標註，適合說明機器怎麼運作。</sub></td>
 <td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="動態文字" /></a><br/><sub><b>動態文字</b>：會動的超大字，適合名言、詞語和破解迷思。</sub></td>
 <td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="新聞敘事" /></a><br/><sub><b>新聞敘事</b>：有張力地講突發事件：不停走的時鐘、資金流向、時間軸、誰說了什麼。</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>：Blender 場景，真實光影，鏡頭在空間中穿梭。</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>：three.js 世界，攝影棚燈光、柔和陰影，鏡頭在空間中穿梭。</sub></td>
 </tr>
 </table>
 
@@ -116,7 +116,7 @@ flowchart LR
   D -- 沒問題 --> G[匯出：合併、配音、配樂、發布文案]
 ```
 
-- **以鏡頭為單位，而不是整支一次渲染。** 一支影片就是一串鏡頭，每個鏡頭是一小段程式：2D 頁面用 `shot.js`，Blender 運鏡用 `shot.py`。每個鏡頭依輸入的雜湊值快取，所以修一個鏡頭只要幾秒（2D）或一分鐘（3D），匯出時只是把片段接起來。
+- **以鏡頭為單位，而不是整支一次渲染。** 一支影片就是一串鏡頭，每個鏡頭是一小段程式 `shot.js`，畫出時間 t 的畫面：2D 是頁面，3D 是 three.js 世界。每個鏡頭依輸入的雜湊值快取，所以修一個鏡頭只要幾秒，匯出時只是把片段接起來。
 - **用白話修改。** AI 只動你目前所在的鏡頭，除非修改必須改到共用的場景。它會渲染靜態畫面，依檢查清單核對（看得清楚、沒被遮住、避開字幕區等），再回報改了什麼。
 - **八種視覺風格。** 電影感場景、資訊圖表、地圖、介面示範、藍圖、動態文字、新聞敘事和 3D，各有自己的工具組和參考畫面，AI 在選擇與建構前都會先看過（[`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)）。主題只決定背景和字體；圖像和數據保留題材所需的顏色。
 - **規劃會依規則檢查。** 建構之前，先檢查每句字幕的長度和停留時間。在多個鏡頭中重複出現的圖像只畫一次、共用，確保每次看起來都一樣。
@@ -124,7 +124,7 @@ flowchart LR
 - **封面。** AI 依影片風格設計封面，並自行檢查渲染結果。可以存成範本讓系列保持一致，也可以上傳一張喜歡的封面，讓 AI 照著它的設計做。
 - **配音，在你的 Mac 上配音。** 每個鏡頭有一句台詞，由配音帶動剪接：鏡頭長度跟著台詞走，畫面落在說到的字詞上。英文用 Kokoro，中文用 CosyVoice 2，其他語言用 Supertonic，全部離線執行。字幕依說出的話自動產生，並會檢查列出字幕會遮住的內容（文字和標記的主體），被遮住的影片絕不會匯出。只想用字幕卡的影片可以關掉配音。
 - **配樂貼合剪接。** 合成的配樂會調整節拍，讓剪接點落在拍子上，一路播到最後一格再淡出。有配音時配樂會壓低，說話時再退讓一些。
-- **編輯時快，匯出時高畫質。** 3D 編輯時顯示快速預覽，匯出時才渲染完整畫質；2D 全程都是完整畫質。
+- **像離線渲染器一樣的 3D，幾分鐘完成。** 每一格 3D 畫面都由多個子格平均而成（反鋸齒、柔和陰影、環境光遮蔽、景深、動態模糊），約半秒一格，30 秒的影片幾分鐘就能渲染完，不必安裝任何東西。
 - **3D 素材庫。** 用你自己的金鑰在 [Poly Pizza](https://poly.pizza) 和 [Smithsonian Open Access](https://www.si.edu/openaccess) 搜尋 CC0 模型。每個模型只下載一次，任何 3D 專案都能加入。
 
 ## 驅動它的 AI
@@ -140,7 +140,7 @@ flowchart LR
 ## 安裝
 
 1. 從[最新版本](https://github.com/chihyungchang/Shotloop/releases/latest)下載 `Shotloop_<version>_aarch64.dmg`，打開後把 Shotloop 拖進「應用程式」。
-2. 需要安裝 **Google Chrome**（2D 鏡頭用它渲染）。第一次建立 3D 專案時，Shotloop 會請你安裝 **Blender**。
+2. 需要安裝 **Google Chrome**（2D 鏡頭用它渲染）。
 3. 在「設定 → 模型與供應商」選擇 AI。如果 Mac 上已經有 Claude Code，會自動幫你選好。
 
 > **第一次開啟：** Shotloop 尚未經過 Apple 公證，macOS 會顯示無法驗證開發者。請從 **系統設定 → 隱私權與安全性 → 強制打開** 開啟一次，或在終端機執行 `xattr -dr com.apple.quarantine /Applications/Shotloop.app`。之後就能正常開啟，更新也不會再詢問。
@@ -163,13 +163,13 @@ pnpm app:build               # Shotloop.app and a dmg, with Node and ffmpeg insi
 <summary><b>在終端機使用引擎</b></summary>
 
 ```bash
-pnpm shotloop status   fixtures/hello-3d
-pnpm shotloop render   fixtures/hello-3d --shot 02-close --stills   # start/middle/end
-pnpm shotloop render   fixtures/hello-3d --shot 02-close            # a clip, in the editor's quality
-pnpm shotloop export   fixtures/hello-3d                            # only changed shots render
+pnpm shotloop status   fixtures/ep01-password-crack-time
+pnpm shotloop render   fixtures/ep01-password-crack-time --shot 02-stack-16-gpu --stills   # start/middle/end
+pnpm shotloop render   fixtures/ep01-password-crack-time --shot 02-stack-16-gpu            # a clip
+pnpm shotloop export   fixtures/ep01-password-crack-time                                   # only changed shots render
 pnpm shotloop new      my-short --idea "手機電池為什麼會老化？" --track auto --duration auto
 pnpm shotloop new      coffee --idea "咖啡從哪裡來？" --track 2d --style map --duration 30
-pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # into a new folder there
+pnpm shotloop export   fixtures/ep01-password-crack-time --to ~/Movies/Shotloop --name "Hello"   # into a new folder there
 pnpm shotloop covers   list                                         # cover templates
 pnpm shotloop voice    my-short --on --voice af_heart --fit        # the voice-over: speak the lines, fit the shots
 pnpm shotloop check-subtitles my-short                              # what the subtitles would cover (fails if anything)
@@ -181,7 +181,7 @@ pnpm shotloop doctor
 
 ```bash
 node agent/src/main.ts detect                                         # CLI agents and local servers on this Mac
-SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check fixtures/hello-3d --shot 01-wide
+SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check fixtures/ep01-password-crack-time --shot 01-password-field-dots
 pnpm test                                                             # every backend against scripted stand-ins
 ```
 
@@ -195,18 +195,18 @@ my-video/
   shotloop.json        title, track (2d|3d), style, size, fps, lang, voice { on, voice, speed },
                        shots [{ id, title, duration, say (the spoken line), cues (its sentences' times) }]
   storyboard.json      the plan: copy (hook, script, facts with sources) and shots
-  world/               3D: world.py (+ screen.html); 2D: page.html (the style's kit), parts.js (pictures
-                       that recur, drawn once), geo.data.js (the map style's countries)
-  shots/<id>/          shot.py | shot.js, notes.md (must show, on screen, motion)
+  world/               page.html (2D: the style's kit; 3D: the WebGL kit), 2D: parts.js (pictures that
+                       recur, drawn once), geo.data.js (the map style's countries); 3D: *.js (sets, machines)
+  shots/<id>/          shot.js, notes.md (must show, on screen, motion, sound), sounds.json (its sound effects)
   assets/<id>/         3D models from the asset library
-  copy.md  script.md  captions.html  music.json  thumb.html  publish.json
+  copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           cache: per shot and input hash, takes, checks, fixes; voice/: spoken lines, subtitles
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
-- **3D**：`world.py` 用 `kit`（[`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)）建構共用場景。`shot.py` 在場景的命名空間中執行並建立一台攝影機；`at(t)` 把鏡頭內的秒數換算成影片時間。
+- **3D**：`world/page.html` 是引擎的 WebGL 工具組（[`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)）：一個 three.js 舞台，有攝影棚燈光、材質、形狀、glTF 模型、依鏡片參數運作的攝影機，以及疊在上面的文字。鏡頭共用的布景與機械放在 `world/*.js`；每個鏡頭在 `setup(ctx)` 裡建構要呈現的東西，在 `render(t)` 裡擺出時間 `t` 的姿態。
 - **2D**：`shot.js` 預設匯出 `render(t, ctx)`，在鏡頭內時間 `t` 繪製 `world/page.html`。`ctx.voice` 存有這個鏡頭說出的句子和各自的時間，讓畫面能落在字詞上；用 `data-keep`（canvas 上則用 `subtitles.keep()`）標記主體，字幕檢查就會避開它。
-- **快取**：鏡頭的鍵值由場景、程式碼、字幕、素材、渲染器和設定雜湊而成。沒變動的鏡頭會直接重用。
+- **快取**：鏡頭的鍵值由場景、程式碼、模型、渲染器和設定雜湊而成。沒變動的鏡頭會直接重用。
 
 </details>
 
@@ -216,7 +216,7 @@ my-video/
 | 路徑 | 內容 |
 | --- | --- |
 | [`app/`](app/) | 桌面應用程式：Tauri 2（Rust）外殼，負責渲染佇列、自動更新和行程監管；React + TypeScript 介面。 |
-| [`engine/shotloop/`](engine/shotloop/) | 鏡頭引擎：專案格式、逐鏡頭渲染快取、2D（Chrome）與 3D（Blender）渲染、成片組裝、MP4 匯出、配音計時、字幕及其檢查、配樂、素材庫。App 透過它的 CLI 呼叫。 |
+| [`engine/shotloop/`](engine/shotloop/) | 鏡頭引擎：專案格式、逐鏡頭渲染快取、在 Chrome 中的 2D 與 3D（three.js）渲染、成片組裝、MP4 匯出、配音計時、字幕及其檢查、配樂、素材庫。App 透過它的 CLI 呼叫。 |
 | [`voice/`](voice/) | 配音的文字轉語音，在這台 Mac 上執行：Kokoro（透過 sherpa-onnx）、Supertonic（基於 ONNX Runtime）和 CosyVoice 2（在本機的 Python 伺服器中執行），以及模型的下載。 |
 | [`agent/`](agent/) | 代理：規劃、建構、白話修改、依檢查清單檢查、發布文案。支援 API、CLI（透過 MCP）和本機模型。 |
 | [`examples/`](examples/) | 首頁提供的範例，皆為英文：每種視覺風格至少一個（2D 和 3D，9:16 和 16:9）。 |
@@ -229,7 +229,7 @@ my-video/
 Shotloop 建立在開源成果之上。感謝以下專案背後的人：
 
 - **配音：** hexgrad 的 [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) 和 [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)（英文）；FunAudioLLM 的 [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice)，以及 [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS)、[WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing)、[Whisper](https://github.com/openai/whisper)、[PyTorch](https://pytorch.org) 和 [Transformers](https://github.com/huggingface/transformers)（中文）；Supertone 的 [Supertonic](https://huggingface.co/Supertone/supertonic-3)（其他語言）；[ONNX Runtime](https://onnxruntime.ai)；執行中文配音的 [uv](https://github.com/astral-sh/uv) 和 [Python](https://www.python.org)。
-- **算繪與成片：** [FFmpeg](https://ffmpeg.org)、透過 DevTools 協定驅動的 [Google Chrome](https://www.google.com/chrome/)、[Blender](https://www.blender.org) 和 [Node.js](https://nodejs.org)。
+- **算繪與成片：** [FFmpeg](https://ffmpeg.org)、透過 DevTools 協定驅動的 [Google Chrome](https://www.google.com/chrome/)、[three.js](https://threejs.org) 和 [Node.js](https://nodejs.org)。
 - **App：** [Tauri](https://tauri.app)、[React](https://react.dev)、[Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) 和 [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk)。
 - **素材與資料：** [Kenney](https://kenney.nl)、[Poly Haven](https://polyhaven.com)、[Quaternius](https://quaternius.com)、[Poly Pizza](https://poly.pizza)、[Smithsonian Open Access](https://www.si.edu/openaccess)，以及經由 [world-atlas](https://github.com/topojson/world-atlas) 提供的 [Natural Earth](https://www.naturalearthdata.com)。
 

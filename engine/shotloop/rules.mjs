@@ -45,7 +45,7 @@ const FIXED = [
   {
     id: 'caption-zone', track: 'all', name: 'Nothing covered',
     rule: 'Nothing covers what must be read or seen: caption, headline, picture and source line each keep their own band of the safe area, text never overlaps text, and with a voice-over nothing important sits in the subtitle band.',
-    check: 'With a caption layer (captions.html in shotloop.json), captions own the top ~40% of the frame (y 110–520 of 720×1280) and the whole subject sits in the lower 60%, including whatever appears last. Without one (2D pages that draw their own headline), nothing may overlap the headline: the subject stays clear of it. No text overlaps other text, and with a voice-over no text or key part of the subject sits in the subtitle band.'
+    check: 'Nothing overlaps the headline: the subject stays clear of it, including whatever appears last. No text overlaps other text, and with a voice-over no text or key part of the subject sits in the subtitle band.'
   },
   {
     id: 'safe-area', track: 'all', name: 'Inside the safe area',

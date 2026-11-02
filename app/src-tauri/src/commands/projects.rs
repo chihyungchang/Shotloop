@@ -44,8 +44,6 @@ pub struct NewProject {
     idea: String,
     title: String,
     track: String,
-    /// 3D: drawn in WebGL (fast) or Blender (higher quality)
-    renderer: Option<String>,
     aspect: String,
     /// Seconds, or "auto" for the planner to choose
     duration: String,
@@ -64,8 +62,7 @@ pub async fn create_project(handle: AppHandle, project: NewProject) -> Result<Va
         let args = Args::new(["new", &p.dir, "--idea", &p.idea, "--title", &p.title, "--track", &p.track, "--aspect", &p.aspect, "--duration", &p.duration])
             .flag(p.voice == Some(false), "--no-voice")
             .opt("--look", given(p.look))
-            .opt("--style", given(p.style))
-            .opt("--renderer", given(p.renderer));
+            .opt("--style", given(p.style));
         engine(&handle, args)
     })
     .await
@@ -209,11 +206,7 @@ pub async fn derive_storyboard(handle: AppHandle, path: String) -> Result<Value,
     blocking(move || engine(&handle, Args::new(["storyboard", &path, "--derive"]))).await
 }
 
-/// 3D final render samples: read, set, or back to the default
-#[tauri::command]
-pub async fn quality(handle: AppHandle, path: String, samples: Option<u32>, reset: Option<bool>) -> Result<Value, String> {
-    blocking(move || engine(&handle, Args::new(["quality", &path]).opt("--samples", samples).flag(reset == Some(true), "--reset"))).await
-}
+
 
 /// What is where on a 2D shot's three stills, for the element picker
 #[tauri::command]

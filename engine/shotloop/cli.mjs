@@ -4,19 +4,18 @@
 //
 //   shotloop status   <project>                          shots, cache state, takes
 //   shotloop render   <project> --shot <id> [--draft|--final] [--stills] [--force]
-//                     (neither: the editor's quality, draft for 3D and final for 2D)
+//                     (neither: the editor's quality, final)
 //   shotloop assemble <project> [--final] [--aspect 9:16,16:9]
 //   shotloop export   <project> [--draft] [--aspect 9:16,16:9] [--no-video] [--no-cover] [--no-publish]
 //                     [--to <folder> [--name <work>] [--lang <ui language>]]   (--to: into a new folder there)
 //   shotloop deliver-copy <project> --to <export folder> [--name] [--lang]   the publish copy, written later
 //   shotloop cover    <project> [--frame <shot>@<seconds> | --none] [--preview]
 //                     (--frame/--none: set the background frame first; --preview: to .shotloop/cover.png)
-//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--renderer webgl|blender] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>] [--no-voice]
+//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>] [--no-voice]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
 //   shotloop move     <project> --to <folder>               move a project (a draft being saved)
 //   shotloop discard  <draft>                               delete a draft (only under $SHOTLOOP_DRAFTS)
-//   shotloop quality  <project> [--samples N | --reset]     3D final render samples
 //   shotloop preview  <project> [--draft|--final]             the whole film to watch (cached)
 //   shotloop storyboard <project> [--derive]             apply storyboard.json to the project
 //                     (--derive: write it from the project's shots and notes instead)
@@ -48,7 +47,7 @@
 //                     | checklist [--track 2d|3d]
 //                     the video rules: fixed, the person's taste (editable), the toolbox
 //   shotloop prune    <project>                          drop unused cache entries (shots and voice-over)
-//   shotloop doctor                                      Chrome, ffmpeg, Blender
+//   shotloop doctor                                      Chrome, ffmpeg
 //
 // --json prints one JSON event per line (start, progress, log, done,
 // error, result) for the app instead of human-readable output.
@@ -67,14 +66,13 @@ import { emit, setJson } from './compose.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
 import { freshWebglPage, isStarterCover } from './starters.mjs'
 import { assemble, exportFilm, filmPreview, renderCover, setCoverFrame } from './film.mjs'
-import { finalSamples, findShot, isProject, loadProject } from './project.mjs'
-import { musicInfo, samplesInfo, setMusic, setSamples, setStyle, setTitle } from './settings.mjs'
+import { findShot, isProject, loadProject } from './project.mjs'
+import { musicInfo, setMusic, setStyle, setTitle } from './settings.mjs'
 import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
 import * as covers from './covers.mjs'
 import * as library from './library.mjs'
 import * as memory from './memory.mjs'
 import * as rules from './rules.mjs'
-import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
 import { pickMap } from './pick.mjs'
 import { musicBed } from './bed.mjs'
@@ -109,7 +107,6 @@ const OPTIONS = {
     to: { type: 'string' },
     reset: { type: 'boolean' },
     bed: { type: 'boolean' },
-    samples: { type: 'string' },
     all: { type: 'boolean' },
     file: { type: 'string' },
     none: { type: 'boolean' },
@@ -119,7 +116,6 @@ const OPTIONS = {
     idea: { type: 'string' },
     text: { type: 'string' },
     track: { type: 'string' },
-    renderer: { type: 'string' },
     ambience: { type: 'string' },
     'ambience-gain': { type: 'string' },
     effects: { type: 'string' },
@@ -196,11 +192,9 @@ function doctor() {
     node: process.version,
     chrome: fs.existsSync(CHROME) ? { path: CHROME, version: version(CHROME, ['--version']) } : null,
     ffmpeg: version('ffmpeg', ['-version']) ? { path: onPath('ffmpeg') ?? 'ffmpeg', version: version('ffmpeg', ['-version']) } : null,
-    blender: fs.existsSync(BLENDER) ? { path: BLENDER, version: version(BLENDER, ['-v']) } : null,
     install: {
       chrome: 'Install Google Chrome, or set CHROME to a Chrome or headless shell binary',
-      ffmpeg: 'brew install ffmpeg',
-      blender: 'brew install --cask blender (3D projects only), or set BLENDER'
+      ffmpeg: 'brew install ffmpeg'
     }
   }
 }
@@ -211,7 +205,6 @@ function projectStatus(project) {
     title: project.title,
     slug: project.slug,
     track: project.track,
-    renderer: project.renderer,
     fps: project.fps,
     size: project.size,
     duration: project.duration,
@@ -221,7 +214,6 @@ function projectStatus(project) {
     // The voice-over plays (on, with lines): the agent's rules follow it
     voiced: voiceOn(project),
     files: {
-      captions: project.captions,
       music: project.music,
       cover: project.cover,
       publish: project.publish
@@ -256,7 +248,7 @@ try {
     case 'status':
       {
         const project = loadProject(args[0])
-        result({ ...projectStatus(project), example: isExample(args[0]), draft: isDraft(args[0]), samples: project.renderer === 'blender' ? finalSamples(project) : null, look: project.config.look ?? null,
+        result({ ...projectStatus(project), example: isExample(args[0]), draft: isDraft(args[0]), look: project.config.look ?? null,
           // The cover: its background frame, and how the AI last made it (.shotloop/cover.json)
           coverFrame: project.config.coverFrame ?? null, coverMade: coverMade(project),
           // The visual style (styles.mjs), and what the planner still decides
@@ -402,14 +394,6 @@ try {
       result(await pickMap(project, findShot(project, values.shot)))
       break
     }
-    case 'quality': {
-      // 3D final samples: read, set (--samples N) or back to the default (--reset)
-      const project = loadProject(args[0])
-      result(values.reset ? setSamples(project, null)
-        : values.samples ? setSamples(project, values.samples)
-        : samplesInfo(project))
-      break
-    }
     case 'preview':
       {
         const project = loadProject(args[0])
@@ -434,7 +418,6 @@ try {
         title: values.title,
         idea: values.idea,
         track: values.track ?? '2d',
-        renderer: values.renderer ?? 'webgl',
         aspect: values.aspect ?? '9:16',
         duration: values.duration === 'auto' ? 'auto' : Number(values.duration ?? 30),
         look: values.look ?? '',

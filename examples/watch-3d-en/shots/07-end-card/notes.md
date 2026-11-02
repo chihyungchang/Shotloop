@@ -13,4 +13,4 @@ A spring, a wheel, no battery
 Layers reassemble with eased motion; camera pulls back to the hero framing of shot 1.
 
 ## Review history
-- 2026-10-31: planned in the storyboard.
+- 2026-11-02: planned in the storyboard.

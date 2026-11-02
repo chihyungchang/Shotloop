@@ -1,8 +1,6 @@
 {
   "version": 1,
   "title": "How does a mechanical watch tick?",
-  "description": "No battery: a spring, a gear train and a beating wheel, taken apart in 3D.",
-  "lang": "en",
   "slug": "watch-3d-en",
   "track": "3d",
   "fps": 30,
@@ -47,9 +45,13 @@
       "duration": 3.5
     }
   ],
-  "captions": "captions.html",
   "music": "music.json",
   "cover": "thumb.html",
   "publish": "publish.md",
-  "style": "3d"
+  "voice": {
+    "on": false
+  },
+  "style": "3d",
+  "description": "No battery: a spring, a gear train and a beating wheel, taken apart in 3D.",
+  "lang": "en"
 }

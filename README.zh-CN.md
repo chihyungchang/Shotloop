@@ -29,7 +29,7 @@
 
 ## Shotloop 是什么
 
-Shotloop 是一个桌面应用，用代码"画"短视频，适合做产品宣传、科普视频、数据可视化和 PPT 式动画。有两种做法：2D 是逐帧渲染的网页，3D 是 Blender 场景；画面方式共有八种。
+Shotloop 是一个桌面应用，用代码"画"短视频，适合做产品宣传、科普视频、数据可视化和 PPT 式动画。有两种做法：2D 是逐帧渲染的网页，3D 是像离线渲染器那样渲染的 three.js 世界；画面方式共有八种。
 
 你只需要写一句话。AI 会根据题目选择画面方式（电影感场景、信息图、地图、界面演示、剖面图纸、动态排版、新闻叙事或 3D）和主题色，你也可以自己选。接着它写好开头钩子、文案和带来源的事实，再拆成分镜，并写好每个镜头的配音台词。你改好分镜后，AI 生成每个镜头。在工作室里逐个看镜头，有问题就用大白话说出来，比如"字太小了""太静了，加点动效"。AI 只改这一个镜头，渲染后对照说明检查，再给你看改动前后的对比。整片满意后点导出：镜头拼接成片，铺上配音和字幕，下面垫上音乐；AI 按视频的风格设计封面（也可以套用你的系列模版），并为各个平台写好发布文案，全部放进一个单独的文件夹。
 
@@ -43,7 +43,7 @@ Shotloop 是一个桌面应用，用代码"画"短视频，适合做产品宣传
 
 <table>
 <tr>
-<td width="25%" valign="top"><img src="docs/screenshots/film-3d.gif" alt="手机逐层展开的爆炸图" /><br/><sub><b>3D</b>：用 Blender 做的手机拆解。</sub></td>
+<td width="25%" valign="top"><img src="docs/screenshots/film-3d.gif" alt="机械表转动，再展开成机芯的爆炸图" /><br/><sub><b>3D</b>：用 WebGL 做的机械表。</sub></td>
 <td width="25%" valign="top"><img src="docs/screenshots/film-2d.gif" alt="一束光从太阳飞向地球，旁边是计时器" /><br/><sub><b>2D</b>：阳光到地球要走多久。</sub></td>
 <td width="50%" valign="top"><img src="docs/screenshots/film-chart.gif" alt="0.99 的 365 次方曲线一路降到 0.027" /><br/><sub><b>2D 数据</b>：每天进步 1%，用图表讲复利（16:9）。</sub></td>
 </tr>
@@ -64,7 +64,7 @@ AI 会按题目挑选最合适的画面方式并说明理由；你可以在策�
 <td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="剖面图纸" /></a><br/><sub><b>剖面图纸</b>： 网格上的线稿、拆解、标注，适合讲机器和装置怎么运作。</sub></td>
 <td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="动态排版" /></a><br/><sub><b>动态排版</b>： 会动的大字，适合名言、词语、辟谣。</sub></td>
 <td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="新闻叙事" /></a><br/><sub><b>新闻叙事</b>：有张力地讲突发事件：不停走的时钟、资金流向、时间线、谁说了什么。</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>： Blender 场景，真实的光影，镜头在空间里移动。</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>：three.js 世界，影棚灯光、柔和阴影，镜头在空间里移动。</sub></td>
 </tr>
 </table>
 
@@ -116,7 +116,7 @@ flowchart LR
   D -- 满意 --> G[导出：拼接、配音、配乐、发布文案]
 ```
 
-- **按镜头做，不是一次渲染整片。** 一部片子由多个镜头组成，每个镜头都是一小段程序：2D 是 `shot.js`，3D 是 Blender 里的 `shot.py` 运镜。每个镜头按输入内容缓存，修一个镜头只需几秒（2D）到一分钟（3D），导出时只是把片段拼起来。
+- **按镜头做，不是一次渲染整片。** 一部片子由多个镜头组成，每个镜头都是一小段程序 `shot.js`，画出某一时刻 t 的画面：2D 是网页，3D 是 three.js 世界。每个镜头按输入内容缓存，修一个镜头只需几秒，导出时只是把片段拼起来。
 - **用大白话修改。** AI 只改你当前选中的镜头，除非修改必须动到共享场景。改完会渲染静帧，按检查清单逐条检查（文字能否看清、有没有被遮挡、有没有压到字幕区等），再告诉你改了什么。
 - **八种画面方式。** 电影感场景、信息图、地图、界面演示、剖面图纸、动态排版、新闻叙事和 3D，各有一套工具和样片，AI 选择和生成之前都会先看样片（[`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)）。主题色只管背景和文字，画面里的物体和数据按含义取色。
 - **策划会按规则检查。** 生成之前，先检查每句字幕的长度和停留时间。在多个镜头里反复出现的画面只画一次、各镜头共用，保证每次长得一样。
@@ -124,7 +124,7 @@ flowchart LR
 - **封面。** AI 按视频的风格设计封面，并自己检查渲染效果。可以存为模版让同一系列统一，也可以上传一张喜欢的封面，让 AI 照它的版式设计。
 - **配音，在你的 Mac 上配音。** 每个镜头有一句台词，由配音带动剪辑：镜头长度跟着台词走，画面落在说到的词上。英文用 Kokoro，中文用 CosyVoice 2，其他语言用 Supertonic，全部离线运行。字幕按说出的话自动生成，并会检查列出字幕会遮住的内容（文字和标记的主体），被遮住的片子不会导出。只想要字幕卡的片子可以关掉配音。
 - **配乐贴合剪辑。** 合成的配乐会调整节拍，让剪切点落在拍子上；音乐一直响到最后一帧，再平滑淡出。有配音时音乐会压低，说话时再让一让。
-- **编辑时快，导出时好。** 3D 编辑时用快速预览，导出时才按完整画质渲染；2D 全程都是高清。
+- **3D 像离线渲染器一样精致，几分钟出片。** 每一帧 3D 都由多个子帧平均而成（抗锯齿、软阴影、环境光遮蔽、景深、运动模糊），约半秒一帧，30 秒的片子几分钟就能渲染完，无需安装任何东西。
 - **3D 素材库。** 用你自己的 key 在 [Poly Pizza](https://poly.pizza) 和 [Smithsonian 开放资源](https://www.si.edu/openaccess)中搜索免费模型。每个模型只下载一次，任何 3D 项目都能用。
 
 ## 支持的 AI
@@ -140,7 +140,7 @@ flowchart LR
 ## 安装
 
 1. 从[最新版本](https://github.com/chihyungchang/Shotloop/releases/latest)下载 `Shotloop_<版本>_aarch64.dmg`，打开后把 Shotloop 拖进"应用程序"。
-2. 需要安装 **Google Chrome**，2D 镜头用它渲染。第一次新建 3D 项目时，Shotloop 会引导你安装 **Blender**。
+2. 需要安装 **Google Chrome**，2D 镜头用它渲染。
 3. 在"设置 → 模型与服务商"里选择 AI。如果你的 Mac 上已经有 Claude Code，会自动选好。
 
 > **第一次打开**：Shotloop 还没有经过 Apple 公证，macOS 会提示"无法验证开发者"。请在 **系统设置 → 隐私与安全性 → 仍要打开** 里打开一次，或者在终端运行 `xattr -dr com.apple.quarantine /Applications/Shotloop.app`。之后就能正常打开，自动更新也不会再弹这个提示。
@@ -163,13 +163,13 @@ pnpm app:build               # 生成 Shotloop.app 和 dmg，内置 Node 和 ffm
 <summary><b>在终端里使用引擎</b></summary>
 
 ```bash
-pnpm shotloop status   fixtures/hello-3d
-pnpm shotloop render   fixtures/hello-3d --shot 02-close --stills   # 开头/中间/结尾三帧
-pnpm shotloop render   fixtures/hello-3d --shot 02-close            # 按编辑画质渲染片段
-pnpm shotloop export   fixtures/hello-3d                            # 只渲染改过的镜头
+pnpm shotloop status   fixtures/ep01-password-crack-time
+pnpm shotloop render   fixtures/ep01-password-crack-time --shot 02-stack-16-gpu --stills   # 开头/中间/结尾三帧
+pnpm shotloop render   fixtures/ep01-password-crack-time --shot 02-stack-16-gpu            # 渲染片段
+pnpm shotloop export   fixtures/ep01-password-crack-time                                   # 只渲染改过的镜头
 pnpm shotloop new      my-short --idea "手机电池为什么会老化？" --track auto --duration auto
 pnpm shotloop new      coffee --idea "咖啡从哪里来？" --track 2d --style map --duration 30
-pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # 导出到那里的新文件夹
+pnpm shotloop export   fixtures/ep01-password-crack-time --to ~/Movies/Shotloop --name "Hello"   # 导出到那里的新文件夹
 pnpm shotloop covers   list                                         # 封面模版
 pnpm shotloop voice    my-short --on --voice af_heart --fit        # 配音：念出台词，按台词调整镜头时长
 pnpm shotloop check-subtitles my-short                              # 字幕会遮住什么（有遮挡就失败）
@@ -181,7 +181,7 @@ pnpm shotloop doctor
 
 ```bash
 node agent/src/main.ts detect                                         # 检测本机的命令行工具和本地模型服务
-SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check fixtures/hello-3d --shot 01-wide
+SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check fixtures/ep01-password-crack-time --shot 01-password-field-dots
 pnpm test                                                             # 用脚本化的替身测试每种 AI 方式
 ```
 
@@ -195,11 +195,11 @@ my-video/
   shotloop.json        标题、2d|3d、画面方式、尺寸、帧率、lang、voice { on, voice, speed }、
                        镜头列表 [{ id, title, duration, say（配音台词）, cues（各句的时间）}]
   storyboard.json      策划：文案（钩子、文案、带来源的事实）和镜头
-  world/               3D：world.py（+ screen.html）；2D：page.html（画面方式的工具包）、parts.js（反复出现的画面，
-                       只画一次）、geo.data.js（地图方式的国家数据）
-  shots/<id>/          shot.py | shot.js、notes.md（必须呈现、屏幕文字、动作）
+  world/               page.html（2D：画面方式的工具包；3D：WebGL 工具包）、2D：parts.js（反复出现的画面，
+                       只画一次）、geo.data.js（地图方式的国家数据）；3D：*.js（布景、机械）
+  shots/<id>/          shot.js、notes.md（必须呈现、屏幕文字、动作、声音）、sounds.json（它的音效）
   assets/<id>/         从素材库加入的 3D 模型
-  copy.md  script.md  captions.html  music.json  thumb.html  publish.json
+  copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           缓存：按镜头和输入哈希保存的渲染、记录、检查、修改；voice/：配音语音、字幕
   out/                 引擎的导出文件（带时间戳）；App 会把每次导出复制到你选的位置，新建一个文件夹
 ```
@@ -212,7 +212,7 @@ my-video/
 | 路径 | 内容 |
 | --- | --- |
 | [`app/`](app/) | 桌面应用：Tauri 2（Rust）外壳，负责渲染队列、自动更新和进程管理；React + TypeScript 界面。 |
-| [`engine/shotloop/`](engine/shotloop/) | 镜头引擎：项目格式、按镜头缓存、2D（Chrome）和 3D（Blender）渲染、成片拼接、MP4 导出、配音计时、字幕及其检查、配乐、素材库。app 通过它的命令行调用。 |
+| [`engine/shotloop/`](engine/shotloop/) | 镜头引擎：项目格式、按镜头缓存、在 Chrome 中进行的 2D 和 3D（three.js）渲染、成片拼接、MP4 导出、配音计时、字幕及其检查、配乐、素材库。app 通过它的命令行调用。 |
 | [`voice/`](voice/) | 配音的文字转语音，在本机运行：Kokoro（通过 sherpa-onnx）、Supertonic（基于 ONNX Runtime）和 CosyVoice 2（运行在本地的 Python 服务里），以及模型的下载。 |
 | [`agent/`](agent/) | AI 助手：策划、生成、按要求修改、按检查清单检查、发布文案。支持 API、命令行工具（通过 MCP）和本地模型。 |
 | [`examples/`](examples/) | 首页提供的示例，统一为英文，每种画面方式至少一个（2D 和 3D，竖屏和横屏）。 |
@@ -225,7 +225,7 @@ my-video/
 Shotloop 建立在开源成果之上。感谢以下项目背后的人：
 
 - **配音：** hexgrad 的 [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) 和 [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)（英文）；FunAudioLLM 的 [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice)，以及 [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS)、[WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing)、[Whisper](https://github.com/openai/whisper)、[PyTorch](https://pytorch.org) 和 [Transformers](https://github.com/huggingface/transformers)（中文）；Supertone 的 [Supertonic](https://huggingface.co/Supertone/supertonic-3)（其他语言）；[ONNX Runtime](https://onnxruntime.ai)；运行中文配音的 [uv](https://github.com/astral-sh/uv) 和 [Python](https://www.python.org)。
-- **渲染与成片：** [FFmpeg](https://ffmpeg.org)、通过 DevTools 协议驱动的 [Google Chrome](https://www.google.com/chrome/)、[Blender](https://www.blender.org) 和 [Node.js](https://nodejs.org)。
+- **渲染与成片：** [FFmpeg](https://ffmpeg.org)、通过 DevTools 协议驱动的 [Google Chrome](https://www.google.com/chrome/)、[three.js](https://threejs.org) 和 [Node.js](https://nodejs.org)。
 - **应用：** [Tauri](https://tauri.app)、[React](https://react.dev)、[Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) 和 [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk)。
 - **素材与数据：** [Kenney](https://kenney.nl)、[Poly Haven](https://polyhaven.com)、[Quaternius](https://quaternius.com)、[Poly Pizza](https://poly.pizza)、[Smithsonian Open Access](https://www.si.edu/openaccess)，以及经由 [world-atlas](https://github.com/topojson/world-atlas) 提供的 [Natural Earth](https://www.naturalearthdata.com)。
 

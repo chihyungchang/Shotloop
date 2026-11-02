@@ -13,4 +13,4 @@ Inside: a spring, gears and a beating wheel
 Layers separate one after another with eased motion while the camera rises and tilts down a little.
 
 ## Review history
-- 2026-10-31: planned in the storyboard.
+- 2026-11-02: planned in the storyboard.

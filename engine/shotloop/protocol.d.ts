@@ -5,8 +5,6 @@
 
 export type Mode = 'draft' | 'final'
 export type Track = '2d' | '3d'
-// How a film is drawn: a page (2D), or for 3D WebGL (three.js, fast) or Blender (slower, higher quality)
-export type Renderer = 'page' | 'webgl' | 'blender'
 export type Size = { width: number; height: number }
 
 // ------------------------------------------------------------------ events
@@ -21,7 +19,7 @@ export interface StartEvent {
   frames: number
 }
 
-// Work in steps (compose.mjs progress): frames, captions, screen, subtitle
+// Work in steps (compose.mjs progress): frames, subtitle
 // check, voice, export; a download counts MB (voice-model, download).
 // eta: seconds left, null until one step is done
 export interface ProgressEvent {
@@ -248,7 +246,6 @@ export interface StatusResult {
   title: string
   slug: string
   track: Track
-  renderer: Renderer
   fps: number
   size: Size
   duration: number
@@ -258,12 +255,10 @@ export interface StatusResult {
   voice: VoiceSettings | null
   // The voice-over plays: on, with lines (cues.mjs voiceOn)
   voiced: boolean
-  files: { captions: string | null; music: string | null; cover: string | null; publish: string | null }
+  files: { music: string | null; cover: string | null; publish: string | null }
   shots: ShotStatus[]
   example: boolean
   draft: boolean
-  // 3D: final render samples per frame (null for 2D)
-  samples: number | null
   look: string | null
   coverFrame: { shot: string; time: number } | null
   coverMade: { how: 'default' | 'free' | 'template' | 'reference'; template?: string; at?: string } | null
@@ -286,7 +281,6 @@ export interface ProjectSummary {
   lang: string | null
   slug: string
   track: Track
-  renderer: Renderer
   size: Size
   // The visual style, '3d' for the 3D track
   style: string | null
@@ -413,9 +407,3 @@ export interface MusicResult {
   bed?: string | null
 }
 
-// shotloop quality <project>
-export interface QualityResult {
-  samples: number
-  custom: boolean
-  default: number
-}

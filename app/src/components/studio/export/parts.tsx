@@ -1,9 +1,9 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useCallback, useEffect, useState } from 'react'
-import { DEFAULT_SAMPLES, MUSIC_MOODS } from '../../../../../engine/shotloop/data.mjs'
+import { MUSIC_MOODS } from '../../../../../engine/shotloop/data.mjs'
 import { api, type Job, type MusicInfo, type Project, type SoundChange, type SoundInfo, type VoiceInfo } from '../../../api'
 import { useAudioPreview, useAutosave, useErrorLine } from '../../../hooks'
-import { activityLine, isActive, secondsPerFrame3d } from '../../../model'
+import { activityLine, isActive } from '../../../model'
 import { t } from '../../../i18n'
 import type { Key } from '../../../i18n/en'
 import { AgentError } from '../../AgentError'
@@ -399,59 +399,6 @@ function Field({ label, value, rows = 1, onChange, copyOnly }: { label: string; 
         : rows > 1
           ? <textarea rows={rows} value={value} onChange={e => onChange?.(e.target.value)} />
           : <input value={value} onChange={e => onChange?.(e.target.value)} />}
-    </div>
-  )
-}
-
-const SAMPLE_PRESETS = [
-  { n: 16, label: 'samples.fast' },
-  { n: DEFAULT_SAMPLES, label: 'samples.standard' },
-  { n: 64, label: 'samples.fine' }
-] as const
-
-// 3D final quality, for those who want it: EEVEE samples per frame. More
-// cleans up glossy reflections and fast motion, at more time a frame
-export function Samples({ project, refresh }: { project: Project; refresh: () => void }) {
-  const current = project.samples ?? DEFAULT_SAMPLES
-  const preset = SAMPLE_PRESETS.some(p => p.n === current)
-  const [custom, setCustom] = useState(!preset)
-  const [draft, setDraft] = useState(String(current))
-  const { error, guard } = useErrorLine()
-  const set = async (change: { samples?: number; reset?: boolean }) => {
-    const r = await guard(api.quality(project.root, change))
-    if (!r) return setDraft(String(current))
-    setDraft(String(r.samples))
-    refresh()
-  }
-  const commit = () => {
-    const n = Math.round(Number(draft))
-    if (n >= 4 && n <= 512 && n !== current) set({ samples: n })
-    else setDraft(String(current))
-  }
-  return (
-    <div className="samples">
-      <div className="row between">
-        <span className="small">{t('samples.title')}</span>
-        <span className="small muted">{t('samples.perFrame', { s: secondsPerFrame3d(current).toFixed(1) })}</span>
-      </div>
-      <div className="music-chips">
-        {SAMPLE_PRESETS.map(p => (
-          <button key={p.n} className={`provider-chip${!custom && current === p.n ? ' on' : ''}`}
-            onClick={() => { setCustom(false); setDraft(String(p.n)); set(p.n === DEFAULT_SAMPLES ? { reset: true } : { samples: p.n }) }}>
-            {t(p.label)} <span className="muted">{p.n}</span>
-          </button>
-        ))}
-        {custom
-          ? (
-            <label className="provider-chip on samples-input">
-              <input type="number" min={4} max={512} step={1} value={draft} autoFocus aria-label={t('samples.title')}
-                onChange={e => setDraft(e.target.value)} onBlur={commit}
-                onKeyDown={e => e.key === 'Enter' && (e.currentTarget as HTMLInputElement).blur()} />
-            </label>
-          )
-          : <button className="provider-chip" onClick={() => setCustom(true)}>{t('samples.custom')}</button>}
-      </div>
-      {error && <p className="small error">{error}</p>}
     </div>
   )
 }

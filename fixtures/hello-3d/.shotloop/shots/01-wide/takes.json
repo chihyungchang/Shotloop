@@ -1,0 +1,47 @@
+[
+  {
+    "take": 1,
+    "at": "2026-10-29T05:18:41.790Z",
+    "mode": "draft",
+    "kind": "stills",
+    "key": "a2d429a6dfea85d7",
+    "seconds": 4.5,
+    "stills": [
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/01-wide/draft-a2d429a6dfea85d7/stills/start.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/01-wide/draft-a2d429a6dfea85d7/stills/middle.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/01-wide/draft-a2d429a6dfea85d7/stills/end.png"
+    ],
+    "clip": null,
+    "preview": null
+  },
+  {
+    "take": 2,
+    "at": "2026-10-29T05:19:14.600Z",
+    "mode": "draft",
+    "kind": "stills",
+    "key": "100a1d65fbd1592d",
+    "seconds": 3,
+    "stills": [
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/01-wide/draft-100a1d65fbd1592d/stills/start.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/01-wide/draft-100a1d65fbd1592d/stills/middle.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/01-wide/draft-100a1d65fbd1592d/stills/end.png"
+    ],
+    "clip": null,
+    "preview": null
+  },
+  {
+    "take": 3,
+    "at": "2026-10-29T05:19:32.314Z",
+    "mode": "draft",
+    "kind": "clip",
+    "key": "100a1d65fbd1592d",
+    "seconds": 8.3,
+    "stills": [
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/01-wide/draft-100a1d65fbd1592d/stills/start.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/01-wide/draft-100a1d65fbd1592d/stills/middle.png",
+      "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/01-wide/draft-100a1d65fbd1592d/stills/end.png"
+    ],
+    "clip": "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/01-wide/draft-100a1d65fbd1592d/clip.mp4",
+    "preview": "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/.shotloop/shots/01-wide/draft-100a1d65fbd1592d/preview-9916bf436b2c.mp4"
+  }
+]

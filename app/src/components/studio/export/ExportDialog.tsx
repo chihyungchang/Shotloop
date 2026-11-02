@@ -4,13 +4,13 @@ import { api, fileUrl, type ExportResult, type Job, type Mode, type Project } fr
 import { useErrorLine, useEscape } from '../../../hooks'
 import { t } from '../../../i18n'
 import type { Key } from '../../../i18n/en'
-import { estimate, formatSeconds, inBlender, isActive, sizeText } from '../../../model'
+import { estimate, formatSeconds, isActive, sizeText } from '../../../model'
 import { baseName, tildePath } from '../../../recent'
 import { Icon } from '../../Icon'
 import { ChangesDialog } from '../ChangesDialog'
 import { rename } from '../Studio'
 import { COVER_SIZE, CoverEditor, coverSource, useCover } from './CoverEditor'
-import { CopySummary, Music, Publish, Samples, Sound, usePublishCopy, Voice } from './parts'
+import { CopySummary, Music, Publish, Sound, usePublishCopy, Voice } from './parts'
 import { readExportPrefs, readExportTo, saveExportPrefs, saveExportTo, type Parts } from './prefs'
 
 const ASPECTS: { id: string; label: Key; note: Key }[] = [
@@ -184,7 +184,7 @@ export function ExportDialog({ project, jobs, refresh, openSettings, close }: {
 
       {ask && (
         <ChangesDialog project={project} shots={pending} mode={mode} close={() => setAsk(false)}
-          title={t('changes.titleExport', { n: pending.length })} note={t(inBlender(project) ? 'changes.noteExport3d' : 'changes.noteExport')}
+          title={t('changes.titleExport', { n: pending.length })} note={t('changes.noteExport')}
           actions={[
             { label: t('plan.cancel'), onClick: () => setAsk(false) },
             { label: t('changes.export'), onClick: run, primary: true }
@@ -247,12 +247,6 @@ function Setup({ project, jobs, refresh, name, setName, rename, parts, tick, asp
         <Voice project={project} jobs={jobs} refresh={refresh} />
         <Music project={project} refresh={refresh} />
         <Sound project={project} refresh={refresh} />
-        {inBlender(project) && (
-          <div className="xrow top">
-            <span className="xrow-label">{t('studio.quality')}</span>
-            <Samples project={project} refresh={refresh} />
-          </div>
-        )}
       </Part>
       <Part on={parts.cover} toggle={() => tick('cover')} label={t('export.cover')} meta={t('xd.coverMeta')} />
       <Part on={parts.copy} toggle={() => tick('copy')} label={t('export.publish')} meta={parts.copy ? '' : t('xd.copyMeta')}>

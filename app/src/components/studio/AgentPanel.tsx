@@ -20,7 +20,7 @@ export function AgentPanel({ project, shot, jobs, openSettings, picker }: {
   shot: Shot
   jobs: Job[]
   openSettings: () => void
-  picker: PickerState | null
+  picker: PickerState
 }) {
   const [request, setRequest] = useState('')
   const thread = useRef<HTMLDivElement>(null)
@@ -38,11 +38,11 @@ export function AgentPanel({ project, shot, jobs, openSettings, picker }: {
   const send = async (text = request) => {
     if (!text.trim() || active) return
     // Kept in the box when it could not be queued, to send again
-    const element = picker?.pick?.element
+    const element = picker.pick?.element
     if ((await guard(api.enqueue({ kind: 'fix', project: project.root, shot: shot.id, request: text.trim(), ...(element ? { element } : {}) }))) != null) {
       setRequest('')
-      picker?.setPick(null)
-      picker?.setPicking(false)
+      picker.setPick(null)
+      picker.setPicking(false)
     }
   }
   const check = () => guard(api.enqueue({ kind: 'check', project: project.root, shot: shot.id }))
@@ -109,14 +109,12 @@ export function AgentPanel({ project, shot, jobs, openSettings, picker }: {
         />
         <div className="composer-bar">
           <span className="chip static"><Icon name="film" size={12} /> {shot.id}</span>
-          {picker?.pick && <ElementChip element={picker.pick.element} onRemove={() => picker.setPick(null)} />}
+          {picker.pick && <ElementChip element={picker.pick.element} onRemove={() => picker.setPick(null)} />}
           <div className="spacer" />
-          {picker && (
-            <button className={`chip-toggle${picker.picking ? ' on' : ''}`} onClick={() => picker.setPicking(!picker.picking)}
-              aria-pressed={picker.picking} aria-label={t('pick.start')} title={t('pick.start')}>
-              <Icon name="pick" size={16} />
-            </button>
-          )}
+          <button className={`chip-toggle${picker.picking ? ' on' : ''}`} onClick={() => picker.setPicking(!picker.picking)}
+            aria-pressed={picker.picking} aria-label={t('pick.start')} title={t('pick.start')}>
+            <Icon name="pick" size={16} />
+          </button>
           <button className="send" onClick={() => send()} disabled={!request.trim() || !!active} aria-label={t('agent.send')}>
             <Icon name="send" size={16} />
           </button>

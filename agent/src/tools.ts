@@ -105,8 +105,8 @@ export function writeAtomic(file: string, content: string) {
   }
 }
 
-// The shot whose code a project path is (shots/<id>/shot.js or shot.py)
-export const codeOf = (rel: string) => rel.match(/^shots\/([^/]+)\/shot\.(js|py)$/)?.[1] ?? null
+// The shot whose code a project path is (shots/<id>/shot.js)
+export const codeOf = (rel: string) => rel.match(/^shots\/([^/]+)\/shot\.js$/)?.[1] ?? null
 
 function canWrite(ctx: ToolContext, rel: string) {
   return ctx.writable.some(w => (w.endsWith('/') ? rel.startsWith(w) : rel === w))
@@ -130,7 +130,7 @@ export const TOOLS: Tool[] = [
   },
   {
     name: 'read_file',
-    description: 'Read a text file of the project. Paths are relative to the project root, e.g. "shots/01-room/shot.py" or "world/world.py".',
+    description: 'Read a text file of the project. Paths are relative to the project root, e.g. "shots/01-room/shot.js" or "world/page.html".',
     strict: true,
     input_schema: object({ path: { type: 'string' } }, ['path'])
   },

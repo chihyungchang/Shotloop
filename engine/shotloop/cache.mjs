@@ -1,6 +1,6 @@
 // Per-shot cache (docs/PRD.md §7.2, §8). A shot's frames are keyed by a
 // hash of every input that changes a pixel: the world, the shot's code,
-// the caption layer, the assets, the renderer and the render settings.
+// the models it loads, the renderer and the render settings.
 // An unchanged shot reuses its frames; the film is assembled from them.
 // Keys hash files by their place in the project, never by absolute path,
 // so a copied project (an example opened as a draft) finds its cache.
@@ -10,7 +10,6 @@
 //   .shotloop/shots/<id>/takes.json       every render of the shot
 //   .shotloop/shots/<id>/error.json       the last failed render
 //   .shotloop/music/<key>.wav             the music bed (bed.mjs)
-//   .shotloop/screen/<key>/               3D: the world's screen page (render3d.mjs)
 
 import crypto from 'node:crypto'
 import fs from 'node:fs'
@@ -18,13 +17,11 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { voiceCues, voiceLang } from './cues.mjs'
 import { readJson, writeJson } from './files.mjs'
-import { finalSamples, localPath, paged, projectPath } from './project.mjs'
+import { localPath, projectPath } from './project.mjs'
 import { cutTimes } from './score.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 export const ENGINE = path.resolve(HERE, '..')
-export const KIT_3D = path.join(HERE, 'blender', 'kit')
-export const ASSETS = process.env.SHOTLOOP_ASSETS ?? path.join(ENGINE, 'assets')
 
 // Bump when a renderer change should invalidate every cached frame
 const RENDERER_VERSION = 2
@@ -34,18 +31,12 @@ export const MODES = ['draft', 'final']
 // The three review stills of every render, in order
 export const STILLS = ['start', 'middle', 'end']
 
-// The quality the editor works in: Blender renders fast previews (half
-// size, few samples) and only an export renders final frames; a page's
-// frames are cheap, so 2D and WebGL work in final quality and an export
-// just joins them
-export const editMode = project => (project.renderer === 'blender' ? 'draft' : 'final')
+// The quality the editor works in: a page's frames are cheap, so the
+// editor works in final quality and an export just joins them
+export const editMode = () => 'final'
 
-// Files of the engine that draw pixels, per renderer
-const RENDERER_FILES = {
-  page: ['shotloop/render2d.mjs', 'shotloop/compose.mjs'],
-  webgl: ['shotloop/render2d.mjs', 'shotloop/compose.mjs'],
-  blender: ['shotloop/render3d.mjs', 'shotloop/compose.mjs', 'shotloop/blender/run_shot.py']
-}
+// Files of the engine that draw pixels
+const RENDERER_FILES = ['shotloop/render2d.mjs', 'shotloop/compose.mjs']
 
 function listFiles(dir, { skip = () => false } = {}) {
   if (!fs.existsSync(dir)) return []
@@ -85,19 +76,6 @@ export function engineCode(...files) {
   return codeKeys.get(id)
 }
 
-// Assets are large (Blender kits, HDRIs): key them by path, size and
-// modification time instead of content
-let assetsKey = null
-function hashAssets() {
-  if (assetsKey) return assetsKey
-  const h = crypto.createHash('sha256')
-  for (const f of listFiles(ASSETS, { skip: n => n === 'README.md' })) {
-    const st = fs.statSync(f)
-    h.update(`${path.relative(ASSETS, f)}:${st.size}:${Math.floor(st.mtimeMs)}\n`)
-  }
-  return (assetsKey = h.digest('hex'))
-}
-
 // The world's key on its own, so a world change can be reported as
 // touching every shot
 export function worldKey(project) {
@@ -107,11 +85,10 @@ export function worldKey(project) {
 }
 
 // What goes into a shot's frames, part by part: its code, the shared
-// scene (the world, and for 3D the models copied into the project), the
-// caption layer, its timing (with, in 2D, the voice-over's sentences and
-// times, which its code may follow: ctx.voice), and the engine (renderer,
-// mode and settings, and for 3D the kit and the assets). A stale shot
-// says which parts changed since its last render
+// scene (the world, and for 3D the models copied into the project), its
+// timing (with the voice-over's sentences and times, which its code may
+// follow: ctx.voice), and the engine (renderer, mode). A stale shot says
+// which parts changed since its last render
 export function keyParts(project, shot, mode) {
   const own = path.join(project.root, 'assets')
   return {
@@ -120,19 +97,13 @@ export function keyParts(project, shot, mode) {
       hashFiles(h, project.root, listFiles(project.world))
       if (project.track === '3d' && fs.existsSync(own)) hashFiles(h, project.root, listFiles(own))
     }),
-    captions: digest(h => project.captions && hashFiles(h, project.root, [project.captions])),
-    timing: digest(h => h.update(JSON.stringify([project.fps, project.size, shot.start, shot.duration,
-      paged(project) ? voiceCues(project, shot) : []]))),
+    // Empty since the caption layer went with Blender, kept so films keep their keys
+    captions: digest(() => {}),
+    timing: digest(h => h.update(JSON.stringify([project.fps, project.size, shot.start, shot.duration, voiceCues(project, shot)]))),
     engine: digest(h => {
-      const blender = project.renderer === 'blender'
-      // A WebGL film says so; 2D and Blender keys stay as they were
-      h.update(JSON.stringify([RENDERER_VERSION, project.track, mode, blender && mode === 'final' ? finalSamples(project) : null,
-        ...(project.renderer === 'webgl' ? ['webgl'] : [])]))
-      hashFiles(h, ENGINE, RENDERER_FILES[project.renderer].map(f => path.join(ENGINE, f)))
-      if (blender) {
-        hashFiles(h, ENGINE, listFiles(KIT_3D, { skip: n => n === 'README.md' }))
-        h.update(hashAssets())
-      }
+      // A 3D film says so (null: where Blender's samples were), so keys made before stay valid
+      h.update(JSON.stringify([RENDERER_VERSION, project.track, mode, null, ...(project.track === '3d' ? ['webgl'] : [])]))
+      hashFiles(h, ENGINE, RENDERER_FILES.map(f => path.join(ENGINE, f)))
     })
   }
 }
@@ -147,12 +118,6 @@ export function musicKey(project) {
   if (!project.music) return null
   return digest(h => h.update(engineCode('bed.mjs', 'score.mjs', 'synth.mjs')).update(fs.readFileSync(project.music))
     .update(JSON.stringify([project.config.musicGain ?? 1, project.duration, cutTimes(project)])))
-}
-
-// A 3D world's screen page, rendered once per version of the page
-export function screenKey(project) {
-  const file = path.join(project.world, 'screen.html')
-  return fs.existsSync(file) ? digest(h => h.update(fs.readFileSync(file))) : null
 }
 
 const shotState = (project, shot) => path.join(project.state, 'shots', shot.id)
@@ -295,7 +260,7 @@ export function prune(project) {
     for (const f of old) fs.rmSync(path.join(dir, f), { recursive: true, force: true })
     return old.length
   }
-  let removed = sweep(path.join(project.state, 'music'), `${musicKey(project)}.wav`) + sweep(path.join(project.state, 'screen'), screenKey(project))
+  let removed = sweep(path.join(project.state, 'music'), `${musicKey(project)}.wav`)
   for (const shot of project.shots) {
     const base = shotState(project, shot)
     if (!fs.existsSync(base)) continue

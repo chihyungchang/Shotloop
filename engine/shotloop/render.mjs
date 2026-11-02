@@ -7,10 +7,9 @@ import path from 'node:path'
 import { addTake, cachedFile, entry, keyParts, recordError, STILLS, subtitleResult } from './cache.mjs'
 import { readJson, writeJson } from './files.mjs'
 import { musicBed } from './bed.mjs'
-import { composeStill, emit, encodeClip, ffmpeg, frameName, renderCaptions } from './compose.mjs'
-import { frameCount, paged, projectPath } from './project.mjs'
+import { composeStill, emit, encodeClip, ffmpeg, frameName } from './compose.mjs'
+import { frameCount, projectPath } from './project.mjs'
 import { renderFrames2d } from './render2d.mjs'
-import { renderFrames3d } from './render3d.mjs'
 import { dressFilm } from './voice.mjs'
 import { checkSubtitles, describeIssues } from './check.mjs'
 
@@ -28,7 +27,7 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
     return { shot: shot.id, mode, key: e.key, cached: true, ...(await outputs(project, shot, e, mode)) }
   }
 
-  // A voiced page's shot is checked for what its subtitles would cover first
+  // A voiced shot is checked for what its subtitles would cover first
   // (seconds, no frames): the result is kept with the shot for the app to
   // mark; fixing it is the person's call, so the render goes on
   const subtitles = await subtitleCheck(project, shot)
@@ -36,28 +35,21 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
   const t0 = Date.now()
   const work = path.join(e.dir, `work-${process.pid}`)
   const framesDir = path.join(work, 'frames')
-  const capsDir = project.captions ? path.join(work, 'captions') : null
   const n = frameCount(project, shot)
   const frames = stills ? [...new Set(stillFrames(project, shot))] : Array.from({ length: n }, (_, i) => i + 1)
   emit({ type: 'start', shot: shot.id, mode, what, key: e.key, frames: frames.length })
 
   try {
     fs.mkdirSync(work, { recursive: true })
-    const draw = paged(project) ? renderFrames2d : renderFrames3d
-    await draw(project, shot, mode, framesDir, frames)
-    if (capsDir) await renderCaptions(project, shot, mode, capsDir, frames)
+    await renderFrames2d(project, shot, mode, framesDir, frames)
 
     // Stills come with every render: they are what the checks look at
     for (const [i, f] of stillFrames(project, shot).entries()) {
-      await composeStill(
-        path.join(framesDir, frameName(f)),
-        capsDir ? path.join(capsDir, frameName(f)) : null,
-        path.join(e.dir, 'stills', `${STILLS[i]}.jpg`)
-      )
+      await composeStill(path.join(framesDir, frameName(f)), path.join(e.dir, 'stills', `${STILLS[i]}.jpg`))
     }
     if (!stills) {
       emit({ type: 'log', message: `${shot.id}: encoding` })
-      await encodeClip(project, mode, framesDir, capsDir, path.join(e.dir, 'clip.mp4'))
+      await encodeClip(project, mode, framesDir, path.join(e.dir, 'clip.mp4'))
     }
 
     const seconds = Math.round((Date.now() - t0) / 100) / 10
@@ -89,7 +81,6 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
 }
 
 async function subtitleCheck(project, shot) {
-  if (!paged(project)) return null
   // These frames were checked already
   const known = subtitleResult(project, shot)
   if (known) return known.issues

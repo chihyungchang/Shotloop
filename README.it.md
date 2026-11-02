@@ -29,7 +29,7 @@ Un’idea diventa testi, uno storyboard e un video fatto di inquadrature. Ogni i
 
 ## Cos’è Shotloop
 
-Shotloop è un’app desktop per video brevi disegnati con il codice: promo di prodotto, divulgazione scientifica, storie con i dati e animazioni in stile slide, in 2D (pagine web renderizzate fotogramma per fotogramma) o in 3D (scene Blender), in otto stili visivi.
+Shotloop è un’app desktop per video brevi disegnati con il codice: promo di prodotto, divulgazione scientifica, storie con i dati e animazioni in stile slide, in 2D (pagine web renderizzate fotogramma per fotogramma) o in 3D (mondi three.js renderizzati come da un renderer offline), in otto stili visivi.
 
 Si parte da una frase. L’IA sceglie come mostrarla (scena cinematografica, infografica, mappa, demo di interfaccia, disegno tecnico, tipografia animata, racconto di cronaca o 3D) e un tema, a meno che non li scelga tu. Scrive il gancio, il copione e i fatti con le loro fonti, poi li divide in uno storyboard, con la battuta che una voce narrante dice su ogni inquadratura. Tu modifichi lo storyboard e l’IA genera ogni inquadratura. Nello Studio guardi ogni inquadratura e dici cosa non va con parole tue, come «il testo è troppo piccolo» o «è troppo statico: aggiungi un po’ di movimento». L’IA modifica quell’inquadratura, la renderizza, la verifica rispetto alle note e ti mostra un prima/dopo. Quando il video funziona, l’esportazione unisce le inquadrature, posa la voce narrante con i suoi sottotitoli e sotto la musica; l’IA progetta una copertina nello stile del video (o compila il modello della tua serie) e scrive il post per ogni piattaforma, tutto in una cartella dedicata.
 
@@ -43,7 +43,7 @@ Ogni fotogramma qui sotto è stato renderizzato da Shotloop a partire dagli [ese
 
 <table>
 <tr>
-<td width="25%" valign="top"><img src="docs/screenshots/film-3d.gif" alt="Un telefono che si apre in un esploso dei suoi strati" /><br/><sub><b>3D</b>: lo smontaggio di un telefono in Blender.</sub></td>
+<td width="25%" valign="top"><img src="docs/screenshots/film-3d.gif" alt="Un orologio meccanico che ruota, poi si apre in un esploso del suo movimento" /><br/><sub><b>3D</b>: un orologio meccanico in WebGL.</sub></td>
 <td width="25%" valign="top"><img src="docs/screenshots/film-2d.gif" alt="Un impulso di luce che viaggia dal Sole alla Terra, con un timer" /><br/><sub><b>2D</b>: quanto ci mette la luce del Sole ad arrivare sulla Terra.</sub></td>
 <td width="50%" valign="top"><img src="docs/screenshots/film-chart.gif" alt="Un grafico di 0,99 alla 365ª potenza che scende a 0,027" /><br/><sub><b>Dati 2D</b>: migliorare dell’1% ogni giorno, in grafici (16:9).</sub></td>
 </tr>
@@ -64,7 +64,7 @@ L’IA sceglie lo stile adatto al tema e ti spiega perché; puoi cambiarlo nel p
 <td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Disegno tecnico" /></a><br/><sub><b>Disegno tecnico</b>: linee su una griglia, esplosi e didascalie, per spiegare come funziona una macchina.</sub></td>
 <td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Tipografia animata" /></a><br/><sub><b>Tipografia animata</b>: testo enorme che si muove, per citazioni, parole e falsi miti.</sub></td>
 <td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Racconto di cronaca" /></a><br/><sub><b>Racconto di cronaca</b>: notizie dell’ultima ora raccontate con tensione: un orologio che corre, la pista del denaro, la cronologia, chi ha detto cosa.</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: scene Blender con luce reale e una camera che attraversa lo spazio.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: mondi three.js con luce da studio, ombre morbide e una camera che attraversa lo spazio.</sub></td>
 </tr>
 </table>
 
@@ -116,7 +116,7 @@ flowchart LR
   D -- va bene --> G[Esporta: unione, voce narrante, musica, testi di pubblicazione]
 ```
 
-- **Inquadrature, non un unico lungo render.** Un video è una lista di inquadrature. Ognuna è un piccolo programma: `shot.js` per una pagina 2D, `shot.py` per un movimento di camera in Blender. Ognuna è in cache secondo un hash dei suoi input, quindi una correzione renderizza una sola inquadratura in pochi secondi (2D) o un minuto (3D), e l’esportazione si limita a unire le clip.
+- **Inquadrature, non un unico lungo render.** Un video è una lista di inquadrature. Ognuna è un piccolo programma, `shot.js`, che disegna la sua pagina a un istante t: una pagina 2D, o un mondo three.js per il 3D. Ognuna è in cache secondo un hash dei suoi input, quindi una correzione renderizza una sola inquadratura in pochi secondi, e l’esportazione si limita a unire le clip.
 - **Correzioni a parole.** L’IA tocca solo l’inquadratura su cui ti trovi, a meno che la correzione non richieda di cambiare il mondo condiviso. Renderizza dei fotogrammi, li verifica con una checklist (leggibile, niente di coperto, fuori dalla zona delle didascalie e così via) e riferisce cosa ha cambiato.
 - **Otto stili visivi.** Scena cinematografica, infografica, mappa, demo di interfaccia, disegno tecnico, tipografia animata, racconto di cronaca o 3D, ognuno con il suo kit e i fotogrammi di riferimento che l’IA guarda prima di scegliere e generare ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Un tema imposta solo lo sfondo e il carattere; immagini e dati mantengono i colori richiesti dal soggetto.
 - **Regole con cui si misura un piano.** Lunghezza delle didascalie e tempo a schermo vengono verificati prima di generare qualsiasi cosa. Un’immagine che ricorre in più inquadrature viene disegnata una volta e condivisa, così è uguale in ognuna.
@@ -124,7 +124,7 @@ flowchart LR
 - **Copertine.** L’IA progetta una copertina nello stile del video e controlla i propri render. Salvane una come modello per mantenere coerente una serie, oppure carica una copertina che ti piace e l’IA ne segue il design.
 - **Una voce narrante, generata sul tuo Mac.** Ogni inquadratura ha una battuta, e la voce guida il montaggio: un’inquadratura dura quanto la sua battuta, e l’immagine cade sulle parole. Kokoro parla inglese, CosyVoice 2 cinese e Supertonic le altre lingue, tutto offline. I sottotitoli delle parole pronunciate si aggiungono da soli, e un controllo elenca tutto ciò che coprirebbero (il testo e il soggetto marcato), così un video coperto non viene mai esportato. Disattiva la voce narrante per un video con sole didascalie.
 - **Musica a tempo con il montaggio.** La base sintetizzata è regolata perché i tagli cadano sui suoi battiti, dura fino all’ultimo fotogramma e poi sfuma. Sotto una voce narrante resta più bassa e si abbassa ancora mentre viene detta una battuta.
-- **Veloce in modifica, qualità piena in esportazione.** Il 3D mostra anteprime rapide mentre modifichi e renderizza i fotogrammi in qualità piena solo all’esportazione. Il 2D lavora sempre in qualità piena.
+- **Un 3D che si renderizza come con un renderer offline, in pochi minuti.** Ogni fotogramma 3D fa la media di più sottofotogrammi (antialiasing, ombre morbide, occlusione ambientale, profondità di campo, motion blur) in circa mezzo secondo, quindi un video di 30 secondi si renderizza in pochi minuti, senza niente da installare.
 - **Libreria di asset 3D.** Cerca modelli CC0 su [Poly Pizza](https://poly.pizza) e [Smithsonian Open Access](https://www.si.edu/openaccess) con la tua chiave. Ogni modello si scarica una volta sola e si può aggiungere a qualsiasi progetto 3D.
 
 ## L’IA che lo guida
@@ -140,7 +140,7 @@ Il modello deve supportare le chiamate agli strumenti, e per le verifiche serve 
 ## Installazione
 
 1. Scarica `Shotloop_<version>_aarch64.dmg` dall’[ultima versione](https://github.com/chihyungchang/Shotloop/releases/latest), aprilo e trascina Shotloop in Applicazioni.
-2. Installa **Google Chrome** (le inquadrature 2D vengono renderizzate lì). Per i progetti 3D, Shotloop ti chiede **Blender** la prima volta che ne crei uno.
+2. Installa **Google Chrome** (le inquadrature 2D vengono renderizzate lì).
 3. Scegli l’IA in Impostazioni → Modelli e fornitori. Se Claude Code è già sul tuo Mac, viene scelto in automatico.
 
 > **Primo avvio:** Shotloop non è ancora notarizzato da Apple, quindi macOS dice di non poter verificare lo sviluppatore. Aprilo una volta da **Impostazioni di Sistema → Privacy e sicurezza → Apri comunque**, oppure esegui `xattr -dr com.apple.quarantine /Applications/Shotloop.app` nel Terminale. Dopo si apre normalmente, e gli aggiornamenti si installano senza chiedere di nuovo.
@@ -163,13 +163,13 @@ pnpm app:build               # Shotloop.app e un dmg, con Node e ffmpeg inclusi
 <summary><b>Il motore da terminale</b></summary>
 
 ```bash
-pnpm shotloop status   fixtures/hello-3d
-pnpm shotloop render   fixtures/hello-3d --shot 02-close --stills   # inizio/metà/fine
-pnpm shotloop render   fixtures/hello-3d --shot 02-close            # una clip, nella qualità dell'editor
-pnpm shotloop export   fixtures/hello-3d                            # renderizza solo le inquadrature cambiate
+pnpm shotloop status   fixtures/ep01-password-crack-time
+pnpm shotloop render   fixtures/ep01-password-crack-time --shot 02-stack-16-gpu --stills   # inizio/metà/fine
+pnpm shotloop render   fixtures/ep01-password-crack-time --shot 02-stack-16-gpu            # una clip
+pnpm shotloop export   fixtures/ep01-password-crack-time                                   # renderizza solo le inquadrature cambiate
 pnpm shotloop new      my-short --idea "Perché la batteria del telefono invecchia?" --track auto --duration auto
 pnpm shotloop new      coffee --idea "Da dove viene il caffè?" --track 2d --style map --duration 30
-pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # in una nuova cartella lì
+pnpm shotloop export   fixtures/ep01-password-crack-time --to ~/Movies/Shotloop --name "Hello"   # in una nuova cartella lì
 pnpm shotloop covers   list                                         # modelli di copertina
 pnpm shotloop voice    my-short --on --voice af_heart --fit        # la voce narrante: dire le battute, adattare le inquadrature
 pnpm shotloop check-subtitles my-short                              # cosa coprirebbero i sottotitoli (fallisce se c’è qualcosa)
@@ -181,7 +181,7 @@ Aggiungi `--json` per eventi riga per riga (ciò che legge l’app). L’agente 
 
 ```bash
 node agent/src/main.ts detect                                         # agenti CLI e server locali su questo Mac
-SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check fixtures/hello-3d --shot 01-wide
+SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check fixtures/ep01-password-crack-time --shot 01-password-field-dots
 pnpm test                                                             # ogni backend contro sostituti scriptati
 ```
 
@@ -195,18 +195,18 @@ my-video/
   shotloop.json        titolo, traccia (2d|3d), stile, dimensioni, fps, lingua, voce { on, voice, speed },
                        inquadrature [{ id, title, duration, say (la battuta detta), cues (i tempi delle sue frasi) }]
   storyboard.json      il piano: testi (gancio, copione, fatti con fonte) e inquadrature
-  world/               3D: world.py (+ screen.html); 2D: page.html (il kit dello stile), parts.js (immagini
-                       ricorrenti, disegnate una volta), geo.data.js (i paesi dello stile mappa)
-  shots/<id>/          shot.py | shot.js, notes.md (da mostrare, a schermo, movimento)
+  world/               page.html (2D: il kit dello stile; 3D: il kit WebGL), 2D: parts.js (immagini
+                       ricorrenti, disegnate una volta), geo.data.js (i paesi dello stile mappa); 3D: *.js (set, macchine)
+  shots/<id>/          shot.js, notes.md (da mostrare, a schermo, movimento, suono), sounds.json (i suoi effetti sonori)
   assets/<id>/         modelli 3D dalla libreria di asset
-  copy.md  script.md  captions.html  music.json  thumb.html  publish.json
+  copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           cache: per inquadratura e hash degli input, riprese, verifiche, correzioni; voice/: battute dette, sottotitoli
   out/                 le esportazioni del motore (con data e ora); l'app copia ognuna in una nuova cartella dove scegli
 ```
 
-- **3D**: `world.py` costruisce il mondo condiviso con `kit` ([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)). `shot.py` gira nel namespace del mondo e crea una camera; `at(t)` converte i secondi locali dell’inquadratura nel tempo del video.
+- **3D**: `world/page.html` è il kit WebGL del motore ([`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)): un palco three.js con luce da studio, materiali, forme, modelli glTF, camere basate sugli obiettivi e testo sopra. Set e macchine condivisi dalle inquadrature stanno in `world/*.js`; un’inquadratura costruisce ciò che mostra in `setup(ctx)` e lo mette in posa per `t` in `render(t)`.
 - **2D**: `shot.js` esporta di default `render(t, ctx)`, che disegna `world/page.html` al tempo locale `t` dell’inquadratura. `ctx.voice` contiene le frasi dette nell’inquadratura con i loro tempi, così l’immagine può cadere sulle parole; marca il soggetto con `data-keep` (o `subtitles.keep()` su un canvas) perché il controllo dei sottotitoli lo lasci libero.
-- **Cache**: la chiave di un’inquadratura è un hash del mondo, del suo codice, delle didascalie, degli asset, del renderer e delle impostazioni. Le inquadrature non modificate vengono riutilizzate.
+- **Cache**: la chiave di un’inquadratura è un hash del mondo, del suo codice, dei suoi modelli, del renderer e delle impostazioni. Le inquadrature non modificate vengono riutilizzate.
 
 </details>
 
@@ -216,7 +216,7 @@ my-video/
 | Percorso | Cosa contiene |
 | --- | --- |
 | [`app/`](app/) | L’app desktop: una shell Tauri 2 (Rust) con la coda di render, l’aggiornamento automatico e la supervisione dei processi, e l’interfaccia React + TypeScript. |
-| [`engine/shotloop/`](engine/shotloop/) | Il motore delle inquadrature: formato del progetto, cache di render per inquadratura, render 2D (Chrome) e 3D (Blender), montaggio del video, esportazione MP4, tempi della voce narrante, sottotitoli e il loro controllo, musica, libreria di asset. Una CLI che l’app richiama. |
+| [`engine/shotloop/`](engine/shotloop/) | Il motore delle inquadrature: formato del progetto, cache di render per inquadratura, render 2D e 3D (three.js) in Chrome, montaggio del video, esportazione MP4, tempi della voce narrante, sottotitoli e il loro controllo, musica, libreria di asset. Una CLI che l’app richiama. |
 | [`voice/`](voice/) | La sintesi vocale della voce narrante, su questo Mac: Kokoro tramite sherpa-onnx, Supertonic su ONNX Runtime e CosyVoice 2 in un server Python locale, con i download dei modelli. |
 | [`agent/`](agent/) | L’agente: pianificazione, generazione, correzioni a parole, verifiche con la checklist, testi di pubblicazione. Supporta API, CLI (tramite MCP) e modelli locali. |
 | [`examples/`](examples/) | Gli esempi offerti nella Home, in inglese: almeno uno per ogni stile visivo (2D e 3D, 9:16 e 16:9). |
@@ -229,7 +229,7 @@ my-video/
 Shotloop si regge sul lavoro open source. Grazie alle persone dietro:
 
 - **La voce narrante:** [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) di hexgrad e [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (inglese); [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) di FunAudioLLM con [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) e [Transformers](https://github.com/huggingface/transformers) (cinese); [Supertonic](https://huggingface.co/Supertone/supertonic-3) di Supertone (le altre lingue); [ONNX Runtime](https://onnxruntime.ai); [uv](https://github.com/astral-sh/uv) e [Python](https://www.python.org), che fanno girare la voce cinese.
-- **Rendering e video:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) tramite il protocollo DevTools, [Blender](https://www.blender.org) e [Node.js](https://nodejs.org).
+- **Rendering e video:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) tramite il protocollo DevTools, [three.js](https://threejs.org) e [Node.js](https://nodejs.org).
 - **L’app:** [Tauri](https://tauri.app), [React](https://react.dev), l’[Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) e il [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
 - **Asset e dati:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess) e [Natural Earth](https://www.naturalearthdata.com) tramite [world-atlas](https://github.com/topojson/world-atlas).
 

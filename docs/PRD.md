@@ -40,7 +40,7 @@ where the time goes:
 
 1. **The maker (primary).** A developer–creator who publishes short
    explainers and product promos and is comfortable with code but does
-   not want to hand-edit Blender scripts or wait on full renders.
+   not want to hand-edit 3D scene code or wait on full renders.
 2. **Later: small teams and indie product makers** who want promos and
    explainers without a motion designer.
 
@@ -68,12 +68,12 @@ where the time goes:
 | Term | Meaning |
 | --- | --- |
 | Project | One video. A folder on disk (§8), versioned with git if the user wants. |
-| Track | How the video is made: **2D** (an HTML page drawing `render(t)`, recorded in Chrome) or **3D** (a Blender scene). |
+| Track | How the video is made: **2D** (an HTML page drawing `render(t)`, recorded in Chrome) or **3D** (a three.js world drawing `render(t)`, recorded the same way). |
 | World | What the shots share: for 3D the sets, assets and lights; for 2D the shared styles and helpers. |
 | Shot | A slice of the film with its own camera, timing and animation, written in shot-local time (0 = the shot's first frame). |
 | Take | One render of a shot. A shot keeps its takes; the person picks one. |
 | Draft / final | Draft: half resolution, few samples, ~0.3 s a frame. Final: full resolution, motion blur, ~2–4 s a frame. |
-| Checklist | The rules a shot must pass (sightline clear, subject readable, clear of the caption zone, something moves…). Seeded from the 3D notes (`engine/shotloop/blender/kit/README.md`); `engine/shotloop/rules.mjs` (fixed rules, the person's taste, the toolbox). |
+| Checklist | The rules a shot must pass (sightline clear, subject readable, clear of the caption zone, something moves…). `engine/shotloop/rules.mjs` (fixed rules, the person's taste, the toolbox). |
 
 ## 6. Workflow
 
@@ -178,10 +178,10 @@ Rules:
 | --- | --- | --- |
 | App shell | Tauri 2 (Rust) | Windows, file access, the job queue (one render lane, one agent lane, one voice lane), process supervision, updates, settings. |
 | UI | React + TypeScript | Home, planning page, studio (film strip, shot view), export, settings. |
-| Engine | Node, no dependencies (`engine/`) | Owns the project format and the cache. A CLI (`engine/shotloop/cli.mjs --json`, events typed in `protocol.d.ts`) the app and the agent run: render a shot (2D: Chrome; 3D: Blender), voice-over, subtitles and their check, music, film, export, cover, asset library. |
+| Engine | Node, no dependencies (`engine/`) | Owns the project format and the cache. A CLI (`engine/shotloop/cli.mjs --json`, events typed in `protocol.d.ts`) the app and the agent run: render a shot (2D and 3D in Chrome), voice-over, subtitles and their check, music, film, export, cover, asset library. |
 | Voice | Node package (`voice/`), on-device models | Text to speech, models downloaded on first use. |
 | Agent | Node sidecar (`agent/`), TypeScript | Plans, builds, fixes and checks shots through narrow tools: files inside the project and engine renders, never shell commands. Its model is the person's choice: Anthropic's API (Opus for planning and code, Sonnet for routine checks by default), another hosted API (OpenAI-compatible), a CLI agent on the Mac (Claude Code, Codex, Gemini) or a local model server. |
-| External | Chrome (the user's), ffmpeg (bundled), Blender (user-installed, 3D only) | Detected (`shotloop doctor`), with install instructions. |
+| External | Chrome (the user's), ffmpeg (bundled) | Detected (`shotloop doctor`), with install instructions. |
 
 ## 10. Milestones
 
@@ -205,10 +205,10 @@ Rules:
 
 | Risk | Mitigation |
 | --- | --- |
-| AI-written Blender code fails or looks wrong. | Small shot files, a shared helper kit (`kit.py`), stills after every change, automatic checks, takes to roll back to. |
+| AI-written 3D code fails or looks wrong. | Small shot files, a shared helper kit (`webgl.mjs`), stills after every change, automatic checks, takes to roll back to. |
 | Shots are not really independent (shared animation, world edits). | Shot-local time, world/shot boundary enforced by the format; world edits flagged as touching all shots. |
 | Render time on modest Macs. | Draft mode, per-shot cache, background final renders, estimates up front. |
-| Dependencies (Blender ~1 GB, Chrome) put people off. | Detect and guide; 2D-only projects need Chrome and ffmpeg only. |
+| Dependencies (Chrome) put people off. | Detect and guide; every project needs only Chrome and the bundled ffmpeg. |
 | API cost. | Sonnet for routine work, budgets (P2), stills before full renders. |
 | Name overlap in AI video (Tesseract, Tessact). | Distinct name chosen (Shotloop); check trademark before a public launch. |
 

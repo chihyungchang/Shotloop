@@ -5,7 +5,7 @@ import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type {
   BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, SoundResult, PickedElement, PickMap, PreviewResult, ProgressEvent, ProjectSummary,
-  QualityResult, ShotStatus, StatusResult, Take, UsageEvent, UsageWindow, VoiceResult
+  ShotStatus, StatusResult, Take, UsageEvent, UsageWindow, VoiceResult
 } from '../../engine/shotloop/protocol'
 import type { Protocol } from './ai/presets'
 import { lang } from './i18n'
@@ -122,8 +122,7 @@ export interface Doctor {
   apiKey: boolean
   chrome: Tool | null
   ffmpeg: Tool | null
-  blender: Tool | null
-  install: Record<'chrome' | 'ffmpeg' | 'blender', string>
+  install: Record<'chrome' | 'ffmpeg', string>
   // Node and ffmpeg shipped inside the app
   bundled: { node: boolean; ffmpeg: boolean }
 }
@@ -143,7 +142,6 @@ export interface Settings {
   localUrl: string
   localModel: string
   localKey: string
-  blender: string
   chrome: string
   // A sound and a desktop notification when the queue runs dry
   notifySound: boolean
@@ -180,7 +178,6 @@ export interface LibraryItem {
   animated: boolean
   size: number | null
 }
-export const BLENDER_DOWNLOAD = 'https://www.blender.org/download/'
 
 // Where the person gets a key for each asset source
 export const KEY_PAGES: Record<LibraryItem['source'], string> = {
@@ -276,8 +273,6 @@ interface NewProject {
   title: string
   // 'auto': the planner picks 2D or 3D through the visual style
   track: '2d' | '3d' | 'auto'
-  // 3D: WebGL (three.js, fast) or Blender (slower, higher quality)
-  renderer?: 'webgl' | 'blender'
   aspect: '9:16' | '16:9'
   // Seconds as text, or 'auto' for the planner to choose 15–60 s
   duration: string
@@ -383,7 +378,6 @@ export const api = {
   sound: (path: string, change?: SoundChange) => invoke<SoundInfo>('sound', { path, change }),
   // What is where on a 2D shot's three stills, for the element picker
   pickMap: (path: string, shot: string) => invoke<PickMap>('pick_map', { path, shot }),
-  quality: (path: string, change: { samples?: number; reset?: boolean } = {}) => invoke<QualityResult>('quality', { path, ...change })
 }
 
 export const onQueue = (f: (jobs: Job[]) => void): Promise<UnlistenFn> => listen<Job[]>('queue', e => f(e.payload))

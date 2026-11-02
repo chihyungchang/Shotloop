@@ -208,7 +208,6 @@ pub fn run() {
             commands::projects::set_style,
             commands::projects::apply_storyboard,
             commands::projects::derive_storyboard,
-            commands::projects::quality,
             commands::projects::pick_map,
             commands::media::covers,
             commands::media::deliver_copy,

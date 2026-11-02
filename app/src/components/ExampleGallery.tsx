@@ -5,37 +5,26 @@ import { formatSeconds, isWide } from '../model'
 import { STYLES, styleName } from '../styles'
 import { Icon } from './Icon'
 
-// What an example is filed under: its visual style, and for 3D how it is
-// drawn ("3D · Blender", "3D · WebGL")
-const RENDERER_NAMES = { webgl: 'WebGL', blender: 'Blender' } as const
-const kindOf = (p: ProjectSummary) => (p.style === '3d' && p.renderer !== 'page' ? `3d-${p.renderer}` : p.style)
-function kindName(kind: string) {
-  const [style, renderer] = kind.split('-') as [string, keyof typeof RENDERER_NAMES | undefined]
-  return renderer ? `${styleName(style)} · ${RENDERER_NAMES[renderer]}` : styleName(style)
-}
-
 // The examples as a gallery: a tall poster each (the picture first, the
 // title small under it), filtered by visual style. Hovering one plays its
 // opening shot without sound; "Use this style" sets the composer's style
-// (for 3D, and how it is drawn)
 export function ExampleGallery({ examples, open, pickStyle }: {
   examples: ProjectSummary[]
   open: (p: ProjectSummary) => void
-  pickStyle: (style: string, renderer?: ProjectSummary['renderer']) => void
+  pickStyle: (style: string) => void
 }) {
   const [filter, setFilter] = useState<string | null>(null)
-  // In the styles' order, 3D after the 2D ones
-  const kinds = STYLES.flatMap(s => [...new Set(examples.filter(p => p.style === s.id).map(kindOf))]).filter((k): k is string => !!k)
-  const shown = filter ? examples.filter(p => kindOf(p) === filter) : examples
+  const styles = STYLES.filter(s => examples.some(p => p.style === s.id))
+  const shown = filter ? examples.filter(p => p.style === filter) : examples
   return (
     <section className="examples gallery-section">
       <div className="gallery-head">
         <span className="section-label">{t('home.examples')} <span className="muted small examples-note">{t('example.note')}</span></span>
         <div className="gallery-filters" role="tablist" aria-label={t('style.label')}>
           <button role="tab" aria-selected={!filter} className={`chip${!filter ? ' on' : ''}`} onClick={() => setFilter(null)}>{t('gallery.all')}</button>
-          {kinds.map(k => (
-            <button key={k} role="tab" aria-selected={filter === k} className={`chip${filter === k ? ' on' : ''}`} onClick={() => setFilter(k)}>
-              {kindName(k)}
+          {styles.map(s => (
+            <button key={s.id} role="tab" aria-selected={filter === s.id} className={`chip${filter === s.id ? ' on' : ''}`} onClick={() => setFilter(s.id)}>
+              {styleName(s.id)}
             </button>
           ))}
         </div>
@@ -47,7 +36,7 @@ export function ExampleGallery({ examples, open, pickStyle }: {
   )
 }
 
-function Poster({ p, open, pickStyle }: { p: ProjectSummary; open: () => void; pickStyle: (style: string, renderer?: ProjectSummary['renderer']) => void }) {
+function Poster({ p, open, pickStyle }: { p: ProjectSummary; open: () => void; pickStyle: (style: string) => void }) {
   const video = useRef<HTMLVideoElement>(null)
   const [playing, setPlaying] = useState(false)
   const wide = isWide(p.size)
@@ -70,14 +59,14 @@ function Poster({ p, open, pickStyle }: { p: ProjectSummary; open: () => void; p
         {p.clip && <video ref={video} src={fileUrl(p.clip)} muted loop playsInline preload="none" className={playing ? 'on' : ''} />}
         {(p.style || p.voice) && (
           <span className="poster-tags">
-            {p.style && <span className="poster-tag">{kindName(kindOf(p)!)}</span>}
+            {p.style && <span className="poster-tag">{styleName(p.style)}</span>}
             {p.voice && <span className="poster-tag" title={t('gallery.voiceHint')}><Icon name="mic" size={11} /> {t('gallery.voice')}</span>}
           </span>
         )}
         <span className="poster-time">{formatSeconds(p.duration)}</span>
       </button>
       {p.style && (
-        <button className="poster-use" onClick={() => pickStyle(p.style!, p.renderer)}>
+        <button className="poster-use" onClick={() => pickStyle(p.style!)}>
           <Icon name="spark" size={12} /> {t('gallery.pickStyle')}
         </button>
       )}

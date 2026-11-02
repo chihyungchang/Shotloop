@@ -20,7 +20,7 @@
 // Frame-sized containers (the page, the SVG stage) are seen through, so a
 // point on the empty stage reaches the scene behind it, or nothing.
 
-import { cssSize, paged } from './project.mjs'
+import { cssSize } from './project.mjs'
 import { openShot } from './render2d.mjs'
 import { stillFrames } from './render.mjs'
 
@@ -118,7 +118,6 @@ const MAP = `(() => {
 // The map of each review still (0 start, 1 middle, 2 end), with its time
 // in the shot, and the page's CSS size the points are in
 export async function pickMap(project, shot) {
-  if (!paged(project)) throw new Error('elements can be picked in shots drawn by a page (2D, or 3D in WebGL), not in Blender')
   // The page is laid out the same in every mode: the draft's is lighter
   const s = await openShot(project, shot, 'draft')
   try {
