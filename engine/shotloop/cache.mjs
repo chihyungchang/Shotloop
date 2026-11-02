@@ -18,7 +18,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { voiceCues, voiceLang } from './cues.mjs'
 import { readJson, writeJson } from './files.mjs'
-import { finalSamples, localPath, projectPath } from './project.mjs'
+import { finalSamples, localPath, paged, projectPath } from './project.mjs'
 import { cutTimes } from './score.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -34,15 +34,17 @@ export const MODES = ['draft', 'final']
 // The three review stills of every render, in order
 export const STILLS = ['start', 'middle', 'end']
 
-// The quality the editor works in: 3D renders fast previews (half size,
-// few samples) and only an export renders final frames; 2D frames are
-// cheap, so 2D works in final quality and its export just joins them
-export const editMode = project => (project.track === '3d' ? 'draft' : 'final')
+// The quality the editor works in: Blender renders fast previews (half
+// size, few samples) and only an export renders final frames; a page's
+// frames are cheap, so 2D and WebGL work in final quality and an export
+// just joins them
+export const editMode = project => (project.renderer === 'blender' ? 'draft' : 'final')
 
-// Files of the engine that draw pixels, per track
+// Files of the engine that draw pixels, per renderer
 const RENDERER_FILES = {
-  '2d': ['shotloop/render2d.mjs', 'shotloop/compose.mjs'],
-  '3d': ['shotloop/render3d.mjs', 'shotloop/compose.mjs', 'shotloop/blender/run_shot.py']
+  page: ['shotloop/render2d.mjs', 'shotloop/compose.mjs'],
+  webgl: ['shotloop/render2d.mjs', 'shotloop/compose.mjs'],
+  blender: ['shotloop/render3d.mjs', 'shotloop/compose.mjs', 'shotloop/blender/run_shot.py']
 }
 
 function listFiles(dir, { skip = () => false } = {}) {
@@ -120,11 +122,14 @@ export function keyParts(project, shot, mode) {
     }),
     captions: digest(h => project.captions && hashFiles(h, project.root, [project.captions])),
     timing: digest(h => h.update(JSON.stringify([project.fps, project.size, shot.start, shot.duration,
-      project.track === '2d' ? voiceCues(project, shot) : []]))),
+      paged(project) ? voiceCues(project, shot) : []]))),
     engine: digest(h => {
-      h.update(JSON.stringify([RENDERER_VERSION, project.track, mode, project.track === '3d' && mode === 'final' ? finalSamples(project) : null]))
-      hashFiles(h, ENGINE, RENDERER_FILES[project.track].map(f => path.join(ENGINE, f)))
-      if (project.track === '3d') {
+      const blender = project.renderer === 'blender'
+      // A WebGL film says so; 2D and Blender keys stay as they were
+      h.update(JSON.stringify([RENDERER_VERSION, project.track, mode, blender && mode === 'final' ? finalSamples(project) : null,
+        ...(project.renderer === 'webgl' ? ['webgl'] : [])]))
+      hashFiles(h, ENGINE, RENDERER_FILES[project.renderer].map(f => path.join(ENGINE, f)))
+      if (blender) {
         hashFiles(h, ENGINE, listFiles(KIT_3D, { skip: n => n === 'README.md' }))
         h.update(hashAssets())
       }

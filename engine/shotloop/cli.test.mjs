@@ -57,3 +57,25 @@ test('list reports a project that can\'t be read instead of hiding it', () => {
   assert.deepEqual(Object.keys(result[1]).sort(), fields('BrokenProject'))
   assert.match(result[1].error, /shotloop\.json/)
 })
+
+test('a 3D film is drawn in WebGL or Blender; one from before the choice is Blender\'s', () => {
+  const webgl = path.join(tmp(), 'webgl')
+  newProject(webgl, { idea: 'How gears mesh', track: '3d', duration: 12 })
+  const w = run('status', webgl).result
+  assert.equal(w.renderer, 'webgl')
+  assert.ok(fs.existsSync(path.join(webgl, 'world', 'page.html')))
+  assert.ok(fs.existsSync(path.join(webgl, 'shots', '01-hook', 'shot.js')))
+  assert.equal(fs.existsSync(path.join(webgl, 'captions.html')), false)
+
+  const blender = path.join(tmp(), 'blender')
+  newProject(blender, { idea: 'How gears mesh', track: '3d', renderer: 'blender', duration: 12 })
+  assert.ok(fs.existsSync(path.join(blender, 'world', 'world.py')))
+  assert.ok(fs.existsSync(path.join(blender, 'shots', '01-hook', 'shot.py')))
+  // Saved before the choice: no renderer field, a world.py
+  const cfg = JSON.parse(fs.readFileSync(path.join(blender, 'shotloop.json'), 'utf8'))
+  delete cfg.renderer
+  fs.writeFileSync(path.join(blender, 'shotloop.json'), JSON.stringify(cfg))
+  assert.equal(run('status', blender).result.renderer, 'blender')
+
+  assert.throws(() => newProject(path.join(tmp(), 'bad'), { idea: 'x', track: '3d', renderer: 'unity', duration: 12 }), /renderer/)
+})

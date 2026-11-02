@@ -8,9 +8,10 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { DEFAULT_LOOK, round } from './data.mjs'
-import { lookPage, styleFiles } from './looks.mjs'
+import { DEFAULT_LOOK, HUES, lookById, round } from './data.mjs'
+import { lookPage, pageLayout, styleFiles } from './looks.mjs'
 import { codeFile, cssSize } from './project.mjs'
+import { webglPage } from './webgl.mjs'
 
 // Code nobody has touched yet: the starter the engine wrote
 export const isStarter = file => fs.readFileSync(file, 'utf8').split('\n', 1)[0].includes('Starter shot')
@@ -34,6 +35,25 @@ export default function render(t, { window, start }) {
 `
 }
 
+// A WebGL starter: the kit's title card in its studio
+function shotWebgl(shot, i, n) {
+  return `// ${shot.id}: ${shot.title}. Starter shot: a title card to replace.
+// Shot-local time: t = 0 is this shot's first frame.
+
+export async function setup(ctx) {
+  await ctx.window.kit.init(ctx)
+}
+
+export default function render(t, { window }) {
+  window.kit.card(t, {
+    kicker: ${JSON.stringify(`${String(i + 1).padStart(2, '0')} / ${String(n).padStart(2, '0')}`)},
+    title: ${JSON.stringify(shot.text || shot.title)},
+    body: ${JSON.stringify(shot.show ?? '')}
+  })
+}
+`
+}
+
 const MOVES_3D = [
   "move='dolly', frm=(0, -7, 2.2), to=(0, -5.5, 1.9)",
   "move='orbit', frm=(-110,), to=(-70,), radius=5, height=1.8",
@@ -42,8 +62,8 @@ const MOVES_3D = [
   "move='crane', frm=(-2, -6, 3.5), to=(-1, -5, 1.6)"
 ]
 
-// A 3D starter: one camera move on the starter world's subject
-function shot3d(shot, i) {
+// A Blender starter: one camera move on the starter world's subject
+function shotBlender(shot, i) {
   return `# ${shot.id}: ${shot.title}. Starter shot: one camera move on the subject.
 # Shot-local time: at(t) is t seconds into this shot; DUR is its length.
 kit.Shot(${JSON.stringify(shot.id).replace(/"/g, "'")}, at(0), at(DUR), lens=35, target=subject,
@@ -71,14 +91,15 @@ ${shot.source?.trim() ? `\n## Source line\n\n${shot.source.trim()}\n` : ''}`
 // Each plan shot's folder: starter code where the shot has none or only a
 // starter, and notes from the plan with the review history carried over
 // and `event` added to it. Returns the film's length
-export function writeShots(root, track, shots, event) {
+export function writeShots(root, renderer, shots, event) {
   const film = round(shots.reduce((t, s) => t + s.duration, 0), 1)
   const today = new Date().toISOString().slice(0, 10)
   shots.forEach((s, i) => {
     const dir = path.join(root, 'shots', s.id)
     fs.mkdirSync(dir, { recursive: true })
-    const code = path.join(dir, codeFile(track))
-    if (!fs.existsSync(code) || isStarter(code)) fs.writeFileSync(code, track === '3d' ? shot3d(s, i) : shot2d(s, i, shots.length, film))
+    const code = path.join(dir, codeFile(renderer))
+    const starter = renderer === 'blender' ? shotBlender(s, i) : renderer === 'webgl' ? shotWebgl(s, i, shots.length) : shot2d(s, i, shots.length, film)
+    if (!fs.existsSync(code) || isStarter(code)) fs.writeFileSync(code, starter)
     const file = path.join(dir, 'notes.md')
     const old = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : ''
     const history = old.match(/## Review history\n[\s\S]*$/)?.[0]?.trim() ?? '## Review history'
@@ -117,9 +138,15 @@ for fc in kit.fcurves(subject.animation_data.action):
         k.interpolation = 'LINEAR'
 `
 
-// The 3D starter world (world/world.py) for a film of this length and size
-export function writeWorld3d(root, duration, size) {
+// The 3D starter world for a film of this length and size: a WebGL page
+// (world/page.html), its type in the default look, or a Blender scene
+// (world/world.py)
+export function writeWorld3d(root, renderer, duration, size) {
   fs.mkdirSync(path.join(root, 'world'), { recursive: true })
+  if (renderer === 'webgl') {
+    fs.writeFileSync(path.join(root, 'world', 'page.html'), webglPage(lookById(DEFAULT_LOOK), { ...pageLayout(size), hue: HUES.dark }))
+    return
+  }
   fs.writeFileSync(path.join(root, 'world', 'world.py'),
     WORLD_3D.replace('{{DURATION}}', String(duration)).replace('{{W}}', size.width).replace('{{H}}', size.height))
 }
@@ -133,7 +160,7 @@ export function writeWorld2d(root, look, size, style, tune = null) {
   for (const [name, text] of Object.entries(styleFiles(style))) fs.writeFileSync(path.join(dir, name), text)
 }
 
-// The starter caption layer (3D): each shot's text, or its title, over its time
+// The starter caption layer (3D in Blender): each shot's text, or its title, over its time
 const CAPTIONS_MARK = "film's timeline. (starter)"
 export const isStarterCaptions = file => fs.readFileSync(file, 'utf8').includes(CAPTIONS_MARK)
 

@@ -9,7 +9,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { editMode, entry, takes } from './cache.mjs'
 import { DEFAULT_STYLE, firstLine, lookById, LOOKS, round, STYLES, styleById } from './data.mjs'
-import { isProject, loadProject, saveConfig, SIZES } from './project.mjs'
+import { isProject, loadProject, RENDERERS, saveConfig, SIZES } from './project.mjs'
 import { writeBed } from './settings.mjs'
 import { captions, starterCover, writePlan, writeShots, writeWorld2d, writeWorld3d } from './starters.mjs'
 import { voiceOn } from './cues.mjs'
@@ -40,13 +40,15 @@ const startMood = style => STYLE_MOOD[style] ?? 'bright'
 // (applyStoryboard); duration 'auto': the planner picks 15–60 s from the
 // content, the starter shots fill 30 s until then. style: a 2D visual
 // style the person chose (styles.mjs), kept by the planner; none: the
-// planner picks. voice: the film has a voice-over (voice.mjs)
-export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16', duration = 30, look = '', style = '', voice = true }) {
+// planner picks. voice: the film has a voice-over (voice.mjs). renderer:
+// how a 3D film is drawn, WebGL (fast) or Blender (higher quality)
+export function newProject(dir, { title, idea = '', track = '2d', renderer = 'webgl', aspect = '9:16', duration = 30, look = '', style = '', voice = true }) {
   const root = path.resolve(dir)
   if (fs.existsSync(root) && fs.readdirSync(root).length) throw new Error(`${root} exists and is not empty`)
   if (!['2d', '3d', 'auto'].includes(track)) throw new Error('track must be 2d, 3d or auto')
   if (style && styleById(style)?.track !== '2d') throw new Error(`style must be a 2D style (${STYLES.filter(s => s.track === '2d').map(s => s.id).join(', ')})`)
   if (style && track === '3d') throw new Error('a visual style is for 2D')
+  if (!RENDERERS.includes(renderer)) throw new Error(`renderer must be ${RENDERERS.join(' or ')}`)
   if (style === 'scene' && look && !lookById(look)?.scene) throw new Error(`the look "${look}" has no cinematic scene colors`)
   // A 2D style chosen settles the track
   const trackAuto = track === 'auto' && !style
@@ -66,11 +68,12 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
 
   fs.mkdirSync(root, { recursive: true })
   if (track === '2d') writeWorld2d(root, look || null, size, style || DEFAULT_STYLE)
-  else writeWorld3d(root, duration, size)
-  writeShots(root, track, plan, 'created from the idea')
+  else writeWorld3d(root, renderer, duration, size)
+  const blender = track === '3d' && renderer === 'blender'
+  writeShots(root, track === '3d' ? renderer : 'page', plan, 'created from the idea')
   writePlan(root, title, plan, { idea })
-  // 2D draws its text in the frame: no caption layer over it
-  if (track === '3d') fs.writeFileSync(path.join(root, 'captions.html'), captions(size, plan))
+  // A page draws its text in the frame; Blender's frames get a caption layer
+  if (blender) fs.writeFileSync(path.join(root, 'captions.html'), captions(size, plan))
   fs.writeFileSync(path.join(root, 'thumb.html'), starterCover(title))
   fs.writeFileSync(path.join(root, 'publish.md'), `# ${title} · Publish\n\n(written by the agent from copy.md: Export → Publish copy)\n`)
   fs.writeFileSync(path.join(root, '.gitignore'), '.shotloop/\nout/\n')
@@ -79,10 +82,11 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
     title,
     slug: path.basename(root),
     track,
+    ...(track === '3d' ? { renderer } : {}),
     fps: 30,
     size,
     shots,
-    captions: track === '3d' ? 'captions.html' : null,
+    captions: blender ? 'captions.html' : null,
     music: 'music.json',
     cover: 'thumb.html',
     publish: 'publish.md',
@@ -95,7 +99,7 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
     voice: { on: !!voice }
   })
   writeBed(root, startMood(track === '3d' ? '3d' : style), loadProject(root))
-  return { root, title, track, shots: shots.length }
+  return { root, title, track, ...(track === '3d' ? { renderer } : {}), shots: shots.length }
 }
 
 // A summary card per project: title, a one-line description (optional
@@ -118,7 +122,7 @@ export function summaries(dirs) {
       }
       const changed = fs.statSync(path.join(p.root, 'shotloop.json')).mtimeMs
       return [{
-        root: p.root, title: p.title, description: p.config.description ?? '', lang: p.config.lang ?? null, slug: p.slug, track: p.track, size: p.size,
+        root: p.root, title: p.title, description: p.config.description ?? '', lang: p.config.lang ?? null, slug: p.slug, track: p.track, renderer: p.renderer, size: p.size,
         style: p.track === '3d' ? '3d' : p.config.style ?? null,
         // It has a voice-over that plays (on, and lines to say)
         voice: voiceOn(p),

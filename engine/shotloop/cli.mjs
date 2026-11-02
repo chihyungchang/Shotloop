@@ -11,7 +11,7 @@
 //   shotloop deliver-copy <project> --to <export folder> [--name] [--lang]   the publish copy, written later
 //   shotloop cover    <project> [--frame <shot>@<seconds> | --none] [--preview]
 //                     (--frame/--none: set the background frame first; --preview: to .shotloop/cover.png)
-//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>] [--no-voice]
+//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--renderer webgl|blender] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>] [--no-voice]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
 //   shotloop move     <project> --to <folder>               move a project (a draft being saved)
@@ -114,6 +114,7 @@ const OPTIONS = {
     idea: { type: 'string' },
     text: { type: 'string' },
     track: { type: 'string' },
+    renderer: { type: 'string' },
     duration: { type: 'string' },
     look: { type: 'string' },
     style: { type: 'string' },
@@ -196,6 +197,7 @@ function projectStatus(project) {
     title: project.title,
     slug: project.slug,
     track: project.track,
+    renderer: project.renderer,
     fps: project.fps,
     size: project.size,
     duration: project.duration,
@@ -240,7 +242,7 @@ try {
     case 'status':
       {
         const project = loadProject(args[0])
-        result({ ...projectStatus(project), example: isExample(args[0]), draft: isDraft(args[0]), samples: project.track === '3d' ? finalSamples(project) : null, look: project.config.look ?? null,
+        result({ ...projectStatus(project), example: isExample(args[0]), draft: isDraft(args[0]), samples: project.renderer === 'blender' ? finalSamples(project) : null, look: project.config.look ?? null,
           // The cover: its background frame, and how the AI last made it (.shotloop/cover.json)
           coverFrame: project.config.coverFrame ?? null, coverMade: coverMade(project),
           // The visual style (styles.mjs), and what the planner still decides
@@ -405,6 +407,7 @@ try {
         title: values.title,
         idea: values.idea,
         track: values.track ?? '2d',
+        renderer: values.renderer ?? 'webgl',
         aspect: values.aspect ?? '9:16',
         duration: values.duration === 'auto' ? 'auto' : Number(values.duration ?? 30),
         look: values.look ?? '',

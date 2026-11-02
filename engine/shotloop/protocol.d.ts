@@ -5,6 +5,8 @@
 
 export type Mode = 'draft' | 'final'
 export type Track = '2d' | '3d'
+// How a film is drawn: a page (2D), or for 3D WebGL (three.js, fast) or Blender (slower, higher quality)
+export type Renderer = 'page' | 'webgl' | 'blender'
 export type Size = { width: number; height: number }
 
 // ------------------------------------------------------------------ events
@@ -246,6 +248,7 @@ export interface StatusResult {
   title: string
   slug: string
   track: Track
+  renderer: Renderer
   fps: number
   size: Size
   duration: number
@@ -283,6 +286,7 @@ export interface ProjectSummary {
   lang: string | null
   slug: string
   track: Track
+  renderer: Renderer
   size: Size
   // The visual style, '3d' for the 3D track
   style: string | null

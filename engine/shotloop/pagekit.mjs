@@ -34,3 +34,43 @@ export const KIT_CORE = `      const clamp = (x, a = 0, b = 1) => Math.min(b, Ma
       const count = (p, from, to, digits = 0) => lerp(from, to, clamp(p)).toFixed(digits)
       const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
 `
+
+// The type layer of a page whose picture is a canvas (the cinematic scene,
+// a WebGL film): glowing type in a DOM layer above it (#ui), built anew
+// each frame. Its CSS, for a look L and the layout's headline size
+export const typeCss = (L, headSize) => `      .kicker { font: 600 ${Math.round(headSize * 0.36)}px/1 var(--font); letter-spacing: 0.24em; text-transform: uppercase; color: var(--accent);
+        display: flex; align-items: center; gap: 14px; }
+      .kicker::before { content: ''; width: 36px; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+      .head { font: ${L.headWeight} ${headSize}px/1.18 var(--head); letter-spacing: 0.01em; text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6); }
+      .sub { font: 500 ${Math.round(headSize * 0.46)}px/1.5 var(--font); color: var(--muted); }
+      .num { font-family: var(--mono); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+      .hl, .head b { color: var(--accent); font-weight: inherit; text-shadow: 0 0 24px var(--accent); }
+      .muted { color: var(--muted); }
+      .chip { font: 600 ${Math.round(headSize * 0.36)}px/1 var(--font); color: var(--muted); padding: 10px 16px; border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.18); background: rgba(0, 0, 0, 0.35); }
+      .source { font: 500 ${Math.round(headSize * 0.3)}px/1.4 var(--font); color: var(--muted); opacity: 0.75; }
+`
+
+// Its helpers: show, block, setUI, caption, source. The page declares
+// \`let parts = []\` and \`const ui\` (its #ui), and empties parts at the
+// start of each frame
+export const kitType = ({ headTop, headSize }) => `      // ---- Type ----
+      const show = (p, dy = 26) => 'opacity:' + clamp(p).toFixed(3) + ';transform:translateY(' + ((1 - clamp(p)) * dy).toFixed(1) + 'px);filter:blur(' + ((1 - clamp(p)) * 8).toFixed(1) + 'px)'
+      function add(html) {
+        parts.push(html)
+        ui.innerHTML = parts.join('')
+      }
+      const block = ({ x = PAD, y, w = SAFE_RIGHT - PAD, p = 1, dy, cls = '', html, style = '' }) =>
+        add('<div class="' + cls + '" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;' + show(p, dy) + ';' + style + '">' + html + '</div>')
+      const setUI = html => { parts = [html]; ui.innerHTML = html }
+      function caption({ kicker = '', head = '', sub = '', p = 1, y = ${headTop}, align = 'left', size } = {}) {
+        const fmtHead = s => esc(s).replace(/\\*(.+?)\\*/g, '<b>$1</b>')
+        const lines = (Array.isArray(head) ? head : [head]).filter(Boolean).map(fmtHead).join('<br>')
+        const style = 'text-align:' + align + (size ? ';font-size:' + size + 'px' : '')
+        if (kicker) block({ y: y - 46, p: clamp(p * 1.4), cls: 'kicker', style: align === 'center' ? 'justify-content:center' : '', html: esc(kicker) })
+        if (lines) block({ y, p, cls: 'head', style, html: lines })
+        if (sub) block({ y: y + (size || ${headSize}) * 1.18 * (Array.isArray(head) ? head.length : 1) + 18, p: clamp(p * 1.2 - 0.2), cls: 'sub', style, html: esc(sub) })
+      }
+      const source = (text, p = 1) => block({ y: SAFE_BOTTOM - 36, p, dy: 8, cls: 'source', html: esc(text) })
+
+`

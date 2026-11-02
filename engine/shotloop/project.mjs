@@ -1,9 +1,9 @@
 // A Shotloop project: one video as a folder on disk (docs/PRD.md §8).
 //
 //   my-video/
-//     shotloop.json        title, track, size, fps, shot order
-//     world/               3D: world.py; 2D: page.html (+ shared files)
-//     shots/<id>/          shot.py | shot.js, notes.md
+//     shotloop.json        title, track, renderer (3D), size, fps, shot order
+//     world/               page.html (+ shared files); 3D in Blender: world.py
+//     shots/<id>/          shot.js, notes.md; 3D in Blender: shot.py
 //     captions.html  music.json  thumb.html  publish.md  copy.md …
 //     .shotloop/           cache, takes, logs (never edited by hand)
 //     out/                 exported films and publish kits
@@ -26,8 +26,22 @@ export const SIZES = {
 // A shot id, which is also its folder's name
 export const SHOT_ID = /^[a-z0-9][a-z0-9-]*$/
 
-// A shot's code file on each track
-export const codeFile = track => (track === '3d' ? 'shot.py' : 'shot.js')
+// How a project's frames are drawn. A 2D film is a page in Chrome; a 3D
+// film is one too, its world in WebGL (three.js, fast), or a scene in
+// Blender (slower, higher quality). A 3D project from before the choice
+// is Blender's: it has a world.py
+export const RENDERERS = ['webgl', 'blender']
+export function rendererOf(root, cfg) {
+  if (cfg.track !== '3d') return 'page'
+  return cfg.renderer ?? (fs.existsSync(path.join(root, 'world', 'world.py')) ? 'blender' : 'webgl')
+}
+
+// Drawn by a page (2D, or 3D in WebGL): render2d.mjs, the subtitle check
+// and the element picker work on it
+export const paged = project => project.renderer !== 'blender'
+
+// A shot's code file for each renderer
+export const codeFile = renderer => (renderer === 'blender' ? 'shot.py' : 'shot.js')
 
 // Pages (world, captions, subtitles) are laid out in CSS px at 2/3 of the
 // film's pixel size (720×1280 for 1080×1920) and captured at 1.5x
@@ -43,6 +57,7 @@ export function loadProject(dir) {
   if (!cfg) throw new Error(`not a Shotloop project (no ${FILE}): ${root}`)
   validate(cfg)
 
+  const renderer = rendererOf(root, cfg)
   let t = 0
   const shots = cfg.shots.map((s, index) => {
     const shot = {
@@ -51,7 +66,7 @@ export function loadProject(dir) {
       start: round(t),
       end: round(t + s.duration),
       dir: path.join(root, 'shots', s.id),
-      code: path.join(root, 'shots', s.id, codeFile(cfg.track)),
+      code: path.join(root, 'shots', s.id, codeFile(renderer)),
       notes: path.join(root, 'shots', s.id, 'notes.md')
     }
     t += s.duration
@@ -65,6 +80,7 @@ export function loadProject(dir) {
     title: cfg.title,
     slug: cfg.slug ?? path.basename(root),
     track: cfg.track,
+    renderer,
     fps: cfg.fps ?? 30,
     size: cfg.size ?? SIZES.portrait,
     duration: round(t),
@@ -124,6 +140,7 @@ function validate(cfg) {
   }
   if (cfg.version !== 1) fail('version must be 1')
   if (!['2d', '3d'].includes(cfg.track)) fail('track must be "2d" or "3d"')
+  if (cfg.renderer != null && (cfg.track !== '3d' || !RENDERERS.includes(cfg.renderer))) fail(`renderer is for 3D: ${RENDERERS.join(' or ')}`)
   if (!Array.isArray(cfg.shots) || !cfg.shots.length) fail('shots must be a non-empty array')
   const ids = new Set()
   for (const s of cfg.shots) {

@@ -33,14 +33,13 @@ function readStoryboard(project) {
 const isStarterPage = file => fs.existsSync(file) && fs.readFileSync(file, 'utf8').includes('Shots draw it from shots/*/shot.js')
 
 // A project made with track "auto" becomes 3D when the plan picks the 3D
-// style, while nothing is built yet: the world and the starters change
+// style, while nothing is built yet: the world and the starters change. It
+// is drawn in WebGL, the fast renderer
 function toThreeD(project) {
-  writeWorld3d(project.root, project.duration, project.size)
-  fs.rmSync(path.join(project.root, 'world', 'page.html'), { force: true })
+  writeWorld3d(project.root, 'webgl', project.duration, project.size)
   // Nothing is built yet: the 2D starter shots go, the plan's shots come as 3D
   for (const s of project.shots) fs.rmSync(path.dirname(s.code), { recursive: true, force: true })
-  fs.writeFileSync(path.join(project.root, 'captions.html'), captions(project.size, project.shots))
-  updateConfig(project.root, ({ look, trackAuto, ...cfg }) => ({ ...cfg, track: '3d', captions: 'captions.html' }))
+  updateConfig(project.root, ({ look, trackAuto, ...cfg }) => ({ ...cfg, track: '3d', renderer: 'webgl', captions: null }))
   return loadProject(project.root)
 }
 
@@ -74,7 +73,7 @@ export function applyStoryboard(project) {
     const say = String(s.say ?? '').trim()
     return { id, title: String(s.title).trim().slice(0, 80), duration: round(s.duration, 1), show: s.show, text: s.text, motion: s.motion, source: s.source, ...(say ? { say } : {}) }
   })
-  const film = writeShots(project.root, project.track, shots, 'planned in the storyboard')
+  const film = writeShots(project.root, project.renderer, shots, 'planned in the storyboard')
 
   // Shots the plan dropped go if they are still starters; edited ones stay
   // on disk, out of the shot list
@@ -113,10 +112,10 @@ export function applyStoryboard(project) {
     ...(typeof sb.lang === 'string' && sb.lang.trim() ? { lang: sb.lang.trim() } : {}),
     ...(look ? { look } : {}), ...(styleId ? { style: styleId } : {}), ...(project.track === '3d' ? { style: '3d' } : {})
   }
-  // The starter caption layer follows the plan: 3D shows each shot's
-  // text; 2D draws its text in the frame, so the layer goes
+  // The starter caption layer follows the plan: Blender's shows each
+  // shot's text; a page draws its text in the frame, so the layer goes
   if (project.captions && isStarterCaptions(project.captions)) {
-    if (project.track === '3d') fs.writeFileSync(project.captions, captions(project.size, shots))
+    if (project.renderer === 'blender') fs.writeFileSync(project.captions, captions(project.size, shots))
     else fields.captions = null
   }
   updateConfig(project.root, cfg => ({ ...cfg, ...fields }))

@@ -14,9 +14,12 @@ processes and under their own licenses:
   License version 3. Its source code is available from
   https://ffmpeg.org/download.html and from the build's page.
 
-The 2D renderer bundles three.js 0.187.0 (https://threejs.org), MIT
+The page renderer bundles three.js 0.187.0 (https://threejs.org), MIT
 License (engine/shotloop/vendor/three-0.187.0/LICENSE), which a 2D
-shot's page loads to draw a part in 3D.
+shot's page loads to draw a part in 3D and a WebGL 3D film draws its
+whole world with, and some of its add-ons (addons/: the glTF loader, the
+room environment, post-processing, rounded boxes, fat lines), copied
+from its examples/jsm with their `three` imports made relative.
 
 The voice-over (voice/) bundles two libraries, loaded into its Node.js
 process:
