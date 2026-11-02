@@ -5,7 +5,7 @@ import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type {
   BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, SoundResult, PickedElement, PickMap, PreviewResult, ProgressEvent, ProjectSummary,
-  ShotStatus, StatusResult, Take, TracksResult, UsageEvent, UsageWindow, VoiceResult
+  ShotStatus, StatusResult, Take, TimelineResult, UsageEvent, UsageWindow, VoiceResult
 } from '../../engine/shotloop/protocol'
 import type { Protocol } from './ai/presets'
 import { lang } from './i18n'
@@ -16,7 +16,7 @@ export type Shot = ShotStatus
 export type VoiceInfo = VoiceResult
 export type MusicInfo = MusicResult
 export type SoundInfo = SoundResult
-export type { TracksResult }
+export type { TimelineResult }
 // What the sound panel changes; nothing set reads it
 export interface SoundChange { ambience?: string; ambienceGain?: number; effects?: boolean; effectsGain?: number; cue?: string; kind?: string; on?: boolean }
 
@@ -389,9 +389,8 @@ export const api = {
   music: (path: string, change?: MusicChange) => invoke<MusicInfo>('music', { path, change }),
   // The ambience and the sound effects, and which of them play
   sound: (path: string, change?: SoundChange) => invoke<SoundInfo>('sound', { path, change }),
-  // Each sound track alone and the mix, made (cached) to listen to: the
-  // part from `from` to `to` (film seconds)
-  soundTracks: (path: string, from: number, to: number) => invoke<TracksResult>('sound_tracks', { path, from, to }),
+  // The sound as the studio's timeline draws and plays it
+  soundTimeline: (path: string) => invoke<TimelineResult>('sound_timeline', { path }),
   // What is where on a 2D shot's three stills, for the element picker
   pickMap: (path: string, shot: string) => invoke<PickMap>('pick_map', { path, shot }),
 }

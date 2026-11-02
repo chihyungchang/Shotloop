@@ -14,12 +14,12 @@ import type { Pick, PickerState } from './Picker'
 import { Filmstrip } from './Filmstrip'
 import { QueuePanel } from './QueuePanel'
 import { ShotNotes } from './ShotNotes'
-import { SoundPanel } from './SoundPanel'
+import { AudioTimeline } from './AudioTimeline'
 import { Stage } from './Stage'
 import { t } from '../../i18n'
 import { readStored, writeStored } from '../../storage'
 
-type Drawer = 'queue' | 'assets' | 'sound' | null
+type Drawer = 'queue' | 'assets' | null
 
 // The agent panel's width, dragged by its edge and kept on this Mac; the
 // stylesheet also caps it by the window (.studio, --agent-w)
@@ -167,10 +167,6 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         <button className={drawer === 'assets' ? 'ghost on' : 'ghost'} onClick={() => toggle('assets')}>
           <Icon name={project.track === '3d' ? 'cube' : 'volume'} size={14} /> {t('studio.assets')}
         </button>
-        {/* The film's sound, once the shots look right */}
-        <button className={drawer === 'sound' ? 'ghost on' : 'ghost'} onClick={() => toggle('sound')}>
-          <Icon name="volume" size={14} /> {t('studio.sound')}
-        </button>
         <button className={drawer === 'queue' ? 'ghost on' : 'ghost'} onClick={() => toggle('queue')}>
           <Icon name="queue" size={14} /> {t('studio.queue')}{active.length ? <span className="count">{active.length}</span> : null}
         </button>
@@ -200,6 +196,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
               picker={picker} />
           : <div className="stage empty">{t('studio.noShots')}</div>}
         <Filmstrip project={project} views={views} mode={mode} selected={selected} onSelect={setSelected} />
+        <AudioTimeline project={project} jobs={jobs} refresh={refresh} onSelect={setSelected} />
         {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} editPlan={openPlan}
           busy={active.some(j => j.project === project.root && j.shot === shot.id)} />}
       </section>
@@ -216,17 +213,15 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
       )}
       {film && <FilmPreview project={project} file={film.file} close={() => setFilm(null)} />}
       {exportOpen && <ExportDialog project={project} jobs={jobs} refresh={refresh} openSettings={openSettings} close={() => setExportOpen(false)}
-        openSound={() => { setExportOpen(false); setDrawer('sound') }} />}
+        openSound={() => setExportOpen(false)} />}
 
       {drawer && (
         <aside className="drawer">
           <div className="drawer-head">
-            <strong>{t(drawer === 'queue' ? 'drawer.queue' : drawer === 'sound' ? 'studio.sound' : 'studio.assets')}</strong>
+            <strong>{t(drawer === 'queue' ? 'drawer.queue' : 'studio.assets')}</strong>
             <button className="icon-button" onClick={() => setDrawer(null)} aria-label={t('common.close')}><Icon name="x" /></button>
           </div>
-          {drawer === 'queue' ? <QueuePanel project={project} jobs={jobs} />
-            : drawer === 'sound' ? <SoundPanel project={project} shot={shot} jobs={jobs} refresh={refresh} />
-            : <AssetsPanel project={project} refresh={refresh} />}
+          {drawer === 'queue' ? <QueuePanel project={project} jobs={jobs} /> : <AssetsPanel project={project} refresh={refresh} />}
         </aside>
       )}
     </div>

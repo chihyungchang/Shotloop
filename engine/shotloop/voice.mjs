@@ -28,7 +28,7 @@ import { isStarter } from './starters.mjs'
 import { STORYBOARD_FILE } from './storyboard.mjs'
 import { dressClips } from './subtitles.mjs'
 import { musicBed } from './bed.mjs'
-import { withAmbience, withEffects } from './sound.mjs'
+import { peaksOf, soundCues, withAmbience, withEffects } from './sound.mjs'
 
 const LEAD = VOICE_LEAD
 const TAIL = VOICE_TAIL
@@ -304,10 +304,10 @@ function syncStoryboard(root, shots) {
 // Every sentence of the film on its timeline: { shot, text, at, end, file }
 // (film seconds). Lines not spoken yet are spoken now; a shot whose
 // cues are missing or don't match its sentences is laid out on the spot
-async function voiceLines(project, shots = project.shots) {
+async function voiceLines(project) {
   const { lang, voice, cfg } = await voiceSetup(project)
   const out = []
-  for (const shot of shots) {
+  for (const shot of project.shots) {
     if (!sentences(shot.say).length) continue
     const { parts } = await speakShot(project, shot, { lang, voice, speed: shotSpeed(shot, cfg) })
     const cues = shot.cues?.length === parts.length ? shot.cues : cuesOf(parts, shot.sayAt ?? LEAD)
@@ -414,41 +414,41 @@ async function mixSound(project, music, lines) {
   return withEffects(project, lines.length ? await soundtrack(project, bed, lines) : bed, lines)
 }
 
-// Each of the film's sound tracks alone, and all of them mixed, to listen
-// to while the sound is decided: the part from `from` to `to` (film
-// seconds; the whole film without them), so listening to one shot speaks
-// only the lines heard around it (cached files; null where there is
-// none). A voice-over that can't be spoken (its model missing) is left out
-// and said, as in a preview
-export async function soundTracks(project, { from = 0, to = project.duration } = {}) {
+// The film's sound as the timeline draws it: each track's waveform (the
+// music as it plays, ducked under the voice), the voice's lines and the
+// effects' cues in film seconds, and the mix to play from any point. A
+// voice-over that can't be spoken (its model missing) is left out and
+// said, as in a preview
+export async function soundTimeline(project, { rate = 20 } = {}) {
   const music = await musicBed(project)
   let lines = []
   if (voiceOn(project)) {
-    // The shots heard in the part, and one either side: a line may run over a cut
-    const heard = project.shots.filter((s, i, all) => all.slice(Math.max(0, i - 1), i + 2).some(n => n.start < to && n.start + n.duration > from))
     try {
-      lines = await voiceLines(project, heard)
+      lines = await voiceLines(project)
     } catch (err) {
       emit({ type: 'log', message: `voice-over left out: ${err.message}` })
     }
   }
-  const part = async file => (file ? excerpt(project, file, from, to) : null)
+  const peaks = async file => (file ? peaksOf(file, project.duration, rate) : null)
+  const ambience = await withAmbience(project, null)
   return {
-    voice: await part(lines.length ? await voiceTrack(project, lines) : null),
-    music: await part(music),
-    ambience: await part(await withAmbience(project, null)),
-    effects: await part(await withEffects(project, null, lines)),
-    mix: await part(await mixSound(project, music, lines))
+    duration: project.duration,
+    rate,
+    voice: lines.length ? { lines: lines.map(l => ({ shot: l.shot, text: l.text, at: round(l.at, 2), end: round(l.end, 2) })), peaks: await peaks(await voiceTrack(project, lines)) } : null,
+    music: music ? { peaks: await peaks(lines.length ? await duckedMusic(project, music, lines) : music) } : null,
+    ambience: ambience ? { peaks: await peaks(ambience) } : null,
+    effects: { cues: soundCues(project), peaks: await peaks(await withEffects(project, null, lines)) },
+    mix: await mixSound(project, music, lines)
   }
 }
 
-// A part of a sound file (film seconds), made once; the whole file when the
-// part is the whole film
-function excerpt(project, file, from, to) {
-  if (from <= 0 && to >= project.duration) return file
-  const name = `${path.basename(file, path.extname(file))}-${from.toFixed(2)}-${to.toFixed(2)}.wav`
-  return cachedFile(path.join(voiceDir(project), 'listen', name), part =>
-    ffmpeg(['-ss', String(from), '-t', String(to - from), '-i', file, '-ar', '44100', part]))
+// The music alone as it plays under the voice (dipping while a line is
+// spoken), for the timeline to draw
+function duckedMusic(project, music, lines) {
+  const curve = duckCurve(lines)
+  const key = createHash('sha256').update(`1:${path.basename(music)}:${curve}`).digest('hex').slice(0, 16)
+  return cachedFile(path.join(voiceDir(project), 'ducked', `${key}.wav`), part =>
+    ffmpeg(['-i', music, '-af', `volume='${curve}':eval=frame`, '-ar', '44100', part]))
 }
 
 // The speech models, for Settings: each with its languages, size,

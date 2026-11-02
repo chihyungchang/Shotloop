@@ -144,6 +144,23 @@ async function decode(file, channels, seconds) {
   }
 }
 
+// A sound file's loudness over time, to draw its waveform: the largest
+// sample in each 1/rate s (0–1), kept beside the file (whose name is its
+// content's, so the peaks never go stale)
+export async function peaksOf(file, seconds, rate = 20) {
+  const out = `${file}.peaks-${rate}.json`
+  if (fs.existsSync(out)) return readJson(out)
+  const [b] = await decode(file, 1, seconds)
+  const step = RATE / rate
+  const peaks = Array.from({ length: Math.ceil(b.length / step) }, (_, i) => {
+    let m = 0
+    for (let j = Math.floor(i * step); j < Math.min(b.length, Math.floor((i + 1) * step)); j++) m = Math.max(m, Math.abs(b[j]))
+    return Math.round(m * 100) / 100
+  })
+  writeJson(out, peaks)
+  return peaks
+}
+
 // One effect as a WAV, made once: a synth one, or a library sound cut to
 // EFFECT_MAX and set to the synth effects' peak
 async function effectFile(project, sound) {

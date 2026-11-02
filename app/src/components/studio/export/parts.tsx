@@ -11,7 +11,7 @@ import { Icon } from '../../Icon'
 import { VoiceDownload } from '../../VoiceDownload'
 
 // The sound's parts that keep their own state (the voice-over, the music
-// bed, the ambience and effects: the studio's Sound drawer) and the export
+// bed, the ambience and effects: the studio's sound lanes) and the export
 // dialog's (its sound in one line, the publish copy)
 
 // The voice-over: off or on, and which voice, with a sample to listen to.
@@ -175,19 +175,16 @@ export function Music({ project, refresh }: { project: Project; refresh: () => v
 }
 
 // The film's sound in one line, for the export: it is made and changed in
-// the studio's Sound drawer, which `open` shows
+// the studio's sound lanes, which `open` goes back to
 export function SoundSummary({ project, open }: { project: Project; open: () => void }) {
-  const [sound, setSound] = useState<SoundInfo | null>(null)
+  const { sound, error, ambienceName } = useSound(project, () => {})
   const [music, setMusic] = useState<MusicInfo | null>(null)
-  const { error, guard } = useErrorLine()
   useEffect(() => {
-    guard(api.sound(project.root)).then(s => s && setSound(s))
-    guard(api.music(project.root)).then(m => m && setMusic(m))
-  }, [project.root, guard])
-  const named = new Map(sound?.library.map(a => [a.id, a.name]) ?? [])
+    api.music(project.root).then(setMusic, () => setMusic(null))
+  }, [project.root])
   const musicName = !music || music.kind === 'none' ? t('music.none')
     : music.kind === 'file' ? music.name ?? '' : isMood(music.preset) ? t(`music.${music.preset}` as Key) : t('music.custom')
-  const ambience = sound?.ambience ? named.get(sound.ambience) ?? t(`sound.amb.${sound.ambience}` as Key) : t('sound.none')
+  const ambience = ambienceName(sound?.ambience)
   const effects = sound?.cues.length ? t('sound.count', { on: sound.cues.filter(c => c.on).length, n: sound.cues.length }) : t('sound.none')
   return (
     <div className="xrow">
@@ -202,72 +199,80 @@ export function SoundSummary({ project, open }: { project: Project; open: () => 
   )
 }
 
-// The film's ambience and sound effects (engine/shotloop/sound.mjs): the
-// ambience and its level, effects on or off and their level, and every
-// effect by time, each (or every one of a kind) switched on or off. A
-// change mixes the sound again; the picture stays as it is
-export function Sound({ project, refresh }: { project: Project; refresh: () => void }) {
+// The film's ambience and effects settings (engine/shotloop/sound.mjs),
+// read and changed through the engine; stamp: read again when it changes
+export function useSound(project: Project, refresh: () => void, stamp = 0) {
   const [sound, setSound] = useState<SoundInfo | null>(null)
-  const [listOpen, setListOpen] = useState(false)
   const { error, guard } = useErrorLine()
   useEffect(() => {
     guard(api.sound(project.root)).then(s => s && setSound(s))
-  }, [project.root, guard])
+  }, [project.root, stamp, guard])
   const change = async (c: SoundChange) => {
     const next = await guard(api.sound(project.root, c))
     if (!next) return
     setSound(next)
     refresh()
   }
-  if (!sound) return error ? <p className="xrow-note error">{error}</p> : null
+  // A synth sound by its word, one from the asset library by its name
+  const named = new Map(sound?.library.map(a => [a.id, a.name]) ?? [])
+  const fxName = (k: string) => named.get(k) ?? t(`sound.fx.${k}` as Key)
+  const ambienceName = (a: string | null | undefined) => (!a ? t('sound.none') : named.get(a) ?? t(`sound.amb.${a}` as Key))
+  return { sound, change, error, fxName, ambienceName }
+}
+type SoundState = ReturnType<typeof useSound>
 
+const slider = (value: number, set: (v: number) => void, label: string) => (
+  <input type="range" min={0} max={2} step={0.05} defaultValue={value} key={value}
+    onPointerUp={e => set(Number(e.currentTarget.value))} onKeyUp={e => set(Number(e.currentTarget.value))} aria-label={label} />
+)
+
+// The ambience: none, a synth one or a sound from the project's assets,
+// and its level
+export function Ambience({ state }: { state: SoundState }) {
+  const { sound, change, ambienceName } = state
+  if (!sound) return null
+  return (
+    <div className="xrow">
+      <span className="xrow-label">{t('sound.ambience')}</span>
+      <div className="chips">
+        <div className="seg" role="radiogroup" aria-label={t('sound.ambience')}>
+          {['', ...sound.ambiences, ...sound.library.map(a => a.id)].map(a => {
+            const on = (sound.ambience ?? '') === a
+            const lib = sound.library.some(l => l.id === a)
+            return <button key={a || 'none'} role="radio" aria-checked={on} className={`${on ? 'on' : ''}${lib ? ' ellipsis lib' : ''}`} title={ambienceName(a)} onClick={() => !on && change({ ambience: a || 'none' })}>{ambienceName(a)}</button>
+          })}
+        </div>
+        {sound.ambience && <div className="vol">{slider(sound.ambienceGain ?? 1, v => change({ ambienceGain: v }), t('music.volume'))}</div>}
+      </div>
+    </div>
+  )
+}
+
+// The effects: on or off and their level, and every effect of a kind at
+// once (one effect is switched on the timeline)
+export function Effects({ state }: { state: SoundState }) {
+  const { sound, change, fxName } = state
+  if (!sound) return null
   const effects = sound.effects !== false
   const kindOff = (k: string) => !!sound.off?.includes(`kind:${k}`)
   const kinds = [...new Set(sound.cues.map(c => c.sound))]
-  // A synth sound by its word, one from the asset library by its name
-  const named = new Map(sound.library.map(a => [a.id, a.name]))
-  const fxName = (k: string) => named.get(k) ?? t(`sound.fx.${k}` as Key)
-  const shotLabel = (id: string) => {
-    const i = project.shots.findIndex(s => s.id === id)
-    return i < 0 ? id : `${String(i + 1).padStart(2, '0')} ${project.shots[i].title ?? id}`
-  }
-  const slider = (value: number, set: (v: number) => void, label: string) => (
-    <input type="range" min={0} max={2} step={0.05} defaultValue={value} key={value}
-      onPointerUp={e => set(Number(e.currentTarget.value))} onKeyUp={e => set(Number(e.currentTarget.value))} aria-label={label} />
-  )
   return (
     <>
-      <div className="xrow">
-        <span className="xrow-label">{t('sound.ambience')}</span>
-        <div className="chips">
-          <div className="seg" role="radiogroup" aria-label={t('sound.ambience')}>
-            {['', ...sound.ambiences, ...sound.library.map(a => a.id)].map(a => {
-              const on = (sound.ambience ?? '') === a
-              const name = !a ? t('sound.none') : named.get(a) ?? t(`sound.amb.${a}` as Key)
-              return <button key={a || 'none'} role="radio" aria-checked={on} className={`${on ? 'on' : ''}${named.has(a) ? ' ellipsis lib' : ''}`} title={name} onClick={() => !on && change({ ambience: a || 'none' })}>{name}</button>
-            })}
-          </div>
-          {sound.ambience && <div className="vol">{slider(sound.ambienceGain ?? 1, v => change({ ambienceGain: v }), t('music.volume'))}</div>}
-        </div>
-      </div>
       <div className="xrow">
         <span className="xrow-label">{t('sound.effects')}</span>
         <div className="chips">
           <input type="checkbox" className="switch" checked={effects} onChange={e => change({ effects: e.target.checked })} aria-label={t('sound.effects')} />
           {sound.cues.length
-            ? <button className="link" onClick={() => setListOpen(!listOpen)} disabled={!effects}>
-                {t('sound.count', { on: sound.cues.filter(c => c.on).length, n: sound.cues.length })} <Icon name="chevron" size={11} />
-              </button>
+            ? <span className="small muted">{t('sound.count', { on: sound.cues.filter(c => c.on).length, n: sound.cues.length })}</span>
             : <span className="muted small">{t('sound.noEffects')}</span>}
           {effects && sound.cues.length > 0 && <div className="vol">{slider(sound.effectsGain ?? 1, v => change({ effectsGain: v }), t('music.volume'))}</div>}
         </div>
       </div>
-      {listOpen && effects && sound.cues.length > 0 && (
+      {effects && kinds.length > 0 && (
         <div className="xrow top">
           <span className="xrow-label" />
           <div className="sound-list">
             <p className="hint">{t('sound.hint')}</p>
-            {/* Every effect of a kind at once */}
             <div className="chips">
               {kinds.map(k => (
                 <button key={k} className={`chip${kindOff(k) ? '' : ' on'}`} aria-pressed={!kindOff(k)} onClick={() => change({ kind: k, on: kindOff(k) })}>
@@ -275,18 +280,9 @@ export function Sound({ project, refresh }: { project: Project; refresh: () => v
                 </button>
               ))}
             </div>
-            {sound.cues.map(c => (
-              <label key={c.key} className={`sound-cue${c.on ? '' : ' off'}`}>
-                <span className="mono">{t('unit.s', { n: c.at.toFixed(1) })}</span>
-                <span className="ellipsis">{shotLabel(c.shot)}</span>
-                <span className="ellipsis">{fxName(c.sound)}</span>
-                <input type="checkbox" className="switch" checked={c.on} disabled={kindOff(c.sound)} onChange={e => change({ cue: c.key, on: e.target.checked })} aria-label={`${shotLabel(c.shot)} · ${fxName(c.sound)}`} />
-              </label>
-            ))}
           </div>
         </div>
       )}
-      {error && <p className="xrow-note error">{error}</p>}
     </>
   )
 }

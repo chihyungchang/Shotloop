@@ -30,7 +30,7 @@ export function ExportDialog({ project, jobs, refresh, openSettings, close, open
   refresh: () => void
   openSettings: () => void
   close: () => void
-  // The sound is made and changed in the studio's Sound drawer
+  // The sound is made and changed under the filmstrip: back to it
   openSound: () => void
 }) {
   const mine = jobs.filter(j => j.project === project.root)

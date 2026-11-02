@@ -389,13 +389,17 @@ export interface VoiceResult {
   sample?: string
 }
 
-// shotloop tracks <project>: each WAV, or null where the film has none
-export interface TracksResult {
-  voice: string | null
-  music: string | null
-  ambience: string | null
-  effects: string | null
-  // Everything as the film plays it
+// shotloop timeline <project>: the sound as the studio's timeline draws
+// it; peaks: each 1/rate s's loudest sample (0–1)
+export interface TimelineResult {
+  duration: number
+  rate: number
+  voice: { lines: { shot: string; text: string; at: number; end: number }[]; peaks: number[] } | null
+  // As it plays: dipping under the voice
+  music: { peaks: number[] } | null
+  ambience: { peaks: number[] } | null
+  effects: { cues: SoundCue[]; peaks: number[] | null }
+  // Everything mixed, to play from any point
   mix: string | null
 }
 

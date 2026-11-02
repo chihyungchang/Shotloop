@@ -5,7 +5,7 @@
 @layer components {
 
 /* ------------------------------------------------------------ studio */
-.studio { --agent-w: 340px; display: grid; height: 100%; grid-template-columns: var(--agent-col) 1fr; grid-template-rows: auto 1fr;
+.studio { --agent-w: 340px; --lane-label: 92px; display: grid; height: 100%; grid-template-columns: var(--agent-col) 1fr; grid-template-rows: auto 1fr;
   /* The agent panel's width (Studio.tsx AgentResizer), never more than the window can spare */
   --agent-col: clamp(280px, var(--agent-w), min(560px, 45vw)); }
 .studio.with-drawer { grid-template-columns: var(--agent-col) 1fr 340px; }
@@ -160,8 +160,10 @@ body.resizing { cursor: col-resize; }
 .notes-input { flex: 1; border: 0; border-radius: 0; resize: none; background: var(--surface); padding: 24px 32px; font-size: 13px; line-height: 1.7; }
 .notes-input:focus-visible { outline: none; }
 
-.filmstrip { border-top: 1px solid var(--border); padding: 6px 10px 10px; background: var(--surface); }
-.ruler { position: relative; height: 14px; margin: 0 2px; }
+.filmstrip { display: grid; grid-template-columns: var(--lane-label) minmax(0, 1fr); column-gap: 8px; border-top: 1px solid var(--border); padding: 6px 12px 10px; background: var(--surface); }
+/* The filmstrip's label, in the column the sound's lanes share */
+.filmstrip > .lane-label { grid-row: 1 / 3; align-self: center; padding-left: 6px; font-size: 12px; font-weight: 600; color: var(--text-2); }
+.ruler { position: relative; height: 14px; }
 .ruler span { position: absolute; font-size: 10px; color: var(--text-2); transform: translateX(-2px); }
 .strip { display: flex; gap: 4px; overflow-x: auto; }
 .frame { flex-basis: 0; min-width: 88px; flex-direction: column; align-items: stretch; gap: 4px; padding: 3px; border-radius: var(--r-md); border: 1.5px solid transparent; background: transparent; white-space: normal; }

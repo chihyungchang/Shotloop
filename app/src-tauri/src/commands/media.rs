@@ -95,12 +95,11 @@ pub async fn sound(handle: AppHandle, path: String, change: Option<SoundChange>)
     .await
 }
 
-/// The film's sound tracks alone (voice, music, ambience, effects) and
-/// mixed, as WAVs to listen to while the sound is decided: the part from
-/// `from` to `to` (film seconds), so only the lines heard there are spoken
+/// The film's sound as the studio's timeline shows it: each track's
+/// waveform, the voice's lines, the effects' cues and the mix to play
 #[tauri::command]
-pub async fn sound_tracks(handle: AppHandle, path: String, from: Option<f64>, to: Option<f64>) -> Result<Value, String> {
-    blocking(move || engine(&handle, Args::new(["tracks", &path]).opt("--from", from).opt("--to", to))).await
+pub async fn sound_timeline(handle: AppHandle, path: String) -> Result<Value, String> {
+    blocking(move || engine(&handle, Args::new(["timeline", &path]))).await
 }
 
 /// The voice-over: read it (with the voices of the project's language), or
