@@ -54,9 +54,9 @@ export const memory = await load<{
 export interface Rule { id: string; name: string | null; rule?: string; off?: boolean }
 export interface Tool { id: string; group: 'story' | 'science' | 'mine'; name: string; text: string }
 export const rules = await load<{
-  list: () => { fixed: Rule[]; taste: Rule[]; tools: Tool[] }
+  list: () => { damaged: string | null; fixed: Rule[]; taste: Rule[]; tools: Tool[] }
   asBuilt: (id: string) => boolean
-  checklist: (track: string) => string
+  checklist: (track: string, own?: string | null) => string
 }>('rules.mjs')
 export const { STILLS } = await load<{ STILLS: readonly string[] }>('cache.mjs')
 export const { emit: emitLine, exit, parseFlags } = await load<{

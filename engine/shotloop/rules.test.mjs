@@ -60,3 +60,20 @@ test('rules: the person\'s tools carry a picture; built-in tools stay', () => {
   assert.equal(fs.existsSync(tool.image), false)
   assert.equal(rules.list().tools.length, rules.TOOLS.length)
 })
+
+test('rules: a project\'s own checklist takes the taste\'s place, never the fixed rules\'', () => {
+  const list = rules.checklist('2d', '- **brand**: the logo shows in the end card\n')
+  assert.match(list, /\*\*honest\*\*/)
+  assert.match(list, /\*\*brand\*\*: the logo/)
+  assert.doesNotMatch(list, /\*\*visual\*\*/)
+})
+
+test('rules: a damaged file is set aside, the defaults apply and it is reported until the next save', () => {
+  fs.writeFileSync(path.join(dir, 'rules.json'), '{ not json')
+  const now = rules.list()
+  assert.equal(now.damaged, path.join(dir, 'rules.json.bad'))
+  assert.ok(now.taste.every(r => !r.off && !r.edited))
+  rules.remove('rhythm')
+  assert.equal(rules.list().damaged, null)
+  rules.reset('rhythm')
+})

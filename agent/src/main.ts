@@ -53,6 +53,10 @@ setJson(!!values.json)
 // --model picks the model of the chosen backend (see providers.ts)
 if (values.model) process.env.SHOTLOOP_MODEL = values.model
 const [task, dir] = positionals
+// A damaged rules file was set aside (engine/shotloop/rules.mjs): this
+// task follows the default rules, and says so
+const damaged = rules.list().damaged
+if (damaged) warn(`your rules could not be read and were kept as ${damaged}; this task follows the default rules until you change a rule in Settings → Rules`)
 
 // The memory as the task starts: lessons kept during it apply from the
 // next task, so agents working side by side share one system prompt (and
@@ -63,15 +67,15 @@ const remembered = (track: ProjectStatus['track'], learn: boolean) => memoryProm
 const stamp = () => new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15)
 const today = () => new Date().toISOString().slice(0, 10)
 
-// The project's own checklist (shotloop.json "checklist"), else the one
-// made from the rules as the person set them, written for this task
+// The checklist for this task, made from the rules as the person set
+// them: the fixed rules, then their taste or the project's own checklist
+// (shotloop.json "checklist")
 function checklistPath(root: string) {
   const cfg = JSON.parse(fs.readFileSync(path.join(root, 'shotloop.json'), 'utf8'))
   const own = cfg.checklist && path.join(root, cfg.checklist)
-  if (own && fs.existsSync(own)) return own
   const made = path.join(root, '.shotloop', 'checklist.md')
   fs.mkdirSync(path.dirname(made), { recursive: true })
-  writeAtomic(made, rules.checklist(cfg.track === '3d' ? '3d' : '2d'))
+  writeAtomic(made, rules.checklist(cfg.track === '3d' ? '3d' : '2d', own && fs.existsSync(own) ? fs.readFileSync(own, 'utf8') : null))
   return made
 }
 

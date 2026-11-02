@@ -31,6 +31,7 @@ import { readJson, safeId, writeJson } from './files.mjs'
 
 const RULES = process.env.SHOTLOOP_RULES ?? path.join(os.homedir(), '.shotloop', 'rules')
 const FILE = path.join(RULES, 'rules.json')
+const BAD = path.join(RULES, 'rules.json.bad')
 const STILLS = fileURLToPath(new URL('tools', import.meta.url))
 export const MAX_CHARS = 1500
 const IMAGE = /\.(jpe?g|png|webp)$/i
@@ -179,8 +180,18 @@ export const TOOLS = [
 const tasteById = id => TASTE.find(r => r.id === id)
 const ruleId = s => safeId(s, 'a rule id')
 
+// A file that can't be parsed is kept as rules.json.bad and the defaults
+// apply; list() reports it until the rules are saved again
 function load() {
-  const saved = readJson(FILE, {})
+  let saved
+  try {
+    saved = readJson(FILE, {})
+  } catch (err) {
+    if (err.code) throw err
+    // Another process may have set it aside first
+    try { fs.renameSync(FILE, BAD) } catch (e) { if (e.code !== 'ENOENT') throw e }
+    saved = {}
+  }
   return {
     taste: saved.taste && typeof saved.taste === 'object' ? saved.taste : {},
     mine: Array.isArray(saved.mine) ? saved.mine.filter(r => r?.id && r.text) : [],
@@ -209,6 +220,7 @@ export function list() {
   const mine = saved.mine.map(r => ({ id: r.id, track: 'all', name: null, rule: r.text, check: r.text, builtIn: false, edited: false, off: false }))
   const still = id => path.join(STILLS, `${id}.jpg`)
   return {
+    damaged: !fs.existsSync(FILE) && fs.existsSync(BAD) ? BAD : null,
     fixed: FIXED,
     taste: [...builtIn, ...mine],
     tools: [
@@ -305,11 +317,16 @@ export function removeTool(id) {
 const forTrack = track => r => r.track === 'all' || r.track === track
 
 // The checklist a review reports against: the fixed rules, then the
-// person's taste as it stands, each with its id
-export function checklist(track) {
+// person's taste as it stands, each with its id. A project's own
+// checklist (shotloop.json "checklist") takes the taste's place; the
+// fixed rules stay
+export function checklist(track, own = null) {
   const { fixed, taste } = list()
   const line = r => `- **${r.id}**${r.track === 'all' ? '' : ` (${r.track.toUpperCase()})`}: ${r.check}`
   const on = taste.filter(r => !r.off && r.check && forTrack(track)(r)).map(r => ({ ...r, check: r.edited ? r.rule : r.check }))
+  const rest = own != null
+    ? `This project's own checklist:\n${own.trim()}`
+    : `The person's taste (as they set it):\n${on.length ? on.map(line).join('\n') : '(none)'}`
   return `# Shot checklist
 
 The rules every shot must pass, checked on the stills at the start, middle and end of the shot. Report against each rule's id.
@@ -317,7 +334,6 @@ The rules every shot must pass, checked on the stills at the start, middle and e
 Fixed rules (always):
 ${fixed.filter(forTrack(track)).map(line).join('\n')}
 
-The person's taste (as they set it):
-${on.length ? on.map(line).join('\n') : '(none)'}
+${rest}
 `
 }

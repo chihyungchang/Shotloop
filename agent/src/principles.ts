@@ -33,8 +33,8 @@ export const OWN_RULES = (() => {
   return own.length ? `The person's rules (follow them in every video):\n${own.map(r => `- ${r.rule}`).join('\n')}` : ''
 })()
 
-// lintPlan measures caption lengths by the house caption rule: only while
-// the person keeps it as it shipped
+// lintPlan and lintVoice measure caption lengths by the house caption
+// rule: only while the person keeps it as it shipped
 export const CAPTION_RULE = rules.asBuilt('caption')
 
 // Where the subtitles sit (engine/shotloop/cues.mjs), as "68–79%"
@@ -52,7 +52,7 @@ const VOICE_PAD = VOICE_LEAD + VOICE_TAIL
 // reading rules, and the rest stand
 export const PRINCIPLES_VOICE = `The voice-over (this film has one; it changes the caption and reading rules, the rest stand):
 - The voice explains, the picture shows, the screen sums up. Each shot has a spoken line ("say"): one or two short sentences, plain and conversational, about 8 to 25 words (Chinese or Japanese: 15 to 45 characters). The first shot's line hooks in its first words; the last can be a short sign-off or empty.
-- The voice's words are subtitled automatically, in a band near the bottom (portrait: ${band('portrait')} of the frame height; landscape: ${band('landscape')}). The shot keeps its own text and anything important out of that band, and never repeats the spoken sentence on screen: its on-screen text shrinks to the big number or a label of 1 to 4 words.
+- The voice's words are subtitled automatically, in a band near the bottom (portrait: ${band('portrait')} of the frame height; landscape: ${band('landscape')}). The shot keeps its own text and anything important out of that band, and never repeats the spoken sentence on screen: ${CAPTION_RULE ? 'its on-screen text shrinks to the big number or a label of 1 to 4 words' : 'its on-screen text follows the person\'s caption rule'}.
 - Time follows the voice: after planning, every line is spoken and its shot gets the line's length plus a breath. Plan durations at about ${WORDS_PER_S} words a second (Chinese or Japanese: ${CJK_PER_S} characters a second) plus ${VOICE_PAD} s.
 - The picture lands on the words: a number rolls in, an object appears or a chart turns as the voice says it (the shot's code gets each sentence's start and end).
 - Lines are written to be heard: short words, no lists, no parentheses, no abbreviations a voice can't say (respell an unusual name the way it sounds). Numbers as they are said: digits are fine in English and Chinese; in other languages write numbers in words. Where the screen shows ≈ the voice says "about".`
@@ -74,7 +74,7 @@ export const CODE_VOICE = `Voice-over in code:
 - ctx.voice is the shot's spoken line, one { text, at, end } per sentence in shot seconds (empty when the shot says nothing). Time reveals to it: a number lands at the moment its sentence says it (estimate within a sentence by its share of the words), and nothing important appears after the last sentence ends.
 - Keep text and key parts of the picture out of the subtitle band (portrait: y ${band('portrait')} of H; landscape: ${band('landscape')}); backgrounds and motion may pass behind it.
 - A subtitle check runs before every render of the shot and reports, with times, what the subtitles would cover: text in the DOM or SVG, elements marked data-keep="name", and canvas regions the shot reports each frame with window.subtitles.keep(x, y, w, h, 'name') (page CSS px). It can't see unreported canvas shapes, text drawn on a canvas or 3D, so: write on-screen text in the DOM or SVG, never on a canvas; mark the subject the viewer must see (a satellite, a zipper) with data-keep, or report it with subtitles.keep when it is drawn on a canvas; leave big backgrounds (a globe, a grid, a glow) unmarked, they may pass under the subtitles.
-- The on-screen text is the number or a short label, never the spoken sentence.`
+- The on-screen text is ${CAPTION_RULE ? 'the number or a short label, ' : ''}never the spoken sentence.`
 
 const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu
 
@@ -94,8 +94,9 @@ const captions = (text: string) => text.split(/\n+/).map(s => s.trim()).filter(B
 const ANIMATION = 0.5
 
 // A voiced plan's breaks that can be measured: lines too long or
-// missing, on-screen text that repeats the line, a duration far from
-// what the line needs (fitted later, but the plan should be close)
+// missing, on-screen text too long (while the caption rule stands), a
+// duration far from what the line needs (fitted later, but the plan
+// should be close)
 export function lintVoice(shots: { title?: string; duration: number; text?: string; say?: string }[]) {
   const issues: string[] = []
   shots.forEach((s, i) => {
@@ -109,7 +110,7 @@ export function lintVoice(shots: { title?: string; duration: number; text?: stri
     if (words + numbers > 30 || cjk > 55) issues.push(`${name}: the spoken line is too long (${cjk ? `${cjk} characters` : `${words + numbers} words`}); split the beat into two shots or cut it to about 25 words (45 characters)`)
     const need = (words + numbers) / WORDS_PER_S + cjk / CJK_PER_S + VOICE_PAD
     if (s.duration + 1.5 < need) issues.push(`${name}: ${s.duration} s is short for its line (about ${need.toFixed(1)} s spoken); give it the time or cut the line`)
-    for (const c of captions(s.text ?? '')) {
+    if (CAPTION_RULE) for (const c of captions(s.text ?? '')) {
       const u = units(c)
       if (u.words > 6 || u.cjk > 12) issues.push(`${name}: the on-screen text "${c}" is long for a voiced film; the voice says it, the screen shows the number or a label of 1 to 4 words`)
     }

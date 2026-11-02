@@ -29,6 +29,7 @@ export function RulesSettings() {
       {error && <p className="error small">{error}</p>}
       {!rules ? <p className="muted">{t('common.loading')}</p> : (
         <>
+          {rules.damaged && <p className="error small">{t('rules.damaged', { file: rules.damaged })}</p>}
           <h4><Icon name="lock" size={13} /> {t('rules.fixed')}</h4>
           <p className="hint">{t('rules.fixedNote')}</p>
           {rules.fixed.map(r => <FixedRow key={r.id} r={r} />)}

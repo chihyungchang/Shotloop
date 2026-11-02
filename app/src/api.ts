@@ -241,7 +241,6 @@ export interface CoverTemplate {
 // the toolbox with a picture per tool (a file path, or null)
 export interface Rule {
   id: string
-  track: 'all' | '2d' | '3d'
   name: string | null
   rule?: string
   builtIn?: boolean
@@ -249,7 +248,9 @@ export interface Rule {
   off?: boolean
 }
 export interface RuleTool { id: string; group: 'story' | 'science' | 'mine'; name: string; text: string; builtIn: boolean; image: string | null }
-export interface Rules { fixed: Rule[]; taste: Rule[]; tools: RuleTool[] }
+// damaged: where a rules file that couldn't be read was set aside, while
+// the defaults stand in for it
+export interface Rules { damaged: string | null; fixed: Rule[]; taste: Rule[]; tools: RuleTool[] }
 
 // One entry of the AI's memory (engine/shotloop/memory.mjs): a note the
 // person wrote, or a lesson the AI kept while building
