@@ -638,7 +638,7 @@ export const es: Record<Key, string> = {
   'settings.rules': 'Reglas',
   'rules.intro': 'Las reglas que sigue cada vídeo. Las reglas fijas mantienen cada fotograma limpio y el vídeo fiel. Tu gusto parte de nuestros valores por defecto: reescríbelo, desactívalo o amplíalo. La caja de herramientas es con lo que la IA anima y pone en escena. Muestra las reglas de 2D, de 3D o de ambos.',
   'rules.fixed': 'Reglas fijas',
-  'rules.fixedNote': 'Siempre activas: mantienen los fotogramas legibles, sin fallos y fieles, así que no se pueden cambiar.',
+  'rules.fixedNote': 'Activadas por defecto: mantienen los fotogramas legibles, sin fallos y fieles. Puedes desactivar una, pero no cambiarla.',
   'rules.taste': 'Tu gusto',
   'rules.tasteNote': 'Nuestros valores por defecto como punto de partida. Reescribe o quita cualquiera, o añade las tuyas; la planificación y las revisiones las siguen tal como estén.',
   'rules.damaged': 'No se pudieron leer tus cambios en las reglas, así que se guardaron como {file}. Se aplican las reglas por defecto hasta que cambies una regla.',

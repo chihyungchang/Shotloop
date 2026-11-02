@@ -638,7 +638,7 @@ export const vi: Record<Key, string> = {
   'settings.rules': 'Quy tắc',
   'rules.intro': 'Các quy tắc mà mọi video tuân theo. Quy tắc cố định giữ mọi khung hình sạch sẽ và video trung thực. Gu của bạn bắt đầu từ mặc định của chúng tôi: viết lại, tắt hoặc thêm vào. Hộp công cụ là những gì AI dùng để làm hoạt hình và dàn dựng. Xem quy tắc cho 2D, 3D hoặc cả hai.',
   'rules.fixed': 'Quy tắc cố định',
-  'rules.fixedNote': 'Luôn bật: giữ khung hình dễ đọc, không lỗi và trung thực, nên không thể thay đổi.',
+  'rules.fixedNote': 'Mặc định bật: giữ khung hình dễ đọc, không lỗi và trung thực. Bạn có thể tắt một quy tắc, nhưng không sửa được.',
   'rules.taste': 'Gu của bạn',
   'rules.tasteNote': 'Mặc định của chúng tôi để bắt đầu. Viết lại hoặc xoá bất kỳ quy tắc nào, hoặc thêm của riêng bạn; khâu lên kế hoạch và kiểm tra làm theo đúng nội dung hiện tại.',
   'rules.damaged': 'Không đọc được các thay đổi quy tắc của bạn nên chúng được lưu thành {file}. Quy tắc mặc định được dùng cho đến khi bạn đổi một quy tắc.',

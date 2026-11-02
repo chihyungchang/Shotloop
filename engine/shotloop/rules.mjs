@@ -3,8 +3,8 @@
 // against are both made from these lists. Three kinds:
 //
 // - FIXED: what makes a frame broken or a video untrue (nothing covered,
-//   no broken frames, honest, sourced). Always on; the person can read
-//   them, never edit or remove them.
+//   no broken frames, honest, sourced). On unless the person switches one
+//   off; never edited or removed.
 // - TASTE: the house taste, set by Oliver with a viewer who watches a lot
 //   of English short video (31 Oct 2026). Defaults: the person can reword
 //   or remove any of them, restore it, and add their own.
@@ -15,7 +15,8 @@
 //
 // What the person changed lives in their rules folder:
 //
-//   rules/rules.json   { taste: { <id>: { text } | { off: true } },
+//   rules/rules.json   { fixedOff: [<id>],
+//                        taste: { <id>: { text } | { off: true } },
 //                        mine: [{ id, text, track, created }],
 //                        tools: [{ id, name, text, track, image, created }] }
 //   rules/<id>.<ext>   a tool's picture
@@ -275,6 +276,7 @@ function load() {
     saved = {}
   }
   return {
+    fixedOff: Array.isArray(saved.fixedOff) ? saved.fixedOff.filter(id => FIXED.some(r => r.id === id)) : [],
     taste: saved.taste && typeof saved.taste === 'object' ? saved.taste : {},
     mine: Array.isArray(saved.mine) ? saved.mine.filter(r => r?.id && r.text) : [],
     tools: Array.isArray(saved.tools) ? saved.tools.filter(r => r?.id && r.name) : []
@@ -299,9 +301,9 @@ function cleanText(text, what) {
   return text
 }
 
-// The rules as they stand: every fixed rule, every taste rule with the
-// person's wording (off ones too, so they can be restored; `off` says
-// so), and every tool with its picture (a file path, or null)
+// The rules as they stand: every fixed rule and every taste rule with the
+// person's wording (off ones too, so they can be switched on or restored;
+// `off` says so), and every tool with its picture (a file path, or null)
 export function list() {
   const saved = load()
   const builtIn = TASTE.map(r => {
@@ -312,7 +314,7 @@ export function list() {
   const still = id => path.join(STILLS, `${id}.jpg`)
   return {
     damaged: !fs.existsSync(FILE) && fs.existsSync(BAD) ? BAD : null,
-    fixed: FIXED,
+    fixed: FIXED.map(r => ({ ...r, off: saved.fixedOff.includes(r.id) })),
     taste: [...builtIn, ...mine],
     tools: [
       ...TOOLS.map(t => ({ ...t, builtIn: true, image: fs.existsSync(still(t.id)) ? still(t.id) : null })),
@@ -359,6 +361,13 @@ export function remove(id) {
       s.mine = s.mine.filter(r => r.id !== id)
     }
   })
+  return list()
+}
+
+// A fixed rule switched off or on again
+export function switchFixed(id, on) {
+  if (!FIXED.some(r => r.id === id)) throw new Error(`no fixed rule ${id}`)
+  save(s => { s.fixedOff = on ? s.fixedOff.filter(x => x !== id) : [...new Set([...s.fixedOff, id])] })
   return list()
 }
 
@@ -409,8 +418,8 @@ export function removeTool(id) {
 
 const forTrack = track => r => r.track === 'all' || r.track === track
 
-// The checklist a review reports against: the fixed rules, then the
-// person's taste as it stands, each with its id. A project's own
+// The checklist a review reports against: the fixed rules that are on,
+// then the person's taste as it stands, each with its id. A project's own
 // checklist (shotloop.json "checklist") takes the taste's place; the
 // fixed rules stay
 export function checklist(track, own = null) {
@@ -424,8 +433,8 @@ export function checklist(track, own = null) {
 
 The rules every shot must pass, checked on the stills at the start, middle and end of the shot. Report against each rule's id.
 
-Fixed rules (always):
-${fixed.filter(forTrack(track)).map(line).join('\n')}
+Fixed rules:
+${fixed.filter(r => !r.off && forTrack(track)(r)).map(line).join('\n') || '(none)'}
 
 ${rest}
 `

@@ -19,7 +19,7 @@ const tools = (track: Track, group: Tool['group']) => RULES.tools
   })
 
 function rulesFor(track: Track) {
-  const fixed = RULES.fixed.filter(forTrack(track)).filter(r => r.rule)
+  const fixed = RULES.fixed.filter(r => !r.off && forTrack(track)(r) && r.rule)
   // The taste rules that are on, the person's own among them
   const taste = RULES.taste.filter(r => !r.off && forTrack(track)(r))
   const mine = tools(track, 'mine')

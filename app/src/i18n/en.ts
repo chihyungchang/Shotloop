@@ -639,7 +639,7 @@ export const en = {
   'settings.rules': 'Rules',
   'rules.intro': 'The rules every video follows. Fixed rules keep every frame clean and the video true. Your taste starts from our defaults: reword, switch off or add to it. The toolbox is what the AI animates and stages with. Show the rules for 2D, 3D or both.',
   'rules.fixed': 'Fixed rules',
-  'rules.fixedNote': 'Always on: they keep frames readable, unbroken and true, so they can’t be changed.',
+  'rules.fixedNote': 'On by default: they keep frames readable, unbroken and true. You can switch one off, but not change it.',
   'rules.taste': 'Your taste',
   'rules.tasteNote': 'Our defaults to start from. Reword or remove any of them, or add your own; plans and reviews follow them as they stand.',
   'rules.damaged': 'Your rule changes couldn’t be read, so they were kept as {file}. The default rules apply until you change a rule.',

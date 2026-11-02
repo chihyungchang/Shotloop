@@ -39,7 +39,8 @@
 //   shotloop covers   list | save <project> [--title <name>] | apply <project> <id> | remove <id>
 //                     | reference <project> --file <image>     cover templates, an image to design after
 //   shotloop memory   list | add --text "…" | remove <id>       the AI's memory: the person's notes, its lessons
-//   shotloop rules    list | edit <id> --text "…" | remove <id> | reset <id> | add --text "…" [--track all|2d|3d]
+//   shotloop rules    list | edit <id> --text "…" | remove <id> | reset <id> | switch <fixed id> [--off]
+//                     | add --text "…" [--track all|2d|3d]
 //                     | add-tool --name "…" [--text "…"] [--file <image>] [--track all|2d|3d] | remove-tool <id>
 //                     | checklist [--track 2d|3d]
 //                     the video rules: fixed, the person's taste (editable), the toolbox
@@ -321,11 +322,12 @@ try {
       else if (sub === 'edit') result(rules.edit(a, values.text))
       else if (sub === 'remove') result(rules.remove(a))
       else if (sub === 'reset') result(rules.reset(a))
+      else if (sub === 'switch') result(rules.switchFixed(a, !values.off))
       else if (sub === 'add') result(rules.add(values.text, values.track))
       else if (sub === 'add-tool') result(rules.addTool({ name: values.name, text: values.text, image: values.file, track: values.track }))
       else if (sub === 'remove-tool') result(rules.removeTool(a))
       else if (sub === 'checklist') result(rules.checklist(values.track ?? '2d'))
-      else throw new Error('rules list|edit|remove|reset|add|add-tool|remove-tool|checklist')
+      else throw new Error('rules list|edit|remove|reset|switch|add|add-tool|remove-tool|checklist')
       break
     }
     case 'storyboard':

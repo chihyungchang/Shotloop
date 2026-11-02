@@ -353,6 +353,8 @@ export const api = {
   editRule: (id: string, text: string) => invoke<Rules>('rules', { action: 'edit', id, text }),
   removeRule: (id: string) => invoke<Rules>('rules', { action: 'remove', id }),
   resetRule: (id: string) => invoke<Rules>('rules', { action: 'reset', id }),
+  // A fixed rule switched off or on
+  switchFixed: (id: string, on: boolean) => invoke<Rules>('rules', { action: 'switch', id, on }),
   addRule: (text: string, track: RuleTrack) => invoke<Rules>('rules', { action: 'add', text, track }),
   addTool: (name: string, text: string, file: string | null, track: RuleTrack) => invoke<Rules>('rules', { action: 'add-tool', name, text, file, track }),
   removeTool: (id: string) => invoke<Rules>('rules', { action: 'remove-tool', id }),

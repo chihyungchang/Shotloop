@@ -638,7 +638,7 @@ export const de: Record<Key, string> = {
   'settings.rules': 'Regeln',
   'rules.intro': 'Die Regeln, denen jedes Video folgt. Feste Regeln halten jedes Bild sauber und das Video wahr. Dein Geschmack beginnt mit unseren Vorgaben: Formuliere ihn um, schalte Teile ab oder ergänze ihn. Die Werkzeugkiste ist das, womit die KI animiert und inszeniert. Zeig die Regeln für 2D, 3D oder beides.',
   'rules.fixed': 'Feste Regeln',
-  'rules.fixedNote': 'Immer aktiv: Sie halten Bilder lesbar, fehlerfrei und wahr und lassen sich daher nicht ändern.',
+  'rules.fixedNote': 'Standardmäßig an: Sie halten die Bilder lesbar, fehlerfrei und wahr. Du kannst eine ausschalten, aber nicht ändern.',
   'rules.taste': 'Dein Geschmack',
   'rules.tasteNote': 'Unsere Vorgaben als Ausgangspunkt. Formuliere jede um oder entferne sie, oder füge eigene hinzu; Planung und Prüfung folgen ihnen so, wie sie gerade lauten.',
   'rules.damaged': 'Deine Regeländerungen konnten nicht gelesen werden und wurden als {file} aufbewahrt. Bis du eine Regel änderst, gelten die Standardregeln.',

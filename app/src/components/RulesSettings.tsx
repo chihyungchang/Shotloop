@@ -9,7 +9,7 @@ import { Icon } from './Icon'
 
 // Settings → Rules: what every video follows (engine/shotloop/rules.mjs),
 // one part at a time (the taste, the toolbox, the fixed rules) and for 2D,
-// 3D or both. Fixed rules can only be read; the house taste can be
+// 3D or both. Fixed rules can be switched off, never edited; the house taste can be
 // reworded, switched off and restored, and the person adds their own; the
 // toolbox keeps its built-in tools and takes the person's own, each with a
 // picture
@@ -33,7 +33,7 @@ export function RulesSettings() {
   const count: Record<Tab, number> = {
     taste: rules?.taste.filter(r => shown(r.track) && !r.off).length ?? 0,
     tools: rules?.tools.filter(tool => show === 'all' || tool.tracks.includes(show)).length ?? 0,
-    fixed: rules?.fixed.filter(r => shown(r.track)).length ?? 0
+    fixed: rules?.fixed.filter(r => shown(r.track) && !r.off).length ?? 0
   }
   const note = TABS.find(([id]) => id === tab)![2]
   return (
@@ -46,7 +46,7 @@ export function RulesSettings() {
         <div className="seg-control" role="tablist">
           {TABS.map(([id, label]) => (
             <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} onClick={() => setTab(id)}>
-              {id === 'fixed' && <Icon name="lock" size={12} />} {t(label)} <span className="muted">{rules ? count[id] : ''}</span>
+              {id === 'fixed' && <Icon name="lock" size={12} />} {t(label)} {rules && <span className="count-badge">{count[id]}</span>}
             </button>
           ))}
         </div>
@@ -68,7 +68,7 @@ export function RulesSettings() {
                 const tools = rules.tools.filter(tool => tool.group === group && (show === 'all' || tool.tracks.includes(show)))
                 return tools.length > 0 && (
                   <div key={group} className="tool-group">
-                    <h5>{t(label)} <span className="muted">{tools.length}</span></h5>
+                    <h5>{t(label)}</h5>
                     <div className="tool-grid">
                       {tools.map(tool => <ToolCard key={tool.id} tool={tool} show={show} run={run} />)}
                     </div>
@@ -77,7 +77,7 @@ export function RulesSettings() {
               })}
             </>
           )}
-          {tab === 'fixed' && <ByTrack rules={rules.fixed.filter(r => shown(r.track))} row={r => <FixedRow key={r.id} r={r} />} />}
+          {tab === 'fixed' && <ByTrack rules={rules.fixed.filter(r => shown(r.track))} row={r => <FixedRow key={r.id} r={r} run={run} />} />}
         </>
       )}
     </section>
@@ -113,7 +113,7 @@ function ByTrack({ rules, row }: { rules: Rule[]; row: (r: Rule) => React.ReactN
         const mine = rules.filter(r => r.track === track)
         return mine.length > 0 && (
           <div key={track} className="rule-part">
-            <h5>{track === 'all' ? t('rules.trackBoth') : track.toUpperCase()} <span className="muted">{mine.length}</span></h5>
+            <h5>{track === 'all' ? t('rules.trackBoth') : track.toUpperCase()}</h5>
             <div className="rule-list">{mine.map(row)}</div>
           </div>
         )
@@ -122,14 +122,18 @@ function ByTrack({ rules, row }: { rules: Rule[]; row: (r: Rule) => React.ReactN
   )
 }
 
-function FixedRow({ r }: { r: Rule }) {
+// A fixed rule: read, and switched off or on (never edited)
+function FixedRow({ r, run }: { r: Rule; run: Run }) {
+  const name = ruleName(r.id, r.name)
   return (
-    <div className="rule-row">
+    <label className={`rule-row${r.off ? ' off' : ''}`}>
       <div className="rule-text">
-        <span className="rule-name">{ruleName(r.id, r.name)}</span>
+        <span className="rule-name">{name}</span>
+        {r.off && <span className="tag">{t('rules.off')}</span>}
         <span className="rule-about">{ruleAbout(r.id)}</span>
       </div>
-    </div>
+      <input type="checkbox" className="switch" checked={!r.off} onChange={e => run(api.switchFixed(r.id, e.target.checked))} aria-label={name} />
+    </label>
   )
 }
 

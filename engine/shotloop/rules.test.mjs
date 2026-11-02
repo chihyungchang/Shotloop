@@ -93,3 +93,13 @@ test('rules: every tool says the tracks it fits; a 2D tool staged in 3D says how
   assert.deepEqual(tool.tracks, ['3d'])
   rules.removeTool(tool.id)
 })
+
+test('rules: a fixed rule can be switched off and on, never removed', () => {
+  assert.throws(() => rules.remove('honest'), /fixed rule/)
+  rules.switchFixed('honest', false)
+  assert.equal(rules.list().fixed.find(r => r.id === 'honest').off, true)
+  assert.doesNotMatch(rules.checklist('2d'), /\*\*honest\*\*/)
+  rules.switchFixed('honest', true)
+  assert.match(rules.checklist('2d'), /\*\*honest\*\*/)
+  assert.throws(() => rules.switchFixed('visual', false), /no fixed rule/)
+})

@@ -638,7 +638,7 @@ export const tr: Record<Key, string> = {
   'settings.rules': 'Kurallar',
   'rules.intro': 'Her videonun uyduğu kurallar. Sabit kurallar her kareyi temiz, videoyu doğru tutar. Zevkin bizim varsayılanlarımızla başlar: yeniden yaz, kapat ya da ekle. Araç kutusu, yapay zekânın canlandırırken ve sahnelerken kullandıklarıdır. 2D, 3D ya da her ikisinin kurallarını göster.',
   'rules.fixed': 'Sabit kurallar',
-  'rules.fixedNote': 'Her zaman açık: kareleri okunur, kusursuz ve doğru tutarlar, bu yüzden değiştirilemezler.',
+  'rules.fixedNote': 'Varsayılan olarak açık: kareleri okunur, kusursuz ve doğru tutar. Birini kapatabilirsiniz ama değiştiremezsiniz.',
   'rules.taste': 'Zevkin',
   'rules.tasteNote': 'Başlangıç için varsayılanlarımız. İstediğini yeniden yaz ya da kaldır, ya da kendi kurallarını ekle; planlama ve denetim onları olduğu gibi izler.',
   'rules.damaged': 'Kural değişikliklerin okunamadı, bu yüzden {file} olarak saklandı. Bir kuralı değiştirene kadar varsayılan kurallar geçerli.',

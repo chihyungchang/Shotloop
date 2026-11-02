@@ -638,7 +638,7 @@ export const ptBR: Record<Key, string> = {
   'settings.rules': 'Regras',
   'rules.intro': 'As regras que todo vídeo segue. As regras fixas mantêm cada quadro limpo e o vídeo fiel. Seu gosto parte dos nossos padrões: reescreva, desative ou acrescente. A caixa de ferramentas é o que a IA usa para animar e encenar. Mostre as regras de 2D, de 3D ou de ambos.',
   'rules.fixed': 'Regras fixas',
-  'rules.fixedNote': 'Sempre ativas: mantêm os quadros legíveis, sem falhas e fiéis, por isso não podem ser alteradas.',
+  'rules.fixedNote': 'Ativadas por padrão: mantêm os quadros legíveis, sem falhas e fiéis. Você pode desativar uma, mas não alterá-la.',
   'rules.taste': 'Seu gosto',
   'rules.tasteNote': 'Nossos padrões para começar. Reescreva ou remova qualquer um deles, ou adicione os seus; o planejamento e as revisões seguem o que estiver escrito.',
   'rules.damaged': 'Não foi possível ler suas alterações nas regras, então elas foram guardadas como {file}. As regras padrão valem até você mudar uma regra.',

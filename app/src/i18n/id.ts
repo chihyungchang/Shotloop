@@ -638,7 +638,7 @@ export const id: Record<Key, string> = {
   'settings.rules': 'Aturan',
   'rules.intro': 'Aturan yang diikuti setiap video. Aturan tetap menjaga setiap bingkai bersih dan videonya jujur. Seleramu dimulai dari bawaan kami: tulis ulang, matikan, atau tambahkan. Kotak alat adalah yang dipakai AI untuk menganimasikan dan menata adegan. Tampilkan aturan untuk 2D, 3D, atau keduanya.',
   'rules.fixed': 'Aturan tetap',
-  'rules.fixedNote': 'Selalu aktif: menjaga gambar tetap terbaca, tanpa cacat, dan jujur, jadi tidak bisa diubah.',
+  'rules.fixedNote': 'Aktif secara bawaan: menjaga bingkai tetap terbaca, utuh, dan jujur. Anda bisa mematikannya, tetapi tidak mengubahnya.',
   'rules.taste': 'Seleramu',
   'rules.tasteNote': 'Bawaan kami sebagai titik awal. Tulis ulang atau hapus mana saja, atau tambahkan milikmu sendiri; perencanaan dan pemeriksaan mengikutinya apa adanya.',
   'rules.damaged': 'Perubahan aturanmu tidak bisa dibaca, jadi disimpan sebagai {file}. Aturan bawaan berlaku sampai kamu mengubah sebuah aturan.',

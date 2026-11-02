@@ -638,7 +638,7 @@ export const fr: Record<Key, string> = {
   'settings.rules': 'Règles',
   'rules.intro': 'Les règles que suit chaque vidéo. Les règles fixes gardent chaque image propre et la vidéo fidèle. Votre goût part de nos choix par défaut : reformulez-le, désactivez-le ou complétez-le. La boîte à outils, c’est ce avec quoi l’IA anime et met en scène. Affichez les règles de la 2D, de la 3D ou des deux.',
   'rules.fixed': 'Règles fixes',
-  'rules.fixedNote': 'Toujours actives : elles gardent les images lisibles, sans défaut et fidèles, et ne peuvent donc pas être modifiées.',
+  'rules.fixedNote': 'Activées par défaut : elles gardent les images lisibles, intactes et fidèles. Vous pouvez en désactiver une, pas la modifier.',
   'rules.taste': 'Votre goût',
   'rules.tasteNote': 'Nos choix par défaut, comme point de départ. Reformulez ou supprimez celles que vous voulez, ou ajoutez les vôtres ; la planification et les vérifications les suivent telles qu’elles sont.',
   'rules.damaged': 'Vos modifications des règles n’ont pas pu être lues : elles ont été conservées dans {file}. Les règles par défaut s’appliquent jusqu’à ce que vous modifiiez une règle.',
