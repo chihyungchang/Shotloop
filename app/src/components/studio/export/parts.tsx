@@ -10,8 +10,9 @@ import { AgentError } from '../../AgentError'
 import { Icon } from '../../Icon'
 import { VoiceDownload } from '../../VoiceDownload'
 
-// The export dialog's parts that keep their own state: the voice-over,
-// the music bed, 3D final quality and the publish copy
+// The sound's parts that keep their own state (the voice-over, the music
+// bed, the ambience and effects: the studio's Sound drawer) and the export
+// dialog's (its sound in one line, the publish copy)
 
 // The voice-over: off or on, and which voice, with a sample to listen to.
 // A new voice speaks every line again and the shots are fitted to it
@@ -110,25 +111,19 @@ function Listen({ preview, disabled }: { preview: ReturnType<typeof useAudioPrev
 // A mood the engine composes a bed in (data.mjs MUSIC_MOODS), in words
 const isMood = (preset: string | undefined) => !!preset && MUSIC_MOODS.includes(preset)
 
-// The music bed: none, a preset or the person's file, its volume, and a
-// listen button (the bed is made for the film's length, then played)
+// The music bed: none, a preset or the person's file, and its volume (it
+// is listened to among the Sound drawer's tracks)
 export function Music({ project, refresh }: { project: Project; refresh: () => void }) {
   const [music, setMusic] = useState<MusicInfo | null>(null)
-  const { error, setError, guard } = useErrorLine()
+  const { error, guard } = useErrorLine()
   useEffect(() => {
     guard(api.music(project.root)).then(m => m && setMusic(m))
   }, [project.root, guard])
-  const bed = useAudioPreview(useCallback(() => api.music(project.root, { bed: true }).then(r => r.bed), [project.root]), setError)
-
   const change = async (c: Parameters<typeof api.music>[1]) => {
-    const wasPlaying = bed.playing === 'on'
-    bed.stop()
     const next = await guard(api.music(project.root, c))
     if (!next) return
     setMusic(next)
     refresh()
-    // Picking another track while listening plays the new one
-    if (wasPlaying && !c?.none) bed.play()
   }
   const chooseFile = async () => {
     const file = await pick({ title: t('music.dialog'), filters: [{ name: t('filter.audio'), extensions: ['mp3', 'wav', 'm4a', 'aac', 'aiff', 'flac'] }] })
@@ -163,7 +158,6 @@ export function Music({ project, refresh }: { project: Project; refresh: () => v
             <input type="range" min={0} max={1.5} step={0.05} defaultValue={music.gain} key={`${music.kind}-${music.preset ?? music.name}`}
               onPointerUp={e => change({ gain: Number(e.currentTarget.value) })}
               onKeyUp={e => change({ gain: Number(e.currentTarget.value) })} aria-label={t('music.volume')} />
-            <Listen preview={bed} />
             {/* A preset is a mood: each pick is composed anew; this asks for another */}
             {music.kind === 'preset' && isMood(music.preset) && (
               <button className="link listen" onClick={() => change({ shuffle: true })} title={t('music.shuffleHint')}>
@@ -175,6 +169,34 @@ export function Music({ project, refresh }: { project: Project; refresh: () => v
       )}
       {error && <p className="xrow-note error">{error}</p>}
     </>
+  )
+}
+
+// The film's sound in one line, for the export: it is made and changed in
+// the studio's Sound drawer, which `open` shows
+export function SoundSummary({ project, open }: { project: Project; open: () => void }) {
+  const [sound, setSound] = useState<SoundInfo | null>(null)
+  const [music, setMusic] = useState<MusicInfo | null>(null)
+  const { error, guard } = useErrorLine()
+  useEffect(() => {
+    guard(api.sound(project.root)).then(s => s && setSound(s))
+    guard(api.music(project.root)).then(m => m && setMusic(m))
+  }, [project.root, guard])
+  const named = new Map(sound?.library.map(a => [a.id, a.name]) ?? [])
+  const musicName = !music || music.kind === 'none' ? t('music.none')
+    : music.kind === 'file' ? music.name ?? '' : isMood(music.preset) ? t(`music.${music.preset}` as Key) : t('music.custom')
+  const ambience = sound?.ambience ? named.get(sound.ambience) ?? t(`sound.amb.${sound.ambience}` as Key) : t('sound.none')
+  const effects = sound?.cues.length ? t('sound.count', { on: sound.cues.filter(c => c.on).length, n: sound.cues.length }) : t('sound.none')
+  return (
+    <div className="xrow">
+      <span className="xrow-label">{t('studio.sound')}</span>
+      <div className="chips">
+        <span className="small muted">
+          {error ?? `${t('voice.title')} ${t(project.voiced ? 'voice.on' : 'voice.off')} · ${t('music.title')} ${musicName} · ${t('sound.ambience')} ${ambience} · ${t('sound.effects')} ${effects}`}
+        </span>
+        <button className="link" onClick={open}>{t('sound.adjust')} <Icon name="arrow" size={11} /></button>
+      </div>
+    </div>
   )
 }
 

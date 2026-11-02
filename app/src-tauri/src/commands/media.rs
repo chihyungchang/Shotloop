@@ -43,8 +43,6 @@ pub struct MusicChange {
     file: Option<String>,
     none: Option<bool>,
     gain: Option<f64>,
-    /// The bed rendered alone, to listen to
-    bed: Option<bool>,
 }
 
 /// The project's music bed: read it, or set a preset, an audio file, none,
@@ -58,8 +56,7 @@ pub async fn music(handle: AppHandle, path: String, change: Option<MusicChange>)
             .flag(c.shuffle == Some(true), "--shuffle")
             .opt("--file", c.file)
             .flag(c.none == Some(true), "--none")
-            .opt("--gain", c.gain)
-            .flag(c.bed == Some(true), "--bed");
+            .opt("--gain", c.gain);
         engine(&handle, args)
     })
     .await
@@ -96,6 +93,13 @@ pub async fn sound(handle: AppHandle, path: String, change: Option<SoundChange>)
         engine(&handle, args)
     })
     .await
+}
+
+/// The film's sound tracks alone (voice, music, ambience, effects) and
+/// mixed, as WAVs to listen to while the sound is decided
+#[tauri::command]
+pub async fn sound_tracks(handle: AppHandle, path: String) -> Result<Value, String> {
+    blocking(move || engine(&handle, Args::new(["tracks", &path]))).await
 }
 
 /// The voice-over: read it (with the voices of the project's language), or

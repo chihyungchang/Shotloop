@@ -5,7 +5,7 @@ import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type {
   BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, SoundResult, PickedElement, PickMap, PreviewResult, ProgressEvent, ProjectSummary,
-  ShotStatus, StatusResult, Take, UsageEvent, UsageWindow, VoiceResult
+  ShotStatus, StatusResult, Take, TracksResult, UsageEvent, UsageWindow, VoiceResult
 } from '../../engine/shotloop/protocol'
 import type { Protocol } from './ai/presets'
 import { lang } from './i18n'
@@ -16,6 +16,7 @@ export type Shot = ShotStatus
 export type VoiceInfo = VoiceResult
 export type MusicInfo = MusicResult
 export type SoundInfo = SoundResult
+export type { TracksResult }
 // What the sound panel changes; nothing set reads it
 export interface SoundChange { ambience?: string; ambienceGain?: number; effects?: boolean; effectsGain?: number; cue?: string; kind?: string; on?: boolean }
 
@@ -295,7 +296,7 @@ interface NewProject {
 }
 
 // A change to the music bed (media.rs MusicChange); none reads it
-type MusicChange = { preset?: string; shuffle?: boolean; file?: string; none?: boolean; gain?: number; bed?: boolean }
+type MusicChange = { preset?: string; shuffle?: boolean; file?: string; none?: boolean; gain?: number }
 
 // Agent jobs (and an export's copy) reply in the UI language
 const SPOKEN: Spec['kind'][] = ['fix', 'check', 'plan', 'build', 'sound', 'publish', 'cover', 'export']
@@ -388,6 +389,8 @@ export const api = {
   music: (path: string, change?: MusicChange) => invoke<MusicInfo>('music', { path, change }),
   // The ambience and the sound effects, and which of them play
   sound: (path: string, change?: SoundChange) => invoke<SoundInfo>('sound', { path, change }),
+  // Each sound track alone and the mix, made (cached) to listen to
+  soundTracks: (path: string) => invoke<TracksResult>('sound_tracks', { path }),
   // What is where on a 2D shot's three stills, for the element picker
   pickMap: (path: string, shot: string) => invoke<PickMap>('pick_map', { path, shot }),
 }

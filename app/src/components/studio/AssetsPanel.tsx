@@ -37,7 +37,7 @@ export function AssetsPanel({ project, refresh }: { project: Project; refresh: (
   const row = (a: Asset, action: React.ReactNode) => (
     <div key={a.id} className="asset-row">
       {a.kind === 'sound'
-        ? <PlayButton src={async () => fileUrl(a.file)} onError={setError} />
+        ? <PlayButton file={async () => a.file} onError={setError} />
         : <span className="asset-row-thumb">{a.thumb ? <img src={fileUrl(a.thumb)} alt="" /> : <Icon name="cube" size={16} />}</span>}
       <span className="asset-row-text">
         <strong className="ellipsis">{a.name}</strong>

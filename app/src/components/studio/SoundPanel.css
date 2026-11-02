@@ -1,0 +1,20 @@
+/* The studio's Sound drawer: making the sound, its tracks to listen to,
+   then the controls (the same rows the export dialog had).
+   Layer and order: styles/index.css. */
+
+@layer components {
+
+.sound-panel { display: flex; flex-direction: column; gap: 10px; padding: 0 16px 16px; }
+.sound-panel h3 { font: 600 12px/1.4 var(--font-sans); color: var(--text-2); margin: 10px 0 0; }
+.sound-make { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px; border-radius: var(--r-lg); background: var(--surface-2); }
+.sound-make p { margin: 0; }
+.track-list { display: flex; flex-direction: column; gap: 2px; }
+.track { display: flex; align-items: center; gap: 10px; min-height: 38px; padding: 2px 6px; border-radius: var(--r-md); font-size: 13px; }
+.track:hover { background: var(--surface-2); }
+.track.absent > span:first-of-type { color: var(--text-3); }
+.track .muted { margin-left: auto; }
+/* The export dialog's rows, in a narrower column */
+.sound-controls { display: flex; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border-soft); }
+.sound-controls .xrow { grid-template-columns: 1fr; gap: 6px; }
+
+}

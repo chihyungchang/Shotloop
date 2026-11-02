@@ -385,6 +385,16 @@ export interface VoiceResult {
   sample?: string
 }
 
+// shotloop tracks <project>: each WAV, or null where the film has none
+export interface TracksResult {
+  voice: string | null
+  music: string | null
+  ambience: string | null
+  effects: string | null
+  // Everything as the film plays it
+  mix: string | null
+}
+
 // shotloop music <project>
 // shotloop sound <project> [changes]: the ambience and the shots' sound
 // effects (engine/shotloop/sound.mjs), each with whether it is on
@@ -421,7 +431,5 @@ export interface MusicResult {
   // The person's audio file
   name?: string
   gain: number
-  // --bed: the bed itself
-  bed?: string | null
 }
 

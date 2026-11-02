@@ -27,6 +27,7 @@ import { loadProject, localPath, projectPath, updateConfig } from './project.mjs
 import { isStarter } from './starters.mjs'
 import { STORYBOARD_FILE } from './storyboard.mjs'
 import { dressClips } from './subtitles.mjs'
+import { musicBed } from './bed.mjs'
 import { withAmbience, withEffects } from './sound.mjs'
 
 const LEAD = VOICE_LEAD
@@ -340,20 +341,48 @@ async function soundtrack(project, music, lines) {
 // record: what the whole film plays is kept for pruneVoice (a single
 // shot's preview is not the film, so it doesn't replace that record)
 export async function dressFilm(project, mode, clips, music, { strict = false, record = true } = {}) {
-  // The ambience joins the music as the bed the voice ducks; the effects
-  // go over the result, kept off the spoken lines (sound.mjs)
-  const bed = await withAmbience(project, music)
-  if (!voiceOn(project)) return { clips, audio: await withEffects(project, bed, []) }
+  if (!voiceOn(project)) return { clips, audio: await mixSound(project, music, []) }
   try {
     const lines = await voiceLines(project)
     const { clips: dressed, subs } = await dressClips(project, mode, clips, lines)
-    const audio = await withEffects(project, await soundtrack(project, bed, lines), lines)
+    const audio = await mixSound(project, music, lines)
     if (record) writeJson(path.join(voiceDir(project), `used-${mode}.json`), [...dressed, audio, subs].filter(Boolean).map(f => projectPath(project, f)))
     return { clips: dressed, audio }
   } catch (err) {
     if (strict) throw err
     emit({ type: 'log', message: `voice-over left out: ${err.message}` })
-    return { clips, audio: await withEffects(project, bed, []) }
+    return { clips, audio: await mixSound(project, music, []) }
+  }
+}
+
+// The film's sound from its parts: the ambience joins the music as the bed
+// the voice ducks, and the effects go over the result, kept off the spoken
+// lines (sound.mjs). lines: the voice's, [] without one
+async function mixSound(project, music, lines) {
+  const bed = await withAmbience(project, music)
+  return withEffects(project, lines.length ? await soundtrack(project, bed, lines) : bed, lines)
+}
+
+// Each of the film's sound tracks alone, and all of them mixed, to listen
+// to while the sound is decided (cached files; null where there is none).
+// A voice-over that can't be spoken (its model missing) is left out and
+// said, as in a preview
+export async function soundTracks(project) {
+  const music = await musicBed(project)
+  let lines = []
+  if (voiceOn(project)) {
+    try {
+      lines = await voiceLines(project)
+    } catch (err) {
+      emit({ type: 'log', message: `voice-over left out: ${err.message}` })
+    }
+  }
+  return {
+    voice: lines.length ? await voiceTrack(project, lines) : null,
+    music,
+    ambience: await withAmbience(project, null),
+    effects: await withEffects(project, null, lines),
+    mix: await mixSound(project, music, lines)
   }
 }
 

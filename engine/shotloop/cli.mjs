@@ -34,13 +34,15 @@
 //   shotloop sound    <project> [--ambience room|wind|space|machine|night|none] [--ambience-gain 0–2]
 //                     [--effects on|off] [--effects-gain 0–2] [--cue <shot>@<at>:<sound> | --kind <sound>] [--off]
 //                     the ambience and the shots' sound effects (sounds.json), which are on
+//   shotloop tracks   <project>                          the sound's tracks alone (voice, music, ambience,
+//                     effects) and mixed, as WAVs to listen to (null where there is none)
 //   shotloop voice-models [--download <id>]                the speech models: languages, size, license,
 //                     on this Mac or not; --download fetches one (progress in MB)
 //   shotloop check-subtitles <project> [--shot <id>]      what the voice-over's subtitles would cover
 //                     (text, data-keep elements, subtitles.keep regions); fails when it covers anything
 //   shotloop pick     <project> --shot <id>             what is where on a 2D shot's three stills,
 //                     for the person to point at what the agent should change
-//   shotloop music    <project> [--preset calm|bright|groove|tech|tense | --shuffle | --file <audio> | --none] [--gain 0–2] [--bed]
+//   shotloop music    <project> [--preset calm|bright|groove|tech|tense | --shuffle | --file <audio> | --none] [--gain 0–2]
 //   shotloop covers   list | save <project> [--title <name>] | apply <project> <id> | remove <id>
 //                     | reference <project> --file <image>     cover templates, an image to design after
 //   shotloop memory   list | add --text "…" | remove <id>       the AI's memory: the person's notes, its lessons
@@ -79,8 +81,7 @@ import * as memory from './memory.mjs'
 import * as rules from './rules.mjs'
 import { renderShot } from './render.mjs'
 import { pickMap } from './pick.mjs'
-import { musicBed } from './bed.mjs'
-import { fitVoice, pruneVoice, sampleVoice, setLines, setVoice, voiceInfo, voiceModels } from './voice.mjs'
+import { fitVoice, pruneVoice, sampleVoice, setLines, setVoice, soundTracks, voiceInfo, voiceModels } from './voice.mjs'
 import { voiceCues, voiceOn } from './cues.mjs'
 import { AMBIENCE_NAMES, EFFECT_NAMES, projectSounds, setSound, soundCues } from './sound.mjs'
 import { checkSubtitles, describeIssues } from './check.mjs'
@@ -112,7 +113,6 @@ const OPTIONS = {
     'voice-over': { type: 'boolean' },
     to: { type: 'string' },
     reset: { type: 'boolean' },
-    bed: { type: 'boolean' },
     all: { type: 'boolean' },
     file: { type: 'string' },
     none: { type: 'boolean' },
@@ -358,8 +358,7 @@ try {
       const project = loadProject(args[0])
       const change = values.preset || values.shuffle || values.file || values.none || values.gain != null
       const info = change ? setMusic(project, { preset: values.preset, shuffle: values.shuffle, file: values.file, none: values.none, gain: values.gain }) : musicInfo(project)
-      // --bed: the bed itself, to listen to (made now if needed)
-      result(values.bed ? { ...info, bed: await musicBed(loadProject(args[0])) } : info)
+      result(info)
       break
     }
     case 'voice': {
@@ -388,6 +387,10 @@ try {
       result({ ...now, ambiences: AMBIENCE_NAMES, sounds: EFFECT_NAMES, library })
       break
     }
+    case 'tracks':
+      // The film's sound tracks alone and mixed, to listen to
+      result(await soundTracks(loadProject(args[0])))
+      break
     case 'voice-models':
       result(await voiceModels({ download: values.download }))
       break

@@ -41,12 +41,12 @@ function License({ license }: { license: string }) {
 
 // A sound as a row: played in place, then its name, author, length and
 // licence, and the row's own actions after
-function SoundRow({ name, author, duration, license, src, onError, children }: {
-  name: string; author: string; duration?: number | null; license: string; src: () => Promise<string>; onError: (e: string) => void; children: ReactNode
+function SoundRow({ name, author, duration, license, file, onError, children }: {
+  name: string; author: string; duration?: number | null; license: string; file: () => Promise<string>; onError: (e: string) => void; children: ReactNode
 }) {
   return (
     <div className="audio-row">
-      <PlayButton src={src} onError={onError} />
+      <PlayButton file={file} onError={onError} />
       <span className="audio-text">
         <strong className="ellipsis" title={name}>{name}</strong>
         <span className="small muted ellipsis">{author}{duration ? ` · ${formatSeconds(duration)}` : ''}</span>
@@ -245,7 +245,7 @@ function Search({ kind, have, onAdded, openSettings }: { kind: AssetKind; have: 
         <div className="audio-list">
           {results.map(it => (
             <SoundRow key={it.id} name={it.name} author={it.author} duration={it.duration} license={it.license}
-              src={async () => fileUrl((await api.libraryPreview(it)).file)} onError={setError}>
+              file={async () => (await api.libraryPreview(it)).file} onError={setError}>
               {foot(it)}
             </SoundRow>
           ))}
@@ -312,7 +312,7 @@ function Mine({ kind, assets, reload }: { kind: AssetKind; assets: Asset[] | nul
     {error && <div className="error-box small">{error}</div>}
     <div className="audio-list">
       {assets.map(a => (
-        <SoundRow key={a.id} name={a.name} author={a.author} duration={a.duration} license={a.license} src={async () => fileUrl(a.file)} onError={setError}>
+        <SoundRow key={a.id} name={a.name} author={a.author} duration={a.duration} license={a.license} file={async () => a.file} onError={setError}>
           {actions(a)}
         </SoundRow>
       ))}
