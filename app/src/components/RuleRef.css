@@ -1,0 +1,14 @@
+/* A check's rule: its kind and name, a link to Settings → Rules.
+   Layer and order: styles/index.css. */
+
+@layer components {
+
+.rule-ref { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; min-height: 0; padding: 1px 7px 1px 2px; border: 1px solid var(--border);
+  border-radius: var(--r-pill); background: var(--surface); font-size: 11.5px; font-weight: 500; color: var(--text); vertical-align: middle; }
+.rule-ref:hover:not(:disabled) { border-color: var(--border-strong); background: var(--surface-2); }
+.rule-ref .icon { flex: none; opacity: 0.5; }
+.rule-kind { flex: none; padding: 0 6px; border-radius: var(--r-pill); font-size: 10.5px; font-weight: 600; background: var(--info-soft); color: var(--info); }
+.rule-kind.fixed { background: var(--surface-2); color: var(--text-2); }
+.rule-refs { display: flex; flex-wrap: wrap; gap: 4px; }
+
+}

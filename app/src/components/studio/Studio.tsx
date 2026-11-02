@@ -35,13 +35,15 @@ const clampWidth = (w: number) => Math.round(Math.min(AGENT_MAX, Math.max(AGENT_
 // the left, the shot on a dark stage in the middle with the filmstrip and
 // the shot's notes under it, the queue in a drawer on the right, export
 // in a dialog over it; Finder and theme sit in the "more" menu.
-export function Studio({ project, jobs, refresh, close, theme, openSettings, openPlan, save, saving }: {
+export function Studio({ project, jobs, refresh, close, theme, openSettings, openRule, openPlan, save, saving }: {
   project: Project
   jobs: Job[]
   refresh: () => void
   close: () => void
   theme: ReturnType<typeof useTheme>
   openSettings: () => void
+  // Settings → Rules at a rule (a check's reference)
+  openRule: (id: string) => void
   openPlan: () => void
   // A draft (an example opened): saving keeps it
   save?: () => void
@@ -195,7 +197,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
       </header>
 
       {shot && view ? (
-        <AgentPanel key={`agent-${shot.id}`} project={project} shot={shot} jobs={jobs} openSettings={openSettings}
+        <AgentPanel key={`agent-${shot.id}`} project={project} shot={shot} jobs={jobs} openSettings={openSettings} openRule={openRule}
           picker={picker} />
       ) : <aside className="agent" />}
       <AgentResizer keep={keepWidth} />
@@ -207,7 +209,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
           : <div className="stage empty">{t('studio.noShots')}</div>}
         <Filmstrip project={project} views={views} mode={mode} selected={selected} onSelect={setSelected} />
         <AudioTimeline project={project} jobs={jobs} refresh={refresh} selected={selected} onSelect={setSelected} onFollow={setFollow} />
-        {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} editPlan={openPlan}
+        {shot && <ShotNotes key={`notes-${shot.id}`} project={project} shot={shot} editPlan={openPlan} openRule={openRule}
           busy={active.some(j => j.project === project.root && j.shot === shot.id)} />}
       </section>
 
