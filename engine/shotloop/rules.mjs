@@ -8,14 +8,15 @@
 // - TASTE: the house taste, set by Oliver with a viewer who watches a lot
 //   of English short video (31 Oct 2026). Defaults: the person can reword
 //   or remove any of them, restore it, and add their own.
-// - TOOLS: the devices a plan picks from, each for the tracks it fits
+// - TOOLS: the devices a plan picks from, each for the tracks it fits,
+//   any of them switched off or on by the person
 //   (`tracks`; a 2D device that can be staged in 3D says how in `text3d`).
 //   The built-in ones stay as they are (2D ones with an example still in
 //   tools/<id>.jpg); the person can add their own, with a picture.
 //
 // What the person changed lives in their rules folder:
 //
-//   rules/rules.json   { fixedOff: [<id>],
+//   rules/rules.json   { fixedOff: [<id>], toolsOff: [<id>],
 //                        taste: { <id>: { text } | { off: true } },
 //                        mine: [{ id, text, track, created }],
 //                        tools: [{ id, name, text, track, image, created }] }
@@ -277,6 +278,7 @@ function load() {
   }
   return {
     fixedOff: Array.isArray(saved.fixedOff) ? saved.fixedOff.filter(id => FIXED.some(r => r.id === id)) : [],
+    toolsOff: Array.isArray(saved.toolsOff) ? saved.toolsOff.map(String) : [],
     taste: saved.taste && typeof saved.taste === 'object' ? saved.taste : {},
     mine: Array.isArray(saved.mine) ? saved.mine.filter(r => r?.id && r.text) : [],
     tools: Array.isArray(saved.tools) ? saved.tools.filter(r => r?.id && r.name) : []
@@ -317,8 +319,8 @@ export function list() {
     fixed: FIXED.map(r => ({ ...r, off: saved.fixedOff.includes(r.id) })),
     taste: [...builtIn, ...mine],
     tools: [
-      ...TOOLS.map(t => ({ ...t, builtIn: true, image: fs.existsSync(still(t.id)) ? still(t.id) : null })),
-      ...saved.tools.map(t => ({ id: t.id, group: 'mine', tracks: tracksOf(t.track), name: t.name, text: t.text ?? '', builtIn: false, image: t.image ? path.join(RULES, safeId(t.image, 'a picture')) : null }))
+      ...TOOLS.map(t => ({ ...t, builtIn: true, off: saved.toolsOff.includes(t.id), image: fs.existsSync(still(t.id)) ? still(t.id) : null })),
+      ...saved.tools.map(t => ({ id: t.id, group: 'mine', tracks: tracksOf(t.track), name: t.name, text: t.text ?? '', builtIn: false, off: saved.toolsOff.includes(t.id), image: t.image ? path.join(RULES, safeId(t.image, 'a picture')) : null }))
     ]
   }
 }
@@ -364,10 +366,14 @@ export function remove(id) {
   return list()
 }
 
-// A fixed rule switched off or on again
-export function switchFixed(id, on) {
-  if (!FIXED.some(r => r.id === id)) throw new Error(`no fixed rule ${id}`)
-  save(s => { s.fixedOff = on ? s.fixedOff.filter(x => x !== id) : [...new Set([...s.fixedOff, id])] })
+// A fixed rule or a tool (built-in or the person's) switched off or on
+export function setOn(id, on) {
+  const flip = ids => (on ? ids.filter(x => x !== id) : [...new Set([...ids, id])])
+  save(s => {
+    if (FIXED.some(r => r.id === id)) s.fixedOff = flip(s.fixedOff)
+    else if (TOOLS.some(t => t.id === id) || s.tools.some(t => t.id === id)) s.toolsOff = flip(s.toolsOff)
+    else throw new Error(`no fixed rule or tool ${id}`)
+  })
   return list()
 }
 
@@ -411,6 +417,7 @@ export function removeTool(id) {
     if (!tool) throw new Error(`no tool ${id}`)
     image = tool.image
     s.tools = s.tools.filter(t => t.id !== id)
+    s.toolsOff = s.toolsOff.filter(x => x !== id)
   })
   if (image) fs.rmSync(path.join(RULES, safeId(image, 'a picture')), { force: true })
   return list()

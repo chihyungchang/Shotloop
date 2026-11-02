@@ -249,7 +249,7 @@ export interface Rule {
   edited?: boolean
   off?: boolean
 }
-export interface RuleTool { id: string; group: 'story' | 'science' | 'camera' | 'frame' | 'cut' | 'staging' | 'light' | 'explain' | 'mine'; tracks: ('2d' | '3d')[]; name: string; text: string; builtIn: boolean; image: string | null }
+export interface RuleTool { id: string; group: 'story' | 'science' | 'camera' | 'frame' | 'cut' | 'staging' | 'light' | 'explain' | 'mine'; tracks: ('2d' | '3d')[]; name: string; text: string; builtIn: boolean; off: boolean; image: string | null }
 // damaged: where a rules file that couldn't be read was set aside, while
 // the defaults stand in for it
 export interface Rules { damaged: string | null; fixed: Rule[]; taste: Rule[]; tools: RuleTool[] }
@@ -353,8 +353,8 @@ export const api = {
   editRule: (id: string, text: string) => invoke<Rules>('rules', { action: 'edit', id, text }),
   removeRule: (id: string) => invoke<Rules>('rules', { action: 'remove', id }),
   resetRule: (id: string) => invoke<Rules>('rules', { action: 'reset', id }),
-  // A fixed rule switched off or on
-  switchFixed: (id: string, on: boolean) => invoke<Rules>('rules', { action: 'switch', id, on }),
+  // A fixed rule or a tool switched off or on
+  switchOn: (id: string, on: boolean) => invoke<Rules>('rules', { action: 'switch', id, on }),
   addRule: (text: string, track: RuleTrack) => invoke<Rules>('rules', { action: 'add', text, track }),
   addTool: (name: string, text: string, file: string | null, track: RuleTrack) => invoke<Rules>('rules', { action: 'add-tool', name, text, file, track }),
   removeTool: (id: string) => invoke<Rules>('rules', { action: 'remove-tool', id }),

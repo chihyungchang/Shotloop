@@ -32,7 +32,7 @@ export function RulesSettings() {
 
   const count: Record<Tab, number> = {
     taste: rules?.taste.filter(r => shown(r.track) && !r.off).length ?? 0,
-    tools: rules?.tools.filter(tool => show === 'all' || tool.tracks.includes(show)).length ?? 0,
+    tools: rules?.tools.filter(tool => !tool.off && (show === 'all' || tool.tracks.includes(show))).length ?? 0,
     fixed: rules?.fixed.filter(r => shown(r.track) && !r.off).length ?? 0
   }
   const note = TABS.find(([id]) => id === tab)![2]
@@ -69,8 +69,8 @@ export function RulesSettings() {
                 return tools.length > 0 && (
                   <div key={group} className="tool-group">
                     <h5>{t(label)}</h5>
-                    <div className="tool-grid">
-                      {tools.map(tool => <ToolCard key={tool.id} tool={tool} show={show} run={run} />)}
+                    <div className="rule-list">
+                      {tools.map(tool => <ToolRow key={tool.id} tool={tool} show={show} run={run} />)}
                     </div>
                   </div>
                 )
@@ -132,7 +132,7 @@ function FixedRow({ r, run }: { r: Rule; run: Run }) {
         {r.off && <span className="tag">{t('rules.off')}</span>}
         <span className="rule-about">{ruleAbout(r.id)}</span>
       </div>
-      <input type="checkbox" className="switch" checked={!r.off} onChange={e => run(api.switchFixed(r.id, e.target.checked))} aria-label={name} />
+      <input type="checkbox" className="switch" checked={!r.off} onChange={e => run(api.switchOn(r.id, e.target.checked))} aria-label={name} />
     </label>
   )
 }
@@ -220,25 +220,31 @@ function AddRule({ run, track: shown }: { run: Run; track: RuleTrack }) {
   )
 }
 
-function ToolCard({ tool, show, run }: { tool: RuleTool; show: RuleTrack; run: Run }) {
+// A tool: its name and what it does, a switch, and (the person's own) a
+// delete; its example still appears beside it only while it is hovered
+function ToolRow({ tool, show, run }: { tool: RuleTool; show: RuleTrack; run: Run }) {
   const image = tool.builtIn ? toolStill(tool.id) : tool.image && fileUrl(tool.image)
   // How a 2D device is staged in 3D, when the page shows 3D
   const about = tool.builtIn ? (show === '3d' && toolAbout3d(tool.id)) || ruleAbout(tool.id) : tool.text
   const name = tool.builtIn ? ruleName(tool.id, tool.name) : tool.name
   return (
-    <figure className="tool-card" title={about ? `${name}: ${about}` : name}>
-      <span className="tool-pic">
-        {image ? <img src={image} alt="" /> : <Icon name="image" size={18} />}
+    <div className={`rule-row tool-row${tool.off ? ' off' : ''}`}>
+      <div className="rule-text">
+        <span className="rule-name">{name}</span>
         {/* Which tracks it fits, when the page shows both */}
-        {show === 'all' && <span className="tool-tracks">{tool.tracks.map(k => k.toUpperCase()).join(' · ')}</span>}
-        {!tool.builtIn && (
-          <button className="icon-button tool-remove" onClick={() => run(api.removeTool(tool.id))} title={t('rules.remove')} aria-label={t('rules.remove')}>
-            <Icon name="trash" size={13} />
-          </button>
-        )}
-      </span>
-      <figcaption>{name}</figcaption>
-    </figure>
+        {show === 'all' && <span className="tag">{tool.tracks.map(k => k.toUpperCase()).join(' · ')}</span>}
+        {!tool.builtIn && <span className="tag">{t('rules.yours')}</span>}
+        {tool.off && <span className="tag">{t('rules.off')}</span>}
+        {about && <span className="rule-about">{about}</span>}
+      </div>
+      {image && <img className="tool-preview" src={image} alt="" loading="lazy" />}
+      {!tool.builtIn && (
+        <button className="icon-button" onClick={() => run(api.removeTool(tool.id))} title={t('rules.remove')} aria-label={t('rules.remove')}>
+          <Icon name="trash" size={14} />
+        </button>
+      )}
+      <input type="checkbox" className="switch" checked={!tool.off} onChange={e => run(api.switchOn(tool.id, e.target.checked))} aria-label={name} />
+    </div>
   )
 }
 

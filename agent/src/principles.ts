@@ -12,7 +12,7 @@ const RULES = rules.list()
 const said = (r: Rule) => (r.name ? `${r.name}. ${r.rule}` : r.rule)
 const forTrack = (track: Track) => (r: Rule) => r.track === 'all' || r.track === track
 const tools = (track: Track, group: Tool['group']) => RULES.tools
-  .filter(t => t.group === group && t.tracks.includes(track))
+  .filter(t => !t.off && t.group === group && t.tracks.includes(track))
   .map(t => {
     const text = track === '3d' && t.text3d ? t.text3d : t.text
     return `- ${t.name}${text ? `: ${text}` : ''}`
