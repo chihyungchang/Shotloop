@@ -1,7 +1,10 @@
 // The film's sound beyond the music and the voice: an ambience under the
 // whole film and sound effects on the picture's beats. Both are made here
 // by a small deterministic synth (no samples, no downloads, nothing to
-// license), like the music bed (synth.mjs).
+// license), like the music bed (synth.mjs), or are sounds the person added
+// from the asset library (assets/<id>/, named by their id): an effect is
+// cut to 8 s and set to the synth's peak, an ambience loops (crossfaded)
+// at the synth room's loudness (BS.1770, as the ear weighs it).
 //
 //   shots/<id>/sounds.json   the shot's effects, written with its code, so
 //                            they land on its animation:
@@ -19,10 +22,12 @@
 
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { cachedFile } from './cache.mjs'
 import { emit, ffmpeg } from './compose.mjs'
 import { readJson, writeJson } from './files.mjs'
+import { projectAssets } from './library.mjs'
 import { wav } from './synth.mjs'
 
 const RATE = 44100
@@ -109,22 +114,67 @@ const soundDir = project => path.join(project.state, 'sound')
 const settings = project => ({ ambience: null, ambienceGain: 1, effects: true, effectsGain: 1, off: [], ...(project.config.sound ?? {}) })
 const cueKey = (shot, at, sound) => `${shot}@${Number(at).toFixed(2)}:${sound}`
 
-// One effect as a WAV, made once
+// The sounds the person added to the project from the asset library, by id
+export const projectSounds = project => new Map(projectAssets(project).filter(a => a.kind === 'sound').map(a => [a.id, a]))
+
+// A library sound's longest effect, and its fades; an ambience source is
+// read up to two minutes (it loops), crossfading over 1.5 s at each seam
+const EFFECT_MAX = 8
+const AMB_SOURCE_MAX = 120
+const AMB_SEAM = 1.5
+// The synth room's loudness at the level the synths are made to (a 0.5
+// peak): a recording is set to it, so a chosen level sounds alike either
+// way, raised by at most AMB_MAX_GAIN dB (a near-silent file stays quiet
+// rather than turning its hiss up)
+const AMB_LUFS = -23
+const AMB_MAX_GAIN = 24
+
+const fileKey = file => createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0, 12)
+
+// A sound file as float samples per channel at the mix's rate, up to
+// `seconds` long
+async function decode(file, channels, seconds) {
+  const raw = path.join(os.tmpdir(), `shotloop-${process.pid}-${createHash('sha1').update(file).digest('hex').slice(0, 8)}.f32`)
+  try {
+    await ffmpeg(['-i', file, '-t', String(seconds), '-vn', '-ac', String(channels), '-ar', String(RATE), '-f', 'f32le', raw])
+    const all = new Float32Array(new Uint8Array(fs.readFileSync(raw)).buffer)
+    return Array.from({ length: channels }, (_, c) => all.filter((_, i) => i % channels === c))
+  } finally {
+    fs.rmSync(raw, { force: true })
+  }
+}
+
+// One effect as a WAV, made once: a synth one, or a library sound cut to
+// EFFECT_MAX and set to the synth effects' peak
 async function effectFile(project, sound) {
   const e = EFFECTS[sound]
-  const key = createHash('sha256').update(`${SOUND_VERSION}:${sound}:${e.make}`).digest('hex').slice(0, 12)
-  return cachedFile(path.join(soundDir(project), 'fx', `${sound}-${key}.wav`), part => {
-    const b = buffer(e.len)
-    e.make(b, noiseFrom(1 + EFFECT_NAMES.indexOf(sound)))
-    fs.writeFileSync(part, wav({ L: b, rate: RATE }))
+  const asset = !e && projectSounds(project).get(sound)
+  const key = createHash('sha256').update(`${SOUND_VERSION}:${sound}:${e ? e.make : fileKey(asset.file)}`).digest('hex').slice(0, 12)
+  return cachedFile(path.join(soundDir(project), 'fx', `${sound}-${key}.wav`), async part => {
+    if (e) {
+      const b = buffer(e.len)
+      e.make(b, noiseFrom(1 + EFFECT_NAMES.indexOf(sound)))
+      return fs.writeFileSync(part, wav({ L: b, rate: RATE }))
+    }
+    const [b] = await decode(asset.file, 1, EFFECT_MAX)
+    // A sound cut short fades over its last 0.3 s instead of clicking off
+    const f = Math.min(b.length, RATE * 0.3)
+    if (b.length >= EFFECT_MAX * RATE - 1) for (let i = 0; i < f; i++) b[b.length - 1 - i] *= i / f
+    const peak = b.reduce((m, x) => Math.max(m, Math.abs(x)), 0) || 1
+    fs.writeFileSync(part, wav({ L: b, norm: 0.8 / peak, rate: RATE }))
   })
 }
+
+// How an effect plays: a synth one as made; a library one as long as its
+// file, never moved off a word (it sits a little lower under one instead)
+const effectSpec = (sound, file) => EFFECTS[sound] ?? { len: (fs.statSync(file).size - 44) / 2 / RATE, loud: false }
 
 // Every effect the shots ask for, in film time, each with its key and
 // whether the person has it on
 export function soundCues(project) {
   const s = settings(project)
   const off = new Set(s.off)
+  const library = projectSounds(project)
   return project.shots.flatMap(shot => {
     const file = path.join(shot.dir, 'sounds.json')
     let list = []
@@ -134,8 +184,8 @@ export function soundCues(project) {
       emit({ type: 'log', message: `${shot.id}: sounds.json left out (${err.message})` })
     }
     return (Array.isArray(list) ? list : []).flatMap(c => {
-      if (!EFFECTS[c?.sound] || !(c.at >= 0 && c.at <= shot.duration)) {
-        emit({ type: 'log', message: `${shot.id}: sound ${JSON.stringify(c?.sound)} at ${c?.at} s left out (sounds: ${EFFECT_NAMES.join(', ')}; at within the shot)` })
+      if (!(EFFECTS[c?.sound] || library.has(c?.sound)) || !(c.at >= 0 && c.at <= shot.duration)) {
+        emit({ type: 'log', message: `${shot.id}: sound ${JSON.stringify(c?.sound)} at ${c?.at} s left out (sounds: ${[...EFFECT_NAMES, ...library.keys()].join(', ')}; at within the shot)` })
         return []
       }
       const key = cueKey(shot.id, c.at, c.sound)
@@ -153,8 +203,9 @@ export function soundCues(project) {
 export function setSound(project, { ambience, ambienceGain, effects, effectsGain, cue, kind, on } = {}) {
   const cfg = JSON.parse(fs.readFileSync(path.join(project.root, 'shotloop.json'), 'utf8'))
   const s = { ...settings(project) }
+  const library = projectSounds(project)
   if (ambience !== undefined) {
-    if (ambience && !AMBIENCES[ambience]) throw new Error(`ambience is one of ${AMBIENCE_NAMES.join(', ')} or none`)
+    if (ambience && !AMBIENCES[ambience] && !library.has(ambience)) throw new Error(`ambience is one of ${[...AMBIENCE_NAMES, ...library.keys()].join(', ')} or none`)
     s.ambience = ambience || null
     // The person's choice: a later plan keeps it
     s.chosen = true
@@ -165,30 +216,90 @@ export function setSound(project, { ambience, ambienceGain, effects, effectsGain
   const flip = id => { s.off = on ? s.off.filter(x => x !== id) : [...new Set([...s.off, id])] }
   if (cue) flip(cue)
   if (kind) {
-    if (!EFFECTS[kind]) throw new Error(`no sound ${kind}`)
+    if (!EFFECTS[kind] && !library.has(kind)) throw new Error(`no sound ${kind}`)
     flip(`kind:${kind}`)
   }
   writeJson(path.join(project.root, 'shotloop.json'), { ...cfg, sound: s })
   return { ...s, cues: soundCues({ ...project, config: { ...cfg, sound: s } }) }
 }
 
+// A recording repeated to n samples, each repeat crossfading into the
+// next over AMB_SEAM (a short recording just repeats); an empty one is
+// silence
+function looped(src, n) {
+  const out = new Float32Array(n)
+  if (src.length < 3) return out
+  const seam = Math.min(Math.round(AMB_SEAM * RATE), Math.floor(src.length / 3))
+  const step = src.length - seam
+  for (let start = 0; start < n; start += step) {
+    for (let i = 0; i < src.length && start + i < n; i++) {
+      const fadeIn = start && i < seam ? i / seam : 1
+      const fadeOut = i >= step && start + step < n ? (src.length - i) / seam : 1
+      out[start + i] += src[i] * fadeIn * fadeOut
+    }
+  }
+  return out
+}
+
+// One biquad over a signal (RBJ cookbook coefficients, normalised by a0)
+function biquad(x, [b0, b1, b2, a0, a1, a2]) {
+  const y = new Float32Array(x.length)
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0
+  for (let i = 0; i < x.length; i++) {
+    y[i] = (b0 * x[i] + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2) / a0
+    x2 = x1; x1 = x[i]; y2 = y1; y1 = y[i]
+  }
+  return y
+}
+
+// Loudness in LUFS (ITU-R BS.1770 K-weighting: a +4 dB shelf above 1.5 kHz
+// and a 38 Hz high pass), ungated: an ambience is steady
+function loudness(channels) {
+  const w = f => 2 * Math.PI * f / RATE
+  const A = 10 ** (4 / 40), cs = Math.cos(w(1500)), as = Math.sin(w(1500)) / Math.SQRT2 * Math.sqrt(A)
+  const shelf = [A * ((A + 1) + (A - 1) * cs + 2 * as), -2 * A * ((A - 1) + (A + 1) * cs), A * ((A + 1) + (A - 1) * cs - 2 * as),
+    (A + 1) - (A - 1) * cs + 2 * as, 2 * ((A - 1) - (A + 1) * cs), (A + 1) - (A - 1) * cs - 2 * as]
+  const ch = Math.cos(w(38)), ah = Math.sin(w(38)) // Q 0.5: alpha = sin / (2 · 0.5)
+  const highpass = [(1 + ch) / 2, -(1 + ch), (1 + ch) / 2, 1 + ah, -2 * ch, 1 - ah]
+  const power = channels.reduce((sum, c) => sum + biquad(biquad(c, shelf), highpass).reduce((s, x) => s + x * x, 0) / c.length, 0)
+  return -0.691 + 10 * Math.log10(power || 1e-12)
+}
+
+// The ambience's channels for the whole film, before its fades: the synth's
+// (made to a 0.5 peak), or a recording looped and set to the room's loudness
+async function ambienceChannels(project, ambience, d) {
+  if (AMBIENCES[ambience]) {
+    const b = buffer(d)
+    AMBIENCES[ambience](b, noiseFrom(7 + AMBIENCE_NAMES.indexOf(ambience)))
+    const peak = b.reduce((m, x) => Math.max(m, Math.abs(x)), 0) || 1
+    return { L: b.map(x => x * 0.5 / peak) }
+  }
+  const [l, r] = (await decode(projectSounds(project).get(ambience).file, 2, AMB_SOURCE_MAX)).map(c => looped(c, Math.round(d * RATE)))
+  const k = 10 ** (Math.min(AMB_MAX_GAIN, AMB_LUFS - loudness([l, r])) / 20)
+  return { L: l.map(x => x * k), R: r.map(x => x * k) }
+}
+
 // The ambience under the music: the bed the voice ducks. Without one
-// chosen, the music as it was
+// chosen (or one whose sound left the project), the music as it was
 export async function withAmbience(project, music) {
   const { ambience, ambienceGain } = settings(project)
-  if (!ambience || !AMBIENCES[ambience]) return music
+  const asset = ambience && projectSounds(project).get(ambience)
+  if (ambience && !AMBIENCES[ambience] && !asset) {
+    emit({ type: 'log', message: `ambience ${ambience} left out: that sound is no longer in the project's assets (choose another under Export)` })
+    return music
+  }
+  if (!ambience) return music
   const d = project.duration
-  const key = createHash('sha256').update(`${SOUND_VERSION}:${ambience}:${ambienceGain}:${d}:${AMBIENCES[ambience]}:${music ? path.basename(music) : ''}`).digest('hex').slice(0, 16)
+  const source = AMBIENCES[ambience] ? String(AMBIENCES[ambience]) : `${fileKey(asset.file)}:${looped}:${loudness}:${AMB_LUFS}:${AMB_MAX_GAIN}`
+  const key = createHash('sha256').update(`${SOUND_VERSION}:${ambience}:${ambienceGain}:${d}:${source}:${music ? path.basename(music) : ''}`).digest('hex').slice(0, 16)
   return cachedFile(path.join(soundDir(project), 'bed', `${key}.wav`), async part => {
     const amb = part.replace(/\.wav$/, '.amb.wav')
     try {
-      const b = buffer(d)
-      AMBIENCES[ambience](b, noiseFrom(7 + AMBIENCE_NAMES.indexOf(ambience)))
-      // Fades in and out with the film; made to a fixed peak, then set low
-      const f = Math.min(b.length / 4, RATE * 0.8)
-      for (let i = 0; i < f; i++) { b[i] *= i / f; b[b.length - 1 - i] *= i / f }
-      const peak = b.reduce((m, x) => Math.max(m, Math.abs(x)), 0) || 1
-      fs.writeFileSync(amb, wav({ L: b, norm: 0.5 / peak, rate: RATE }))
+      const { L, R } = await ambienceChannels(project, ambience, d)
+      // Fades in and out with the film, then set low
+      const f = Math.min(L.length / 4, RATE * 0.8)
+      for (const b of R ? [L, R] : [L]) for (let i = 0; i < f; i++) { b[i] *= i / f; b[b.length - 1 - i] *= i / f }
+      fs.writeFileSync(amb, wav({ L, R, rate: RATE }))
       // About 26 dB under full scale: felt more than heard
       const level = (0.1 * ambienceGain).toFixed(3)
       await ffmpeg(music
@@ -202,8 +313,7 @@ export async function withAmbience(project, music) {
 
 // Where a loud effect plays: off the spoken lines, into the nearest pause
 // within 0.3 s, else where it was at half its level
-function placed(c, lines) {
-  const e = EFFECTS[c.sound]
+function placed(c, lines, e) {
   const start = c.at - (e.lead ?? 0)
   const speaking = (a, b) => lines.some(l => a < l.end && b > l.at)
   if (!e.loud || !speaking(start, start + Math.min(e.len, 0.4))) return { ...c, start, under: !e.loud && speaking(start, start + e.len) }
@@ -219,10 +329,11 @@ export async function withEffects(project, audio, lines) {
   const s = settings(project)
   const cues = s.effects ? soundCues(project).filter(c => c.on) : []
   if (!cues.length) return audio
-  const plan = cues.map(c => placed(c, lines))
+  const files = Object.fromEntries(await Promise.all([...new Set(cues.map(c => c.sound))].map(async k => [k, await effectFile(project, k)])))
+  const plan = cues.map(c => placed(c, lines, effectSpec(c.sound, files[c.sound])))
+  // The effects' files are named by their content, so they key the mix
   const key = createHash('sha256').update(JSON.stringify([SOUND_VERSION, audio ? path.basename(audio) : null, s.effectsGain, project.duration,
-    plan.map(c => [c.sound, c.start.toFixed(3), c.gain, c.pan, c.under])])).digest('hex').slice(0, 16)
-  const files = Object.fromEntries(await Promise.all([...new Set(plan.map(c => c.sound))].map(async k => [k, await effectFile(project, k)])))
+    plan.map(c => [path.basename(files[c.sound]), c.start.toFixed(3), c.gain, c.pan, c.under])])).digest('hex').slice(0, 16)
   return cachedFile(path.join(soundDir(project), 'mix', `${key}.wav`), part => {
     const inputs = [...(audio ? ['-i', audio] : ['-f', 'lavfi', '-t', String(project.duration), '-i', 'anullsrc=r=44100:cl=stereo']), ...plan.flatMap(c => ['-i', files[c.sound]])]
     // Quiet effects under a spoken line sit a little lower (about 4 dB)

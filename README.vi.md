@@ -125,7 +125,7 @@ flowchart LR
 - **Lồng tiếng, đọc ngay trên Mac của bạn.** Mỗi cảnh có một lời thoại, và giọng đọc dẫn nhịp dựng: cảnh dài đúng bằng lời thoại của nó, hình ảnh khớp với từng chữ. Kokoro đọc tiếng Anh, CosyVoice 2 đọc tiếng Trung và Supertonic đọc các ngôn ngữ khác, tất cả đều offline. Phụ đề của lời đọc được thêm tự động, và một bước kiểm tra liệt kê mọi thứ phụ đề sẽ che (chữ và chủ thể được đánh dấu), nên video bị che sẽ không bao giờ được xuất. Tắt lồng tiếng nếu video chỉ dùng chữ trên màn hình.
 - **Nhạc khớp nhịp cắt.** Nhạc nền tổng hợp được chỉnh để điểm cắt rơi đúng nhịp, chạy đến khung hình cuối rồi nhỏ dần. Khi có lồng tiếng, nhạc nhỏ hơn và hạ xuống mỗi khi một lời thoại được đọc.
 - **3D render như trình render offline, chỉ trong vài phút.** Mỗi khung hình 3D lấy trung bình nhiều khung con (khử răng cưa, bóng đổ mềm, ambient occlusion, độ sâu trường ảnh, nhòe chuyển động) trong khoảng nửa giây, nên một video 30 giây render xong trong vài phút, không cần cài gì thêm.
-- **Thư viện tài nguyên 3D.** Tìm mô hình CC0 trên [Poly Pizza](https://poly.pizza) và [Smithsonian Open Access](https://www.si.edu/openaccess) bằng khóa của bạn. Mỗi mô hình chỉ tải một lần và thêm được vào bất kỳ dự án 3D nào.
+- **Thư viện tài nguyên: mô hình và âm thanh.** Tìm mô hình CC0 trên [Poly Pizza](https://poly.pizza) và [Smithsonian Open Access](https://www.si.edu/openaccess) bằng khóa của bạn, cùng hiệu ứng âm thanh, âm thanh nền và nhạc trên [Openverse](https://openverse.org) (Freesound, Wikimedia, Jamendo) mà không cần khóa; nghe thử trước khi tải. Mỗi tài nguyên chỉ tải một lần và thêm được vào bất kỳ dự án nào: mô hình vào thế giới 3D, âm thanh vào một nhịp của hình ảnh hoặc làm âm thanh nền cho cả phim.
 
 ## AI điều khiển
 
@@ -198,7 +198,7 @@ my-video/
   world/               page.html (2D: the style's kit; 3D: the WebGL kit), 2D: parts.js (pictures that
                        recur, drawn once), geo.data.js (the map style's countries); 3D: *.js (sets, machines)
   shots/<id>/          shot.js, notes.md (must show, on screen, motion, sound), sounds.json (its sound effects)
-  assets/<id>/         3D models from the asset library
+  assets/<id>/         models and sounds from the asset library
   copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           cache: per shot and input hash, takes, checks, fixes; voice/: spoken lines, subtitles
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
@@ -231,7 +231,7 @@ Shotloop được xây trên công sức của cộng đồng mã nguồn mở. 
 - **Lồng tiếng:** [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) của hexgrad và [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (tiếng Anh); [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) của FunAudioLLM cùng [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) và [Transformers](https://github.com/huggingface/transformers) (tiếng Trung); [Supertonic](https://huggingface.co/Supertone/supertonic-3) của Supertone (các ngôn ngữ khác); [ONNX Runtime](https://onnxruntime.ai); [uv](https://github.com/astral-sh/uv) và [Python](https://www.python.org), dùng để chạy giọng tiếng Trung.
 - **Kết xuất và video:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) qua giao thức DevTools, [three.js](https://threejs.org) và [Node.js](https://nodejs.org).
 - **Ứng dụng:** [Tauri](https://tauri.app), [React](https://react.dev), [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) và [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
-- **Tài nguyên và dữ liệu:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), và [Natural Earth](https://www.naturalearthdata.com) qua [world-atlas](https://github.com/topojson/world-atlas).
+- **Tài nguyên và dữ liệu:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), [Openverse](https://openverse.org), và [Natural Earth](https://www.naturalearthdata.com) qua [world-atlas](https://github.com/topojson/world-atlas).
 
 Cài đặt → Giới thiệu liệt kê mọi thành phần cùng phiên bản và giấy phép, còn [NOTICE](NOTICE) có đầy đủ chi tiết.
 
@@ -241,4 +241,4 @@ Mỗi ngày tối đa một lần, Shotloop gửi cho tác giả các số đế
 
 ## Giấy phép
 
-[Apache License 2.0](LICENSE); xem thêm [NOTICE](NOTICE). Mô hình từ thư viện tài nguyên giữ giấy phép riêng (CC0 hoặc CC-BY, ghi công được lưu trong dự án), mô hình giọng cũng vậy (Kokoro và CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).
+[Apache License 2.0](LICENSE); xem thêm [NOTICE](NOTICE). Mô hình và âm thanh từ thư viện tài nguyên giữ giấy phép riêng (CC0 hoặc CC-BY, ghi công được lưu trong dự án), mô hình giọng cũng vậy (Kokoro và CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).

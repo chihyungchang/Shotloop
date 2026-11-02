@@ -112,7 +112,8 @@ export const SOUND = `Sound:
 - The film has an ambience under it (one of ${AMBIENCE_NAMES.join(', ')}, or none) and sound effects on the picture's beats, made by the engine from these names: ${EFFECT_NAMES.join(', ')} (riser ends on its beat; the others start on it).
 - Few and exact: only the beats that matter get a sound (a gear locking, a part landing, a crash zoom, a smash cut), at most one clear effect every 2 to 3 seconds; silence makes the next one count.
 - With a voice-over the voice comes first: put loud effects (thud, impact, whoosh, riser) in the pauses between sentences (ctx.voice gives their times); quiet ones (click, tick, pop, ding, glass, beep, hum) may sit under a word. The engine moves a loud one off a line by up to 0.3 s, else halves it.
-- A shot's effects go in shots/<id>/sounds.json, written with its code so they land on its animation: [{ "at": <shot seconds>, "sound": "<name>", "gain": <0–2, default 1>, "pan": <-1 left … 1 right, default 0> }]. The person can switch any of them off.`
+- A shot's effects go in shots/<id>/sounds.json, written with its code so they land on its animation: [{ "at": <shot seconds>, "sound": "<name>", "gain": <0–2, default 1>, "pan": <-1 left … 1 right, default 0> }]. The person can switch any of them off.
+- Sounds the person added from the asset library (listed with the project, when there are any) are real recordings: use one by its id as "sound" where it fits the beat better than a synth name. It plays from its start, up to 8 s, at the synth effects' peak, and is never moved off a word, so place a loud one in a pause yourself. The person may also choose one as the ambience.`
 
 // The voice-over in a shot's code
 export const CODE_VOICE = `Voice-over in code:

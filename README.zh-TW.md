@@ -125,7 +125,7 @@ flowchart LR
 - **配音，在你的 Mac 上配音。** 每個鏡頭有一句台詞，由配音帶動剪接：鏡頭長度跟著台詞走，畫面落在說到的字詞上。英文用 Kokoro，中文用 CosyVoice 2，其他語言用 Supertonic，全部離線執行。字幕依說出的話自動產生，並會檢查列出字幕會遮住的內容（文字和標記的主體），被遮住的影片絕不會匯出。只想用字幕卡的影片可以關掉配音。
 - **配樂貼合剪接。** 合成的配樂會調整節拍，讓剪接點落在拍子上，一路播到最後一格再淡出。有配音時配樂會壓低，說話時再退讓一些。
 - **像離線渲染器一樣的 3D，幾分鐘完成。** 每一格 3D 畫面都由多個子格平均而成（反鋸齒、柔和陰影、環境光遮蔽、景深、動態模糊），約半秒一格，30 秒的影片幾分鐘就能渲染完，不必安裝任何東西。
-- **3D 素材庫。** 用你自己的金鑰在 [Poly Pizza](https://poly.pizza) 和 [Smithsonian Open Access](https://www.si.edu/openaccess) 搜尋 CC0 模型。每個模型只下載一次，任何 3D 專案都能加入。
+- **素材庫：模型和音訊。** 用你自己的金鑰在 [Poly Pizza](https://poly.pizza) 和 [Smithsonian Open Access](https://www.si.edu/openaccess) 搜尋 CC0 模型；在 [Openverse](https://openverse.org)（Freesound、Wikimedia、Jamendo）搜尋音效、環境音和音樂，不需要金鑰，下載前可以先試聽。每個素材只下載一次，任何專案都能加入：模型放進 3D 世界，音訊放在畫面節拍上，或鋪在整部影片底下當環境音。
 
 ## 驅動它的 AI
 
@@ -198,7 +198,7 @@ my-video/
   world/               page.html (2D: the style's kit; 3D: the WebGL kit), 2D: parts.js (pictures that
                        recur, drawn once), geo.data.js (the map style's countries); 3D: *.js (sets, machines)
   shots/<id>/          shot.js, notes.md (must show, on screen, motion, sound), sounds.json (its sound effects)
-  assets/<id>/         3D models from the asset library
+  assets/<id>/         models and sounds from the asset library
   copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           cache: per shot and input hash, takes, checks, fixes; voice/: spoken lines, subtitles
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
@@ -231,7 +231,7 @@ Shotloop 建立在開源成果之上。感謝以下專案背後的人：
 - **配音：** hexgrad 的 [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) 和 [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)（英文）；FunAudioLLM 的 [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice)，以及 [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS)、[WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing)、[Whisper](https://github.com/openai/whisper)、[PyTorch](https://pytorch.org) 和 [Transformers](https://github.com/huggingface/transformers)（中文）；Supertone 的 [Supertonic](https://huggingface.co/Supertone/supertonic-3)（其他語言）；[ONNX Runtime](https://onnxruntime.ai)；執行中文配音的 [uv](https://github.com/astral-sh/uv) 和 [Python](https://www.python.org)。
 - **算繪與成片：** [FFmpeg](https://ffmpeg.org)、透過 DevTools 協定驅動的 [Google Chrome](https://www.google.com/chrome/)、[three.js](https://threejs.org) 和 [Node.js](https://nodejs.org)。
 - **App：** [Tauri](https://tauri.app)、[React](https://react.dev)、[Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) 和 [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk)。
-- **素材與資料：** [Kenney](https://kenney.nl)、[Poly Haven](https://polyhaven.com)、[Quaternius](https://quaternius.com)、[Poly Pizza](https://poly.pizza)、[Smithsonian Open Access](https://www.si.edu/openaccess)，以及經由 [world-atlas](https://github.com/topojson/world-atlas) 提供的 [Natural Earth](https://www.naturalearthdata.com)。
+- **素材與資料：** [Kenney](https://kenney.nl)、[Poly Haven](https://polyhaven.com)、[Quaternius](https://quaternius.com)、[Poly Pizza](https://poly.pizza)、[Smithsonian Open Access](https://www.si.edu/openaccess)、[Openverse](https://openverse.org)，以及經由 [world-atlas](https://github.com/topojson/world-atlas) 提供的 [Natural Earth](https://www.naturalearthdata.com)。
 
 「設定 → 關於」列出每個元件的版本和授權，詳情見 [NOTICE](NOTICE)。
 
@@ -241,4 +241,4 @@ Shotloop 每天最多一次向開發者傳送匿名計數：版本、晶片架�
 
 ## 授權
 
-[Apache License 2.0](LICENSE)；另見 [NOTICE](NOTICE)。素材庫中的模型保留各自的授權（CC0 或 CC-BY，署名會寫進專案），語音模型也一樣（Kokoro 和 CosyVoice 2：Apache-2.0；Supertonic：OpenRAIL-M）。
+[Apache License 2.0](LICENSE)；另見 [NOTICE](NOTICE)。素材庫中的模型和音訊保留各自的授權（CC0 或 CC-BY，署名會寫進專案），語音模型也一樣（Kokoro 和 CosyVoice 2：Apache-2.0；Supertonic：OpenRAIL-M）。

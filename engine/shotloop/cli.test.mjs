@@ -80,3 +80,20 @@ test('a WebGL film\'s kit page is brought up to the engine\'s before a command r
   run('status', dir)
   assert.equal(fs.readFileSync(page, 'utf8'), current)
 })
+
+test('a sound file goes into the library, lists as a sound, and into a project', () => {
+  const env = { ...process.env, SHOTLOOP_LIBRARY: path.join(tmp(), 'library') }
+  const lib = (...args) => JSON.parse(execFileSync(process.execPath, [CLI, '--json', 'library', ...args], { encoding: 'utf8', env }).trim().split('\n').at(-1)).value
+  const wav = path.join(tmp(), 'door-shut.wav')
+  execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'lavfi', '-i', 'sine=frequency=220:duration=1.5', wav])
+  const sound = lib('import', wav)
+  assert.equal(sound.kind, 'sound')
+  assert.equal(sound.name, 'door shut')
+  assert.ok(Math.abs(sound.duration - 1.5) < 0.05)
+  assert.deepEqual(lib('list').map(a => [a.id, a.kind]), [[sound.id, 'sound']])
+  const dir = path.join(tmp(), 'film')
+  newProject(dir, { idea: 'A door shuts', track: '2d', duration: 6 })
+  assert.equal(lib('use', dir, sound.id).path, `assets/${sound.id}/sound.wav`)
+  const { result } = run('sound', dir)
+  assert.deepEqual(result.library.map(a => a.id), [sound.id])
+})

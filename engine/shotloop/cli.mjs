@@ -21,9 +21,10 @@
 //                     (--derive: write it from the project's shots and notes instead)
 //   shotloop title    <project> <title>                  rename the project
 //   shotloop style    <project> <style id>               the visual style (styles.mjs), kept by the planner
-//   shotloop library  search --source polypizza|smithsonian --query … [--key] [--cursor] [--all]
-//                     get --item '<search result>' | list [<project>] | remove <id>
-//                     use <project> <id> | unuse <project> <id> | import <file.glb> [--title]   the 3D asset library
+//   shotloop library  search --source polypizza|smithsonian|openverse --query … [--key] [--cursor] [--all]
+//                     get --item '<search result>' | preview --item '<a sound>' | list [<project>] | remove <id>
+//                     use <project> <id> | unuse <project> <id> | import <file.glb|sound> [--title]
+//                     the asset library: 3D models and sounds
 //   shotloop voice    <project> [--on|--off] [--voice <id>] [--speed 0.8–1.25] [--gain 0–2] [--fit]
 //                     the voice-over: settings, the voices for the project's language,
 //                     --fit: speak every line and fit the shots to them (a new voice or speed fits too)
@@ -78,7 +79,7 @@ import { pickMap } from './pick.mjs'
 import { musicBed } from './bed.mjs'
 import { fitVoice, pruneVoice, sampleVoice, setVoice, voiceInfo, voiceModels } from './voice.mjs'
 import { voiceCues, voiceOn } from './cues.mjs'
-import { AMBIENCE_NAMES, EFFECT_NAMES, setSound, soundCues } from './sound.mjs'
+import { AMBIENCE_NAMES, EFFECT_NAMES, projectSounds, setSound, soundCues } from './sound.mjs'
 import { checkSubtitles, describeIssues } from './check.mjs'
 
 const OPTIONS = {
@@ -295,12 +296,13 @@ try {
       const [sub, a, b] = args
       if (sub === 'search') result(await library.search(values.source ?? 'polypizza', values.query ?? '', { key: values.key, cursor: values.cursor, cc0Only: !values.all, category: values.category }))
       else if (sub === 'get') result(await library.download(JSON.parse(values.item ?? 'null'), values.key))
+      else if (sub === 'preview') result(await library.preview(JSON.parse(values.item ?? 'null')))
       else if (sub === 'list') result(a ? library.projectAssets(loadProject(a)) : library.list())
       else if (sub === 'remove') result(library.remove(a))
       else if (sub === 'import') result(library.importFile(a, { name: values.title }))
       else if (sub === 'use') result(library.use(loadProject(a), b))
       else if (sub === 'unuse') result(library.unuse(loadProject(a), b))
-      else throw new Error('library search|get|list|remove|use|unuse')
+      else throw new Error('library search|get|preview|list|remove|use|unuse|import')
       break
     }
     case 'covers': {
@@ -373,7 +375,8 @@ try {
         cue: values.cue, kind: values.kind, on: !values.off }
       const changed = Object.entries(change).some(([k, v]) => k !== 'on' && v !== undefined)
       const now = changed ? setSound(project, change) : { ...(project.config.sound ?? {}), cues: soundCues(project) }
-      result({ ...now, ambiences: AMBIENCE_NAMES, sounds: EFFECT_NAMES })
+      const library = [...projectSounds(project).values()].map(a => ({ id: a.id, name: a.name, duration: a.duration ?? null, license: a.license ?? '' }))
+      result({ ...now, ambiences: AMBIENCE_NAMES, sounds: EFFECT_NAMES, library })
       break
     }
     case 'voice-models':

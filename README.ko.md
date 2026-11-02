@@ -125,7 +125,7 @@ flowchart LR
 - **내 Mac에서 읽어 주는 내레이션.** 샷마다 대사가 있고, 컷은 내레이션을 따라갑니다. 샷의 길이는 대사 길이에 맞춰지고, 화면은 말에 맞춰 움직입니다. 영어는 Kokoro가, 중국어는 CosyVoice 2가, 나머지 언어는 Supertonic이 읽으며 모두 오프라인으로 동작합니다. 말한 내용의 자막이 자동으로 붙고, 자막이 가리게 될 것(글자와 표시해 둔 피사체)을 검사로 나열하므로 가려진 영상은 절대 내보내지지 않습니다. 자막 카드만 쓰는 영상이라면 끌 수 있습니다.
 - **편집에 맞춘 음악.** 합성 배경 음악은 컷이 박자에 떨어지도록 맞춰지고, 마지막 프레임까지 이어진 뒤 페이드아웃됩니다. 내레이션이 있으면 더 낮게 깔리고, 대사가 나오는 동안에는 한층 줄어듭니다.
 - **오프라인 렌더러 같은 3D를 몇 분 만에.** 3D의 각 프레임은 여러 서브프레임(안티에일리어싱, 소프트 섀도, 앰비언트 오클루전, 피사계 심도, 모션 블러)을 평균해 약 0.5초 만에 완성되므로, 30초 영상도 몇 분이면 렌더링됩니다. 따로 설치할 것은 없습니다.
-- **3D 에셋 라이브러리.** 내 키로 [Poly Pizza](https://poly.pizza)와 [Smithsonian Open Access](https://www.si.edu/openaccess)에서 CC0 모델을 검색합니다. 모델은 한 번만 다운로드되며 어떤 3D 프로젝트에도 추가할 수 있습니다.
+- **에셋 라이브러리: 모델과 사운드.** 내 키로 [Poly Pizza](https://poly.pizza)와 [Smithsonian Open Access](https://www.si.edu/openaccess)에서 CC0 모델을, 키 없이 [Openverse](https://openverse.org)(Freesound, Wikimedia, Jamendo)에서 효과음, 앰비언스, 음악을 검색합니다. 다운로드하기 전에 미리 들어 볼 수 있습니다. 에셋은 한 번만 다운로드되며 어떤 프로젝트에도 추가할 수 있습니다. 모델은 3D 월드에, 사운드는 화면의 박자에 맞추거나 영상 전체에 깔리는 앰비언스로 넣습니다.
 
 ## 구동하는 AI
 
@@ -198,7 +198,7 @@ my-video/
   world/               page.html (2D: the style's kit; 3D: the WebGL kit), 2D: parts.js (pictures that
                        recur, drawn once), geo.data.js (the map style's countries); 3D: *.js (sets, machines)
   shots/<id>/          shot.js, notes.md (must show, on screen, motion, sound), sounds.json (its sound effects)
-  assets/<id>/         3D models from the asset library
+  assets/<id>/         models and sounds from the asset library
   copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           cache: per shot and input hash, takes, checks, fixes; voice/: spoken lines, subtitles
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
@@ -231,7 +231,7 @@ Shotloop은 오픈 소스의 성과 위에 서 있습니다. 다음 프로젝트
 - **내레이션:** hexgrad의 [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M)와 [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx)(영어), FunAudioLLM의 [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice)와 이를 받쳐 주는 [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org), [Transformers](https://github.com/huggingface/transformers)(중국어), Supertone의 [Supertonic](https://huggingface.co/Supertone/supertonic-3)(그 밖의 언어), [ONNX Runtime](https://onnxruntime.ai), 중국어 음성을 실행하는 [uv](https://github.com/astral-sh/uv)와 [Python](https://www.python.org).
 - **렌더링과 영상:** [FFmpeg](https://ffmpeg.org), DevTools 프로토콜을 통한 [Google Chrome](https://www.google.com/chrome/), [three.js](https://threejs.org), [Node.js](https://nodejs.org).
 - **앱:** [Tauri](https://tauri.app), [React](https://react.dev), [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript), [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
-- **에셋과 데이터:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), 그리고 [world-atlas](https://github.com/topojson/world-atlas)를 통한 [Natural Earth](https://www.naturalearthdata.com).
+- **에셋과 데이터:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), [Openverse](https://openverse.org), 그리고 [world-atlas](https://github.com/topojson/world-atlas)를 통한 [Natural Earth](https://www.naturalearthdata.com).
 
 설정 → 정보에는 모든 구성 요소가 버전, 라이선스와 함께 나와 있고, 자세한 내용은 [NOTICE](NOTICE)에 있습니다.
 
@@ -241,4 +241,4 @@ Shotloop은 하루 한 번까지 개발자에게 익명 집계를 보냅니다: 
 
 ## 라이선스
 
-[Apache License 2.0](LICENSE). [NOTICE](NOTICE)도 참고하세요. 에셋 라이브러리의 모델은 각자의 라이선스를 따릅니다(CC0 또는 CC-BY, 출처 표기는 프로젝트에 기록됩니다). 음성 모델도 마찬가지입니다(Kokoro와 CosyVoice 2: Apache-2.0, Supertonic: OpenRAIL-M).
+[Apache License 2.0](LICENSE). [NOTICE](NOTICE)도 참고하세요. 에셋 라이브러리의 모델과 사운드는 각자의 라이선스를 따릅니다(CC0 또는 CC-BY, 출처 표기는 프로젝트에 기록됩니다). 음성 모델도 마찬가지입니다(Kokoro와 CosyVoice 2: Apache-2.0, Supertonic: OpenRAIL-M).

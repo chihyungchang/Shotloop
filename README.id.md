@@ -125,7 +125,7 @@ flowchart LR
 - **Sulih suara, diucapkan di Mac Anda.** Tiap adegan punya satu kalimat, dan suara memimpin potongan: adegan berlangsung selama kalimatnya, dan gambar jatuh tepat pada kata-katanya. Kokoro berbicara bahasa Inggris, CosyVoice 2 bahasa Mandarin, dan Supertonic bahasa lainnya, semuanya offline. Subtitel dari kata yang diucapkan ditambahkan otomatis, dan sebuah pemeriksaan mendaftar apa pun yang akan tertutup olehnya (teks dan subjek yang ditandai), jadi film yang tertutup tidak pernah diekspor. Matikan sulih suara untuk film yang hanya memakai teks layar.
 - **Musik yang pas dengan potongan.** Musik latar sintetis disetel agar potongan jatuh tepat di ketukannya, berjalan sampai bingkai terakhir, lalu memudar. Di bawah sulih suara, musik lebih pelan dan meredup saat sebuah kalimat diucapkan.
 - **3D yang dirender seperti dengan renderer offline, dalam hitungan menit.** Setiap bingkai 3D merata-ratakan beberapa sub-bingkai (antialiasing, bayangan lembut, ambient occlusion, depth of field, motion blur) dalam sekitar setengah detik, sehingga film 30 detik selesai dirender dalam beberapa menit, tanpa perlu memasang apa pun.
-- **Pustaka aset untuk 3D.** Cari model CC0 di [Poly Pizza](https://poly.pizza) dan [Smithsonian Open Access](https://www.si.edu/openaccess) dengan kunci Anda sendiri. Setiap model diunduh sekali dan bisa ditambahkan ke proyek 3D mana pun.
+- **Pustaka aset: model dan suara.** Cari model CC0 di [Poly Pizza](https://poly.pizza) dan [Smithsonian Open Access](https://www.si.edu/openaccess) dengan kunci Anda sendiri, serta efek suara, suasana, dan musik di [Openverse](https://openverse.org) (Freesound, Wikimedia, Jamendo) tanpa kunci; dengarkan dulu sebelum mengunduh. Setiap aset diunduh sekali dan bisa ditambahkan ke proyek mana pun: model ke dunia 3D, suara ke sebuah momen gambar atau sebagai suasana di bawah seluruh film.
 
 ## AI yang menjalankannya
 
@@ -198,7 +198,7 @@ my-video/
   world/               page.html (2D: kit gaya; 3D: kit WebGL), 2D: parts.js (gambar
                        yang berulang, digambar sekali), geo.data.js (negara untuk gaya peta); 3D: *.js (set, mesin)
   shots/<id>/          shot.js, notes.md (wajib tampil, teks layar, gerakan, suara), sounds.json (efek suaranya)
-  assets/<id>/         model 3D dari pustaka aset
+  assets/<id>/         model dan suara dari pustaka aset
   copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           cache: per adegan dan hash input; take, pemeriksaan, perbaikan; voice/: kalimat yang diucapkan, subtitel
   out/                 ekspor engine (bercap waktu); aplikasi menyalin tiap ekspor ke folder baru di tempat pilihan Anda
@@ -231,7 +231,7 @@ Shotloop berdiri di atas karya open source. Terima kasih kepada orang-orang di b
 - **Sulih suara:** [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) dari hexgrad dan [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (Inggris); [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) dari FunAudioLLM dengan [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) dan [Transformers](https://github.com/huggingface/transformers) (Mandarin); [Supertonic](https://huggingface.co/Supertone/supertonic-3) dari Supertone (bahasa lainnya); [ONNX Runtime](https://onnxruntime.ai); [uv](https://github.com/astral-sh/uv) dan [Python](https://www.python.org), yang menjalankan suara Mandarin.
 - **Render dan film:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) lewat protokol DevTools, [three.js](https://threejs.org) dan [Node.js](https://nodejs.org).
 - **Aplikasi:** [Tauri](https://tauri.app), [React](https://react.dev), [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) dan [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
-- **Aset dan data:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), dan [Natural Earth](https://www.naturalearthdata.com) lewat [world-atlas](https://github.com/topojson/world-atlas).
+- **Aset dan data:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), [Openverse](https://openverse.org), dan [Natural Earth](https://www.naturalearthdata.com) lewat [world-atlas](https://github.com/topojson/world-atlas).
 
 Pengaturan → Tentang mendaftar setiap komponen beserta versi dan lisensinya, dan [NOTICE](NOTICE) memuat detailnya.
 
@@ -241,4 +241,4 @@ Sekali sehari, Shotloop mengirim hitungan anonim ke pembuatnya: versi, chip, bah
 
 ## Lisensi
 
-[Apache License 2.0](LICENSE); lihat [NOTICE](NOTICE). Model dari pustaka aset tetap memakai lisensinya sendiri (CC0 atau CC-BY, dengan kredit dicatat di proyek), begitu pula model suara (Kokoro dan CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).
+[Apache License 2.0](LICENSE); lihat [NOTICE](NOTICE). Model dan suara dari pustaka aset tetap memakai lisensinya sendiri (CC0 atau CC-BY, dengan kredit dicatat di proyek), begitu pula model suara (Kokoro dan CosyVoice 2: Apache-2.0; Supertonic: OpenRAIL-M).

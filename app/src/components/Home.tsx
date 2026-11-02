@@ -1,5 +1,5 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
-import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react'
+import { useCallback, useEffect, useImperativeHandle, useRef, useState, type ComponentProps, type Ref } from 'react'
 import { firstLine } from '../../../engine/shotloop/data.mjs'
 import { api, fileUrl, isBroken, type ListEntry, type ProjectSummary } from '../api'
 import { aspectOf, formatSeconds, isWide } from '../model'
@@ -20,11 +20,12 @@ type Aspect = '9:16' | '16:9'
 
 // word: the headline's highlight; chip: the option (what the frame is);
 // hint: what it suits
-const TRACKS: Record<Track, { word: Key; chip: Key; hint: Key; idea: Key }> = {
-  auto: { word: 'home.track.2d', chip: 'home.chip.auto', hint: 'home.hint.auto', idea: 'home.idea.2d' },
-  '2d': { word: 'home.track.2d', chip: 'home.chip.2d', hint: 'home.hint.2d', idea: 'home.idea.2d' },
-  '3d': { word: 'home.track.3d', chip: 'home.chip.3d', hint: 'home.hint.3d', idea: 'home.idea.3d' }
+const TRACKS: Record<Track, { word: Key; chip: Key; hint: Key; idea: Key; icon: ComponentProps<typeof Icon>['name'] }> = {
+  auto: { word: 'home.track.2d', chip: 'home.chip.auto', hint: 'home.hint.auto', idea: 'home.idea.2d', icon: 'spark' },
+  '2d': { word: 'home.track.2d', chip: 'home.chip.2d', hint: 'home.hint.2d', idea: 'home.idea.2d', icon: 'image' },
+  '3d': { word: 'home.track.3d', chip: 'home.chip.3d', hint: 'home.hint.3d', idea: 'home.idea.3d', icon: 'cube' }
 }
+const NEXT_TRACK: Record<Track, Track> = { auto: '2d', '2d': '3d', '3d': 'auto' }
 // 'auto': the planner sets the length from the content
 const LENGTHS = ['auto', '15', '30', '45', '60']
 
@@ -127,15 +128,12 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
 
   // The track sits at the start of the idea, as its label: the text runs
   // in a column beside it (every line aligned), however long the label is
-  // in this language
-  const trackChip = useRef<HTMLLabelElement>(null)
+  // in this language. Measured on whichever chip is mounted, so a chip
+  // that is replaced (a hot reload) never leaves the text under it
   const [indent, setIndent] = useState(0)
-  useEffect(() => {
-    const el = trackChip.current
+  const trackChip = useCallback((el: HTMLButtonElement | null) => {
     if (!el) return
-    const measure = () => setIndent(Math.ceil(el.getBoundingClientRect().width) + 8)
-    measure()
-    const ro = new ResizeObserver(measure)
+    const ro = new ResizeObserver(() => setIndent(Math.ceil(el.getBoundingClientRect().width) + 8))
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
@@ -201,13 +199,13 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
 
       <div className="composer">
         <div className="composer-card">
-          {/* What kind of film, as the idea's prefix: Auto, 2D or 3D */}
-          <label className={`track-chip${track === 'auto' ? ' auto' : ''}`} ref={trackChip} title={t(TRACKS[track].hint)}>
-            <Icon name="spark" size={12} />
-            <select value={track} onChange={e => chooseTrack(e.target.value as Track)} aria-label={t('home.aria.track')}>
-              {(['auto', '2d', '3d'] as Track[]).map(tr => <option key={tr} value={tr}>{t(TRACKS[tr].chip)}</option>)}
-            </select>
-          </label>
+          {/* What kind of film, as the idea's prefix: a click steps Auto → 2D → 3D */}
+          <button type="button" className={`track-chip${track === 'auto' ? ' auto' : ''}`} ref={trackChip} title={t(TRACKS[track].hint)}
+            aria-label={`${t('home.aria.track')}: ${t(TRACKS[track].chip)}`} onClick={() => chooseTrack(NEXT_TRACK[track])}>
+            <Icon name={TRACKS[track].icon} size={12} />
+            {t(TRACKS[track].chip)}
+            <Icon name="refresh" size={10} />
+          </button>
           <textarea
             ref={ideaBox}
             value={idea}

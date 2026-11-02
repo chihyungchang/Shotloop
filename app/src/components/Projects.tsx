@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { api, fileUrl, isBroken, type BrokenProject, type ListEntry, type ProjectSummary } from '../api'
 import { aspectOf, formatSeconds } from '../model'
 import { baseName, forget, listRecent } from '../recent'
-import { examplesFor } from '../styles'
+import { examplesFor, styleName } from '../styles'
 import { Icon } from './Icon'
 import { formatDate, t } from '../i18n'
 
@@ -97,14 +97,21 @@ function ProjectCard({ p, open }: { p: ProjectSummary; open: () => void }) {
         {p.poster
           ? <img src={fileUrl(p.poster)} alt="" />
           : <span className="poster-empty"><Icon name="film" size={28} /></span>}
+        {/* What kind of film, on the picture: 2D or 3D, its style, a voice */}
+        <span className="poster-tags">
+          <span className="poster-tag">{p.track.toUpperCase()}</span>
+          {p.style && p.style !== '3d' && <span className="poster-tag">{styleName(p.style)}</span>}
+          {p.voice && <span className="poster-tag" title={t('gallery.voiceHint')}><Icon name="mic" size={11} /> {t('gallery.voice')}</span>}
+        </span>
         <span className="duration">{formatSeconds(p.duration)}</span>
       </div>
       <div className="card-text">
         <strong className="ellipsis">{p.title}</strong>
         {p.description && <span className="muted small ellipsis">{p.description}</span>}
         <div className="card-meta">
-          <span className="muted small">{t('common.shots', { n: p.shots })} · {formatDate(p.changed, { dateStyle: 'medium' })}</span>
-          <span className="tag">{p.track.toUpperCase()} · {aspectOf(p.size)}</span>
+          {/* An example's date is when it was last rendered, which says nothing to the person */}
+          <span className="muted small">{t('common.shots', { n: p.shots })}{p.example ? '' : ` · ${formatDate(p.changed, { dateStyle: 'medium' })}`}</span>
+          <span className="tag">{aspectOf(p.size)}</span>
         </div>
       </div>
     </button>

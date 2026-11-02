@@ -166,7 +166,8 @@ export interface Machine { cores: number; memoryGb: number; autoParallel: number
 // A search result from an asset source, and an asset on this Mac
 export interface LibraryItem {
   id: string
-  source: 'polypizza' | 'smithsonian'
+  source: 'polypizza' | 'smithsonian' | 'openverse'
+  kind: AssetKind
   name: string
   thumb: string | null
   license: string
@@ -177,24 +178,31 @@ export interface LibraryItem {
   triangles: number | null
   animated: boolean
   size: number | null
+  // A sound's length in seconds
+  duration: number | null
 }
 
-// Where the person gets a key for each asset source
-export const KEY_PAGES: Record<LibraryItem['source'], string> = {
+export type AssetKind = 'model' | 'sound'
+
+// Where the person gets a key for the asset sources that need one
+export const KEY_PAGES: Record<'polypizza' | 'smithsonian', string> = {
   polypizza: 'https://poly.pizza/settings/api',
   smithsonian: 'https://api.data.gov/signup/'
 }
 
 export interface Asset {
   id: string
+  kind: AssetKind
   name: string
   source: string
   license: string
   author: string
   page?: string | null
   triangles?: number | null
+  duration?: number | null
   dir: string
-  model: string
+  // The model (.glb) or the sound
+  file: string
   thumb: string | null
 }
 
@@ -328,9 +336,11 @@ export const api = {
   librarySearch: (source: string, query: string, cursor: string | null, all: boolean, category: string | null = null) =>
     invoke<{ results: LibraryItem[]; cursor: string | null; total?: number }>('library_search', { source, query, cursor, all, category }),
   libraryGet: (item: LibraryItem) => invoke<Asset>('library', { action: 'get', item }),
+  // A sound fetched to listen to before it is added
+  libraryPreview: (item: LibraryItem) => invoke<{ file: string }>('library', { action: 'preview', item }),
   libraryList: (project?: string) => invoke<Asset[]>('library', { action: 'list', project }),
   libraryRemove: (id: string) => invoke<void>('library', { action: 'remove', id }),
-  // A .glb from this Mac into the library
+  // A .glb or a sound from this Mac into the library
   libraryImport: (file: string) => invoke<Asset>('library', { action: 'import', id: file }),
   libraryUse: (project: string, id: string) => invoke<Asset>('library', { action: 'use', project, id }),
   libraryUnuse: (project: string, id: string) => invoke<void>('library', { action: 'unuse', project, id }),

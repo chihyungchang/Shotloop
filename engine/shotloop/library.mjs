@@ -1,24 +1,29 @@
-// The asset library: 3D models searched on free sources, downloaded once
-// to a folder on this Mac, and copied into the projects that use them.
+// The asset library: 3D models and sounds searched on free sources,
+// downloaded once to a folder on this Mac, and copied into the projects
+// that use them.
 //
-//   library/<source>-<id>/model.glb   the model (glTF binary)
-//   library/<source>-<id>/thumb.jpg   a preview image
-//   library/<source>-<id>/asset.json  name, source, license, author, links
+//   library/<source>-<id>/model.glb   a model (glTF binary), or
+//   library/<source>-<id>/sound.<ext> a sound (mp3, ogg, wav…)
+//   library/<source>-<id>/thumb.jpg   a model's preview image
+//   library/<source>-<id>/asset.json  kind, name, source, license, author, links
 //
 // Sources: Poly Pizza (low-poly models, CC0 and CC-BY; the person's own
-// API key) and the Smithsonian Open Access 3D collection (CC0 scans; an
-// api.data.gov key). A project keeps its own copy in assets/<id>/, so it
-// travels whole and the library can change without touching its renders.
+// API key), the Smithsonian Open Access 3D collection (CC0 scans; an
+// api.data.gov key) and Openverse (sounds and music from Freesound,
+// Wikimedia and Jamendo, CC0 and CC-BY; no key). A project keeps its own
+// copy in assets/<id>/, so it travels whole and the library can change
+// without touching its renders.
 
+import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { POLY_CATEGORIES } from './data.mjs'
+import { AUDIO_EXTS, POLY_CATEGORIES } from './data.mjs'
 import { safeId } from './files.mjs'
 
 const LIBRARY = process.env.SHOTLOOP_LIBRARY ?? path.join(os.homedir(), '.shotloop', 'library')
-const SOURCES = ['polypizza', 'smithsonian']
+const SOURCES = ['polypizza', 'smithsonian', 'openverse']
 
 const UA = { 'user-agent': 'Shotloop (https://github.com/chihyungchang/Shotloop)' }
 const assetId = s => safeId(s, 'an asset id')
@@ -28,10 +33,13 @@ const assetId = s => safeId(s, 'an asset id')
 async function request(url, headers, timeout) {
   const host = new URL(url).host
   const res = await fetch(url, { headers: { ...UA, ...headers }, signal: AbortSignal.timeout(timeout) }).catch(e => {
+    // A source that is up but slow to answer is not the person's network
+    if (e.name === 'TimeoutError') throw new Error(`${host} took too long to answer; try again in a moment`)
     throw new Error(`could not reach ${host} (${e.cause?.code ?? e.name}): check the network`)
   })
   if (res.status === 401 || res.status === 403) throw new Error(`${host}: the API key was refused (${res.status}); check it in Settings`)
   if (res.status === 429) throw new Error(`${host}: too many requests; try again in a moment`)
+  if (res.status >= 500) throw new Error(`${host} is having trouble (${res.status}); try again in a moment`)
   if (!res.ok) throw new Error(`${host}: ${res.status} ${(await res.text()).slice(0, 200)}`)
   return res
 }
@@ -46,9 +54,9 @@ async function fetchTo(url, file, headers = {}) {
 // One shape for every source's results
 function item(source, o) {
   return {
-    id: `${source}-${assetId(o.id)}`, source, name: o.name || 'Untitled', thumb: o.thumb ?? null, license: o.license ?? '',
+    id: `${source}-${assetId(o.id)}`, source, kind: o.kind ?? 'model', name: o.name || 'Untitled', thumb: o.thumb ?? null, license: o.license ?? '',
     author: o.author ?? '', authorUrl: o.authorUrl ?? null, page: o.page ?? null, download: o.download,
-    triangles: o.triangles ?? null, animated: !!o.animated, size: o.size ?? null
+    triangles: o.triangles ?? null, animated: !!o.animated, size: o.size ?? null, duration: o.duration ?? null
   }
 }
 
@@ -132,6 +140,28 @@ async function searchSmithsonian(query, { key, cursor }) {
   return { results, cursor: start + rows.length < total ? String(start + rows.length) : null }
 }
 
+// Openverse (api.openverse.org/v1): anonymous requests get 20 results a
+// page. Licences: CC0 and public domain only, or CC BY as well (never
+// NC/ND/SA, which a film made for anyone to post can't promise)
+const OPENVERSE_PAGE = 20
+const OV_LICENSE = { cc0: 'CC0', pdm: 'Public domain', by: 'CC-BY' }
+
+async function searchOpenverse(query, { cursor, cc0Only }) {
+  if (!query.trim()) return { results: [], cursor: null, total: 0 }
+  const page = Number(cursor ?? 1)
+  const params = new URLSearchParams({ q: query.trim(), license: cc0Only ? 'cc0,pdm' : 'cc0,pdm,by', page_size: String(OPENVERSE_PAGE), page: String(page), mature: 'false' })
+  const body = await getJson(`https://api.openverse.org/v1/audio/?${params}`)
+  const results = (body.results ?? []).filter(r => r.url && OV_LICENSE[r.license]).map(r => ({
+    ...item('openverse', {
+      id: r.id, kind: 'sound', name: r.title, license: `${OV_LICENSE[r.license]}${r.license === 'by' && r.license_version ? ` ${r.license_version}` : ''}`,
+      author: [r.creator, r.provider].filter(Boolean).join(' · '), authorUrl: r.creator_url, page: r.foreign_landing_url, download: r.url,
+      size: r.filesize, duration: r.duration ? r.duration / 1000 : null
+    }),
+    attribution: r.attribution ?? null
+  }))
+  return { results, cursor: page < (body.page_count ?? 0) ? String(page + 1) : null, total: body.result_count ?? 0 }
+}
+
 // Search results are kept on disk for a week: the same search never
 // spends the person's API quota twice (Poly Pizza's free plan counts
 // requests). Failures are not kept.
@@ -140,16 +170,18 @@ const SEARCH_TTL = 7 * 24 * 3600 * 1000
 export async function search(source, query, opts = {}) {
   if (!SOURCES.includes(source)) throw new Error(`unknown source ${source} (${SOURCES.join(', ')})`)
   const q = query.trim().toLowerCase()
-  // Poly Pizza filters by licence on its side; the filter is part of the key
-  const only = v => (opts.cc0Only ? { ...v, results: v.results.filter(m => /^cc0/i.test(m.license)) } : v)
+  // Poly Pizza and Openverse filter by licence on their side; the filter is
+  // part of the key
+  const only = v => (opts.cc0Only ? { ...v, results: v.results.filter(m => /^(cc0|public domain)/i.test(m.license)) } : v)
   const poly = source === 'polypizza'
-  const key = createHash('sha1').update(JSON.stringify([source, q, opts.cursor ?? null, poly ? [!!opts.cc0Only, opts.category ?? null] : null])).digest('hex')
+  const filtered = source !== 'smithsonian'
+  const key = createHash('sha1').update(JSON.stringify([source, q, opts.cursor ?? null, filtered ? [!!opts.cc0Only, opts.category ?? null] : null])).digest('hex')
   const file = path.join(LIBRARY, '.cache', 'search', `${key}.json`)
   if (fs.existsSync(file) && Date.now() - fs.statSync(file).mtimeMs < SEARCH_TTL) {
     const v = only(JSON.parse(fs.readFileSync(file, 'utf8')))
     return { ...v, results: poly ? await cacheThumbs(v.results, opts.key) : v.results, cached: true }
   }
-  const value = poly ? await searchPolyPizza(q, opts) : await searchSmithsonian(q, opts)
+  const value = await { polypizza: searchPolyPizza, smithsonian: searchSmithsonian, openverse: searchOpenverse }[source](q, opts)
   if (value.results.length || q) {
     fs.mkdirSync(path.dirname(file), { recursive: true })
     fs.writeFileSync(file, JSON.stringify(value))
@@ -158,17 +190,58 @@ export async function search(source, query, opts = {}) {
   return { ...v, results: poly ? await cacheThumbs(v.results, opts.key) : v.results }
 }
 
+// A sound's file extension, from its URL or as mp3 (what Openverse's
+// providers mostly serve, including Jamendo's "?format=mp32")
+function audioExt(url) {
+  const ext = path.extname(new URL(url).pathname).slice(1).toLowerCase()
+  return AUDIO_EXTS.includes(ext) ? ext : 'mp3'
+}
+
+// A sound's length in seconds, from ffmpeg's report on the file (null if
+// it can't tell, which only leaves the length off the card)
+function audioSeconds(file) {
+  const out = spawnSync('ffmpeg', ['-hide_banner', '-i', file], { encoding: 'utf8' }).stderr ?? ''
+  const m = /Duration: (\d+):(\d+):([\d.]+)/.exec(out)
+  return m ? Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]) : null
+}
+
+// Where a sound heard before it was added is kept
+const previewFile = url => path.join(LIBRARY, '.cache', 'previews', `${createHash('sha1').update(url).digest('hex')}.${audioExt(url)}`)
+
+// A sound fetched to listen to before it is added (once each); written
+// under a name of its own first, so two fetches never share a half file
+export async function preview(it) {
+  if (it?.kind !== 'sound' || !it.download) throw new Error('only a sound has a preview')
+  const file = previewFile(it.download)
+  if (!fs.existsSync(file)) {
+    const part = `${file}.${process.pid}.part`
+    fs.mkdirSync(path.dirname(file), { recursive: true })
+    try {
+      await fetchTo(it.download, part)
+      fs.renameSync(part, file)
+    } finally {
+      fs.rmSync(part, { force: true })
+    }
+  }
+  return { file }
+}
+
 // Downloads a search result into the library (once); Poly Pizza's files
 // need the key
 export async function download(it, key) {
   if (!it?.id || !it.download) throw new Error('nothing to download')
   const dir = path.join(LIBRARY, assetId(it.id))
   const meta = path.join(dir, 'asset.json')
-  if (fs.existsSync(meta)) return JSON.parse(fs.readFileSync(meta, 'utf8'))
+  if (fs.existsSync(meta)) return withFiles(JSON.parse(fs.readFileSync(meta, 'utf8')), dir)
+  const sound = it.kind === 'sound'
+  const file = sound ? `sound.${audioExt(it.download)}` : 'model.glb'
   fs.mkdirSync(dir, { recursive: true })
   try {
     const auth = it.source === 'polypizza' && key ? { 'x-auth-token': key } : {}
-    await fetchTo(it.download, path.join(dir, 'model.glb'), auth)
+    // A sound already heard in its preview is that file
+    const heard = sound && previewFile(it.download)
+    if (heard && fs.existsSync(heard)) fs.copyFileSync(heard, path.join(dir, file))
+    else await fetchTo(it.download, path.join(dir, file), auth)
     // The thumbnail: the cached copy when the search fetched one
     if (it.thumb && fs.existsSync(it.thumb)) fs.copyFileSync(it.thumb, path.join(dir, 'thumb.jpg'))
     // A model without its thumbnail is still the model: the library shows
@@ -179,16 +252,21 @@ export async function download(it, key) {
     throw e
   }
   const asset = {
-    id: assetId(it.id), name: it.name, source: it.source, license: it.license, author: it.author, authorUrl: it.authorUrl,
-    page: it.page, attribution: it.attribution ?? null, triangles: it.triangles, animated: it.animated, added: new Date().toISOString()
+    id: assetId(it.id), kind: sound ? 'sound' : 'model', file, name: it.name, source: it.source, license: it.license, author: it.author, authorUrl: it.authorUrl,
+    page: it.page, attribution: it.attribution ?? null, ...(sound
+      ? { duration: it.duration ?? audioSeconds(path.join(dir, file)) }
+      : { triangles: it.triangles, animated: it.animated }),
+    added: new Date().toISOString()
   }
   fs.writeFileSync(meta, JSON.stringify(asset, null, 2) + '\n')
   return withFiles(asset, dir)
 }
 
+// An asset with its files' paths; one saved before sounds existed is a model
 function withFiles(asset, dir) {
+  const kind = asset.kind ?? 'model'
   const thumb = path.join(dir, 'thumb.jpg')
-  return { ...asset, dir, model: path.join(dir, 'model.glb'), thumb: fs.existsSync(thumb) ? thumb : null }
+  return { ...asset, kind, dir, file: path.join(dir, asset.file ?? 'model.glb'), thumb: fs.existsSync(thumb) ? thumb : null }
 }
 
 function readAssets(base) {
@@ -206,19 +284,25 @@ function readAssets(base) {
   }).sort((a, b) => String(b.added).localeCompare(String(a.added)))
 }
 
-// A model file from this Mac (downloaded by hand from any site) into the
-// library; its licence is the person's to state
+// A model or sound file from this Mac (downloaded by hand from any site)
+// into the library; its licence is the person's to state
 export function importFile(file, { name, license = '', author = '', page = null } = {}) {
   if (!fs.existsSync(file)) throw new Error(`no such file: ${file}`)
-  if (!/\.glb$/i.test(file)) throw new Error('import a .glb file (glTF binary)')
+  const ext = path.extname(file).slice(1).toLowerCase()
+  const sound = AUDIO_EXTS.includes(ext)
+  if (!sound && ext !== 'glb') throw new Error(`import a .glb model (glTF binary) or a sound (${AUDIO_EXTS.map(e => `.${e}`).join(', ')})`)
   const base = path.basename(file, path.extname(file))
   // Named after the file and its content, so two "model.glb" files don't collide
   const hash = createHash('sha1').update(fs.readFileSync(file)).digest('hex').slice(0, 8)
   const id = `local-${assetId(base)}-${hash}`
   const dir = path.join(LIBRARY, id)
+  const to = sound ? `sound.${ext}` : 'model.glb'
   fs.mkdirSync(dir, { recursive: true })
-  fs.copyFileSync(file, path.join(dir, 'model.glb'))
-  const asset = { id, name: name || base.replace(/[-_]+/g, ' '), source: 'local', license, author, page, added: new Date().toISOString() }
+  fs.copyFileSync(file, path.join(dir, to))
+  const asset = {
+    id, kind: sound ? 'sound' : 'model', file: to, name: name || base.replace(/[-_]+/g, ' '), source: 'local', license, author, page,
+    ...(sound ? { duration: audioSeconds(path.join(dir, to)) } : {}), added: new Date().toISOString()
+  }
   fs.writeFileSync(path.join(dir, 'asset.json'), JSON.stringify(asset, null, 2) + '\n')
   return withFiles(asset, dir)
 }
@@ -233,13 +317,15 @@ export function remove(id) {
   return { removed: assetId(id) }
 }
 
-// A library asset into the project (assets/<id>/), for its world to import
+// A library asset into the project (assets/<id>/): a model for its world
+// to import, a sound for its effects or ambience
 export function use(project, id) {
   const from = path.join(LIBRARY, assetId(id))
   if (!fs.existsSync(path.join(from, 'asset.json'))) throw new Error(`no asset ${id} in the library`)
   const to = path.join(project.root, 'assets', assetId(id))
   fs.cpSync(from, to, { recursive: true })
-  return { ...withFiles(JSON.parse(fs.readFileSync(path.join(to, 'asset.json'), 'utf8')), to), path: `assets/${assetId(id)}/model.glb` }
+  const asset = withFiles(JSON.parse(fs.readFileSync(path.join(to, 'asset.json'), 'utf8')), to)
+  return { ...asset, path: path.relative(project.root, asset.file).split(path.sep).join('/') }
 }
 
 export function unuse(project, id) {
