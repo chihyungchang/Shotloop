@@ -170,7 +170,7 @@ export const zhCN: Record<Key, string> = {
 
   'agent.title': 'AI 镜头助手',
   'agent.runChecks': '运行检查',
-  'agent.runChecksHint': '渲染静帧，按检查清单逐项审核，能修的直接修',
+  'agent.runChecksHint': '渲染静帧，按检查清单逐项审核，只报告不修改',
   'agent.empty': '用大白话说说这个镜头哪里不对，比如“数字再大一点”。我只改这一个镜头，改完会先渲染、自查，再给你看。',
   'agent.queued': '排队中',
   'agent.working': '处理中',
@@ -195,6 +195,8 @@ export const zhCN: Record<Key, string> = {
   'agent.after': '修改后',
   'agent.allPass': '全部检查通过',
   'agent.left': '还有 {n} 项未通过：{rules}',
+  'agent.fixFound': '让 AI 修复这些问题',
+  'agent.fixFoundAsk': '修复检查发现的问题：\n{list}',
   'agent.left.one': '还有 1 项未通过：{rules}',
 
   'state.cached': '已缓存',

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent as KeyEvent, type MouseEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent as KeyEvent, type MouseEvent, type RefObject } from 'react'
 import { api, fileUrl, relPath, type Mode, type PickMap, type Project, type Shot, type Take } from '../../api'
 import { useErrorLine } from '../../hooks'
 import { estimate, formatSeconds, isWide, shotTime, stageName, STILL_NAMES, type ShotView } from '../../model'
@@ -36,6 +36,7 @@ export function Stage({ project, shot, view, mode, refresh, picker, follow }: {
   const takes = [...shot.takes].reverse()
   const { error, guard } = useErrorLine()
   const stage = useRef<HTMLDivElement>(null)
+  const fit = useFit(stage, project.size.width / project.size.height)
   const picking = picker.picking && tab === 'stills'
   // The pick map of the shot's code as it is now (its cache key), one
   // that could not be made (its key), the thing under the pointer, and a
@@ -152,7 +153,7 @@ export function Stage({ project, shot, view, mode, refresh, picker, follow }: {
           <pre className="stage-error">{t('stage.failed', { mode: t(`mode.${shot.error.mode}`), message: shot.error.message })}</pre>
         )}
         {tab === 'preview' && (clip
-          ? <VideoPlayer key={clip} src={fileUrl(clip, version)} className={`shot${wide ? ' wide' : ''}`} follow={follow} />
+          ? <VideoPlayer key={clip} src={fileUrl(clip, version)} className="shot" style={fit ?? undefined} follow={follow} />
           : <div className="stage-empty">
               <p>{t('stage.noClip', { mode: t(`mode.${mode}`) })}</p>
               <button onClick={() => render(mode, false)}>{t('stage.renderMode', { mode: t(`mode.${mode}`), time: formatSeconds(estimate(project, shot, mode)) })}</button>
@@ -317,4 +318,28 @@ function CodeSkeleton() {
       {widths.map((w, i) => (w ? <span key={i} className="sk-line" style={{ width: `${w}%`, marginLeft: i % 4 === 2 ? 24 : 0 }} /> : <span key={i} className="sk-gap" />))}
     </div>
   )
+}
+
+// The largest box of an aspect that fits in an element (inside its
+// padding), measured again whenever the element changes size. A video
+// sized by height: 100% alone keeps, in WebKit, the width it first got
+// from a smaller stage and shows squeezed once the stage grows
+function useFit(ref: RefObject<HTMLElement | null>, aspect: number) {
+  const [fit, setFit] = useState<{ width: number; height: number } | null>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const measure = () => {
+      const cs = getComputedStyle(el)
+      const w = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+      const h = el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom)
+      const width = Math.max(0, Math.floor(Math.min(w, h * aspect)))
+      setFit(f => (f?.width === width ? f : { width, height: Math.floor(width / aspect) }))
+    }
+    measure()
+    const watch = new ResizeObserver(measure)
+    watch.observe(el)
+    return () => watch.disconnect()
+  }, [ref, aspect])
+  return fit
 }

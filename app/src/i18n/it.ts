@@ -175,7 +175,7 @@ export const it: Record<Key, string> = {
 
   'agent.title': 'Assistente IA delle inquadrature',
   'agent.runChecks': 'Verifica',
-  'agent.runChecksHint': 'Renderizza i fotogrammi, li confronta con la checklist e corregge ciò che può',
+  'agent.runChecksHint': 'Renderizza i fotogrammi e li verifica con la checklist; solo un resoconto, nulla viene cambiato',
   'agent.empty': 'Dimmi a parole tue cosa non va in questa inquadratura, ad esempio «ingrandisci il numero». Modifico solo questa inquadratura, la renderizzo e la controllo prima che tu la veda.',
   'agent.queued': 'In coda',
   'agent.working': 'Al lavoro',
@@ -200,6 +200,8 @@ export const it: Record<Key, string> = {
   'agent.after': 'Dopo',
   'agent.allPass': 'Tutte le verifiche superate',
   'agent.left': '{n} verifiche da superare: {rules}',
+  'agent.fixFound': 'Fai correggere all’IA',
+  'agent.fixFoundAsk': 'Correggi ciò che la verifica ha trovato:\n{list}',
   'agent.left.one': '1 verifica da superare: {rules}',
 
   'state.cached': 'In cache',

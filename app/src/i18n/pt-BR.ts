@@ -175,7 +175,7 @@ export const ptBR: Record<Key, string> = {
 
   'agent.title': 'Assistente IA de planos',
   'agent.runChecks': 'Verificar',
-  'agent.runChecksHint': 'Renderiza quadros, revisa pela lista de verificação e corrige o que puder',
+  'agent.runChecksHint': 'Renderiza quadros e revisa pela lista; só relata, nada é alterado',
   'agent.empty': 'Diga o que está errado neste plano com suas palavras, como “aumente o número”. Eu mudo só este plano, renderizo e confiro antes de você ver.',
   'agent.queued': 'Na fila',
   'agent.working': 'Trabalhando',
@@ -200,6 +200,8 @@ export const ptBR: Record<Key, string> = {
   'agent.after': 'Depois',
   'agent.allPass': 'Todas as verificações passaram',
   'agent.left': '{n} verificações pendentes: {rules}',
+  'agent.fixFound': 'Deixar a IA corrigir',
+  'agent.fixFoundAsk': 'Corrija o que a verificação encontrou:\n{list}',
   'agent.left.one': '1 verificação pendente: {rules}',
 
   'state.cached': 'Em cache',

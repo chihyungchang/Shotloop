@@ -175,7 +175,7 @@ export const es: Record<Key, string> = {
 
   'agent.title': 'Asistente IA de planos',
   'agent.runChecks': 'Comprobar',
-  'agent.runChecksHint': 'Renderiza fotogramas, los revisa con la lista de comprobación y corrige lo que puede',
+  'agent.runChecksHint': 'Renderiza fotogramas y los revisa con la lista; solo informa, no cambia nada',
   'agent.empty': 'Dime con tus palabras qué falla en este plano, como «haz el número más grande». Solo cambio este plano, lo renderizo y lo compruebo antes de que lo veas.',
   'agent.queued': 'En cola',
   'agent.working': 'Trabajando',
@@ -200,6 +200,8 @@ export const es: Record<Key, string> = {
   'agent.after': 'Después',
   'agent.allPass': 'Todas las comprobaciones superadas',
   'agent.left': 'Quedan {n} comprobaciones: {rules}',
+  'agent.fixFound': 'Que la IA lo arregle',
+  'agent.fixFoundAsk': 'Arregla lo que encontró la comprobación:\n{list}',
   'agent.left.one': 'Queda 1 comprobación: {rules}',
 
   'state.cached': 'En caché',

@@ -176,7 +176,7 @@ export const en = {
 
   'agent.title': 'AI shot assistant',
   'agent.runChecks': 'Run checks',
-  'agent.runChecksHint': 'Render stills, review them against the checklist, fix what it can',
+  'agent.runChecksHint': 'Render stills and review them against the checklist; it only reports, nothing is changed',
   'agent.empty': 'Tell me what’s wrong with this shot in plain words, like “make the number bigger”. I change only this shot, render it and check it before you look.',
   'agent.queued': 'Queued',
   'agent.working': 'Working',
@@ -201,6 +201,8 @@ export const en = {
   'agent.after': 'After',
   'agent.allPass': 'All checks pass',
   'agent.left': '{n} checks left: {rules}',
+  'agent.fixFound': 'Let the AI fix these',
+  'agent.fixFoundAsk': 'Fix what the check found:\n{list}',
   'agent.left.one': '1 check left: {rules}',
 
   'state.cached': 'Cached',

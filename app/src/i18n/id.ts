@@ -175,7 +175,7 @@ export const id: Record<Key, string> = {
 
   'agent.title': 'Asisten AI adegan',
   'agent.runChecks': 'Periksa',
-  'agent.runChecksHint': 'Render gambar diam, tinjau dengan daftar periksa, perbaiki yang bisa',
+  'agent.runChecksHint': 'Render gambar diam dan periksa dengan daftar; hanya melapor, tidak mengubah apa pun',
   'agent.empty': 'Ceritakan apa yang salah dengan adegan ini dengan kata-kata biasa, misalnya “perbesar angkanya”. Saya hanya mengubah adegan ini, merendernya, dan memeriksanya sebelum Anda melihat.',
   'agent.queued': 'Di antrean',
   'agent.working': 'Bekerja',
@@ -200,6 +200,8 @@ export const id: Record<Key, string> = {
   'agent.after': 'Sesudah',
   'agent.allPass': 'Semua pemeriksaan lolos',
   'agent.left': '{n} pemeriksaan tersisa: {rules}',
+  'agent.fixFound': 'Biarkan AI memperbaikinya',
+  'agent.fixFoundAsk': 'Perbaiki yang ditemukan pemeriksaan:\n{list}',
   'agent.left.one': '1 pemeriksaan tersisa: {rules}',
 
   'state.cached': 'Dalam cache',

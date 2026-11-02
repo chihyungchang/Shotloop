@@ -175,7 +175,7 @@ export const de: Record<Key, string> = {
 
   'agent.title': 'KI-Shot-Assistent',
   'agent.runChecks': 'Prüfen',
-  'agent.runChecksHint': 'Standbilder rendern, mit der Checkliste abgleichen und beheben, was geht',
+  'agent.runChecksHint': 'Standbilder rendern und anhand der Checkliste prüfen; nur ein Bericht, nichts wird geändert',
   'agent.empty': 'Sag mir in einfachen Worten, was an diesem Shot nicht stimmt, etwa „mach die Zahl größer“. Ich ändere nur diesen Shot, rendere ihn und prüfe ihn, bevor du ihn ansiehst.',
   'agent.queued': 'In der Warteschlange',
   'agent.working': 'In Arbeit',
@@ -200,6 +200,8 @@ export const de: Record<Key, string> = {
   'agent.after': 'Nachher',
   'agent.allPass': 'Alle Prüfungen bestanden',
   'agent.left': '{n} Prüfungen offen: {rules}',
+  'agent.fixFound': 'Von der KI beheben lassen',
+  'agent.fixFoundAsk': 'Behebe, was die Prüfung gefunden hat:\n{list}',
   'agent.left.one': '1 Prüfung offen: {rules}',
 
   'state.cached': 'Im Cache',

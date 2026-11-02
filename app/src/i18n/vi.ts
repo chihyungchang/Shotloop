@@ -175,7 +175,7 @@ export const vi: Record<Key, string> = {
 
   'agent.title': 'Trợ lý cảnh AI',
   'agent.runChecks': 'Kiểm tra',
-  'agent.runChecksHint': 'Kết xuất ảnh tĩnh, đối chiếu với danh sách kiểm tra, sửa những gì có thể',
+  'agent.runChecksHint': 'Kết xuất ảnh tĩnh và đối chiếu danh sách kiểm tra; chỉ báo cáo, không sửa gì',
   'agent.empty': 'Hãy nói bằng lời thường cảnh này sai ở đâu, ví dụ “làm con số to hơn”. Tôi chỉ sửa cảnh này, kết xuất và tự kiểm tra trước khi bạn xem.',
   'agent.queued': 'Đang chờ',
   'agent.working': 'Đang làm',
@@ -200,6 +200,8 @@ export const vi: Record<Key, string> = {
   'agent.after': 'Sau',
   'agent.allPass': 'Đạt mọi kiểm tra',
   'agent.left': 'Còn {n} kiểm tra: {rules}',
+  'agent.fixFound': 'Để AI sửa các lỗi này',
+  'agent.fixFoundAsk': 'Sửa những gì bước kiểm tra tìm thấy:\n{list}',
   'agent.left.one': 'Còn 1 kiểm tra: {rules}',
 
   'state.cached': 'Đã lưu đệm',

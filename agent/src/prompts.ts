@@ -55,7 +55,7 @@ ${format(track)}${coding(track, voice)}
 
 ${CRAFT}
 
-When you are asked only to review, do not edit files: render, judge and report.`
+A check only reviews: look at the stills (render them once if they are missing or out of date), judge each rule, and report. Never edit files; the person asks for a fix of what you found.`
 }
 
 export function publishSystem() {
