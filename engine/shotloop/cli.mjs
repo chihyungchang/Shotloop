@@ -71,6 +71,7 @@ import { findShot, isProject, loadProject } from './project.mjs'
 import { musicInfo, setMusic, setStyle, setTitle } from './settings.mjs'
 import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
 import * as covers from './covers.mjs'
+import { exposure } from './exposure.mjs'
 import * as library from './library.mjs'
 import * as memory from './memory.mjs'
 import * as rules from './rules.mjs'
@@ -260,11 +261,14 @@ try {
       const project = loadProject(args[0])
       if (!values.shot) throw new Error('render needs --shot <id>')
       const shot = findShot(project, values.shot)
-      result(await renderShot(project, shot, {
+      const rendered = await renderShot(project, shot, {
         mode: values.final ? 'final' : values.draft ? 'draft' : editMode(project),
         stills: !!values.stills,
         force: !!values.force
-      }))
+      })
+      // A 3D shot is reviewed on its stills, so their exposure goes with
+      // them (2D draws flat white on purpose: paper, a screen, big type)
+      result(values.stills && rendered.stills && project.track === '3d' ? { ...rendered, exposure: await exposure(rendered.stills) } : rendered)
       break
     }
     case 'assemble': {

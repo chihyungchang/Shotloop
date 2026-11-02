@@ -128,6 +128,11 @@ export function webglPage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
   - Glow and bloom: keep the background and skies dim; only small hot parts
     (a sun disc, a spark) far above them. Bloom on a bright sky washes the
     frame white.
+  - Whites blow out: a pale surface under a strong key or near a point light
+    (light falls off with the square of the distance) turns flat white and
+    loses its shape. Make big pale parts off-white (about #d8d4cc), keep point
+    lights a body's length from them, and let only light sources clip; the
+    stills' exposure check stripes blown areas red.
   - Coplanar faces flicker: decals and labels sit 1 mm proud; boxes that touch
     share no face. Keep the camera's near plane >= 1% of the subject's distance.
   - Billboards built in a shader can face away: use side: DoubleSide.
@@ -244,8 +249,10 @@ ${kitType({ headTop, headSize })}      // ---- 3D ----
         postComposer.setPixelRatio(DPR)
         postComposer.setSize(W, H)
         postComposer.addPass(new A.TexturePass(accTarget.texture))
-        // Only what is brighter than white glows (emissives, hot highlights)
-        bloomPass = new A.UnrealBloomPass(px, bloom, 0.35, 1.0)
+        // Only what is far brighter than a lit surface glows (emissives, hot
+        // highlights): a white surface under a strong key reaches about 2 in
+        // linear light, and glowing there blows it out
+        bloomPass = new A.UnrealBloomPass(px, bloom, 0.35, 2.2)
         postComposer.addPass(bloomPass)
         renderer.toneMapping = TONES[tone] ?? TONES.agx
         renderer.toneMappingExposure = exposure

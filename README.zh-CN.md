@@ -7,7 +7,7 @@
 一个想法会变成文案、分镜和由多个镜头组成的成片。每个镜头都有自己的循环：AI 编写，Shotloop 渲染，你来检查，AI 来修改。修一个镜头只重新渲染这一个，不用重做整部片子。</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero-zh.jpg" alt="Shotloop 工作室：3D 拆机项目，舞台上是镜头的开头、中间、结尾三帧，下方是镜头条，左边是 AI 助手" width="100%" />
+  <img src="docs/screenshots/hero-zh.jpg" alt="Shotloop 工作室：3D 机械表项目，舞台上是摆轮镜头的开头、中间、结尾三帧，下方是镜头条，左边是 AI 助手" width="100%" />
 </p>
 
 <p align="center">

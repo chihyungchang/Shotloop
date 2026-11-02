@@ -7,7 +7,7 @@
 Uma ideia vira texto, storyboard e um filme feito de cenas. Cada cena tem o seu próprio ciclo: a IA escreve, o Shotloop renderiza, você revisa e a IA corrige. Uma correção renderiza de novo só aquela cena, não o filme inteiro.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Editor do Shotloop: a desmontagem de um celular em 3D, a cena de vista explodida em quadros de início, meio e fim, a faixa de cenas embaixo e o assistente de IA à esquerda" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Editor do Shotloop: um relógio mecânico em 3D, a cena do balanço em quadros de início, meio e fim, a faixa de cenas embaixo e o assistente de IA à esquerda" width="100%" />
 </p>
 
 <p align="center">

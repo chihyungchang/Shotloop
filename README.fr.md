@@ -7,7 +7,7 @@
 Une idée devient un texte, un storyboard et un film composé de plans. Chaque plan a sa propre boucle : l’IA l’écrit, Shotloop en fait le rendu, vous le relisez et l’IA le corrige. Une correction ne refait le rendu que de ce plan, pas du film entier.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Le Studio de Shotloop : un démontage de téléphone en 3D, son plan en vue éclatée en images de début, de milieu et de fin, la pellicule en dessous et l’assistant IA à gauche" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Le Studio de Shotloop : une montre mécanique en 3D, son plan sur le balancier en images de début, de milieu et de fin, la pellicule en dessous et l’assistant IA à gauche" width="100%" />
 </p>
 
 <p align="center">

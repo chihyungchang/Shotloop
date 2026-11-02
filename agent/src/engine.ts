@@ -3,6 +3,7 @@
 
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import type { RenderResult } from '../../engine/shotloop/protocol.d.ts'
 import { CLI } from './enginelib.ts'
 import { emit } from './events.ts'
 import { spawnLines } from './spawn.ts'
@@ -46,15 +47,8 @@ export interface ProjectStatus {
   voiced?: boolean
 }
 
-export interface RenderResult {
-  shot: string
-  key: string
-  stills: string[] | null
-  clip: string | null
-  // A voiced 2D shot's subtitle check, run before the render: what the
-  // subtitles would cover, in shot seconds (engine/shotloop/check.mjs)
-  subtitles?: { from: number; to: number; what: string }[]
-}
+// What a render answers, as the engine's protocol types it
+export type { RenderResult }
 
 // Runs one engine command with --json; progress events are passed on to
 // our own output so the app can show them while the agent waits

@@ -7,7 +7,7 @@
 Một ý tưởng trở thành lời văn, phân cảnh và một video gồm nhiều cảnh. Mỗi cảnh có vòng lặp riêng: AI viết, Shotloop render, bạn xem lại và AI sửa. Sửa một cảnh chỉ render lại cảnh đó, không phải cả video.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Trình chỉnh sửa Shotloop: dự án 3D tháo rời điện thoại, khung hình đầu, giữa và cuối của cảnh nổ tách lớp, dải phim bên dưới và Trợ lý AI bên trái" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Trình chỉnh sửa Shotloop: dự án 3D đồng hồ cơ, khung hình đầu, giữa và cuối của cảnh bánh lắc, dải phim bên dưới và Trợ lý AI bên trái" width="100%" />
 </p>
 
 <p align="center">

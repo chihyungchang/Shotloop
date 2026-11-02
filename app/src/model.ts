@@ -153,7 +153,7 @@ function fileWords(file: string): string {
 }
 
 // An agent's activity log line, in words: tool lines ("read_file
-// shots/05-x/shot.py", "Write /abs/path") become a sentence; anything
+// shots/05-x/shot.js", "Write /abs/path") become a sentence; anything
 // else (the agent's own text) is shown as it is
 export function activityLine(line: string): string {
   const m = line.match(/^(\w+)\s*(.*)$/)

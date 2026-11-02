@@ -7,7 +7,7 @@
 一個想法會變成文案、分鏡，再變成由多個鏡頭組成的成片。每個鏡頭都有自己的循環：AI 撰寫，Shotloop 渲染，你來檢查，AI 再修改。修一個鏡頭只會重新渲染那一個，不必整支重做。</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Shotloop 編輯器：3D 手機拆解，爆炸圖鏡頭的開頭、中間、結尾三張靜態畫面，下方是鏡頭列，左側是 AI 助理" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Shotloop 編輯器：3D 機械錶，擺輪鏡頭的開頭、中間、結尾三張靜態畫面，下方是鏡頭列，左側是 AI 助理" width="100%" />
 </p>
 
 <p align="center">

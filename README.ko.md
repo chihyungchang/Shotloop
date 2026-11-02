@@ -7,7 +7,7 @@
 아이디어 하나가 문안, 스토리보드, 그리고 여러 샷으로 이뤄진 영상이 됩니다. 샷마다 자체 루프가 있습니다. AI가 작성하고, Shotloop이 렌더링하고, 사용자가 검토하면 AI가 고칩니다. 수정하면 영상 전체가 아니라 그 샷만 다시 렌더링합니다.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Shotloop 편집기: 3D 스마트폰 분해 프로젝트. 분해도 샷의 시작·중간·끝 정지 화면, 아래쪽 필름 스트립, 왼쪽 AI 어시스턴트" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Shotloop 편집기: 3D 기계식 시계 프로젝트. 밸런스 휠 샷의 시작·중간·끝 정지 화면, 아래쪽 필름 스트립, 왼쪽 AI 어시스턴트" width="100%" />
 </p>
 
 <p align="center">
