@@ -1,0 +1,109 @@
+/* Pieces several views share: brand marks, the key invitation, dialogs,
+   banners and notes, shot sketches and loading outlines.
+   Layer and order: styles/index.css. */
+
+@layer components {
+
+/* Brand marks: inline SVGs sized by font size */
+.brand-icon { display: block; width: 1em; height: 1em; line-height: 0; flex: none; }
+.brand-icon svg { display: block; width: 1em; height: 1em; vertical-align: top; }
+.mode-tile.brand { background: var(--surface); color: var(--text-strong); box-shadow: var(--shadow-xs), 0 0 0 1px var(--border); }
+.option-logo { width: 26px; height: 26px; border-radius: 7px; display: grid; place-items: center; flex: none; background: var(--surface); color: var(--text-strong); box-shadow: 0 0 0 1px var(--border); }
+.provider-chip .brand-icon, .model-chip .brand-icon { color: var(--text-strong); }
+.option .dot { margin-left: 4px; }
+
+/* A source that needs the person's key: an invitation, not an error */
+.connect-card { display: flex; align-items: center; gap: 16px; padding: 18px 20px; border-radius: var(--r-xl); background: var(--surface); border: 1px solid var(--border-soft); box-shadow: var(--shadow-sm); }
+.connect-logo { width: 46px; height: 46px; flex: none; border-radius: 12px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #fbbf24, #f97316); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.25); }
+.connect-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.connect-text strong { font-size: 14px; color: var(--text-strong); }
+.connect-actions { display: flex; gap: 8px; flex: none; }
+
+.suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+/* WebKit (the app's web view) doesn't centre a grid item in these small
+   tiles the way Chrome does: centre the marks with flex instead */
+.mode-tile, .cli-logo, .option-logo, .connect-logo { display: flex; align-items: center; justify-content: center; }
+.link.try { display: inline-flex; gap: 4px; align-items: center; align-self: flex-start; font-size: 12px; }
+
+.draft-tag { margin-left: 8px; vertical-align: 2px; background: var(--accent-soft); color: var(--accent-text); }
+.listen { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
+.publish-form { display: flex; flex-direction: column; gap: 10px; }
+.pub-field { display: flex; flex-direction: column; gap: 4px; }
+.pub-field input, .pub-field textarea { width: 100%; font: inherit; font-size: 13px; }
+.pub-field textarea { resize: vertical; line-height: 1.5; }
+.pub-tags { margin: 0; font-size: 13px; color: var(--accent-text); word-break: break-word; }
+.publish-section > .row, .publish-section > .publish-form, .publish-section > .error-box { align-self: stretch; }
+.publish-form .subtabs { display: flex; margin: 0; }
+.publish-form .subtabs button { flex: 1; padding: 0 6px; white-space: nowrap; }
+.queue-summary { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; margin: 4px 0 6px; border-radius: var(--r-lg); background: var(--surface-2); }
+.queue-summary strong { font-size: 18px; font-weight: 600; color: var(--text-strong); letter-spacing: -0.01em; }
+.job-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.job-head .job-name { flex: 1; min-width: 0; }
+.job-side { flex: none; font-variant-numeric: tabular-nums; }
+.job-x { flex: none; width: 22px; height: 22px; opacity: 0.55; }
+.job-x:hover { opacity: 1; }
+.job-ok { flex: none; color: var(--accent); }
+.changes-dialog { width: min(440px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 10px; }
+.changes-dialog p { margin: 0; }
+.changes-list { list-style: none; margin: 0; padding: 0; max-height: 40vh; overflow: auto; border: 1px solid var(--border-soft); border-radius: var(--r-md); }
+.changes-list li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; font-size: 13px; }
+.changes-list li + li { border-top: 1px solid var(--border-soft); }
+.changes-list li > .ellipsis { flex: 1; min-width: 0; }
+.changes-tags { display: flex; gap: 4px; flex: none; }
+.tag.danger { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.dialog-backdrop { position: fixed; inset: 0; z-index: 60; background: rgb(0 0 0 / 0.42); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 16px; animation: fade-in 140ms var(--ease) both; }
+.dialog { background: var(--surface); color: var(--text); border-radius: var(--r-xl); padding: 18px 18px 16px; box-shadow: var(--shadow-lg, 0 20px 50px rgb(0 0 0 / 0.25)), 0 0 0 1px var(--border-soft); animation: fade-up 180ms var(--ease) both; }
+.dialog strong { font-size: 15px; color: var(--text-strong); }
+.banner.copying { display: flex; align-items: center; gap: 8px; color: var(--text-2); }
+.examples-note { font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+.workspace-dialog { width: min(420px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 10px; }
+.workspace-dialog p { margin: 0; }
+.workspace-icon { width: 40px; height: 40px; border-radius: var(--r-lg); background: var(--accent-soft); color: var(--accent-text); display: flex; align-items: center; justify-content: center; }
+.workspace-path { padding: 6px 10px; border-radius: var(--r-md); background: var(--surface-2); color: var(--text-2); overflow-wrap: anywhere; }
+.danger-text { color: var(--danger); }
+.draft-save { display: inline-flex; align-items: center; gap: 8px; }
+.tag.warn { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); }
+.telemetry-notice { position: fixed; right: 20px; bottom: 20px; z-index: 60; width: min(360px, calc(100vw - 40px)); display: flex; flex-direction: column; gap: 8px; }
+.telemetry-notice p { margin: 0; display: block; }
+.banner.floating { position: fixed; top: 52px; left: 50%; transform: translateX(-50%); z-index: 70; cursor: pointer; }
+.dialog-actions button.danger-text { color: var(--danger); }
+.update-note { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; margin-bottom: 8px; border: 0; border-radius: var(--r-lg); background: var(--accent-soft); color: var(--accent-text); text-align: left; }
+.update-note > span { display: flex; flex-direction: column; min-width: 0; }
+.update-note strong { font-size: 12.5px; }
+.update-note.busy { color: var(--text-2); background: var(--surface-2); }
+.update-notes { white-space: pre-wrap; max-height: 120px; overflow: auto; }
+
+/* A shot as a frame in its look, before it has stills */
+.sketch { position: relative; display: block; aspect-ratio: 9 / 16; border-radius: 8px; overflow: hidden; background: var(--surface-2); color: var(--text); box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 10%, transparent); container-type: inline-size; --sk-accent: var(--accent); --sk-accent2: var(--text-3); }
+.sketch.wide { aspect-ratio: 16 / 9; }
+.sketch.neutral { background: linear-gradient(170deg, var(--surface-2), color-mix(in srgb, var(--text) 6%, var(--surface-2))); }
+.sketch-progress { position: absolute; left: 0; top: 0; height: 2.5cqw; min-height: 2px; background: var(--sk-accent); }
+.sketch-kicker { position: absolute; left: 8cqw; top: 9cqw; font-size: max(6px, 6cqw); font-weight: 600; letter-spacing: 0.1em; opacity: 0.6; }
+.sketch-text { position: absolute; left: 8cqw; right: 8cqw; top: 19cqw; font-size: max(7px, 10.5cqw); font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.sketch.wide .sketch-text { right: 40%; top: 18%; font-size: max(7px, 6cqw); -webkit-line-clamp: 3; }
+.sketch.wide .sketch-kicker { top: 7%; font-size: max(6px, 3.6cqw); }
+.sketch-art { position: absolute; left: 8cqw; right: 8cqw; top: 58%; bottom: 14%; border-radius: 4cqw; border: max(1px, 0.8cqw) dashed color-mix(in srgb, var(--sk-accent) 55%, transparent); background: color-mix(in srgb, var(--sk-accent) 10%, transparent); }
+.sketch.wide .sketch-art { left: auto; right: 6%; width: 32%; top: 16%; bottom: 16%; }
+.sketch.neutral .sketch-art { border-color: color-mix(in srgb, var(--text) 18%, transparent); background: transparent; }
+.sketch.faint .sketch-text, .sketch.faint .sketch-kicker { opacity: 0.45; }
+.sketch.faint .sketch-art { opacity: 0.35; }
+.sketch.faint { filter: saturate(0.85); }
+
+/* Loading outlines: blocks and lines that shimmer where content will be */
+.sk-block { display: block; background: linear-gradient(100deg, var(--surface-2) 30%, color-mix(in srgb, var(--text) 7%, var(--surface-2)) 50%, var(--surface-2) 70%); background-size: 200% 100%; animation: sheen 1.6s linear infinite; }
+.sk-line.w20 { width: 20%; } .sk-line.w30 { width: 30%; }
+.skeleton { pointer-events: none; animation: fade-in 300ms var(--ease) both; }
+.project-item.skeleton { gap: 10px; }
+.project-item.skeleton .poster { aspect-ratio: 16 / 10; border-radius: var(--r-xl); }
+.project-item.skeleton .sk-line { margin-left: 4px; }
+.example.skeleton { display: flex; align-items: center; gap: 14px; padding: 10px 16px; }
+.example.skeleton .example-poster::after { display: none; }
+.example.skeleton .example-text { gap: 7px; }
+.asset-row.skeleton .asset-row-thumb { border-radius: var(--r-sm); }
+.asset-row.skeleton .asset-row-text { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.code-skeleton { gap: 9px; padding: 14px 16px; background: var(--surface-2); }
+.code-skeleton .sk-line { height: 9px; background: linear-gradient(100deg, color-mix(in srgb, var(--text) 7%, var(--surface-2)) 30%, color-mix(in srgb, var(--text) 13%, var(--surface-2)) 50%, color-mix(in srgb, var(--text) 7%, var(--surface-2)) 70%); background-size: 200% 100%; }
+.sk-gap { height: 9px; }
+
+}

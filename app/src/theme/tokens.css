@@ -26,6 +26,9 @@
                labels)
 */
 
+@layer tokens {
+
+
 :root {
   --text-xs: 11px;
   --text-sm: 12px;
@@ -175,4 +178,6 @@
   /* A hairline around every frame on the stage, so dark frames show
      their edge */
   --stage-frame: rgb(255 255 255 / 0.28);
+}
+
 }

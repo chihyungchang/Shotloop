@@ -1,0 +1,23 @@
+/* The app's styles, in cascade order. The layers come first, lowest
+   first: a later layer wins over an earlier one whatever the files'
+   order, so a view's rules never depend on where a shared rule happens to
+   sit. Within "components", a later file wins a tie, so the order of the
+   imports below is part of the styles: add a view's own file (kept beside
+   its component) at the end. */
+@layer tokens, base, controls, components;
+
+@import '../theme/tokens.css';
+@import './base.css';
+@import './controls.css';
+@import '../components/Sidebar.css';
+@import '../components/Home.css';
+@import '../components/Projects.css';
+@import '../components/SettingsPage.css';
+@import '../components/studio/Studio.css';
+@import '../components/plan/Plan.css';
+@import '../components/LibraryPage.css';
+@import './shared.css';
+@import '../components/Pickers.css';
+@import '../components/studio/export/Export.css';
+@import '../components/ExampleGallery.css';
+@import '../components/RulesSettings.css';

@@ -1,0 +1,59 @@
+/* Base: the page, type, scrollbars, entrances and reduced motion.
+   Layer and order: styles/index.css. */
+
+@layer base {
+
+/* Shotloop components, after open-design's craft. Colours, type, shape,
+   depth and motion come only from the design tokens in theme/tokens.css;
+   light and dark switch there. The workspace is a quiet ground with one
+   floating card; the studio sets panels around a dark stage where frames
+   read true. */
+
+html { font: var(--text-md)/1.45 var(--font-sans); }
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+/* Below the title bar strip (the traffic lights live there) */
+#root { padding-top: var(--titlebar); }
+.titlebar { position: fixed; top: 0; left: 0; right: 0; height: var(--titlebar); z-index: 40; background: var(--bg); }
+body { background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow: hidden; }
+
+/* Like a native app: the interface's own words, icons and pictures can't
+   be selected or dragged off (a click or ⌘A doesn't paint it blue).
+   What a person may want to copy stays selectable: what they type, the
+   AI's replies, the shot's notes, logs, errors and the publish copy */
+body { -webkit-user-select: none; user-select: none; cursor: default; }
+img, svg { -webkit-user-drag: none; }
+input, textarea, [contenteditable], .bubble.agent p, .md, .log-line, .error, .stage-error, .publish, pre, code {
+  -webkit-user-select: text; user-select: text; }
+input, textarea, [contenteditable] { cursor: auto; }
+h1, h2, h3 { margin: 0; letter-spacing: -0.01em; color: var(--text-strong); }
+code, pre, .notes-input { font-family: var(--font-mono); }
+
+/* Scrollbars, everywhere: a thin rounded thumb in the theme's text color
+   over no track (WebKit draws these instead of the system's) */
+::-webkit-scrollbar { width: 10px; height: 10px; background: transparent; }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb { border: 3px solid transparent; border-radius: 999px; background: color-mix(in srgb, var(--text) 18%, transparent) padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: color-mix(in srgb, var(--text) 32%, transparent); }
+code { font-size: 11.5px; }
+p { margin: 0; }
+.muted { color: var(--text-2); }
+.small { font-size: 12px; }
+.hint { font-size: 12.5px; color: var(--text-2); display: flex; gap: 6px; align-items: center; }
+.spacer { flex: 1; }
+.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.error { color: var(--danger); }
+.banner { margin: 12px 24px 0; }
+.section-label, .label { display: block; font: var(--label-font); letter-spacing: var(--label-tracking); text-transform: var(--label-transform); color: var(--text-2); margin: 0 0 8px; }
+.icon { flex: none; vertical-align: -3px; }
+
+/* Entrances: short, eased, once */
+@keyframes fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+}
