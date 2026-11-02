@@ -1260,5 +1260,9 @@ textarea.autotext { resize: none; overflow: hidden; line-height: 1.5; min-height
 .tool-card figcaption { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .tool-about { font-size: 12px; color: var(--text-2); overflow-wrap: anywhere; }
 .tool-add { display: flex; flex-direction: column; gap: 8px; }
-.tool-add .row { gap: 8px; }
+.tool-add .row { gap: 8px; flex-wrap: wrap; }
+.rule-add { display: flex; flex-direction: column; gap: 8px; }
+.rule-add .row { gap: 8px; justify-content: space-between; }
+.rule-tracks { align-self: flex-start; }
+.tool-tracks { display: flex; gap: 4px; }
 .tool-file { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

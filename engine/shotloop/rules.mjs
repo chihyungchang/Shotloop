@@ -8,15 +8,16 @@
 // - TASTE: the house taste, set by Oliver with a viewer who watches a lot
 //   of English short video (31 Oct 2026). Defaults: the person can reword
 //   or remove any of them, restore it, and add their own.
-// - TOOLS: the animation devices a plan picks from. The built-in ones stay
-//   as they are (each with an example still in tools/<id>.jpg); the
-//   person can add their own, with a picture.
+// - TOOLS: the devices a plan picks from, each for the tracks it fits
+//   (`tracks`; a 2D device that can be staged in 3D says how in `text3d`).
+//   The built-in ones stay as they are (2D ones with an example still in
+//   tools/<id>.jpg); the person can add their own, with a picture.
 //
 // What the person changed lives in their rules folder:
 //
 //   rules/rules.json   { taste: { <id>: { text } | { off: true } },
-//                        mine: [{ id, text, created }],
-//                        tools: [{ id, name, text, image, created }] }
+//                        mine: [{ id, text, track, created }],
+//                        tools: [{ id, name, text, track, image, created }] }
 //   rules/<id>.<ext>   a tool's picture
 //
 // A rule's `rule` is what the prompts say, its `check` what a review
@@ -35,6 +36,7 @@ const BAD = path.join(RULES, 'rules.json.bad')
 const STILLS = fileURLToPath(new URL('tools', import.meta.url))
 export const MAX_CHARS = 1500
 const IMAGE = /\.(jpe?g|png|webp)$/i
+const TRACKS = ['all', '2d', '3d']
 const MAX_IMAGE_MB = 8
 
 const FIXED = [
@@ -45,7 +47,7 @@ const FIXED = [
   },
   {
     id: 'safe-area', track: 'all', name: 'Inside the safe area',
-    rule: 'Text and the subject stay inside the safe area (the kit\'s PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM): the bottom 20% and the right edge carry the platforms\' buttons. Backgrounds may fill the frame.',
+    rule: 'Text and the subject stay inside the safe area (2D: the kit\'s PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM): the bottom 20% and the right edge carry the platforms\' buttons. Backgrounds may fill the frame.',
     check: 'Text and the subject stay inside x 40–620 and y 110–1024 of 720×1280 (2D: the kit\'s PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM); the bottom 20% and the right edge carry the platforms\' buttons. Backgrounds may fill the frame.'
   },
   {
@@ -60,6 +62,7 @@ const FIXED = [
   },
   {
     id: 'sightline', track: '3d', name: 'Clear sightline',
+    rule: 'Across the whole camera move, nothing stands between the camera and the subject.',
     check: 'Across the whole move, nothing stands between the camera and the subject. Furniture and buildings next to the path are the usual blockers.'
   },
   {
@@ -86,7 +89,7 @@ const FIXED = [
 
 const TASTE = [
   {
-    id: 'visual', track: '2d', name: 'Visual first',
+    id: 'visual', track: 'all', name: 'Visual first',
     rule: 'A short video is not an info journal. Design each shot from "what does the viewer SEE?" before writing a word. If a fact can be shown, show it.',
     check: 'The point is carried by a picture (only the end card may be text first).'
   },
@@ -116,12 +119,12 @@ const TASTE = [
     check: 'Every number on screen moves.'
   },
   {
-    id: 'hero', track: '2d', name: 'The point is the hero, seen square on',
+    id: 'hero', track: 'all', name: 'The point is the hero, seen square on',
     rule: 'The picture that carries the shot\'s point is its biggest, clearest part, not a panel in a corner under a decorative globe; and when the point is a shape or a proportion (an orbit that is almost a circle, a patch twice as wide), show it face-on, with no perspective that bends it: a true circle tilted into an ellipse looks like the myth it replaces. One idea per picture: don\'t layer seasons, night and labels on one sphere.',
     check: 'The picture that carries the point is the biggest part of the frame, and a shape or proportion it compares is seen face-on, not bent by perspective.'
   },
   {
-    id: 'science', track: '2d', name: 'Science shows the principle working',
+    id: 'science', track: 'all', name: 'Science shows the principle working',
     rule: 'For a science subject (a mechanism, a law, a process), show the principle working, not a picture of the thing with a label on it. Ask what can\'t be seen (too small, too fast, too slow, invisible) and make that the shot. Draw a field over the whole object (arrows all round the Earth, along the whole wire), not at two or three sample points: where it pushes in matters as much as where it pulls out. The matter moves while the force acts on it (the water flowing round into the bulges as the arrows grow), never arrows first and then a cut to the result. Every key number on screen has its cause in the picture: if a time is 12 h 25 min rather than 12 h because the Moon moves on, the Moon moves on screen.',
     check: 'When the shot shows a law or mechanism: a field covers the whole object; the matter moves while the force acts; every key number has its cause in the picture.'
   },
@@ -141,40 +144,64 @@ const TASTE = [
     id: 'continuity', track: '2d', name: 'A picture that comes back looks the same',
     rule: 'A picture that comes back in another shot keeps its design (same layout, colors and labels), so the viewer recognises it at once.',
     check: 'A picture that recurs across shots (the plan\'s recurring pictures, drawn from world/parts.js) keeps its layout, colors and labels; nothing mirrored or recolored between shots.'
+  },
+  {
+    id: 'words-when-needed', track: '3d', name: 'Words only when they help',
+    rule: 'The picture and the voice carry a 3D video. Put words or a number on screen only when they make the point easier to grasp: a short label or one key number, on the caption layer.',
+    check: 'On-screen text is at most a short label or one key number, and only where it helps.'
+  },
+  {
+    id: 'shot-sizes', track: '3d', name: 'Vary the shot size',
+    rule: 'Wide to place the viewer, medium for the action, close for the detail that matters; no three shots of the same size in a row.'
+  },
+  {
+    id: 'motivated-camera', track: '3d', name: 'Every camera move has a reason',
+    rule: 'A move reveals, follows, or brings the viewer closer to what matters; the camera never drifts for its own sake.',
+    check: 'The camera move reveals, follows or approaches the subject; it does not wander.'
+  },
+  {
+    id: 'breathing-room', track: '3d', name: 'Let it breathe',
+    rule: 'Cinema holds on a striking image: let a shot rest when it lands, and frame the subject with darkness and empty space.'
   }
 ]
 
 export const TOOLS = [
-  { id: 'rolling-counter', group: 'story', name: 'Rolling counter', text: 'the hook\'s big figure, rolling up and landing with a bounce.' },
-  { id: 'draining-stock', group: 'story', name: 'Draining stock', text: 'an amount leaving while the counter rolls (items turning red and flying off, leaving empty slots).' },
-  { id: 'breaking-banner', group: 'story', name: 'Breaking banner', text: 'a bar that wipes over a finished picture to say "this is big", a sourced line crawling under it.' },
-  { id: 'bar-race', group: 'story', name: 'Bar race', text: '"biggest ever" and comparisons; bars grow in turn and one overtakes.' },
-  { id: 'clock-particles', group: 'story', name: 'Clock and particles', text: 'speed; streams pouring out while a clock runs.' },
-  { id: 'infection-fill', group: 'story', name: 'Infection fill', text: 'something being compromised, filling cell by cell (label it illustrative).' },
-  { id: 'hop-path', group: 'story', name: 'Hop path', text: 'how something moves through a system, each box lighting as it is reached.' },
-  { id: 'untouched-object', group: 'story', name: 'Untouched object', text: 'what was NOT affected, glowing while the rest flows past.' },
-  { id: 'bypass', group: 'story', name: 'Bypass', text: 'a control that was skipped; the flow goes round the gate, an alarm border flashes.' },
-  { id: 'routine-log', group: 'story', name: 'Routine log', text: '"it looked normal"; rows of checks scrolling while a total climbs (illustrative).' },
-  { id: 'pulse-pattern', group: 'story', name: 'Pulse through a pattern', text: '"same playbook"; one pulse through two identical strips, ending on "=".' },
-  { id: 'trace-stamp', group: 'story', name: 'Trace graph and stamp', text: 'attribution; lines branching out, a SUSPECTED stamp, NOT CONFIRMED typed.' },
-  { id: 'split-bar', group: 'story', name: 'Split bar', text: 'part of a whole, splitting into its shares.' },
-  { id: 'shared-timeline', group: 'story', name: 'Shared timeline', text: 'wildly different durations on one axis, a cursor running.' },
-  { id: 'waffle', group: 'story', name: 'Waffle', text: 'a small share of a big total (1,000 squares, 32 lit).' },
-  { id: 'drawn-fix', group: 'story', name: 'Drawn fix', text: 'the defence; a request travelling, a lock snapping shut.' },
-  { id: 'running-clock', group: 'story', name: 'Running clock', text: 'time pressure; a timestamp that keeps ticking while the event unfolds, red flashing on the hits.' },
-  { id: 'money-trail', group: 'story', name: 'Money trail', text: 'funds splitting into ever more wallets, coins running down the branches (illustrative).' },
-  { id: 'event-timeline', group: 'story', name: 'Event timeline', text: 'the story\'s dates on one axis, landing in turn, the beat that matters glowing.' },
-  { id: 'attributed-statement', group: 'story', name: 'Attributed statement', text: 'an agency badge, its words typed in exactly, the date under it.' },
-  { id: 'driven-by-law', group: 'science', name: 'Driven by the law', text: 'the motion is computed from the real equation (an orbit by gravity, a decay by its half-life, scattering by 1/λ⁴), so what the viewer sees is the model\'s own result, not a cartoon of it.' },
-  { id: 'turn-one-knob', group: 'science', name: 'Turn one knob', text: 'one quantity changes on screen (wavelength, temperature, mass, angle) with its value rolling beside it, and the outcome follows by the law; the viewer sees the cause and the effect move together.' },
-  { id: 'zoom-scales', group: 'science', name: 'Zoom across scales', text: 'from the everyday scene down into the mechanism (the sky, then the air, then one molecule), a scale bar rolling as the camera dives (1 m → 1 nm), and back out to the scene at the payoff.' },
-  { id: 'slow-time', group: 'science', name: 'Slow time', text: 'an event too fast or too slow to see, replayed at a speed you can follow, the time factor ticking in a corner.' },
-  { id: 'cutaway', group: 'science', name: 'Cutaway', text: 'the outside fades or slices open to show the inside working (a cell, an engine, a star), the outline staying faint so the viewer knows where they are.' },
-  { id: 'invisible-visible', group: 'science', name: 'Invisible made visible', text: 'fields as lines and arrows, forces as arrows sized by their strength, heat as particle speed, pressure as particle hits, energy as a flowing quantity in a color kept for it.' },
-  { id: 'with-without', group: 'science', name: 'With and without', text: 'the same setup twice, side by side, one difference between them, and the outcomes split apart.' },
-  { id: 'draws-its-graph', group: 'science', name: 'The thing draws its graph', text: 'the phenomenon traces its own curve beside it (a pendulum drawing a sine, a sample drawing its decay curve, a falling ball drawing its parabola), the axis labelled in real units.' },
-  { id: 'conservation-ledger', group: 'science', name: 'Conservation ledger', text: 'the quantity that is kept (energy, charge, mass, momentum) as stacked bars that trade between their forms while the total never moves.' },
-  { id: 'myth-mechanism', group: 'science', name: 'Myth, then mechanism', text: 'the common wrong picture first, stamped "wrong" in the color kept for it, then the real mechanism replacing it in the same layout.' }
+  { id: 'rolling-counter', group: 'story', name: 'Rolling counter', text: 'the hook\'s big figure, rolling up and landing with a bounce.', tracks: ['2d'] },
+  { id: 'draining-stock', group: 'story', name: 'Draining stock', text: 'an amount leaving while the counter rolls (items turning red and flying off, leaving empty slots).', tracks: ['2d', '3d'], text3d: 'real things leave the place that held them (coins lifting out of a vault, water draining from a tank), the empty space left behind lit.' },
+  { id: 'breaking-banner', group: 'story', name: 'Breaking banner', text: 'a bar that wipes over a finished picture to say "this is big", a sourced line crawling under it.', tracks: ['2d'] },
+  { id: 'bar-race', group: 'story', name: 'Bar race', text: '"biggest ever" and comparisons; bars grow in turn and one overtakes.', tracks: ['2d'] },
+  { id: 'clock-particles', group: 'story', name: 'Clock and particles', text: 'speed; streams pouring out while a clock runs.', tracks: ['2d', '3d'], text3d: 'a physical stream pouring out (glowing pellets, water, sand) past a clock that stands in the set.' },
+  { id: 'infection-fill', group: 'story', name: 'Infection fill', text: 'something being compromised, filling cell by cell (label it illustrative).', tracks: ['2d'] },
+  { id: 'hop-path', group: 'story', name: 'Hop path', text: 'how something moves through a system, each box lighting as it is reached.', tracks: ['2d', '3d'], text3d: 'the camera follows one object through the real places it passes (a parcel through depots, a letter from hand to hand), each place lighting as it arrives.' },
+  { id: 'untouched-object', group: 'story', name: 'Untouched object', text: 'what was NOT affected, glowing while the rest flows past.', tracks: ['2d', '3d'], text3d: 'a pool of light holds on what was spared while everything around it moves on or falls into shadow.' },
+  { id: 'bypass', group: 'story', name: 'Bypass', text: 'a control that was skipped; the flow goes round the gate, an alarm border flashes.', tracks: ['2d', '3d'], text3d: 'the object takes a side route round a gate or a guard in the set, a warning light sweeping the scene.' },
+  { id: 'routine-log', group: 'story', name: 'Routine log', text: '"it looked normal"; rows of checks scrolling while a total climbs (illustrative).', tracks: ['2d'] },
+  { id: 'pulse-pattern', group: 'story', name: 'Pulse through a pattern', text: '"same playbook"; one pulse through two identical strips, ending on "=".', tracks: ['2d'] },
+  { id: 'trace-stamp', group: 'story', name: 'Trace graph and stamp', text: 'attribution; lines branching out, a SUSPECTED stamp, NOT CONFIRMED typed.', tracks: ['2d'] },
+  { id: 'split-bar', group: 'story', name: 'Split bar', text: 'part of a whole, splitting into its shares.', tracks: ['2d'] },
+  { id: 'shared-timeline', group: 'story', name: 'Shared timeline', text: 'wildly different durations on one axis, a cursor running.', tracks: ['2d'] },
+  { id: 'waffle', group: 'story', name: 'Waffle', text: 'a small share of a big total (1,000 squares, 32 lit).', tracks: ['2d'] },
+  { id: 'drawn-fix', group: 'story', name: 'Drawn fix', text: 'the defence; a request travelling, a lock snapping shut.', tracks: ['2d', '3d'], text3d: 'the defence as a mechanism: a door swinging shut, a bolt sliding home, a shield closing just in time.' },
+  { id: 'running-clock', group: 'story', name: 'Running clock', text: 'time pressure; a timestamp that keeps ticking while the event unfolds, red flashing on the hits.', tracks: ['2d'] },
+  { id: 'money-trail', group: 'story', name: 'Money trail', text: 'funds splitting into ever more wallets, coins running down the branches (illustrative).', tracks: ['2d', '3d'], text3d: 'coins rolling down chutes that branch again and again.' },
+  { id: 'event-timeline', group: 'story', name: 'Event timeline', text: 'the story\'s dates on one axis, landing in turn, the beat that matters glowing.', tracks: ['2d'] },
+  { id: 'attributed-statement', group: 'story', name: 'Attributed statement', text: 'an agency badge, its words typed in exactly, the date under it.', tracks: ['2d'] },
+  { id: 'driven-by-law', group: 'science', name: 'Driven by the law', text: 'the motion is computed from the real equation (an orbit by gravity, a decay by its half-life, scattering by 1/λ⁴), so what the viewer sees is the model\'s own result, not a cartoon of it.', tracks: ['2d', '3d'], text3d: 'objects move by the real equation, keyframed from it rather than by eye: a ball\'s arc, a pendulum, an orbit.' },
+  { id: 'turn-one-knob', group: 'science', name: 'Turn one knob', text: 'one quantity changes on screen (wavelength, temperature, mass, angle) with its value rolling beside it, and the outcome follows by the law; the viewer sees the cause and the effect move together.', tracks: ['2d', '3d'], text3d: 'a real control in the set (a dial, a slider, a lever) turns and the scene answers by the law.' },
+  { id: 'zoom-scales', group: 'science', name: 'Zoom across scales', text: 'from the everyday scene down into the mechanism (the sky, then the air, then one molecule), a scale bar rolling as the camera dives (1 m → 1 nm), and back out to the scene at the payoff.', tracks: ['2d', '3d'], text3d: 'one continuous camera dive from the everyday object into its mechanism and back, with a set for each scale.' },
+  { id: 'slow-time', group: 'science', name: 'Slow time', text: 'an event too fast or too slow to see, replayed at a speed you can follow, the time factor ticking in a corner.', tracks: ['2d', '3d'], text3d: 'high-speed cinematography: the event at a slowed rate, the time factor on the caption layer.' },
+  { id: 'cutaway', group: 'science', name: 'Cutaway', text: 'the outside fades or slices open to show the inside working (a cell, an engine, a star), the outline staying faint so the viewer knows where they are.', tracks: ['2d', '3d'], text3d: 'a true section cut through the model, the cut face lit, the rest kept whole so the viewer knows where they are.' },
+  { id: 'invisible-visible', group: 'science', name: 'Invisible made visible', text: 'fields as lines and arrows, forces as arrows sized by their strength, heat as particle speed, pressure as particle hits, energy as a flowing quantity in a color kept for it.', tracks: ['2d', '3d'], text3d: 'fields and flows built as glowing tubes, ribbons or particles in the set, moving with the force.' },
+  { id: 'with-without', group: 'science', name: 'With and without', text: 'the same setup twice, side by side, one difference between them, and the outcomes split apart.', tracks: ['2d', '3d'], text3d: 'two sets side by side, or one set played twice, a single difference between them and the outcomes splitting.' },
+  { id: 'draws-its-graph', group: 'science', name: 'The thing draws its graph', text: 'the phenomenon traces its own curve beside it (a pendulum drawing a sine, a sample drawing its decay curve, a falling ball drawing its parabola), the axis labelled in real units.', tracks: ['2d'] },
+  { id: 'conservation-ledger', group: 'science', name: 'Conservation ledger', text: 'the quantity that is kept (energy, charge, mass, momentum) as stacked bars that trade between their forms while the total never moves.', tracks: ['2d'] },
+  { id: 'myth-mechanism', group: 'science', name: 'Myth, then mechanism', text: 'the common wrong picture first, stamped "wrong" in the color kept for it, then the real mechanism replacing it in the same layout.', tracks: ['2d', '3d'], text3d: 'the wrong version staged first, then the real one in the same set and camera, so the difference is all you see.' },
+  { id: 'reveal', group: 'camera', tracks: ['3d'], name: 'Reveal', text: 'start on a detail and pull or crane back until the whole situation is in view (or the reverse), so the viewer discovers the point.' },
+  { id: 'scale-comparison', group: 'camera', tracks: ['3d'], name: 'Scale comparison', text: 'the unfamiliar beside something everyone knows (a cell beside a hair, a ship beside a city block), both lit, the camera taking them in together.' },
+  { id: 'light-leads', group: 'camera', tracks: ['3d'], name: 'Light leads the eye', text: 'what matters is lit and the rest falls into shade; a light that moves moves the viewer\'s attention.' },
+  { id: 'follow-shot', group: 'camera', tracks: ['3d'], name: 'Follow shot', text: 'the camera travels with one object through the whole process, so the viewer lives it from start to end.' },
+  { id: 'match-cut', group: 'camera', tracks: ['3d'], name: 'Match cut', text: 'the last shape or motion of one shot becomes the first of the next (a wheel to a planet, a drop to a ripple), carrying the story across.' },
+  { id: 'turntable', group: 'camera', tracks: ['3d'], name: 'Hero turntable', text: 'the object turns slowly under a key light so its structure reads from every side.' }
 ]
 
 const tasteById = id => TASTE.find(r => r.id === id)
@@ -199,6 +226,15 @@ function load() {
   }
 }
 
+// The person's own rules and tools are for 2D, 3D or both ('all'); older
+// ones, saved before they could choose, are for both
+const trackOf = t => (TRACKS.includes(t) ? t : 'all')
+const tracksOf = t => (trackOf(t) === 'all' ? ['2d', '3d'] : [t])
+function checkTrack(t) {
+  if (!TRACKS.includes(t)) throw new Error(`track is one of ${TRACKS.join(', ')}`)
+  return t
+}
+
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
 
 function cleanText(text, what) {
@@ -217,7 +253,7 @@ export function list() {
     const own = saved.taste[r.id] ?? {}
     return { ...r, builtIn: true, rule: own.text ?? r.rule, edited: own.text != null, off: !!own.off }
   })
-  const mine = saved.mine.map(r => ({ id: r.id, track: 'all', name: null, rule: r.text, check: r.text, builtIn: false, edited: false, off: false }))
+  const mine = saved.mine.map(r => ({ id: r.id, track: trackOf(r.track), name: null, rule: r.text, check: r.text, builtIn: false, edited: false, off: false }))
   const still = id => path.join(STILLS, `${id}.jpg`)
   return {
     damaged: !fs.existsSync(FILE) && fs.existsSync(BAD) ? BAD : null,
@@ -225,7 +261,7 @@ export function list() {
     taste: [...builtIn, ...mine],
     tools: [
       ...TOOLS.map(t => ({ ...t, builtIn: true, image: fs.existsSync(still(t.id)) ? still(t.id) : null })),
-      ...saved.tools.map(t => ({ id: t.id, group: 'mine', name: t.name, text: t.text ?? '', builtIn: false, image: t.image ? path.join(RULES, safeId(t.image, 'a picture')) : null }))
+      ...saved.tools.map(t => ({ id: t.id, group: 'mine', tracks: tracksOf(t.track), name: t.name, text: t.text ?? '', builtIn: false, image: t.image ? path.join(RULES, safeId(t.image, 'a picture')) : null }))
     ]
   }
 }
@@ -278,16 +314,18 @@ export function reset(id) {
   return list()
 }
 
-export function add(text) {
+export function add(text, track = 'all') {
   text = cleanText(text, 'a rule')
-  save(s => { s.mine.push({ id: newId(), text, created: new Date().toISOString() }) })
+  track = checkTrack(track)
+  save(s => { s.mine.push({ id: newId(), text, track, created: new Date().toISOString() }) })
   return list()
 }
 
 // A tool of the person's, with a picture copied in beside the rules
-export function addTool({ name, text, image }) {
+export function addTool({ name, text, image, track = 'all' }) {
   name = cleanText(name, 'a tool\'s name')
   text = text ? cleanText(text, 'a tool') : ''
+  track = checkTrack(track)
   const id = newId()
   let file = null
   if (image) {
@@ -297,7 +335,7 @@ export function addTool({ name, text, image }) {
     fs.mkdirSync(RULES, { recursive: true })
     fs.copyFileSync(image, path.join(RULES, file))
   }
-  save(s => { s.tools.push({ id, name, text, image: file, created: new Date().toISOString() }) })
+  save(s => { s.tools.push({ id, name, text, track, image: file, created: new Date().toISOString() }) })
   return list()
 }
 

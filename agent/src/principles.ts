@@ -1,37 +1,49 @@
-// The rules of a 2D Shotloop video in every planning, building, fixing
-// and checking prompt, made from their one source (engine/shotloop/
-// rules.mjs): the fixed rules, the person's taste as they set it, and the
-// toolbox with their own tools. A plan is measured against them before
-// anything is built (lintPlan). Within them, the AI makes each frame as
-// rich to watch as it can.
+// The rules of a Shotloop video in every planning, building, fixing and
+// checking prompt, made from their one source (engine/shotloop/rules.mjs)
+// for the track: the fixed rules, the person's taste as they set it, and
+// the toolbox with their own tools. A 2D plan is measured against them
+// before anything is built (lintPlan). Within them, the AI makes each
+// frame as rich to watch as it can.
 
 import { readTime, rules, SUBTITLE_BAND, VOICE_LEAD, VOICE_TAIL, type Rule, type Tool } from './enginelib.ts'
 
+type Track = '2d' | '3d'
 const RULES = rules.list()
 const said = (r: Rule) => (r.name ? `${r.name}. ${r.rule}` : r.rule)
-const tools = (group: Tool['group']) => RULES.tools.filter(t => t.group === group).map(t => `- ${t.name}${t.text ? `: ${t.text}` : ''}`)
-const mine = tools('mine')
+const forTrack = (track: Track) => (r: Rule) => r.track === 'all' || r.track === track
+const tools = (track: Track, group: Tool['group']) => RULES.tools
+  .filter(t => t.group === group && t.tracks.includes(track))
+  .map(t => {
+    const text = track === '3d' && t.text3d ? t.text3d : t.text
+    return `- ${t.name}${text ? `: ${text}` : ''}`
+  })
 
-// The taste rules that are on, the person's own among them
-const TASTE = RULES.taste.filter(r => !r.off)
-
-export const PRINCIPLES_2D = `The 2D rules.
+function rulesFor(track: Track) {
+  const fixed = RULES.fixed.filter(forTrack(track)).filter(r => r.rule)
+  // The taste rules that are on, the person's own among them
+  const taste = RULES.taste.filter(r => !r.off && forTrack(track)(r))
+  const mine = tools(track, 'mine')
+  const toolbox = track === '2d'
+    ? `Within them, make it rich: aim for the richest, most dynamic picture the shot allows. A toolbox to pick from (and add to):
+${tools('2d', 'story').join('\n')}
+For a science subject (a mechanism, a law, a process):
+${tools('2d', 'science').join('\n')}`
+    : `Within them, make it cinematic: stage the point with objects, light and the camera, not with charts. A toolbox to pick from (and add to):
+${tools('3d', 'camera').join('\n')}
+Staged in the set (stories and science):
+${[...tools('3d', 'story'), ...tools('3d', 'science')].join('\n')}`
+  return `The ${track.toUpperCase()} rules.
 Fixed (never broken, whatever else is asked):
-${RULES.fixed.filter(r => r.rule).map(r => `- ${said(r)}`).join('\n')}
+${fixed.map(r => `- ${said(r)}`).join('\n')}
 
 The person's taste (the house defaults as they kept, reworded or removed them, and their own; follow each as it stands):
-${TASTE.length ? TASTE.map(r => `- ${said(r)}`).join('\n') : '(none: the fixed rules only)'}
+${taste.length ? taste.map(r => `- ${said(r)}`).join('\n') : '(none: the fixed rules only)'}
 
-Within them, make it rich: aim for the richest, most dynamic picture the shot allows. A toolbox to pick from (and add to):
-${tools('story').join('\n')}
-For a science subject (a mechanism, a law, a process):
-${tools('science').join('\n')}${mine.length ? `\nThe person's own tools (they added these; reach for them where they fit):\n${mine.join('\n')}` : ''}`
+${toolbox}${mine.length ? `\nThe person's own tools (they added these; reach for them where they fit):\n${mine.join('\n')}` : ''}`
+}
 
-// 3D prompts carry no 2D rules, only the person's own taste rules
-export const OWN_RULES = (() => {
-  const own = TASTE.filter(r => !r.name)
-  return own.length ? `The person's rules (follow them in every video):\n${own.map(r => `- ${r.rule}`).join('\n')}` : ''
-})()
+export const PRINCIPLES_2D = rulesFor('2d')
+export const PRINCIPLES_3D = rulesFor('3d')
 
 // lintPlan and lintVoice measure caption lengths by the house caption
 // rule: only while the person keeps it as it shipped

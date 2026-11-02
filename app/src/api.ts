@@ -239,15 +239,17 @@ export interface CoverTemplate {
 // The video rules (engine/shotloop/rules.mjs): fixed ones, the person's
 // taste as they set it (built-in ones reworded or off, their own), and
 // the toolbox with a picture per tool (a file path, or null)
+export type RuleTrack = 'all' | '2d' | '3d'
 export interface Rule {
   id: string
+  track: RuleTrack
   name: string | null
   rule?: string
   builtIn?: boolean
   edited?: boolean
   off?: boolean
 }
-export interface RuleTool { id: string; group: 'story' | 'science' | 'mine'; name: string; text: string; builtIn: boolean; image: string | null }
+export interface RuleTool { id: string; group: 'story' | 'science' | 'camera' | 'mine'; tracks: ('2d' | '3d')[]; name: string; text: string; builtIn: boolean; image: string | null }
 // damaged: where a rules file that couldn't be read was set aside, while
 // the defaults stand in for it
 export interface Rules { damaged: string | null; fixed: Rule[]; taste: Rule[]; tools: RuleTool[] }
@@ -349,8 +351,8 @@ export const api = {
   editRule: (id: string, text: string) => invoke<Rules>('rules', { action: 'edit', id, text }),
   removeRule: (id: string) => invoke<Rules>('rules', { action: 'remove', id }),
   resetRule: (id: string) => invoke<Rules>('rules', { action: 'reset', id }),
-  addRule: (text: string) => invoke<Rules>('rules', { action: 'add', text }),
-  addTool: (name: string, text: string, file: string | null) => invoke<Rules>('rules', { action: 'add-tool', name, text, file }),
+  addRule: (text: string, track: RuleTrack) => invoke<Rules>('rules', { action: 'add', text, track }),
+  addTool: (name: string, text: string, file: string | null, track: RuleTrack) => invoke<Rules>('rules', { action: 'add-tool', name, text, file, track }),
   removeTool: (id: string) => invoke<Rules>('rules', { action: 'remove-tool', id }),
   // The publish copy into an export's folder, written after the export
   deliverCopy: (path: string, folder: string, name: string) => invoke<string>('deliver_copy', { path, folder, name, lang: lang() }),

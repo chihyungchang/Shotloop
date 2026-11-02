@@ -1,12 +1,12 @@
 // System prompts per task. Kept stable (no dates, no ids) so the prefix
-// caches across requests. A 2D project's prompts carry the 2D rules
-// (principles.ts), a 3D one the person's own rules.
+// caches across requests. A project's prompts carry the rules of its track
+// (principles.ts).
 
 import type { Memory } from './enginelib.ts'
-import { CODE_2D, CODE_VOICE, OWN_RULES, PRINCIPLES_2D, PRINCIPLES_VOICE } from './principles.ts'
+import { CODE_2D, CODE_VOICE, PRINCIPLES_2D, PRINCIPLES_3D, PRINCIPLES_VOICE } from './principles.ts'
 
 type Track = '2d' | '3d'
-const rules = (track: Track) => (track === '2d' ? `\n\n${PRINCIPLES_2D}` : OWN_RULES ? `\n\n${OWN_RULES}` : '')
+const rules = (track: Track) => `\n\n${track === '2d' ? PRINCIPLES_2D : PRINCIPLES_3D}`
 // voice: the film has a voice-over (engine/shotloop/voice.mjs)
 const principles = (track: Track, voice = false) => rules(track) + (voice ? `\n\n${PRINCIPLES_VOICE}` : '')
 // What builds and fixes code also needs the 2D code rules

@@ -35,7 +35,12 @@ test('rules: taste is reworded, switched off and restored; fixed rules stay', ()
 
 test('rules: the person adds and deletes their own; the checklist keeps tracks apart', () => {
   const own = rules.add('Always end on a question').taste.at(-1)
-  assert.deepEqual([own.builtIn, own.name, own.rule], [false, null, 'Always end on a question'])
+  assert.deepEqual([own.builtIn, own.name, own.rule, own.track], [false, null, 'Always end on a question', 'all'])
+  const flat = rules.add('Keep the camera low', '3d').taste.at(-1)
+  assert.equal(flat.track, '3d')
+  assert.doesNotMatch(rules.checklist('2d'), new RegExp(flat.id))
+  rules.remove(flat.id)
+  assert.throws(() => rules.add('x', '4d'), /track/)
   rules.edit(own.id, 'End on a question')
   const two = rules.checklist('2d')
   const three = rules.checklist('3d')
@@ -52,7 +57,7 @@ test('rules: the person\'s tools carry a picture; built-in tools stay', () => {
   const png = path.join(dir, 'source.png')
   fs.writeFileSync(png, 'not really a png')
   const tool = rules.addTool({ name: 'Split screen', text: 'two sides at once', image: png }).tools.at(-1)
-  assert.deepEqual([tool.group, tool.builtIn, tool.name], ['mine', false, 'Split screen'])
+  assert.deepEqual([tool.group, tool.builtIn, tool.name, tool.tracks], ['mine', false, 'Split screen', ['2d', '3d']])
   assert.ok(fs.existsSync(tool.image))
   assert.throws(() => rules.addTool({ name: 'x', image: path.join(dir, 'clip.gif') }), /JPEG, PNG or WebP/)
   assert.throws(() => rules.removeTool('waffle'), /built-in tool/)
@@ -76,4 +81,15 @@ test('rules: a damaged file is set aside, the defaults apply and it is reported 
   rules.remove('rhythm')
   assert.equal(rules.list().damaged, null)
   rules.reset('rhythm')
+})
+
+test('rules: every tool says the tracks it fits; a 2D tool staged in 3D says how', () => {
+  for (const t of rules.TOOLS) {
+    assert.ok(t.tracks.length && t.tracks.every(k => k === '2d' || k === '3d'), t.id)
+    if (t.text3d) assert.ok(t.tracks.includes('3d'), t.id)
+  }
+  assert.ok(rules.TOOLS.some(t => t.group === 'camera'))
+  const tool = rules.addTool({ name: 'Dolly zoom', track: '3d' }).tools.at(-1)
+  assert.deepEqual(tool.tracks, ['3d'])
+  rules.removeTool(tool.id)
 })
