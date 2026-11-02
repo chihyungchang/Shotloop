@@ -1,0 +1,4 @@
+[
+  { "at": 0.95, "sound": "click", "gain": 0.9 },
+  { "at": 3.8, "sound": "thud", "gain": 1, "pan": 0.1 }
+]

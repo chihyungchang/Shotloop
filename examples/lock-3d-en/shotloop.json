@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "title": "How does a key open a pin tumbler lock?",
+  "slug": "lock-3d-en",
+  "track": "3d",
+  "fps": 30,
+  "size": {
+    "width": 1080,
+    "height": 1920
+  },
+  "shots": [
+    {
+      "id": "01-hook-the-lock",
+      "title": "Hook: the lock",
+      "duration": 2.5,
+      "say": "Why does only one key turn this lock?",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 2.02
+        }
+      ]
+    },
+    {
+      "id": "02-pins-block-the-gap",
+      "title": "Pins block the gap",
+      "duration": 5.4,
+      "say": "Inside, springs push stacks of pins down across the gap, so the inner cylinder can't turn.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 4.88
+        }
+      ]
+    },
+    {
+      "id": "03-key-lifts-the-pins",
+      "title": "Key lifts the pins",
+      "duration": 4.3,
+      "say": "Slide the key in, and each ridge lifts its pin stack to a different height.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 3.82
+        }
+      ]
+    },
+    {
+      "id": "04-splits-line-up",
+      "title": "Splits line up",
+      "duration": 4.5,
+      "say": "With the right key, every split between pins lines up exactly at the gap.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 4.04
+        }
+      ]
+    },
+    {
+      "id": "05-the-cylinder-turns",
+      "title": "The cylinder turns",
+      "duration": 4.2,
+      "say": "Nothing blocks it now, so the cylinder turns and the bolt slides back.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 3.73
+        }
+      ]
+    },
+    {
+      "id": "06-one-pattern",
+      "title": "One pattern",
+      "duration": 2.3,
+      "say": "One key, one exact pattern.",
+      "cues": [
+        {
+          "at": 0.2,
+          "end": 1.83
+        }
+      ]
+    }
+  ],
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md",
+  "voice": {
+    "on": true,
+    "voice": "af_heart"
+  },
+  "lang": "en",
+  "style": "3d",
+  "sound": {
+    "ambience": "room"
+  },
+  "description": "Springs, pins and one shear line: a lock cutaway in 3D, the key lifting each pin to its height.",
+  "coverFrame": {
+    "shot": "04-splits-line-up",
+    "time": 4.4
+  }
+}
