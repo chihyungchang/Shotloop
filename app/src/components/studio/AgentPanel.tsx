@@ -151,18 +151,21 @@ function Exchange({ fix, openRule, fixFound }: { fix: FixRecord; openRule: (id: 
         )}
         {/* Before and after only for a fix: a check changes nothing */}
         {fix.task === 'fix' && fix.before && fix.after && <CompareStills before={fix.before} after={fix.after} />}
-        {own && (
-          <span className={`check-pill ${failed.length ? 'bad' : 'ok'}`}>
-            <Icon name={failed.length ? 'x' : 'check'} size={12} />
-            {failed.length ? t('agent.left', { n: failed.length }) : t('agent.allPass')}
-          </span>
+        {own && !failed.length && (
+          <span className="check-pill ok"><Icon name="check" size={12} /> {t('agent.allPass')}</span>
         )}
-        {/* Each failing check names the rule it answers to */}
-        {failed.length > 0 && <div className="rule-refs">{failed.map(r => <RuleRef key={r.rule} id={r.rule} open={openRule} />)}</div>}
-        {fix.task === 'check' && failed.length > 0 && fixFound && (
-          <button className="small fix-found" onClick={() => fixFound(t('agent.fixFoundAsk', { list: found }))}>
-            <Icon name="spark" size={12} /> {t('agent.fixFound')}
-          </button>
+        {/* What failed, each with the rule it answers to, and the way to
+            fix it after a check */}
+        {failed.length > 0 && (
+          <div className="check-card">
+            <span className="check-card-head"><Icon name="x" size={12} /> {t('agent.left', { n: failed.length })}</span>
+            {failed.map(r => <RuleRef key={r.rule} id={r.rule} open={openRule} />)}
+            {fix.task === 'check' && fixFound && (
+              <button className="small fix-found" onClick={() => fixFound(t('agent.fixFoundAsk', { list: found }))}>
+                <Icon name="spark" size={12} /> {t('agent.fixFound')}
+              </button>
+            )}
+          </div>
         )}
       </div>
     </>
