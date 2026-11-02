@@ -527,6 +527,7 @@ export const ptBR: Record<Key, string> = {
   'sound.running': 'Criando o som…',
   'sound.again': 'Criar de novo',
   'sound.tracks': 'Faixas',
+  'sound.around': 'Em torno do plano escolhido: {shot}',
   'sound.track.mix': 'Todas juntas',
   'sound.adjust': 'Ajustar o som',
   'job.sound': 'Som do filme',

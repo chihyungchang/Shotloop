@@ -527,6 +527,7 @@ export const ja: Record<Key, string> = {
   'sound.running': 'サウンドを作成中…',
   'sound.again': 'もう一度作成',
   'sound.tracks': 'トラック',
+  'sound.around': '選択中のショット付近：{shot}',
   'sound.track.mix': 'すべて一緒に',
   'sound.adjust': 'サウンドを調整',
   'job.sound': '動画のサウンド',

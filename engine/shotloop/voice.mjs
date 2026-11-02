@@ -304,10 +304,10 @@ function syncStoryboard(root, shots) {
 // Every sentence of the film on its timeline: { shot, text, at, end, file }
 // (film seconds). Lines not spoken yet are spoken now; a shot whose
 // cues are missing or don't match its sentences is laid out on the spot
-async function voiceLines(project) {
+async function voiceLines(project, shots = project.shots) {
   const { lang, voice, cfg } = await voiceSetup(project)
   const out = []
-  for (const shot of project.shots) {
+  for (const shot of shots) {
     if (!sentences(shot.say).length) continue
     const { parts } = await speakShot(project, shot, { lang, voice, speed: shotSpeed(shot, cfg) })
     const cues = shot.cues?.length === parts.length ? shot.cues : cuesOf(parts, shot.sayAt ?? LEAD)
@@ -415,26 +415,40 @@ async function mixSound(project, music, lines) {
 }
 
 // Each of the film's sound tracks alone, and all of them mixed, to listen
-// to while the sound is decided (cached files; null where there is none).
-// A voice-over that can't be spoken (its model missing) is left out and
-// said, as in a preview
-export async function soundTracks(project) {
+// to while the sound is decided: the part from `from` to `to` (film
+// seconds; the whole film without them), so listening to one shot speaks
+// only the lines heard around it (cached files; null where there is
+// none). A voice-over that can't be spoken (its model missing) is left out
+// and said, as in a preview
+export async function soundTracks(project, { from = 0, to = project.duration } = {}) {
   const music = await musicBed(project)
   let lines = []
   if (voiceOn(project)) {
+    // The shots heard in the part, and one either side: a line may run over a cut
+    const heard = project.shots.filter((s, i, all) => all.slice(Math.max(0, i - 1), i + 2).some(n => n.start < to && n.start + n.duration > from))
     try {
-      lines = await voiceLines(project)
+      lines = await voiceLines(project, heard)
     } catch (err) {
       emit({ type: 'log', message: `voice-over left out: ${err.message}` })
     }
   }
+  const part = async file => (file ? excerpt(project, file, from, to) : null)
   return {
-    voice: lines.length ? await voiceTrack(project, lines) : null,
-    music,
-    ambience: await withAmbience(project, null),
-    effects: await withEffects(project, null, lines),
-    mix: await mixSound(project, music, lines)
+    voice: await part(lines.length ? await voiceTrack(project, lines) : null),
+    music: await part(music),
+    ambience: await part(await withAmbience(project, null)),
+    effects: await part(await withEffects(project, null, lines)),
+    mix: await part(await mixSound(project, music, lines))
   }
+}
+
+// A part of a sound file (film seconds), made once; the whole file when the
+// part is the whole film
+function excerpt(project, file, from, to) {
+  if (from <= 0 && to >= project.duration) return file
+  const name = `${path.basename(file, path.extname(file))}-${from.toFixed(2)}-${to.toFixed(2)}.wav`
+  return cachedFile(path.join(voiceDir(project), 'listen', name), part =>
+    ffmpeg(['-ss', String(from), '-t', String(to - from), '-i', file, '-ar', '44100', part]))
 }
 
 // The speech models, for Settings: each with its languages, size,

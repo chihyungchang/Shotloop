@@ -528,6 +528,7 @@ export const en = {
   'sound.running': 'Making the sound…',
   'sound.again': 'Make it again',
   'sound.tracks': 'Tracks',
+  'sound.around': 'Around the selected shot: {shot}',
   'sound.track.mix': 'All together',
   'sound.adjust': 'Change the sound',
   'job.sound': 'Sound for the film',

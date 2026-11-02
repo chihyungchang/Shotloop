@@ -527,6 +527,7 @@ export const tr: Record<Key, string> = {
   'sound.running': 'Ses oluşturuluyor…',
   'sound.again': 'Yeniden oluştur',
   'sound.tracks': 'Parçalar',
+  'sound.around': 'Seçili çekimin çevresi: {shot}',
   'sound.track.mix': 'Hepsi birlikte',
   'sound.adjust': 'Sesi değiştir',
   'job.sound': 'Filmin sesi',

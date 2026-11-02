@@ -527,6 +527,7 @@ export const ko: Record<Key, string> = {
   'sound.running': '사운드 만드는 중…',
   'sound.again': '다시 만들기',
   'sound.tracks': '트랙',
+  'sound.around': '선택한 샷 주변: {shot}',
   'sound.track.mix': '모두 함께',
   'sound.adjust': '사운드 조정',
   'job.sound': '영상 사운드',

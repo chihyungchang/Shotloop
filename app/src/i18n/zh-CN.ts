@@ -527,6 +527,7 @@ export const zhCN: Record<Key, string> = {
   'sound.running': '正在生成声音…',
   'sound.again': '重新生成',
   'sound.tracks': '音轨',
+  'sound.around': '当前镜头附近：{shot}',
   'sound.track.mix': '全部一起',
   'sound.adjust': '调整声音',
   'job.sound': '给片子配声音',

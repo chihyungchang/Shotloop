@@ -225,7 +225,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
             <button className="icon-button" onClick={() => setDrawer(null)} aria-label={t('common.close')}><Icon name="x" /></button>
           </div>
           {drawer === 'queue' ? <QueuePanel project={project} jobs={jobs} />
-            : drawer === 'sound' ? <SoundPanel project={project} jobs={jobs} refresh={refresh} />
+            : drawer === 'sound' ? <SoundPanel project={project} shot={shot} jobs={jobs} refresh={refresh} />
             : <AssetsPanel project={project} refresh={refresh} />}
         </aside>
       )}

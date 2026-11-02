@@ -389,8 +389,9 @@ export const api = {
   music: (path: string, change?: MusicChange) => invoke<MusicInfo>('music', { path, change }),
   // The ambience and the sound effects, and which of them play
   sound: (path: string, change?: SoundChange) => invoke<SoundInfo>('sound', { path, change }),
-  // Each sound track alone and the mix, made (cached) to listen to
-  soundTracks: (path: string) => invoke<TracksResult>('sound_tracks', { path }),
+  // Each sound track alone and the mix, made (cached) to listen to: the
+  // part from `from` to `to` (film seconds)
+  soundTracks: (path: string, from: number, to: number) => invoke<TracksResult>('sound_tracks', { path, from, to }),
   // What is where on a 2D shot's three stills, for the element picker
   pickMap: (path: string, shot: string) => invoke<PickMap>('pick_map', { path, shot }),
 }

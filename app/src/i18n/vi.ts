@@ -527,6 +527,7 @@ export const vi: Record<Key, string> = {
   'sound.running': 'Đang tạo âm thanh…',
   'sound.again': 'Tạo lại',
   'sound.tracks': 'Các track',
+  'sound.around': 'Quanh cảnh đang chọn: {shot}',
   'sound.track.mix': 'Tất cả cùng lúc',
   'sound.adjust': 'Chỉnh âm thanh',
   'job.sound': 'Âm thanh cho video',

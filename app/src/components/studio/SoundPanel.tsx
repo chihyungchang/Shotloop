@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { api, type Job, type Project, type SoundInfo, type TracksResult } from '../../api'
+import { api, type Job, type Project, type Shot, type SoundInfo, type TracksResult } from '../../api'
 import { useErrorLine } from '../../hooks'
 import { t } from '../../i18n'
 import type { Key } from '../../i18n/en'
@@ -17,19 +17,24 @@ const TRACKS: { id: keyof TracksResult; label: Key }[] = [
   { id: 'effects', label: 'sound.effects' }
 ]
 
+// Listening takes the selected shot and this much either side: only the
+// lines heard there are spoken, so it starts in moments
+const AROUND = 0.5
+
 // The film's sound in one place, beside the stage: made by the AI once the
 // shots look right (the effects and the ambience, and a narration when
-// asked), then each track to listen to and to change, before any export
-export function SoundPanel({ project, jobs, refresh }: { project: Project; jobs: Job[]; refresh: () => void }) {
+// asked), then each track to listen to around the selected shot and to
+// change, before any export
+export function SoundPanel({ project, shot, jobs, refresh }: { project: Project; shot?: Shot; jobs: Job[]; refresh: () => void }) {
   const [narrate, setNarrate] = useState(false)
   const [sound, setSound] = useState<SoundInfo | null>(null)
   const { error, setError, guard } = useErrorLine()
   const ours = jobs.filter(j => j.kind === 'sound' && j.project === project.root)
   const running = ours.some(isActive)
-  // A finished sound pass, or a change made here, makes new tracks and
-  // new settings: both are read again
+  // A finished sound pass or voice fit, or a change made here, makes new
+  // tracks and new settings: both are read again
   const [changes, setChanges] = useState(0)
-  const done = ours.filter(j => !isActive(j)).length
+  const done = jobs.filter(j => (j.kind === 'sound' || j.kind === 'voiceFit') && j.project === project.root && !isActive(j)).length
   const changed = () => {
     setChanges(n => n + 1)
     refresh()
@@ -37,12 +42,14 @@ export function SoundPanel({ project, jobs, refresh }: { project: Project; jobs:
   useEffect(() => {
     guard(api.sound(project.root)).then(s => s && setSound(s))
   }, [project.root, done, changes, guard])
-  // The tracks, made on the first listen (they can take a moment) and kept
-  // until something changes
+  // The tracks around the selected shot, made on the first listen and kept
+  // until something changes or another shot is selected
+  const from = Math.max(0, (shot?.start ?? 0) - AROUND)
+  const to = Math.min(project.duration, shot ? shot.start + shot.duration + AROUND : project.duration)
   const tracks = useMemo(() => {
     let made: Promise<TracksResult> | null = null
-    return () => (made ??= api.soundTracks(project.root))
-  }, [project.root, done, changes])
+    return () => (made ??= api.soundTracks(project.root, from, to))
+  }, [project.root, from, to, done, changes])
   const made = !!sound && (sound.cues.length > 0 || !!sound.ambience)
 
   const start = () => guard(api.enqueue({ kind: 'sound', project: project.root, narrate: narrate || undefined }))
@@ -62,7 +69,8 @@ export function SoundPanel({ project, jobs, refresh }: { project: Project; jobs:
       </section>
 
       <h3>{t('sound.tracks')}</h3>
-      <div className="track-list" key={`${done}-${changes}`}>
+      {shot && <p className="small muted">{t('sound.around', { shot: shot.title ?? shot.id })}</p>}
+      <div className="track-list" key={`${done}-${changes}-${from}`}>
         {TRACKS.map(k => <Track key={k.id} label={t(k.label)} file={async () => (await tracks())[k.id]} onError={setError} />)}
       </div>
       {error && <p className="small error">{error}</p>}

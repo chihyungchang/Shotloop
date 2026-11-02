@@ -29,13 +29,15 @@
 //                     [--lines '{"<shot>": "…"}'] [--picture]
 //                     the voice-over: settings, the voices for the project's language,
 //                     --lines: what each shot says; --picture: the picture leads (no shot changes length)
+//                     --no-fit: change the settings only (the app fits as a queue job, with progress)
 //                     --fit: speak every line and fit the shots to them (a new voice or speed fits too)
 //                     --sample: a WAV of the voice saying the first line, to choose by ear
 //   shotloop sound    <project> [--ambience room|wind|space|machine|night|none] [--ambience-gain 0–2]
 //                     [--effects on|off] [--effects-gain 0–2] [--cue <shot>@<at>:<sound> | --kind <sound>] [--off]
 //                     the ambience and the shots' sound effects (sounds.json), which are on
-//   shotloop tracks   <project>                          the sound's tracks alone (voice, music, ambience,
-//                     effects) and mixed, as WAVs to listen to (null where there is none)
+//   shotloop tracks   <project> [--from <s> --to <s>]   the sound's tracks alone (voice, music, ambience,
+//                     effects) and mixed, as WAVs to listen to (null where there is none);
+//                     --from/--to: only that part of the film
 //   shotloop voice-models [--download <id>]                the speech models: languages, size, license,
 //                     on this Mac or not; --download fetches one (progress in MB)
 //   shotloop check-subtitles <project> [--shot <id>]      what the voice-over's subtitles would cover
@@ -106,12 +108,14 @@ const OPTIONS = {
     voice: { type: 'string' },
     speed: { type: 'string' },
     fit: { type: 'boolean' },
+    'no-fit': { type: 'boolean' },
     lines: { type: 'string' },
     picture: { type: 'boolean' },
     sample: { type: 'boolean' },
     download: { type: 'string' },
     'voice-over': { type: 'boolean' },
     to: { type: 'string' },
+    from: { type: 'string' },
     reset: { type: 'boolean' },
     all: { type: 'boolean' },
     file: { type: 'string' },
@@ -368,7 +372,7 @@ try {
       if (values.lines) project = setLines(project, JSON.parse(values.lines))
       // A new voice or speed speaks every line again, so the shots are fitted
       // to it (as when asked); a project without lines keeps its timing
-      const refit = values.fit || values.on || values.voice || values.speed != null || values.lines
+      const refit = values.fit || (!values['no-fit'] && (values.on || values.voice || values.speed != null || values.lines))
       const fitted = refit && voiceOn(project) ? await fitVoice(project) : null
       const sample = values.sample ? await sampleVoice(loadProject(args[0])) : null
       result({ ...(await voiceInfo(loadProject(args[0]))), ...(fitted ? { fit: fitted } : {}), ...(sample ? { sample } : {}) })
@@ -389,7 +393,7 @@ try {
     }
     case 'tracks':
       // The film's sound tracks alone and mixed, to listen to
-      result(await soundTracks(loadProject(args[0])))
+      result(await soundTracks(loadProject(args[0]), { from: values.from && Number(values.from), to: values.to && Number(values.to) }))
       break
     case 'voice-models':
       result(await voiceModels({ download: values.download }))

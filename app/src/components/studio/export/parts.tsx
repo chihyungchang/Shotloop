@@ -15,8 +15,8 @@ import { VoiceDownload } from '../../VoiceDownload'
 // dialog's (its sound in one line, the publish copy)
 
 // The voice-over: off or on, and which voice, with a sample to listen to.
-// A new voice speaks every line again and the shots are fitted to it
-// (the engine does that with the change), so it can take a moment. A
+// Turning it on or a new voice speaks every line again and fits the shots
+// to it: a queue job (voiceFit), its progress shown beside the switch. A
 // model not on this Mac yet downloads first (a queue job with a bar), and
 // the change waiting for it is made when it lands
 export function Voice({ project, jobs, refresh }: { project: Project; jobs: Job[]; refresh: () => void }) {
@@ -28,6 +28,7 @@ export function Voice({ project, jobs, refresh }: { project: Project; jobs: Job[
     guard(api.voice(project.root)).then(v => v && setInfo(v))
   }, [project.root, guard])
   const sample = useAudioPreview(useCallback(() => api.voice(project.root, { sample: true }).then(r => r.sample), [project.root]), setError)
+  const fitting = jobs.find(j => j.kind === 'voiceFit' && j.project === project.root && isActive(j))
 
   // current: the info to judge by (the fresh one when a download lands)
   const change = async (c: Parameters<typeof api.voice>[1], current = info) => {
@@ -44,6 +45,7 @@ export function Voice({ project, jobs, refresh }: { project: Project; jobs: Job[
     if (next) {
       setInfo(next)
       refresh()
+      if (next.on && next.lines && (c?.on || c?.voice)) await guard(api.enqueue({ kind: 'voiceFit', project: project.root }))
     }
     setBusy(false)
   }
@@ -66,10 +68,10 @@ export function Voice({ project, jobs, refresh }: { project: Project; jobs: Job[
         <span className="xrow-label">{t('voice.title')}</span>
         <div className="chips">
           <div className="seg" role="radiogroup" aria-label={t('voice.title')}>
-            <button role="radio" aria-checked={!info.on} className={!info.on ? 'on' : ''} disabled={busy} onClick={() => info.on && change({ on: false })}>{t('voice.off')}</button>
-            <button role="radio" aria-checked={info.on} className={info.on ? 'on' : ''} disabled={busy || !info.available} onClick={() => !info.on && change({ on: true })}>{t('voice.on')}</button>
+            <button role="radio" aria-checked={!info.on} className={!info.on ? 'on' : ''} disabled={busy || !!fitting} onClick={() => info.on && change({ on: false })}>{t('voice.off')}</button>
+            <button role="radio" aria-checked={info.on} className={info.on ? 'on' : ''} disabled={busy || !!fitting || !info.available} onClick={() => !info.on && change({ on: true })}>{t('voice.on')}</button>
           </div>
-          {busy && <span className="muted voice-busy"><span className="spinner small" /> {t('voice.fitting')}</span>}
+          {(busy || fitting) && <span className="muted voice-busy"><span className="spinner small" /> {t('voice.fitting')}{fitting?.progress?.total ? ` ${fitting.progress.done}/${fitting.progress.total}` : ''}</span>}
         </div>
       </div>
       {!info.available && <p className="xrow-note">{t('voice.unavailable')}</p>}
@@ -85,7 +87,7 @@ export function Voice({ project, jobs, refresh }: { project: Project; jobs: Job[
         <div className="xrow">
           <span className="xrow-label">{t('voice.voice')}</span>
           <div className="vol">
-            <select value={info.voice ?? ''} disabled={busy || missing} aria-label={t('voice.voice')} onChange={e => change({ voice: e.currentTarget.value })}>
+            <select value={info.voice ?? ''} disabled={busy || !!fitting || missing} aria-label={t('voice.voice')} onChange={e => change({ voice: e.currentTarget.value })}>
               {info.voices.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
             </select>
             <Listen preview={sample} disabled={busy || missing} />

@@ -527,6 +527,7 @@ export const ru: Record<Key, string> = {
   'sound.running': 'Создаём звук…',
   'sound.again': 'Создать заново',
   'sound.tracks': 'Дорожки',
+  'sound.around': 'Вокруг выбранного кадра: {shot}',
   'sound.track.mix': 'Все вместе',
   'sound.adjust': 'Изменить звук',
   'job.sound': 'Звук для ролика',

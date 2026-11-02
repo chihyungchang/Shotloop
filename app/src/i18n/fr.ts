@@ -527,6 +527,7 @@ export const fr: Record<Key, string> = {
   'sound.running': 'Création du son…',
   'sound.again': 'Refaire',
   'sound.tracks': 'Pistes',
+  'sound.around': 'Autour du plan choisi : {shot}',
   'sound.track.mix': 'Toutes ensemble',
   'sound.adjust': 'Modifier le son',
   'job.sound': 'Le son du film',

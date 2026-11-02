@@ -527,6 +527,7 @@ export const zhTW: Record<Key, string> = {
   'sound.running': '正在產生聲音…',
   'sound.again': '重新產生',
   'sound.tracks': '音軌',
+  'sound.around': '目前鏡頭附近：{shot}',
   'sound.track.mix': '全部一起',
   'sound.adjust': '調整聲音',
   'job.sound': '為影片配聲音',
