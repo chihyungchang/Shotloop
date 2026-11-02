@@ -266,8 +266,9 @@ try {
         stills: !!values.stills,
         force: !!values.force
       })
-      // Stills are what a shot is reviewed on: their exposure goes with them
-      result(values.stills && rendered.stills ? { ...rendered, exposure: await exposure(rendered.stills) } : rendered)
+      // A 3D shot is reviewed on its stills, so their exposure goes with
+      // them (2D draws flat white on purpose: paper, a screen, big type)
+      result(values.stills && rendered.stills && project.track === '3d' ? { ...rendered, exposure: await exposure(rendered.stills) } : rendered)
       break
     }
     case 'assemble': {

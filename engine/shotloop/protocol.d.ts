@@ -316,8 +316,9 @@ export interface RenderResult {
   preview: string | null
   // A voiced 2D shot's subtitle check, run before the render
   subtitles?: SubtitleIssue[]
-  // --stills: each still's areas blown to white (exposure.mjs)
-  exposure?: StillExposure[]
+  // --stills of a 3D shot: each still's areas blown to white (exposure.mjs);
+  // null when the check couldn't run
+  exposure?: StillExposure[] | null
 }
 
 export interface StillExposure {

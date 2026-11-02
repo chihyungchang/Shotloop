@@ -1,4 +1,4 @@
-// The exposure check on a shot's stills, a camera's zebra: areas blown to
+// The exposure check on a 3D shot's stills, a camera's zebra: areas blown to
 // white are found and striped, so whoever reviews the stills sees them
 // before the shot is rendered whole. Whether an area may clip is judged by
 // eye (a lamp, the sun or a glint may; a lit surface, skin, paper or the
@@ -8,7 +8,7 @@
 // such as a white headline average away and only areas of some size count.
 
 import fs from 'node:fs'
-import { ffmpeg } from './compose.mjs'
+import { emit, ffmpeg } from './compose.mjs'
 
 const BLOCK = 16
 // A block is blown when even its darkest channel is this bright (0–255)
@@ -58,21 +58,35 @@ export async function blownAreas(still) {
 }
 
 // The still with its blown areas striped red (zebra) and boxed, for the
-// reviewer to look at beside the still itself
-export function zebra(still, areas, out) {
+// reviewer to look at beside the still itself; written under a name of its
+// own first, since the stills sit in the shared render cache
+export async function zebra(still, areas, out) {
   const inside = areas.map(a => `between(X,${a.x},${a.x + a.w})*between(Y,${a.y},${a.y + a.h})`).join('+')
   const hit = `gte(min(min(r(X,Y),g(X,Y)),b(X,Y)),${CLIP})*(${inside})*lt(mod(X+Y,24),12)`
   const boxes = areas.map(a => `drawbox=x=${a.x}:y=${a.y}:w=${a.w}:h=${a.h}:color=red@0.9:t=4`).join(',')
-  return ffmpeg(['-i', still, '-vf', `format=gbrp,geq=r='if(${hit},255,r(X,Y))':g='if(${hit},40,g(X,Y))':b='if(${hit},40,b(X,Y))',format=yuvj444p,${boxes}`, '-q:v', '3', out])
+  const part = out.replace(/\.jpg$/, `.${process.pid}.part.jpg`)
+  try {
+    await ffmpeg(['-i', still, '-vf', `format=gbrp,geq=r='if(${hit},255,r(X,Y))':g='if(${hit},40,g(X,Y))':b='if(${hit},40,b(X,Y))',format=yuvj444p,${boxes}`, '-q:v', '3', part])
+    fs.renameSync(part, out)
+  } finally {
+    fs.rmSync(part, { force: true })
+  }
 }
 
 // The exposure of a shot's stills: per still, its blown areas and, when
-// there are any, the zebra copy beside it (<still>.zebra.jpg)
+// there are any, the zebra copy beside it (<still>.zebra.jpg, made once:
+// the stills of a cache entry never change). A check that can't run is
+// said and left out (null), never the render's failure
 export async function exposure(stills) {
-  return Promise.all(stills.map(async still => {
-    const areas = await blownAreas(still)
-    const marked = still.replace(/(\.\w+)$/, '.zebra.jpg')
-    if (areas.length) await zebra(still, areas, marked)
-    return { still, areas, zebra: areas.length ? marked : null }
-  }))
+  try {
+    return await Promise.all(stills.map(async still => {
+      const areas = await blownAreas(still)
+      const marked = still.replace(/(\.\w+)$/, '.zebra.jpg')
+      if (areas.length && !fs.existsSync(marked)) await zebra(still, areas, marked)
+      return { still, areas, zebra: areas.length ? marked : null }
+    }))
+  } catch (err) {
+    emit({ type: 'log', message: `exposure check skipped: ${err.message}` })
+    return null
+  }
 }

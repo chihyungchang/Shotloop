@@ -30,3 +30,7 @@ test('exposure: a blown area is found and striped; thin bright text is not', asy
   assert.ok(fs.existsSync(a.zebra))
   assert.deepEqual(b, { still: clean, areas: [], zebra: null })
 })
+
+test('exposure: a still it can\'t read leaves the check out instead of failing the render', async () => {
+  assert.equal(await exposure([path.join(dir, 'missing.jpg')]), null)
+})
