@@ -10,7 +10,7 @@ import { Icon } from '../../Icon'
 import { ChangesDialog } from '../ChangesDialog'
 import { rename } from '../Studio'
 import { COVER_SIZE, CoverEditor, coverSource, useCover } from './CoverEditor'
-import { CopySummary, Music, Publish, Samples, usePublishCopy, Voice } from './parts'
+import { CopySummary, Music, Publish, Samples, Sound, usePublishCopy, Voice } from './parts'
 import { readExportPrefs, readExportTo, saveExportPrefs, saveExportTo, type Parts } from './prefs'
 
 const ASPECTS: { id: string; label: Key; note: Key }[] = [
@@ -246,6 +246,7 @@ function Setup({ project, jobs, refresh, name, setName, rename, parts, tick, asp
         </div>
         <Voice project={project} jobs={jobs} refresh={refresh} />
         <Music project={project} refresh={refresh} />
+        <Sound project={project} refresh={refresh} />
         {inBlender(project) && (
           <div className="xrow top">
             <span className="xrow-label">{t('studio.quality')}</span>

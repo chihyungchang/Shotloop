@@ -213,6 +213,7 @@ pub fn run() {
             commands::media::covers,
             commands::media::deliver_copy,
             commands::media::music,
+            commands::media::sound,
             commands::media::voice,
             commands::media::voice_models,
             commands::memory::memory,

@@ -4,7 +4,7 @@
 import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type {
-  BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, PickedElement, PickMap, PreviewResult, ProgressEvent, ProjectSummary,
+  BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, SoundResult, PickedElement, PickMap, PreviewResult, ProgressEvent, ProjectSummary,
   QualityResult, ShotStatus, StatusResult, Take, UsageEvent, UsageWindow, VoiceResult
 } from '../../engine/shotloop/protocol'
 import type { Protocol } from './ai/presets'
@@ -15,6 +15,9 @@ export type Project = StatusResult
 export type Shot = ShotStatus
 export type VoiceInfo = VoiceResult
 export type MusicInfo = MusicResult
+export type SoundInfo = SoundResult
+// What the sound panel changes; nothing set reads it
+export interface SoundChange { ambience?: string; ambienceGain?: number; effects?: boolean; effectsGain?: number; cue?: string; kind?: string; on?: boolean }
 
 // A card of `list`: a project, or one that can't be read (shown as broken)
 export type ListEntry = ListResult[number]
@@ -376,6 +379,8 @@ export const api = {
   voiceModels: () => invoke<{ dir: string; models: VoiceModel[] }>('voice_models'),
   // The music bed: read with no change, or set a preset, a file, none, a volume
   music: (path: string, change?: MusicChange) => invoke<MusicInfo>('music', { path, change }),
+  // The ambience and the sound effects, and which of them play
+  sound: (path: string, change?: SoundChange) => invoke<SoundInfo>('sound', { path, change }),
   // What is where on a 2D shot's three stills, for the element picker
   pickMap: (path: string, shot: string) => invoke<PickMap>('pick_map', { path, shot }),
   quality: (path: string, change: { samples?: number; reset?: boolean } = {}) => invoke<QualityResult>('quality', { path, ...change })

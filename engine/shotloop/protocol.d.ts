@@ -375,6 +375,33 @@ export interface VoiceResult {
 }
 
 // shotloop music <project>
+// shotloop sound <project> [changes]: the ambience and the shots' sound
+// effects (engine/shotloop/sound.mjs), each with whether it is on
+export interface SoundCue {
+  // <shot>@<at>:<sound>, what --cue switches
+  key: string
+  shot: string
+  // Film seconds
+  at: number
+  sound: string
+  gain: number
+  pan: number
+  on: boolean
+}
+export interface SoundResult {
+  ambience?: string | null
+  ambienceGain?: number
+  effects?: boolean
+  effectsGain?: number
+  // Switched off: cue keys and "kind:<sound>"
+  off?: string[]
+  // The person chose the ambience (a plan keeps it)
+  chosen?: boolean
+  cues: SoundCue[]
+  ambiences: string[]
+  sounds: string[]
+}
+
 export interface MusicResult {
   kind: 'preset' | 'file' | 'none'
   // A synthesized bed's mood (data.mjs MUSIC_MOODS), 'custom' for a hand-written one
