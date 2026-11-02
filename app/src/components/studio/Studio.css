@@ -69,6 +69,17 @@ body.resizing { cursor: col-resize; }
 .check-pill { align-self: flex-start; display: inline-flex; gap: 5px; align-items: center; font-size: 11.5px; border-radius: var(--r-md); padding: 2px 9px; }
 .check-pill.ok { background: var(--success-soft); color: var(--success); }
 /* Under a check's failures: fixing them is a fix the person asks for */
+/* A proposal's ways to make the change: each a card to pick, then the
+   person's own */
+.options { display: flex; flex-direction: column; gap: 6px; }
+.option { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-height: 0; padding: 9px 11px; text-align: left; white-space: normal;
+  border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface); }
+.option:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+.option:disabled { opacity: 1; cursor: default; color: var(--text-2); }
+.option-title { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text); }
+.option-plan { font-size: 12px; line-height: 1.5; font-weight: 400; color: var(--text-2); }
+.option-own { display: flex; gap: 6px; }
+.option-own input { flex: 1; min-width: 0; font-size: 12.5px; }
 /* A reply's failed checks: a card with each rule, then the fix */
 .check-card { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px; border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--danger-soft) 55%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 18%, transparent); }

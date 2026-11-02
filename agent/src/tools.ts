@@ -43,10 +43,14 @@ export interface ToolContext {
   touched: Set<string>
   renders: Map<string, string[]>
   checks: { shot: string; results: CheckResult[]; summary: string }[]
+  // The ways to make a change the AI offers, for the person to pick from
+  options: ShotOption[]
 }
 
+export interface ShotOption { title: string; plan: string }
+
 export function newContext(root: string, checklist: string, writable: string[]): ToolContext {
-  return { root, checklist, writable, touched: new Set(), renders: new Map(), checks: [] }
+  return { root, checklist, writable, touched: new Set(), renders: new Map(), checks: [], options: [] }
 }
 
 // Case-insensitive: macOS file systems are, so .Shotloop is .shotloop
@@ -205,6 +209,20 @@ export const TOOLS: Tool[] = [
       },
       summary: { type: 'string', description: 'One or two sentences for the person: what passed, what is left.' }
     }, ['shot', 'results', 'summary'])
+  },
+  {
+    name: 'offer_options',
+    description: 'Offer the person ways to make the change they asked for, for them to pick one before anything is edited. Call once, with two to four options.',
+    strict: true,
+    input_schema: object({
+      options: {
+        type: 'array',
+        items: object({
+          title: { type: 'string', description: 'The option in a few words, in the person\'s language.' },
+          plan: { type: 'string', description: 'One or two sentences: what changes on screen, and how in the code.' }
+        }, ['title', 'plan'])
+      }
+    }, ['options'])
   },
   {
     name: 'remember',
@@ -384,6 +402,15 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
       emit({ type: 'tool', name, summary: `${shot}: ${failed.length ? `failed ${failed.join(', ')}` : 'all passed'}`, shot })
       return 'recorded'
     }
+    case 'offer_options': {
+      const raw = input.options
+      if (!Array.isArray(raw) || !raw.length || !raw.every(o => o && typeof o.title === 'string' && typeof o.plan === 'string')) {
+        throw new Error('options must be a list of { title, plan }')
+      }
+      ctx.options = raw.slice(0, 4).map(o => ({ title: o.title.trim(), plan: o.plan.trim() }))
+      emit({ type: 'tool', name, summary: ctx.options.map(o => o.title).join(' · ') })
+      return 'offered'
+    }
     case 'remember': {
       const title = JSON.parse(fs.readFileSync(path.join(ctx.root, 'shotloop.json'), 'utf8')).title
       const m = memory.add({ text: str('text'), by: 'ai', track: str('track'), from: typeof title === 'string' ? title : null, replaces: str('replaces') || null })
@@ -437,10 +464,11 @@ interface Session {
   touched: string[]
   renders: [string, string[]][]
   checks: ToolContext['checks']
+  options: ShotOption[]
 }
 
 export function saveSession(ctx: ToolContext, file: string) {
-  const s: Session = { touched: [...ctx.touched], renders: [...ctx.renders], checks: ctx.checks }
+  const s: Session = { touched: [...ctx.touched], renders: [...ctx.renders], checks: ctx.checks, options: ctx.options }
   writeAtomic(file, JSON.stringify(s))
 }
 
@@ -458,4 +486,5 @@ export function loadSession(ctx: ToolContext, file: string) {
   for (const f of s.touched) ctx.touched.add(f)
   for (const [shot, stills] of s.renders) ctx.renders.set(shot, stills)
   for (const c of s.checks) recordCheck(ctx, c)
+  if (s.options?.length) ctx.options = s.options
 }

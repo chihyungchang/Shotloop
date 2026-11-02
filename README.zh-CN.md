@@ -90,7 +90,7 @@ AI 会按题目挑选最合适的画面方式并说明理由；你可以在策�
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent-zh.jpg"><img src="docs/screenshots/agent-zh.jpg" alt="AI 镜头助手的回复，带改动前后对比图" /></a><br/>
-<sub><b>AI 镜头助手</b>：说出哪里不对，AI 就修改这个镜头。拖动分割线可以对比改动前后。</sub>
+<sub><b>AI 镜头助手</b>：说出哪里不对，AI 先给你几个改法，选一个（或者说说你的想法），它再修改这个镜头。拖动分割线可以对比改动前后。</sub>
 </td>
 </tr>
 <tr>

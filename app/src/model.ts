@@ -120,6 +120,8 @@ export function jobLabel(job: Job): string {
       return t(job.stills ? 'job.stills' : 'job.render', { shot: job.shot ?? '', mode })
     case 'export':
       return t('job.export', { mode, aspects: job.aspects.join(', ') })
+    case 'propose':
+      return t('job.propose', { shot: job.shot ?? '', request: job.request ?? '' })
     case 'fix':
       return t('job.fix', { shot: job.shot ?? '', request: job.request ?? '' })
     case 'check':

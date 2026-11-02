@@ -90,7 +90,7 @@ Video 2D mengikuti seperangkat aturan: aturan tetap yang menjaga setiap bingkai 
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="Balasan asisten AI adegan dengan tampilan perbandingan sebelum/sesudah" /></a><br/>
-<sub><b>Asisten AI adegan</b>: sebutkan apa yang salah, AI memperbaiki adegan itu. Geser pembatas untuk membandingkan sebelum dan sesudah.</sub>
+<sub><b>Asisten AI adegan</b>: sebutkan apa yang salah, pilih salah satu cara yang ditawarkan AI (atau caramu sendiri), lalu AI memperbaiki adegan itu. Geser pembatas untuk membandingkan sebelum dan sesudah.</sub>
 </td>
 </tr>
 <tr>

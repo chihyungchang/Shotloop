@@ -36,6 +36,8 @@ type Progress = Omit<ProgressEvent, 'type' | 'shot'> & { shot: string | null }
 type Spec =
   | { kind: 'render'; project: string; shot: string; mode: Mode; stills: boolean }
   | { kind: 'export'; project: string; mode: Mode; aspects: string[]; video?: boolean; cover?: boolean; publish?: boolean; to?: string; name?: string; lang?: string }
+  // Ways to make a change to a shot, offered before anything is edited
+  | { kind: 'propose'; project: string; shot: string; request: string; element?: PickedElement; lang?: string }
   | { kind: 'fix'; project: string; shot: string; request: string; element?: PickedElement; lang?: string }
   | { kind: 'check'; project: string; shot: string; lang?: string }
   | { kind: 'publish'; project: string; lang?: string }
@@ -309,7 +311,7 @@ interface NewProject {
 type MusicChange = { preset?: string; shuffle?: boolean; file?: string; none?: boolean; gain?: number }
 
 // Agent jobs (and an export's copy) reply in the UI language
-const SPOKEN: Spec['kind'][] = ['fix', 'check', 'plan', 'build', 'sound', 'publish', 'cover', 'export']
+const SPOKEN: Spec['kind'][] = ['propose', 'fix', 'check', 'plan', 'build', 'sound', 'publish', 'cover', 'export']
 
 export const api = {
   doctor: () => invoke<Doctor>('doctor'),

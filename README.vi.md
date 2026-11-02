@@ -90,7 +90,7 @@ Video 2D tuân theo một bộ quy tắc: các quy tắc cố định giữ mọ
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="Câu trả lời của Trợ lý cảnh AI với khung so sánh trước/sau" /></a><br/>
-<sub><b>Trợ lý cảnh AI</b>: nói điều chưa ổn và AI sửa cảnh đó. Kéo thanh chia để so sánh trước và sau.</sub>
+<sub><b>Trợ lý cảnh AI</b>: nói điều chưa ổn, chọn một trong các cách AI đề xuất (hoặc nói cách của bạn), rồi AI sửa cảnh đó. Kéo thanh chia để so sánh trước và sau.</sub>
 </td>
 </tr>
 <tr>

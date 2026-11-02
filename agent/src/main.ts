@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // Shotloop agent sidecar (docs/PRD.md §7.5, §7.6, §7.10).
 //
+//   shotloop-agent propose <project> --shot <id> --request "…" [--element '<pick result>']
+//                                             ways to make the change, for the person to pick (no edits)
 //   shotloop-agent fix     <project> --shot <id> --request "the cable is hidden" [--element '<pick result>']
 //   shotloop-agent check   <project> --shot <id>   review the shot against the checklist (no edits)
 //   shotloop-agent publish <project>
@@ -31,7 +33,7 @@ import { engine, renderCover, renderStills, status, type ProjectStatus, type Sho
 import { lookFits, memory, parseFlags, rules, STILLS, type Memory } from './enginelib.ts'
 import { emit, exit, reason, setJson, warn } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
-import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, memoryPrompt, planSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, SOUND_PARTS, soundSystem, TEMPLATE_RULES, type SoundPart } from './prompts.ts'
+import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, memoryPrompt, planSystem, proposeSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, SOUND_PARTS, soundSystem, TEMPLATE_RULES, type SoundPart } from './prompts.ts'
 import { lintPlan, lintVoice } from './principles.ts'
 import { newContext, SET_AMBIENCE, SET_LINES, writeAtomic, type ToolContext } from './tools.ts'
 
@@ -111,16 +113,18 @@ function appendHistory(shot: ShotStatus, line: string) {
   fs.writeFileSync(shot.notes, `${text.trimEnd()}\n- ${today()}: ${line}\n`)
 }
 
-async function shotTask(kind: 'fix' | 'check') {
+// The tasks on one shot. A request is first answered with ways to make it
+// (propose, no edits, quick); the way the person picks is then a fix. A
+// check only looks and reports; fixing what it found is a fix too
+type ShotKind = 'propose' | 'fix' | 'check'
+async function shotTask(kind: ShotKind) {
   if (!values.shot) throw new Error(`${kind} needs --shot <id>`)
-  if (kind === 'fix' && !values.request?.trim()) throw new Error('fix needs --request "what is wrong"')
+  if (kind !== 'check' && !values.request?.trim()) throw new Error(`${kind} needs --request "what is wrong"`)
   const project = await status(dir)
   const shot = project.shots.find(s => s.id === values.shot)
   if (!shot) throw new Error(`no shot ${values.shot}`)
 
-  // A check only looks and reports, so it is quick; fixing what it found
-  // is a fix the person asks for
-  const reviewOnly = kind === 'check'
+  const edits = kind === 'fix'
   // What the person picked in the frame (engine pick), when they did
   const element: PickedElement | null = values.element ? JSON.parse(values.element) : null
   const record = path.join(project.root, '.shotloop', 'shots', shot.id, 'fixes', stamp())
@@ -129,14 +133,16 @@ async function shotTask(kind: 'fix' | 'check') {
   const current = shot.final.stills ?? (await renderStills(project.root, shot.id)).stills
   const before = keepStills(current, record, 'before')
 
-  const ctx = context(project.root, reviewOnly ? [] : [`shots/${shot.id}/`, 'world/'])
-  const ask = kind === 'fix'
-    ? `The person says about shot ${shot.id}: "${values.request}"${element ? `\n${elementBrief(element)}` : ''}\n\nFix it.`
+  const ctx = context(project.root, edits ? [`shots/${shot.id}/`, 'world/'] : [])
+  const said = `The person says about shot ${shot.id}: "${values.request}"${element ? `\n${elementBrief(element)}` : ''}`
+  const ask = kind === 'fix' ? `${said}\n\nFix it.`
+    : kind === 'propose' ? `${said}\n\nLook at the shot and offer ways to make this change with offer_options. Do not edit files.`
     : `Review shot ${shot.id} against the checklist and report. Do not edit files.`
   emit({ type: 'log', message: `agent: ${describe()}` })
-  const summary = await runAgent(kind === 'fix' ? 'code' : 'routine', {
-    effort: 'medium',
-    system: (kind === 'fix' ? fixSystem : checkSystem)(project.track, !!project.voiced) + remembered(project.track, !reviewOnly) + replyLanguage(values.lang),
+  const summary = await runAgent(kind === 'check' ? 'routine' : 'code', {
+    // Options are wanted quickly: the fix that follows thinks harder
+    effort: kind === 'propose' ? 'low' : 'medium',
+    system: { fix: fixSystem, check: checkSystem, propose: proposeSystem }[kind](project.track, !!project.voiced) + remembered(project.track, edits) + replyLanguage(values.lang),
     prompt: `${ask}\n\n${shotBrief(project, shot)}`,
     ctx
   })
@@ -158,6 +164,7 @@ async function shotTask(kind: 'fix' | 'check') {
     // v1: a world change re-renders every shot (docs/PRD.md §8)
     affectedShots: worldTouched ? project.shots.map(s => s.id) : touched.length ? [shot.id] : [],
     checks: ctx.checks,
+    options: ctx.options,
     before,
     after,
     record
@@ -168,9 +175,9 @@ async function shotTask(kind: 'fix' | 'check') {
   for (const id of result.affectedShots) fs.rmSync(path.join(project.root, '.shotloop', 'shots', id, 'checks.json'), { force: true })
   saveChecks(project, ctx)
   const failed = ctx.checks.find(c => c.shot === shot.id)?.results.filter(r => !r.pass).map(r => r.rule) ?? []
-  appendHistory(shot, kind === 'fix'
-    ? `fix "${values.request}"${touched.length ? ` (changed ${touched.join(', ')})` : ''}${failed.length ? `; still failing: ${failed.join(', ')}` : ''}`
-    : `check${failed.length ? `: failing ${failed.join(', ')}` : ': all rules pass'}`)
+  // Options change nothing: the shot's history keeps what was done
+  if (kind === 'fix') appendHistory(shot, `fix "${values.request}"${touched.length ? ` (changed ${touched.join(', ')})` : ''}${failed.length ? `; still failing: ${failed.join(', ')}` : ''}`)
+  if (kind === 'check') appendHistory(shot, `check${failed.length ? `: failing ${failed.join(', ')}` : ': all rules pass'}`)
   return result
 }
 
@@ -500,12 +507,12 @@ try {
     if (!values.url && protocol === 'openai') throw new Error('models needs --url <base URL>')
     value = await listModels(values.url ?? '', values.key, protocol)
   } else {
-    if (!dir || !['fix', 'check', 'publish', 'cover', 'plan', 'build', 'sound'].includes(task)) {
+    if (!dir || !['propose', 'fix', 'check', 'publish', 'cover', 'plan', 'build', 'sound'].includes(task)) {
       console.error('usage: shotloop-agent fix|check|publish|cover|plan|build <project> [--shot <id>] [--request "…"] [--json] | detect | models --url <…>')
       await exit(1)
     }
     preflight()
-    value = task === 'publish' ? await publishTask() : task === 'cover' ? await coverTask() : task === 'plan' ? await planTask() : task === 'build' ? await buildTask() : task === 'sound' ? await soundTask() : await shotTask(task as 'fix' | 'check')
+    value = task === 'publish' ? await publishTask() : task === 'cover' ? await coverTask() : task === 'plan' ? await planTask() : task === 'build' ? await buildTask() : task === 'sound' ? await soundTask() : await shotTask(task as ShotKind)
   }
   emit({ type: 'result', value })
 } catch (err) {

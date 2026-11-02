@@ -90,7 +90,7 @@ Yapay zekâ konuya uyan stili seçer ve nedenini söyler; planda değiştirebili
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="Yapay zekâ çekim asistanının önce/sonra karşılaştırmalı yanıtı" /></a><br/>
-<sub><b>Yapay zekâ çekim asistanı</b>: neyin yanlış olduğunu söyleyin, yapay zekâ o çekimi düzeltsin. Önceyi ve sonrayı karşılaştırmak için ayırıcıyı sürükleyin.</sub>
+<sub><b>Yapay zekâ çekim asistanı</b>: neyin yanlış olduğunu söyleyin, yapay zekânın önerdiği yollardan birini seçin (ya da kendinizinkini söyleyin), o çekimi düzeltsin. Önceyi ve sonrayı karşılaştırmak için ayırıcıyı sürükleyin.</sub>
 </td>
 </tr>
 <tr>

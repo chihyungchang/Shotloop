@@ -90,7 +90,7 @@ I video 2D seguono un insieme di regole: quelle fisse, che mantengono pulito ogn
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="La risposta dell’assistente IA delle inquadrature con il confronto prima/dopo" /></a><br/>
-<sub><b>Assistente IA delle inquadrature</b>: di’ cosa non va e l’IA corregge quell’inquadratura. Trascina il divisore per confrontare prima e dopo.</sub>
+<sub><b>Assistente IA delle inquadrature</b>: di’ cosa non va, scegli uno dei modi proposti dall’IA (o il tuo) e l’IA corregge quell’inquadratura. Trascina il divisore per confrontare prima e dopo.</sub>
 </td>
 </tr>
 <tr>
