@@ -19,8 +19,7 @@ const OUT = path.join(TAURI, 'bundle-resources')
 // Engine files the CLI imports or reads (see engine/shotloop/cache.mjs)
 const ENGINE = [
   'engine/shotloop',
-  'engine/lib',
-  'engine/assets/README.md'
+  'engine/lib'
 ]
 // Never shipped: renders, exports and OS litter
 const SKIP = new Set(['out', '.DS_Store', '__pycache__', 'node_modules'])

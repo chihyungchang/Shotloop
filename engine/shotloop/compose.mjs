@@ -48,7 +48,7 @@ export const run = (cmd, args, { input, onStdout, env } = {}) =>
       stdio: [input ? 'pipe' : 'ignore', 'pipe', 'pipe'],
       env: env ? { ...process.env, ...env } : process.env
     })
-    // Keep the tail of both streams: Blender reports Python errors on either
+    // Keep the tail of both streams: a tool may report its error on either
     let err = ''
     p.stdout.on('data', d => {
       onStdout?.(String(d))
@@ -137,34 +137,20 @@ export async function renderPageFrames(page, items, fileOf, tick) {
 
 export const frameName = i => `${String(i).padStart(5, '0')}.png`
 
-// Caption layer for a shot: one transparent PNG per frame, drawn at film
-// time (the caption page is written against the film's timeline)
-export async function renderCaptions(project, shot, mode, dir, frames) {
-  fs.mkdirSync(dir, { recursive: true })
-  const page = await openRenderPage(project.captions, pageGeometry(project, mode), { transparent: true })
-  await renderPageFrames(page, frames.map(f => shot.start + (f - 1) / project.fps), (t, i) => path.join(dir, frameName(frames[i])),
-    progress({ shot: shot.id, stage: 'captions' }, frames.length))
-}
-
-// Frames (+ caption layer) → silent H.264 clip
-export async function encodeClip(project, mode, framesDir, captionsDir, out) {
+// Frames → silent H.264 clip
+export async function encodeClip(project, mode, framesDir, out) {
   const fps = String(project.fps)
-  const overlay = captionsDir && fs.existsSync(captionsDir)
   await ffmpeg([
     '-framerate', fps, '-i', path.join(framesDir, '%05d.png'),
-    ...(overlay ? ['-framerate', fps, '-i', path.join(captionsDir, '%05d.png')] : []),
-    '-filter_complex', overlay ? '[0][1]overlay=0:0,format=yuv420p[v]' : '[0]format=yuv420p[v]',
+    '-filter_complex', '[0]format=yuv420p[v]',
     '-map', '[v]', '-c:v', 'libx264', ...QUALITY[mode], '-r', fps,
     '-movflags', '+faststart', out
   ])
 }
 
-// One composited still (frame + caption), in out's format: a JPEG at high
-// quality (a fifth of the PNG's size, the text as crisp to read)
-export async function composeStill(frame, caption, out) {
+// A still in out's format: a JPEG at high quality (a fifth of the PNG's
+// size, the text as crisp to read)
+export async function composeStill(frame, out) {
   fs.mkdirSync(path.dirname(out), { recursive: true })
-  await ffmpeg([
-    '-i', frame, ...(caption ? ['-i', caption, '-filter_complex', '[0][1]overlay=0:0'] : []),
-    ...(/\.jpe?g$/i.test(out) ? ['-q:v', '2'] : []), out
-  ])
+  await ffmpeg(['-i', frame, ...(/\.jpe?g$/i.test(out) ? ['-q:v', '2'] : []), out])
 }

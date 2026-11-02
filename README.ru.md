@@ -29,7 +29,7 @@
 
 ## Что такое Shotloop
 
-Shotloop — десктопное приложение для коротких видео, нарисованных кодом: промо продуктов, научпоп, истории на данных и анимация в стиле слайдов. В 2D (веб-страницы, отрендеренные покадрово) или 3D (сцены Blender), в восьми визуальных стилях.
+Shotloop — десктопное приложение для коротких видео, нарисованных кодом: промо продуктов, научпоп, истории на данных и анимация в стиле слайдов. В 2D (веб-страницы, отрендеренные покадрово) или 3D (миры three.js, отрендеренные как в офлайн-рендерере), в восьми визуальных стилях.
 
 Вы начинаете с одного предложения. ИИ выбирает, как его показать (кинематографичная сцена, инфографика, карта, демо интерфейса, чертёж, кинетическая типографика, новостная история или 3D), и тему — если вы не выбрали сами. Он пишет хук, сценарий и факты с источниками, а затем разбивает всё на раскадровку — с репликой, которую голос за кадром произносит над каждым кадром. Вы правите раскадровку, ИИ собирает каждый кадр. В студии вы смотрите каждый кадр и простыми словами говорите, что не так, например «текст слишком мелкий» или «слишком статично, добавь движения». ИИ меняет этот кадр, рендерит, сверяет с заметками и показывает «до/после». Когда фильм готов, «Экспорт» склеивает кадры, кладёт озвучку с субтитрами и музыку под ними, ИИ делает обложку в стиле фильма (или заполняет шаблон вашей серии) и пишет пост для каждой площадки — всё в отдельную папку.
 
@@ -43,7 +43,7 @@ Shotloop — десктопное приложение для коротких �
 
 <table>
 <tr>
-<td width="25%" valign="top"><img src="docs/screenshots/film-3d.gif" alt="Телефон раскрывается в разнесённый вид по слоям" /><br/><sub><b>3D</b>: разборка телефона в Blender.</sub></td>
+<td width="25%" valign="top"><img src="docs/screenshots/film-3d.gif" alt="Механические часы вращаются, а затем раскрываются в разнесённый вид механизма" /><br/><sub><b>3D</b>: механические часы в WebGL.</sub></td>
 <td width="25%" valign="top"><img src="docs/screenshots/film-2d.gif" alt="Импульс света летит от Солнца к Земле, рядом таймер" /><br/><sub><b>2D</b>: сколько солнечный свет идёт до Земли.</sub></td>
 <td width="50%" valign="top"><img src="docs/screenshots/film-chart.gif" alt="График 0,99 в 365-й степени, падающий до 0,027" /><br/><sub><b>2D, данные</b>: на 1% лучше каждый день, в графиках (16:9).</sub></td>
 </tr>
@@ -64,7 +64,7 @@ Shotloop — десктопное приложение для коротких �
 <td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Чертёж" /></a><br/><sub><b>Чертёж</b>: линии на сетке, разнесённые виды и выноски — чтобы показать, как работает механизм.</sub></td>
 <td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Кинетическая типографика" /></a><br/><sub><b>Кинетическая типографика</b>: огромный движущийся текст — для цитат, слов и мифов.</sub></td>
 <td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Новостная история" /></a><br/><sub><b>Новостная история</b>: срочные события с напряжением — бегущие часы, след денег, хронология, кто что сказал.</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: сцены Blender с настоящим светом и камерой, летящей в пространстве.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: миры three.js со студийным светом, мягкими тенями и камерой, летящей в пространстве.</sub></td>
 </tr>
 </table>
 
@@ -116,7 +116,7 @@ flowchart LR
   D -- всё хорошо --> G[Экспорт: склейка, озвучка, музыка, текст для публикации]
 ```
 
-- **Кадры, а не один долгий рендер.** Фильм — это список кадров. Каждый кадр — маленькая программа: `shot.js` для 2D-страницы, `shot.py` для движения камеры в Blender. Каждый кешируется по хешу входных данных, поэтому правка перерендеривает один кадр за секунды (2D) или минуту (3D), а экспорт лишь склеивает клипы.
+- **Кадры, а не один долгий рендер.** Фильм — это список кадров. Каждый кадр — маленькая программа `shot.js`, которая рисует свою страницу в момент t: 2D-страницу или мир three.js для 3D. Каждый кешируется по хешу входных данных, поэтому правка перерендеривает один кадр за секунды, а экспорт лишь склеивает клипы.
 - **Правки простыми словами.** ИИ трогает только текущий кадр, если правка не требует менять общий мир. Он рендерит стоп-кадры, проверяет их по чек-листу (читаемо, ничего не перекрыто, вне зоны субтитров и т. д.) и сообщает, что изменил.
 - **Восемь визуальных стилей.** Кинематографичная сцена, инфографика, карта, демо интерфейса, чертёж, кинетическая типографика, новостная история или 3D — у каждого свой набор инструментов и эталонные кадры, которые ИИ смотрит перед выбором и сборкой ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Тема задаёт только фон и шрифт; картинки и данные сохраняют цвета, нужные их теме.
 - **Правила, по которым проверяется план.** Подписи проверяются на длину и время показа ещё до сборки. Картинка, которая повторяется в нескольких кадрах, рисуется один раз и переиспользуется, поэтому везде выглядит одинаково.
@@ -124,7 +124,7 @@ flowchart LR
 - **Обложки.** ИИ делает обложку в стиле фильма и сам проверяет рендеры. Сохраните её как шаблон, чтобы серия выглядела единообразно, или загрузите понравившуюся обложку — ИИ повторит её дизайн.
 - **Озвучка, синтезированная на вашем Mac.** У каждого кадра есть реплика, и голос ведёт монтаж: кадр длится столько, сколько его реплика, а картинка попадает в слова. Kokoro говорит по-английски, CosyVoice 2 — по-китайски, Supertonic — на остальных языках, всё офлайн. Субтитры произнесённых слов добавляются автоматически, а проверка перечисляет всё, что они закрыли бы (текст и отмеченный объект), так что фильм с закрытым содержимым не экспортируется. Для фильма только с подписями озвучку можно отключить.
 - **Музыка под монтаж.** Синтезированный фон подстроен так, что склейки попадают в бит; он звучит до последнего кадра и плавно затихает. Под озвучкой он тише и приглушается, пока звучит реплика.
-- **Быстро при правке, полное качество при экспорте.** 3D показывает быстрые превью во время работы и рендерит кадры в полном качестве только при экспорте. 2D всегда работает в полном качестве.
+- **3D уровня офлайн-рендерера за минуты.** Каждый 3D-кадр усредняет несколько подкадров (сглаживание, мягкие тени, ambient occlusion, глубина резкости, размытие движения) примерно за полсекунды, так что 30-секундный фильм рендерится за несколько минут, и ничего не нужно устанавливать.
 - **Библиотека ресурсов для 3D.** Ищите CC0-модели на [Poly Pizza](https://poly.pizza) и [Smithsonian Open Access](https://www.si.edu/openaccess) со своим ключом. Каждая модель скачивается один раз и добавляется в любой 3D-проект.
 
 ## Какой ИИ им управляет
@@ -140,7 +140,7 @@ flowchart LR
 ## Установка
 
 1. Скачайте `Shotloop_<version>_aarch64.dmg` из [последнего релиза](https://github.com/chihyungchang/Shotloop/releases/latest), откройте его и перетащите Shotloop в «Программы».
-2. Установите **Google Chrome** (в нём рендерятся 2D-кадры). Для 3D-проектов Shotloop попросит установить **Blender** при создании первого из них.
+2. Установите **Google Chrome** (в нём рендерятся 2D-кадры).
 3. Выберите ИИ в «Настройки → Модели и провайдеры». Если Claude Code уже есть на вашем Mac, он будет выбран автоматически.
 
 > **Первый запуск:** Shotloop пока не нотаризован Apple, поэтому macOS сообщает, что не может проверить разработчика. Откройте его один раз через **Системные настройки → Конфиденциальность и безопасность → Всё равно открыть** или выполните в Терминале `xattr -dr com.apple.quarantine /Applications/Shotloop.app`. После этого приложение открывается как обычно, а обновления ставятся без повторных вопросов.
@@ -163,13 +163,13 @@ pnpm app:build               # Shotloop.app и dmg со встроенными N
 <summary><b>Движок из терминала</b></summary>
 
 ```bash
-pnpm shotloop status   fixtures/hello-3d
-pnpm shotloop render   fixtures/hello-3d --shot 02-close --stills   # начало/середина/конец
-pnpm shotloop render   fixtures/hello-3d --shot 02-close            # клип в качестве редактора
-pnpm shotloop export   fixtures/hello-3d                            # рендерятся только изменённые кадры
+pnpm shotloop status   fixtures/ep01-password-crack-time
+pnpm shotloop render   fixtures/ep01-password-crack-time --shot 02-stack-16-gpu --stills   # начало/середина/конец
+pnpm shotloop render   fixtures/ep01-password-crack-time --shot 02-stack-16-gpu            # клип
+pnpm shotloop export   fixtures/ep01-password-crack-time                                   # рендерятся только изменённые кадры
 pnpm shotloop new      my-short --idea "Почему стареет аккумулятор телефона?" --track auto --duration auto
 pnpm shotloop new      coffee --idea "Откуда берётся кофе?" --track 2d --style map --duration 30
-pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # в новую папку там
+pnpm shotloop export   fixtures/ep01-password-crack-time --to ~/Movies/Shotloop --name "Hello"   # в новую папку там
 pnpm shotloop covers   list                                         # шаблоны обложек
 pnpm shotloop voice    my-short --on --voice af_heart --fit        # озвучка: произнести реплики, подогнать кадры
 pnpm shotloop check-subtitles my-short                              # что закрыли бы субтитры (ошибка, если хоть что-то)
@@ -181,7 +181,7 @@ pnpm shotloop doctor
 
 ```bash
 node agent/src/main.ts detect                                         # CLI-агенты и локальные серверы на этом Mac
-SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check fixtures/hello-3d --shot 01-wide
+SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check fixtures/ep01-password-crack-time --shot 01-password-field-dots
 pnpm test                                                             # каждый бэкенд против скриптовых заглушек
 ```
 
@@ -195,18 +195,18 @@ my-video/
   shotloop.json        название, трек (2d|3d), стиль, размер, fps, язык, голос { on, voice, speed },
                        кадры [{ id, title, duration, say (произносимая реплика), cues (время её предложений) }]
   storyboard.json      план: текст (хук, сценарий, факты с источниками) и кадры
-  world/               3D: world.py (+ screen.html); 2D: page.html (набор стиля), parts.js (повторяющиеся
-                       картинки, нарисованные один раз), geo.data.js (страны для стиля «Карта»)
-  shots/<id>/          shot.py | shot.js, notes.md (что показать, текст на экране, движение)
+  world/               page.html (2D: набор стиля; 3D: набор WebGL), 2D: parts.js (повторяющиеся
+                       картинки, нарисованные один раз), geo.data.js (страны для стиля «Карта»); 3D: *.js (декорации, механизмы)
+  shots/<id>/          shot.js, notes.md (что показать, текст на экране, движение, звук), sounds.json (его звуковые эффекты)
   assets/<id>/         3D-модели из библиотеки ресурсов
-  copy.md  script.md  captions.html  music.json  thumb.html  publish.json
+  copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           кеш: по кадру и хешу входных данных, дубли, проверки, правки; voice/: произнесённые реплики, субтитры
   out/                 экспорты движка (с отметкой времени); приложение копирует каждый в новую папку, где вы укажете
 ```
 
-- **3D**: `world.py` строит общий мир с помощью `kit` ([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)). `shot.py` выполняется в пространстве имён мира и создаёт одну камеру; `at(t)` переводит локальные секунды кадра во время фильма.
+- **3D**: `world/page.html` — WebGL-набор движка ([`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)): сцена three.js со студийным светом, материалами, фигурами, моделями glTF, камерами с параметрами объектива и текстом поверх. Декорации и механизмы, общие для кадров, лежат в `world/*.js`; кадр строит то, что показывает, в `setup(ctx)` и расставляет это для момента `t` в `render(t)`.
 - **2D**: `shot.js` по умолчанию экспортирует `render(t, ctx)`, который рисует `world/page.html` в локальное время кадра `t`. В `ctx.voice` лежат произносимые в кадре предложения с их временем, чтобы картинка попадала в слова; отметьте объект через `data-keep` (или `subtitles.keep()` на canvas), чтобы проверка субтитров держала его открытым.
-- **Кеш**: ключ кадра — хеш мира, его кода, подписей, ресурсов, рендерера и настроек. Неизменённые кадры переиспользуются.
+- **Кеш**: ключ кадра — хеш мира, его кода, его моделей, рендерера и настроек. Неизменённые кадры переиспользуются.
 
 </details>
 
@@ -216,7 +216,7 @@ my-video/
 | Путь | Что там |
 | --- | --- |
 | [`app/`](app/) | Десктопное приложение: оболочка на Tauri 2 (Rust) с очередью рендера, апдейтером и контролем процессов, плюс интерфейс на React + TypeScript. |
-| [`engine/shotloop/`](engine/shotloop/) | Движок кадров: формат проекта, кеш рендера по кадрам, рендер 2D (Chrome) и 3D (Blender), сборка фильма, экспорт в MP4, тайминг озвучки, субтитры и их проверка, музыка, библиотека ресурсов. CLI, который вызывает приложение. |
+| [`engine/shotloop/`](engine/shotloop/) | Движок кадров: формат проекта, кеш рендера по кадрам, рендер 2D и 3D (three.js) в Chrome, сборка фильма, экспорт в MP4, тайминг озвучки, субтитры и их проверка, музыка, библиотека ресурсов. CLI, который вызывает приложение. |
 | [`voice/`](voice/) | Синтез речи для озвучки, на этом Mac: Kokoro через sherpa-onnx, Supertonic на ONNX Runtime и CosyVoice 2 в локальном Python-сервере, со скачиванием моделей. |
 | [`agent/`](agent/) | Агент: планирование, сборка, правки простыми словами, проверки по чек-листу, текст для публикации. Поддерживает API, CLI (через MCP) и локальные модели. |
 | [`examples/`](examples/) | Примеры с главной, на английском: минимум один на каждый визуальный стиль (2D и 3D, 9:16 и 16:9). |
@@ -229,7 +229,7 @@ my-video/
 Shotloop стоит на работе open source. Спасибо людям, которые создают:
 
 - **Озвучка:** [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) от hexgrad и [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (английский); [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) от FunAudioLLM с [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) и [Transformers](https://github.com/huggingface/transformers) (китайский); [Supertonic](https://huggingface.co/Supertone/supertonic-3) от Supertone (остальные языки); [ONNX Runtime](https://onnxruntime.ai); [uv](https://github.com/astral-sh/uv) и [Python](https://www.python.org), на которых работает китайский голос.
-- **Рендер и фильм:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) через протокол DevTools, [Blender](https://www.blender.org) и [Node.js](https://nodejs.org).
+- **Рендер и фильм:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) через протокол DevTools, [three.js](https://threejs.org) и [Node.js](https://nodejs.org).
 - **Приложение:** [Tauri](https://tauri.app), [React](https://react.dev), [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) и [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
 - **Ресурсы и данные:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess) и [Natural Earth](https://www.naturalearthdata.com) через [world-atlas](https://github.com/topojson/world-atlas).
 

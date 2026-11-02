@@ -118,7 +118,6 @@ const MAP = `(() => {
 // The map of each review still (0 start, 1 middle, 2 end), with its time
 // in the shot, and the page's CSS size the points are in
 export async function pickMap(project, shot) {
-  if (project.track !== '2d') throw new Error('elements can be picked in 2D shots only')
   // The page is laid out the same in every mode: the draft's is lighter
   const s = await openShot(project, shot, 'draft')
   try {

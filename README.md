@@ -29,7 +29,7 @@ An idea becomes copy, a storyboard and a film made of shots. Each shot has its o
 
 ## What is Shotloop
 
-Shotloop is a desktop app for short videos that are drawn with code: product promos, science explainers, data stories and slide-style animation, made in 2D (web pages rendered frame by frame) or 3D (Blender scenes), in eight visual styles.
+Shotloop is a desktop app for short videos that are drawn with code: product promos, science explainers, data stories and slide-style animation, made in 2D (web pages rendered frame by frame) or 3D (three.js worlds rendered like an offline renderer), in eight visual styles.
 
 You start with one sentence. The AI picks how to show it (a cinematic scene, an infographic, a map, an interface demo, a blueprint, kinetic type, a news story or 3D) and a theme, unless you choose them. It writes the hook, the script and the facts with their sources, then splits them into a storyboard, with the line a voice-over says over each shot. You edit the storyboard, and the AI builds every shot. In the Studio you look at each shot and say what is wrong in plain words, such as "the text is too small" or "it's too still: add some motion". The AI changes that shot, renders it, checks it against the notes and shows you a before/after. When the film reads right, Export joins the shots, lays the voice-over with its subtitles and the music under them, the AI designs a cover in the film's look (or fills your series' template) and writes the post for each platform, all into a folder of its own.
 
@@ -43,7 +43,7 @@ Every frame below was rendered by Shotloop from the [examples](examples/) it shi
 
 <table>
 <tr>
-<td width="25%" valign="top"><img src="docs/screenshots/film-3d.gif" alt="A phone opening into an exploded view of its layers" /><br/><sub><b>3D</b>: a phone teardown in Blender.</sub></td>
+<td width="25%" valign="top"><img src="docs/screenshots/film-3d.gif" alt="A mechanical watch turning, then opening into an exploded view of its movement" /><br/><sub><b>3D</b>: a mechanical watch in WebGL.</sub></td>
 <td width="25%" valign="top"><img src="docs/screenshots/film-2d.gif" alt="A light pulse travelling from the Sun to Earth with a timer" /><br/><sub><b>2D</b>: how long sunlight takes to reach Earth.</sub></td>
 <td width="50%" valign="top"><img src="docs/screenshots/film-chart.gif" alt="A chart of 0.99 to the 365th power falling to 0.027" /><br/><sub><b>2D data</b>: 1% better every day, in charts (16:9).</sub></td>
 </tr>
@@ -64,7 +64,7 @@ The AI picks the style that fits the subject and tells you why; you can switch o
 <td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Blueprint" /></a><br/><sub><b>Blueprint</b>: line art on a grid, exploded views and callouts, for how a machine works.</sub></td>
 <td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Kinetic type" /></a><br/><sub><b>Kinetic type</b>: huge type that moves, for quotes, words and myths.</sub></td>
 <td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="News story" /></a><br/><sub><b>News story</b>: breaking events told with tension: a running clock, the money trail, the timeline, who said what.</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: Blender scenes with real light and a camera through space.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: three.js worlds with studio light, soft shadows and a camera through space.</sub></td>
 </tr>
 </table>
 
@@ -116,7 +116,7 @@ flowchart LR
   D -- looks right --> G[Export: join, voice-over, music, publish copy]
 ```
 
-- **Shots, not one long render.** A film is a list of shots. Each shot is a small program: `shot.js` for a 2D page, `shot.py` for a Blender camera move. Each one is cached by a hash of its inputs, so a fix re-renders one shot in seconds (2D) or a minute (3D), and Export only joins clips.
+- **Shots, not one long render.** A film is a list of shots. Each shot is a small program, `shot.js`, that draws its page at a time t: a 2D page, or a three.js world for 3D. Each one is cached by a hash of its inputs, so a fix re-renders one shot in seconds, and Export only joins clips.
 - **Plain-language fixes.** The AI only touches the shot you're on, unless the fix needs the shared world. It renders stills, checks them against a checklist (readable, nothing covered, out of the caption zone and so on) and reports what it changed.
 - **Eight visual styles.** A cinematic scene, an infographic, a map, an interface demo, a blueprint, kinetic type, a news story or 3D, each with its own kit and reference stills the AI looks at before it chooses and builds ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). A theme sets only the ground and the type; pictures and data keep the colors their subject needs.
 - **Rules a plan is measured against.** Captions are checked for length and for the time they stay up before anything is built. A picture that recurs across shots is drawn once and shared, so it looks the same in each.
@@ -124,7 +124,7 @@ flowchart LR
 - **Covers.** The AI designs a cover in the film's look and checks its own renders. Save one as a template to keep a series consistent, or upload a cover you like and the AI follows its design.
 - **A voice-over, spoken on your Mac.** Each shot has a line, and the voice leads the cut: a shot lasts as long as its line, and the picture lands on the words. Kokoro speaks English, CosyVoice 2 Chinese and Supertonic the other languages, all offline. Subtitles of the spoken words are added automatically, and a check lists anything they would cover (text and the marked subject), so a covered film is never exported. Turn it off for a film with captions only.
 - **Music that fits the cut.** The synthesized bed is tuned so the cuts land on its beats, runs to the last frame and fades out. Under a voice-over it sits lower and dips while a line is spoken.
-- **Fast while editing, full quality on export.** 3D shows quick previews while you edit and renders full-quality frames only when you export. 2D works in full quality throughout.
+- **3D that renders like an offline renderer, in minutes.** Each 3D frame averages several sub-frames (antialiasing, soft shadows, ambient occlusion, depth of field, motion blur) in about half a second, so a 30-second film renders in a few minutes, with nothing to install.
 - **Asset library for 3D.** Search CC0 models on [Poly Pizza](https://poly.pizza) and [Smithsonian Open Access](https://www.si.edu/openaccess) with your own key. Each model is downloaded once and can be added to any 3D project.
 
 ## The AI that drives it
@@ -140,7 +140,7 @@ The model needs tool calling, and checks need one that can see images. The agent
 ## Install
 
 1. Download `Shotloop_<version>_aarch64.dmg` from the [latest release](https://github.com/chihyungchang/Shotloop/releases/latest), open it and drag Shotloop into Applications.
-2. Have **Google Chrome** installed (2D shots render in it). For 3D projects, Shotloop asks for **Blender** the first time you create one.
+2. Have **Google Chrome** installed (2D shots render in it).
 3. Pick the AI in Settings → Models & providers. Claude Code is picked for you if it's already on your Mac.
 
 > **First launch:** Shotloop isn't notarized by Apple yet, so macOS says it can't verify the developer. Open it once from **System Settings → Privacy & Security → Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/Shotloop.app` in Terminal. After that it opens normally, and updates install without asking again.
@@ -163,13 +163,13 @@ pnpm app:build               # Shotloop.app and a dmg, with Node and ffmpeg insi
 <summary><b>The engine from a terminal</b></summary>
 
 ```bash
-pnpm shotloop status   fixtures/hello-3d
-pnpm shotloop render   fixtures/hello-3d --shot 02-close --stills   # start/middle/end
-pnpm shotloop render   fixtures/hello-3d --shot 02-close            # a clip, in the editor's quality
-pnpm shotloop export   fixtures/hello-3d                            # only changed shots render
+pnpm shotloop status   fixtures/ep01-password-crack-time
+pnpm shotloop render   fixtures/ep01-password-crack-time --shot 02-stack-16-gpu --stills   # start/middle/end
+pnpm shotloop render   fixtures/ep01-password-crack-time --shot 02-stack-16-gpu            # a clip
+pnpm shotloop export   fixtures/ep01-password-crack-time                                   # only changed shots render
 pnpm shotloop new      my-short --idea "Why does your phone battery age?" --track auto --duration auto
 pnpm shotloop new      coffee --idea "Where does coffee come from?" --track 2d --style map --duration 30
-pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # into a new folder there
+pnpm shotloop export   fixtures/ep01-password-crack-time --to ~/Movies/Shotloop --name "Hello"   # into a new folder there
 pnpm shotloop covers   list                                         # cover templates
 pnpm shotloop voice    my-short --on --voice af_heart --fit        # the voice-over: speak the lines, fit the shots
 pnpm shotloop check-subtitles my-short                              # what the subtitles would cover (fails if anything)
@@ -181,7 +181,7 @@ Add `--json` for line-delimited events (what the app reads). The agent runs the 
 
 ```bash
 node agent/src/main.ts detect                                         # CLI agents and local servers on this Mac
-SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check fixtures/hello-3d --shot 01-wide
+SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check fixtures/ep01-password-crack-time --shot 01-password-field-dots
 pnpm test                                                             # every backend against scripted stand-ins
 ```
 
@@ -195,18 +195,18 @@ my-video/
   shotloop.json        title, track (2d|3d), style, size, fps, lang, voice { on, voice, speed },
                        shots [{ id, title, duration, say (the spoken line), cues (its sentences' times) }]
   storyboard.json      the plan: copy (hook, script, facts with sources) and shots
-  world/               3D: world.py (+ screen.html); 2D: page.html (the style's kit), parts.js (pictures
-                       that recur, drawn once), geo.data.js (the map style's countries)
-  shots/<id>/          shot.py | shot.js, notes.md (must show, on screen, motion)
+  world/               page.html (2D: the style's kit; 3D: the WebGL kit), 2D: parts.js (pictures that
+                       recur, drawn once), geo.data.js (the map style's countries); 3D: *.js (sets, machines)
+  shots/<id>/          shot.js, notes.md (must show, on screen, motion, sound), sounds.json (its sound effects)
   assets/<id>/         3D models from the asset library
-  copy.md  script.md  captions.html  music.json  thumb.html  publish.json
+  copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           cache: per shot and input hash, takes, checks, fixes; voice/: spoken lines, subtitles
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
-- **3D**: `world.py` builds the shared world with `kit` ([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)). `shot.py` runs in the world's namespace and creates one camera; `at(t)` maps shot-local seconds to film time.
+- **3D**: `world/page.html` is the engine's WebGL kit ([`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)): a three.js stage with studio light, materials, shapes, glTF models, lens-based cameras and type above it. Sets and machines the shots share live in `world/*.js`; a shot builds what it shows in `setup(ctx)` and poses it for `t` in `render(t)`.
 - **2D**: `shot.js` default-exports `render(t, ctx)`, which draws `world/page.html` at shot-local time `t`. `ctx.voice` holds the shot's spoken sentences with their times, so the picture can land on the words; mark the subject with `data-keep` (or `subtitles.keep()` on a canvas) so the subtitle check keeps it clear.
-- **Cache**: a shot's key hashes the world, its code, the captions, the assets, the renderer and the settings. Unchanged shots are reused.
+- **Cache**: a shot's key hashes the world, its code, its models, the renderer and the settings. Unchanged shots are reused.
 
 </details>
 
@@ -216,7 +216,7 @@ my-video/
 | Path | What |
 | --- | --- |
 | [`app/`](app/) | The desktop app: a Tauri 2 (Rust) shell with the render queue, updater and process supervision, and the React + TypeScript UI. |
-| [`engine/shotloop/`](engine/shotloop/) | The shot engine: project format, per-shot render cache, 2D (Chrome) and 3D (Blender) renders, film assembly, MP4 export, voice-over timing, subtitles and their check, music, asset library. A CLI that the app calls. |
+| [`engine/shotloop/`](engine/shotloop/) | The shot engine: project format, per-shot render cache, 2D and 3D (three.js) renders in Chrome, film assembly, MP4 export, voice-over timing, subtitles and their check, music, asset library. A CLI that the app calls. |
 | [`voice/`](voice/) | The voice-over's text to speech, on this Mac: Kokoro through sherpa-onnx, Supertonic on ONNX Runtime, and CosyVoice 2 in a local Python server, with the models' downloads. |
 | [`agent/`](agent/) | The agent: planning, building, plain-language fixes, checks against the checklist, publish copy. It supports API, CLI (through MCP) and local models. |
 | [`examples/`](examples/) | The examples Home offers, in English: at least one for every visual style (2D and 3D, 9:16 and 16:9). |
@@ -229,7 +229,7 @@ my-video/
 Shotloop stands on open-source work. Thank you to the people behind:
 
 - **The voice-over:** [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) by hexgrad and [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (English); [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) by FunAudioLLM with [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) and [Transformers](https://github.com/huggingface/transformers) (Chinese); [Supertonic](https://huggingface.co/Supertone/supertonic-3) by Supertone (the other languages); [ONNX Runtime](https://onnxruntime.ai); [uv](https://github.com/astral-sh/uv) and [Python](https://www.python.org), which run the Chinese voice.
-- **Rendering and the film:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) through the DevTools protocol, [Blender](https://www.blender.org) and [Node.js](https://nodejs.org).
+- **Rendering and the film:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) through the DevTools protocol, [three.js](https://threejs.org) and [Node.js](https://nodejs.org).
 - **The app:** [Tauri](https://tauri.app), [React](https://react.dev), the [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) and the [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
 - **Assets and data:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess), and [Natural Earth](https://www.naturalearthdata.com) via [world-atlas](https://github.com/topojson/world-atlas).
 

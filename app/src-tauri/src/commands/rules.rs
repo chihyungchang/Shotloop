@@ -9,7 +9,7 @@ use tauri::AppHandle;
 
 /// List the rules, change the person's taste, add or remove their tools
 #[tauri::command]
-pub async fn rules(handle: AppHandle, action: String, id: Option<String>, text: Option<String>, name: Option<String>, file: Option<String>, track: Option<String>) -> Result<Value, String> {
+pub async fn rules(handle: AppHandle, action: String, id: Option<String>, text: Option<String>, name: Option<String>, file: Option<String>, track: Option<String>, on: Option<bool>) -> Result<Value, String> {
     blocking(move || {
         let id = id.unwrap_or_default();
         let args = match action.as_str() {
@@ -17,6 +17,7 @@ pub async fn rules(handle: AppHandle, action: String, id: Option<String>, text: 
             "edit" => Args::new(["rules", "edit"]).arg(id).opt("--text", text),
             "remove" => Args::new(["rules", "remove"]).arg(id),
             "reset" => Args::new(["rules", "reset"]).arg(id),
+            "switch" => Args::new(["rules", "switch"]).arg(id).flag(on == Some(false), "--off"),
             "add" => Args::new(["rules", "add"]).opt("--text", text).opt("--track", track),
             "add-tool" => Args::new(["rules", "add-tool"]).opt("--name", name).opt("--text", text).opt("--file", file).opt("--track", track),
             "remove-tool" => Args::new(["rules", "remove-tool"]).arg(id),

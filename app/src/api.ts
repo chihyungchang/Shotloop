@@ -4,8 +4,8 @@
 import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type {
-  BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, PickedElement, PickMap, PreviewResult, ProgressEvent, ProjectSummary,
-  QualityResult, ShotStatus, StatusResult, Take, UsageEvent, UsageWindow, VoiceResult
+  BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, SoundResult, PickedElement, PickMap, PreviewResult, ProgressEvent, ProjectSummary,
+  ShotStatus, StatusResult, Take, UsageEvent, UsageWindow, VoiceResult
 } from '../../engine/shotloop/protocol'
 import type { Protocol } from './ai/presets'
 import { lang } from './i18n'
@@ -15,6 +15,9 @@ export type Project = StatusResult
 export type Shot = ShotStatus
 export type VoiceInfo = VoiceResult
 export type MusicInfo = MusicResult
+export type SoundInfo = SoundResult
+// What the sound panel changes; nothing set reads it
+export interface SoundChange { ambience?: string; ambienceGain?: number; effects?: boolean; effectsGain?: number; cue?: string; kind?: string; on?: boolean }
 
 // A card of `list`: a project, or one that can't be read (shown as broken)
 export type ListEntry = ListResult[number]
@@ -119,8 +122,7 @@ export interface Doctor {
   apiKey: boolean
   chrome: Tool | null
   ffmpeg: Tool | null
-  blender: Tool | null
-  install: Record<'chrome' | 'ffmpeg' | 'blender', string>
+  install: Record<'chrome' | 'ffmpeg', string>
   // Node and ffmpeg shipped inside the app
   bundled: { node: boolean; ffmpeg: boolean }
 }
@@ -140,7 +142,6 @@ export interface Settings {
   localUrl: string
   localModel: string
   localKey: string
-  blender: string
   chrome: string
   // A sound and a desktop notification when the queue runs dry
   notifySound: boolean
@@ -177,7 +178,6 @@ export interface LibraryItem {
   animated: boolean
   size: number | null
 }
-export const BLENDER_DOWNLOAD = 'https://www.blender.org/download/'
 
 // Where the person gets a key for each asset source
 export const KEY_PAGES: Record<LibraryItem['source'], string> = {
@@ -249,7 +249,7 @@ export interface Rule {
   edited?: boolean
   off?: boolean
 }
-export interface RuleTool { id: string; group: 'story' | 'science' | 'camera' | 'mine'; tracks: ('2d' | '3d')[]; name: string; text: string; builtIn: boolean; image: string | null }
+export interface RuleTool { id: string; group: 'story' | 'science' | 'camera' | 'frame' | 'cut' | 'staging' | 'light' | 'explain' | 'mine'; tracks: ('2d' | '3d')[]; name: string; text: string; builtIn: boolean; off: boolean; image: string | null }
 // damaged: where a rules file that couldn't be read was set aside, while
 // the defaults stand in for it
 export interface Rules { damaged: string | null; fixed: Rule[]; taste: Rule[]; tools: RuleTool[] }
@@ -351,6 +351,8 @@ export const api = {
   editRule: (id: string, text: string) => invoke<Rules>('rules', { action: 'edit', id, text }),
   removeRule: (id: string) => invoke<Rules>('rules', { action: 'remove', id }),
   resetRule: (id: string) => invoke<Rules>('rules', { action: 'reset', id }),
+  // A fixed rule or a tool switched off or on
+  switchOn: (id: string, on: boolean) => invoke<Rules>('rules', { action: 'switch', id, on }),
   addRule: (text: string, track: RuleTrack) => invoke<Rules>('rules', { action: 'add', text, track }),
   addTool: (name: string, text: string, file: string | null, track: RuleTrack) => invoke<Rules>('rules', { action: 'add-tool', name, text, file, track }),
   removeTool: (id: string) => invoke<Rules>('rules', { action: 'remove-tool', id }),
@@ -372,9 +374,10 @@ export const api = {
   voiceModels: () => invoke<{ dir: string; models: VoiceModel[] }>('voice_models'),
   // The music bed: read with no change, or set a preset, a file, none, a volume
   music: (path: string, change?: MusicChange) => invoke<MusicInfo>('music', { path, change }),
+  // The ambience and the sound effects, and which of them play
+  sound: (path: string, change?: SoundChange) => invoke<SoundInfo>('sound', { path, change }),
   // What is where on a 2D shot's three stills, for the element picker
   pickMap: (path: string, shot: string) => invoke<PickMap>('pick_map', { path, shot }),
-  quality: (path: string, change: { samples?: number; reset?: boolean } = {}) => invoke<QualityResult>('quality', { path, ...change })
 }
 
 export const onQueue = (f: (jobs: Job[]) => void): Promise<UnlistenFn> => listen<Job[]>('queue', e => f(e.payload))

@@ -4,7 +4,7 @@
 //
 //   shotloop status   <project>                          shots, cache state, takes
 //   shotloop render   <project> --shot <id> [--draft|--final] [--stills] [--force]
-//                     (neither: the editor's quality, draft for 3D and final for 2D)
+//                     (neither: the editor's quality, final)
 //   shotloop assemble <project> [--final] [--aspect 9:16,16:9]
 //   shotloop export   <project> [--draft] [--aspect 9:16,16:9] [--no-video] [--no-cover] [--no-publish]
 //                     [--to <folder> [--name <work>] [--lang <ui language>]]   (--to: into a new folder there)
@@ -16,7 +16,6 @@
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
 //   shotloop move     <project> --to <folder>               move a project (a draft being saved)
 //   shotloop discard  <draft>                               delete a draft (only under $SHOTLOOP_DRAFTS)
-//   shotloop quality  <project> [--samples N | --reset]     3D final render samples
 //   shotloop preview  <project> [--draft|--final]             the whole film to watch (cached)
 //   shotloop storyboard <project> [--derive]             apply storyboard.json to the project
 //                     (--derive: write it from the project's shots and notes instead)
@@ -29,6 +28,9 @@
 //                     the voice-over: settings, the voices for the project's language,
 //                     --fit: speak every line and fit the shots to them (a new voice or speed fits too)
 //                     --sample: a WAV of the voice saying the first line, to choose by ear
+//   shotloop sound    <project> [--ambience room|wind|space|machine|night|none] [--ambience-gain 0–2]
+//                     [--effects on|off] [--effects-gain 0–2] [--cue <shot>@<at>:<sound> | --kind <sound>] [--off]
+//                     the ambience and the shots' sound effects (sounds.json), which are on
 //   shotloop voice-models [--download <id>]                the speech models: languages, size, license,
 //                     on this Mac or not; --download fetches one (progress in MB)
 //   shotloop check-subtitles <project> [--shot <id>]      what the voice-over's subtitles would cover
@@ -39,12 +41,13 @@
 //   shotloop covers   list | save <project> [--title <name>] | apply <project> <id> | remove <id>
 //                     | reference <project> --file <image>     cover templates, an image to design after
 //   shotloop memory   list | add --text "…" | remove <id>       the AI's memory: the person's notes, its lessons
-//   shotloop rules    list | edit <id> --text "…" | remove <id> | reset <id> | add --text "…" [--track all|2d|3d]
+//   shotloop rules    list | edit <id> --text "…" | remove <id> | reset <id> | switch <fixed rule or tool id> [--off]
+//                     | add --text "…" [--track all|2d|3d]
 //                     | add-tool --name "…" [--text "…"] [--file <image>] [--track all|2d|3d] | remove-tool <id>
 //                     | checklist [--track 2d|3d]
 //                     the video rules: fixed, the person's taste (editable), the toolbox
 //   shotloop prune    <project>                          drop unused cache entries (shots and voice-over)
-//   shotloop doctor                                      Chrome, ffmpeg, Blender
+//   shotloop doctor                                      Chrome, ffmpeg
 //
 // --json prints one JSON event per line (start, progress, log, done,
 // error, result) for the app instead of human-readable output.
@@ -61,21 +64,21 @@ import { readJson, writeJson } from './files.mjs'
 import { deliverCopy } from './deliver.mjs'
 import { emit, setJson } from './compose.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
-import { isStarterCover } from './starters.mjs'
+import { freshWebglPage, isStarterCover } from './starters.mjs'
 import { assemble, exportFilm, filmPreview, renderCover, setCoverFrame } from './film.mjs'
-import { finalSamples, findShot, loadProject } from './project.mjs'
-import { musicInfo, samplesInfo, setMusic, setSamples, setStyle, setTitle } from './settings.mjs'
+import { findShot, isProject, loadProject } from './project.mjs'
+import { musicInfo, setMusic, setStyle, setTitle } from './settings.mjs'
 import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
 import * as covers from './covers.mjs'
 import * as library from './library.mjs'
 import * as memory from './memory.mjs'
 import * as rules from './rules.mjs'
-import { BLENDER } from './render3d.mjs'
 import { renderShot } from './render.mjs'
 import { pickMap } from './pick.mjs'
 import { musicBed } from './bed.mjs'
 import { fitVoice, pruneVoice, sampleVoice, setVoice, voiceInfo, voiceModels } from './voice.mjs'
 import { voiceCues, voiceOn } from './cues.mjs'
+import { AMBIENCE_NAMES, EFFECT_NAMES, setSound, soundCues } from './sound.mjs'
 import { checkSubtitles, describeIssues } from './check.mjs'
 
 const OPTIONS = {
@@ -104,7 +107,6 @@ const OPTIONS = {
     to: { type: 'string' },
     reset: { type: 'boolean' },
     bed: { type: 'boolean' },
-    samples: { type: 'string' },
     all: { type: 'boolean' },
     file: { type: 'string' },
     none: { type: 'boolean' },
@@ -114,6 +116,12 @@ const OPTIONS = {
     idea: { type: 'string' },
     text: { type: 'string' },
     track: { type: 'string' },
+    ambience: { type: 'string' },
+    'ambience-gain': { type: 'string' },
+    effects: { type: 'string' },
+    'effects-gain': { type: 'string' },
+    cue: { type: 'string' },
+    kind: { type: 'string' },
     duration: { type: 'string' },
     look: { type: 'string' },
     style: { type: 'string' },
@@ -131,6 +139,9 @@ const OPTIONS = {
 const { values, positionals } = parseFlags(process.argv.slice(2), OPTIONS)
 setJson(!!values.json)
 const [cmd, ...args] = positionals
+
+// A WebGL film's kit is kept current before any command reads the film
+if (args[0] && isProject(args[0])) freshWebglPage(args[0])
 
 const result = value => {
   if (values.json) emit({ type: 'result', value })
@@ -181,11 +192,9 @@ function doctor() {
     node: process.version,
     chrome: fs.existsSync(CHROME) ? { path: CHROME, version: version(CHROME, ['--version']) } : null,
     ffmpeg: version('ffmpeg', ['-version']) ? { path: onPath('ffmpeg') ?? 'ffmpeg', version: version('ffmpeg', ['-version']) } : null,
-    blender: fs.existsSync(BLENDER) ? { path: BLENDER, version: version(BLENDER, ['-v']) } : null,
     install: {
       chrome: 'Install Google Chrome, or set CHROME to a Chrome or headless shell binary',
-      ffmpeg: 'brew install ffmpeg',
-      blender: 'brew install --cask blender (3D projects only), or set BLENDER'
+      ffmpeg: 'brew install ffmpeg'
     }
   }
 }
@@ -205,7 +214,6 @@ function projectStatus(project) {
     // The voice-over plays (on, with lines): the agent's rules follow it
     voiced: voiceOn(project),
     files: {
-      captions: project.captions,
       music: project.music,
       cover: project.cover,
       publish: project.publish
@@ -240,7 +248,7 @@ try {
     case 'status':
       {
         const project = loadProject(args[0])
-        result({ ...projectStatus(project), example: isExample(args[0]), draft: isDraft(args[0]), samples: project.track === '3d' ? finalSamples(project) : null, look: project.config.look ?? null,
+        result({ ...projectStatus(project), example: isExample(args[0]), draft: isDraft(args[0]), look: project.config.look ?? null,
           // The cover: its background frame, and how the AI last made it (.shotloop/cover.json)
           coverFrame: project.config.coverFrame ?? null, coverMade: coverMade(project),
           // The visual style (styles.mjs), and what the planner still decides
@@ -319,11 +327,12 @@ try {
       else if (sub === 'edit') result(rules.edit(a, values.text))
       else if (sub === 'remove') result(rules.remove(a))
       else if (sub === 'reset') result(rules.reset(a))
+      else if (sub === 'switch') result(rules.setOn(a, !values.off))
       else if (sub === 'add') result(rules.add(values.text, values.track))
       else if (sub === 'add-tool') result(rules.addTool({ name: values.name, text: values.text, image: values.file, track: values.track }))
       else if (sub === 'remove-tool') result(rules.removeTool(a))
       else if (sub === 'checklist') result(rules.checklist(values.track ?? '2d'))
-      else throw new Error('rules list|edit|remove|reset|add|add-tool|remove-tool|checklist')
+      else throw new Error('rules list|edit|remove|reset|switch|add|add-tool|remove-tool|checklist')
       break
     }
     case 'storyboard':
@@ -355,6 +364,18 @@ try {
       result({ ...(await voiceInfo(loadProject(args[0]))), ...(fitted ? { fit: fitted } : {}), ...(sample ? { sample } : {}) })
       break
     }
+    case 'sound': {
+      // The ambience, the effects and which are on; with options, changes them
+      const project = loadProject(args[0])
+      const num = v => (v === undefined ? undefined : Number(v))
+      const change = { ambience: values.ambience === 'none' ? '' : values.ambience, ambienceGain: num(values['ambience-gain']),
+        effects: values.effects === undefined ? undefined : values.effects !== 'off', effectsGain: num(values['effects-gain']),
+        cue: values.cue, kind: values.kind, on: !values.off }
+      const changed = Object.entries(change).some(([k, v]) => k !== 'on' && v !== undefined)
+      const now = changed ? setSound(project, change) : { ...(project.config.sound ?? {}), cues: soundCues(project) }
+      result({ ...now, ambiences: AMBIENCE_NAMES, sounds: EFFECT_NAMES })
+      break
+    }
     case 'voice-models':
       result(await voiceModels({ download: values.download }))
       break
@@ -371,14 +392,6 @@ try {
       const project = loadProject(args[0])
       if (!values.shot) throw new Error('pick needs --shot <id>')
       result(await pickMap(project, findShot(project, values.shot)))
-      break
-    }
-    case 'quality': {
-      // 3D final samples: read, set (--samples N) or back to the default (--reset)
-      const project = loadProject(args[0])
-      result(values.reset ? setSamples(project, null)
-        : values.samples ? setSamples(project, values.samples)
-        : samplesInfo(project))
       break
     }
     case 'preview':

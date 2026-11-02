@@ -41,8 +41,9 @@ const TUNE = {
 }
 const tuned = (L, tune) => ({ ...L, ...Object.fromEntries(Object.entries(tune ?? {}).filter(([k, v]) => typeof v === 'string' && TUNE[k]?.(v.trim()))) })
 
-function templatePage(id, size, style, tune) {
-  const L = tuned(lookById(id) ?? lookById(DEFAULT_LOOK), tune)
+// Where things go on a world page of this size, in CSS px: every page
+// (each 2D style, a WebGL film) lays out its type the same way
+export function pageLayout(size) {
   const { width: w, height: h } = cssSize(size)
   const tall = h > w
   const pad = Math.round(w * (tall ? 0.056 : 0.045))
@@ -55,6 +56,12 @@ function templatePage(id, size, style, tune) {
   // The kicker sits 44 px above the headline, on the safe area's top edge
   const headTop = safeTop + 44
   const headWidth = Math.round(tall ? safeRight - pad : w * 0.62)
+  return { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop, headWidth }
+}
+
+function templatePage(id, size, style, tune) {
+  const L = tuned(lookById(id) ?? lookById(DEFAULT_LOOK), tune)
+  const { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop, headWidth } = pageLayout(size)
   if (style === 'scene' && L.scene) return scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop, hue: HUES.dark })
   // The other 2D styles: this page plus their kit (extras.mjs)
   const X = EXTRAS[style] ?? { about: '', tools: '', css: '', js: '', scripts: [] }

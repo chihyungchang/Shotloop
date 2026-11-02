@@ -29,7 +29,7 @@ Bir fikir metne, senaryo taslağına ve çekimlerden oluşan bir filme dönüş�
 
 ## Shotloop nedir
 
-Shotloop, kodla çizilen kısa videolar için bir masaüstü uygulamasıdır: ürün tanıtımları, bilim anlatımları, veri hikâyeleri ve sunum tarzı animasyonlar. 2D (kare kare işlenen web sayfaları) veya 3D (Blender sahneleri) olarak, sekiz görsel stilde.
+Shotloop, kodla çizilen kısa videolar için bir masaüstü uygulamasıdır: ürün tanıtımları, bilim anlatımları, veri hikâyeleri ve sunum tarzı animasyonlar. 2D (kare kare işlenen web sayfaları) veya 3D (çevrimdışı bir işleyici gibi işlenen three.js dünyaları) olarak, sekiz görsel stilde.
 
 Tek bir cümleyle başlarsınız. Siz seçmezseniz yapay zekâ fikrin nasıl gösterileceğini (sinematik sahne, infografik, harita, arayüz demosu, teknik çizim, kinetik tipografi, haber anlatısı veya 3D) ve bir temayı kendisi seçer. Açılış cümlesini, senaryoyu ve kaynaklı bilgileri yazar, ardından bunları, her çekimin üzerinde seslendirmenin söyleyeceği repliğiyle birlikte bir senaryo taslağına böler. Taslağı düzenlersiniz, yapay zekâ da her çekimi oluşturur. Studio'da her çekime bakar ve neyin yanlış olduğunu sade bir dille söylersiniz; örneğin "yazı çok küçük" ya da "çok durgun: biraz hareket ekle". Yapay zekâ o çekimi değiştirir, işler, notlarla karşılaştırarak denetler ve size önce/sonra görünümünü gösterir. Film doğru göründüğünde Dışa aktar çekimleri birleştirir, seslendirmeyi altyazılarıyla ve altına müziği yerleştirir; yapay zekâ filmin görünümünde bir kapak tasarlar (ya da serinizin şablonunu doldurur) ve her platform için paylaşım metnini yazar. Hepsi kendi klasörüne kaydedilir.
 
@@ -43,7 +43,7 @@ Aşağıdaki her kare, Shotloop'un birlikte geldiği [örneklerden](examples/) S
 
 <table>
 <tr>
-<td width="25%" valign="top"><img src="docs/screenshots/film-3d.gif" alt="Katmanlarının patlatılmış görünümüne açılan bir telefon" /><br/><sub><b>3D</b>: Blender'da bir telefonun parçalarına ayrılması.</sub></td>
+<td width="25%" valign="top"><img src="docs/screenshots/film-3d.gif" alt="Dönen, ardından mekanizmasının patlatılmış görünümüne açılan mekanik bir saat" /><br/><sub><b>3D</b>: WebGL'de mekanik bir saat.</sub></td>
 <td width="25%" valign="top"><img src="docs/screenshots/film-2d.gif" alt="Güneş'ten Dünya'ya giden bir ışık atımı ve sayaç" /><br/><sub><b>2D</b>: Güneş ışığının Dünya'ya ulaşması ne kadar sürer.</sub></td>
 <td width="50%" valign="top"><img src="docs/screenshots/film-chart.gif" alt="0,99'un 365. kuvvetinin 0,027'ye düştüğünü gösteren grafik" /><br/><sub><b>2D veri</b>: her gün %1 daha iyi, grafiklerle (16:9).</sub></td>
 </tr>
@@ -64,7 +64,7 @@ Yapay zekâ konuya uyan stili seçer ve nedenini söyler; planda değiştirebili
 <td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Teknik çizim" /></a><br/><sub><b>Teknik çizim</b>: ızgara üzerinde çizgiler, patlatılmış görünümler ve açıklamalar; bir makinenin nasıl çalıştığı için.</sub></td>
 <td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Kinetik tipografi" /></a><br/><sub><b>Kinetik tipografi</b>: hareket eden dev yazılar; alıntılar, kelimeler ve efsaneler için.</sub></td>
 <td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Haber anlatısı" /></a><br/><sub><b>Haber anlatısı</b>: son dakika olaylar gerilimle: işleyen bir saat, paranın izi, zaman çizelgesi, kim ne dedi.</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: gerçek ışık ve uzayda dolaşan kamerayla Blender sahneleri.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: stüdyo ışığı, yumuşak gölgeler ve uzayda dolaşan kamerayla three.js dünyaları.</sub></td>
 </tr>
 </table>
 
@@ -116,7 +116,7 @@ flowchart LR
   D -- doğru görünüyor --> G[Dışa aktar: birleştir, seslendirme, müzik, paylaşım metni]
 ```
 
-- **Tek uzun işleme değil, çekimler.** Bir film, çekimlerden oluşan bir listedir. Her çekim küçük bir programdır: 2D sayfa için `shot.js`, Blender kamera hareketi için `shot.py`. Her biri girdilerinin hash'iyle önbelleğe alınır; böylece bir düzeltme tek bir çekimi saniyeler (2D) veya bir dakika (3D) içinde yeniden işler ve Dışa aktar yalnızca klipleri birleştirir.
+- **Tek uzun işleme değil, çekimler.** Bir film, çekimlerden oluşan bir listedir. Her çekim, sayfasını bir t anında çizen küçük bir programdır, `shot.js`: 2D için bir sayfa, 3D için bir three.js dünyası. Her biri girdilerinin hash'iyle önbelleğe alınır; böylece bir düzeltme tek bir çekimi saniyeler içinde yeniden işler ve Dışa aktar yalnızca klipleri birleştirir.
 - **Sade dille düzeltmeler.** Düzeltme ortak dünyayı gerektirmedikçe yapay zekâ yalnızca bulunduğunuz çekime dokunur. Kareler işler, bunları bir kontrol listesine göre denetler (okunabilir, hiçbir şey örtülmemiş, altyazı alanının dışında vb.) ve neyi değiştirdiğini bildirir.
 - **Sekiz görsel stil.** Sinematik sahne, infografik, harita, arayüz demosu, teknik çizim, kinetik tipografi, haber anlatısı veya 3D; her birinin kendi kiti ve yapay zekânın seçip oluşturmadan önce baktığı referans kareleri vardır ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Tema yalnızca zemini ve yazıyı belirler; görseller ve veriler konularının gerektirdiği renkleri korur.
 - **Planın ölçüldüğü kurallar.** Altyazıların uzunluğu ve ekranda kalma süresi, hiçbir şey oluşturulmadan önce denetlenir. Çekimler boyunca tekrar eden bir görsel bir kez çizilip paylaşılır, böylece her çekimde aynı görünür.
@@ -124,7 +124,7 @@ flowchart LR
 - **Kapaklar.** Yapay zekâ filmin görünümünde bir kapak tasarlar ve kendi işlediklerini denetler. Bir seriyi tutarlı tutmak için birini şablon olarak kaydedin ya da beğendiğiniz bir kapağı yükleyin, yapay zekâ onun tasarımını izlesin.
 - **Mac'inizde üretilen seslendirme.** Her çekimin bir repliği vardır ve kurguyu ses yönetir: bir çekim repliği kadar sürer, görüntü de sözcüklere denk gelir. Kokoro İngilizce, CosyVoice 2 Çince, Supertonic diğer dilleri konuşur; hepsi çevrimdışı. Söylenen sözcüklerin altyazıları otomatik eklenir ve bir denetim bunların örteceği her şeyi (yazıları ve işaretlenmiş özneyi) listeler; böylece örtülmüş bir film asla dışa aktarılmaz. Yalnızca ekran yazıları olan bir film için seslendirmeyi kapatın.
 - **Kurguya uyan müzik.** Sentezlenen fon müziği, kesmeler vuruşlarına denk gelecek şekilde ayarlanır, son kareye kadar sürer ve yavaşça kısılır. Seslendirmenin altında daha kısık çalar ve bir replik söylenirken sesini alçaltır.
-- **Düzenlerken hızlı, dışa aktarırken tam kalite.** 3D, düzenleme sırasında hızlı önizlemeler gösterir ve tam kaliteli kareleri yalnızca dışa aktarırken işler. 2D baştan sona tam kalitede çalışır.
+- **Çevrimdışı bir işleyici gibi işlenen 3D, dakikalar içinde.** Her 3D kare, birkaç alt kareyi (kenar yumuşatma, yumuşak gölgeler, ortam perdelemesi, alan derinliği, hareket bulanıklığı) yaklaşık yarım saniyede ortalar; böylece 30 saniyelik bir film birkaç dakikada işlenir ve hiçbir şey kurmanız gerekmez.
 - **3D için varlık kütüphanesi.** Kendi anahtarınızla [Poly Pizza](https://poly.pizza) ve [Smithsonian Open Access](https://www.si.edu/openaccess) üzerinde CC0 modeller arayın. Her model bir kez indirilir ve herhangi bir 3D projeye eklenebilir.
 
 ## Arkasındaki yapay zekâ
@@ -140,7 +140,7 @@ Modelin araç çağırmayı desteklemesi, denetimler için de görüntü görebi
 ## Kurulum
 
 1. [En son sürümden](https://github.com/chihyungchang/Shotloop/releases/latest) `Shotloop_<version>_aarch64.dmg` dosyasını indirin, açın ve Shotloop'u Uygulamalar klasörüne sürükleyin.
-2. **Google Chrome** kurulu olsun (2D çekimler onunla işlenir). 3D projeler için Shotloop, ilkini oluşturduğunuzda **Blender** ister.
+2. **Google Chrome** kurulu olsun (2D çekimler onunla işlenir).
 3. Yapay zekâyı Ayarlar → Modeller ve sağlayıcılar bölümünden seçin. Claude Code Mac'inizde zaten varsa sizin için seçilir.
 
 > **İlk açılış:** Shotloop henüz Apple tarafından onaylanmadı (notarize edilmedi), bu yüzden macOS geliştiriciyi doğrulayamadığını söyler. Bir kez **Sistem Ayarları → Gizlilik ve Güvenlik → Yine de Aç** yoluyla açın ya da Terminal'de `xattr -dr com.apple.quarantine /Applications/Shotloop.app` komutunu çalıştırın. Sonrasında normal açılır ve güncellemeler yeniden sormadan kurulur.
@@ -163,13 +163,13 @@ pnpm app:build               # içinde Node ve ffmpeg bulunan Shotloop.app ve bi
 <summary><b>Terminalden motor</b></summary>
 
 ```bash
-pnpm shotloop status   fixtures/hello-3d
-pnpm shotloop render   fixtures/hello-3d --shot 02-close --stills   # başlangıç/orta/bitiş
-pnpm shotloop render   fixtures/hello-3d --shot 02-close            # düzenleyici kalitesinde bir klip
-pnpm shotloop export   fixtures/hello-3d                            # yalnızca değişen çekimler işlenir
+pnpm shotloop status   fixtures/ep01-password-crack-time
+pnpm shotloop render   fixtures/ep01-password-crack-time --shot 02-stack-16-gpu --stills   # başlangıç/orta/bitiş
+pnpm shotloop render   fixtures/ep01-password-crack-time --shot 02-stack-16-gpu            # bir klip
+pnpm shotloop export   fixtures/ep01-password-crack-time                                   # yalnızca değişen çekimler işlenir
 pnpm shotloop new      my-short --idea "Telefon pili neden yaşlanır?" --track auto --duration auto
 pnpm shotloop new      coffee --idea "Kahve nereden gelir?" --track 2d --style map --duration 30
-pnpm shotloop export   fixtures/hello-3d --to ~/Movies/Shotloop --name "Hello"   # oradaki yeni bir klasöre
+pnpm shotloop export   fixtures/ep01-password-crack-time --to ~/Movies/Shotloop --name "Hello"   # oradaki yeni bir klasöre
 pnpm shotloop covers   list                                         # kapak şablonları
 pnpm shotloop voice    my-short --on --voice af_heart --fit        # seslendirme: replikleri seslendir, çekimleri uydur
 pnpm shotloop check-subtitles my-short                              # altyazıların neyi örteceği (bir şey varsa başarısız olur)
@@ -181,7 +181,7 @@ Satır satır olaylar için `--json` ekleyin (uygulamanın okuduğu budur). Ajan
 
 ```bash
 node agent/src/main.ts detect                                         # bu Mac'teki CLI ajanları ve yerel sunucular
-SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check fixtures/hello-3d --shot 01-wide
+SHOTLOOP_PROVIDER=cli SHOTLOOP_CLI=claude node agent/src/main.ts check fixtures/ep01-password-crack-time --shot 01-password-field-dots
 pnpm test                                                             # her arka uç, betikli yedeklere karşı
 ```
 
@@ -195,18 +195,18 @@ my-video/
   shotloop.json        başlık, track (2d|3d), stil, boyut, fps, dil, ses { on, voice, speed },
                        çekimler [{ id, title, duration, say (söylenen replik), cues (cümlelerinin zamanları) }]
   storyboard.json      plan: metin (açılış, senaryo, kaynaklı bilgiler) ve çekimler
-  world/               3D: world.py (+ screen.html); 2D: page.html (stilin kiti), parts.js (tekrar eden,
-                       bir kez çizilen görseller), geo.data.js (harita stilinin ülkeleri)
-  shots/<id>/          shot.py | shot.js, notes.md (gösterilmesi gerekenler, ekran yazısı, hareket)
+  world/               page.html (2D: stilin kiti; 3D: WebGL kiti), 2D: parts.js (tekrar eden,
+                       bir kez çizilen görseller), geo.data.js (harita stilinin ülkeleri); 3D: *.js (dekorlar, makineler)
+  shots/<id>/          shot.js, notes.md (gösterilmesi gerekenler, ekran yazısı, hareket, ses), sounds.json (ses efektleri)
   assets/<id>/         varlık kütüphanesinden 3D modeller
-  copy.md  script.md  captions.html  music.json  thumb.html  publish.json
+  copy.md  script.md  music.json  thumb.html  publish.json
   .shotloop/           önbellek: çekim ve girdi hash'ine göre; denemeler, denetimler, düzeltmeler; voice/: söylenen replikler, altyazılar
   out/                 motorun dışa aktarımları (zaman damgalı); uygulama her birini seçtiğiniz yerde yeni bir klasöre kopyalar
 ```
 
-- **3D**: `world.py`, ortak dünyayı `kit` ile kurar ([`engine/shotloop/blender/kit/kit.py`](engine/shotloop/blender/kit/kit.py)). `shot.py` dünyanın ad alanında çalışır ve tek bir kamera oluşturur; `at(t)`, çekim içi saniyeleri film zamanına çevirir.
+- **3D**: `world/page.html`, motorun WebGL kitidir ([`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)): stüdyo ışığı, malzemeler, şekiller, glTF modelleri, objektif tabanlı kameralar ve üstünde yazı bulunan bir three.js sahnesi. Çekimlerin paylaştığı dekorlar ve makineler `world/*.js` içinde durur; bir çekim gösterdiğini `setup(ctx)` içinde kurar ve `render(t)` içinde `t` anı için konumlandırır.
 - **2D**: `shot.js`, varsayılan olarak `render(t, ctx)` dışa aktarır; bu fonksiyon `world/page.html` sayfasını çekim içi `t` anında çizer. `ctx.voice`, çekimde söylenen cümleleri zamanlarıyla birlikte tutar; böylece görüntü sözcüklere denk gelebilir. Altyazı denetiminin özneyi açıkta bırakması için onu `data-keep` ile (canvas üzerinde `subtitles.keep()` ile) işaretleyin.
-- **Önbellek**: bir çekimin anahtarı dünyanın, kodunun, altyazıların, varlıkların, işleyicinin ve ayarların hash'idir. Değişmeyen çekimler yeniden kullanılır.
+- **Önbellek**: bir çekimin anahtarı dünyanın, kodunun, modellerinin, işleyicinin ve ayarların hash'idir. Değişmeyen çekimler yeniden kullanılır.
 
 </details>
 
@@ -216,7 +216,7 @@ my-video/
 | Yol | Ne |
 | --- | --- |
 | [`app/`](app/) | Masaüstü uygulaması: işleme kuyruğu, güncelleyici ve süreç denetimi içeren bir Tauri 2 (Rust) kabuğu ile React + TypeScript arayüzü. |
-| [`engine/shotloop/`](engine/shotloop/) | Çekim motoru: proje biçimi, çekim başına işleme önbelleği, 2D (Chrome) ve 3D (Blender) işleme, film birleştirme, MP4 dışa aktarma, seslendirme zamanlaması, altyazılar ve denetimleri, müzik, varlık kütüphanesi. Uygulamanın çağırdığı bir CLI. |
+| [`engine/shotloop/`](engine/shotloop/) | Çekim motoru: proje biçimi, çekim başına işleme önbelleği, Chrome'da 2D ve 3D (three.js) işleme, film birleştirme, MP4 dışa aktarma, seslendirme zamanlaması, altyazılar ve denetimleri, müzik, varlık kütüphanesi. Uygulamanın çağırdığı bir CLI. |
 | [`voice/`](voice/) | Seslendirmenin metinden konuşmaya dönüşümü, bu Mac'te: sherpa-onnx üzerinden Kokoro, ONNX Runtime üzerinde Supertonic ve yerel bir Python sunucusunda CosyVoice 2, modellerin indirmeleriyle birlikte. |
 | [`agent/`](agent/) | Ajan: planlama, oluşturma, sade dille düzeltmeler, kontrol listesine göre denetimler, paylaşım metni. API, CLI (MCP üzerinden) ve yerel modelleri destekler. |
 | [`examples/`](examples/) | Ana Sayfa'nın sunduğu İngilizce örnekler: her görsel stil için en az bir tane (2D ve 3D, 9:16 ve 16:9). |
@@ -229,7 +229,7 @@ my-video/
 Shotloop açık kaynak emeğinin üzerinde duruyor. Şunların arkasındaki insanlara teşekkürler:
 
 - **Seslendirme:** hexgrad'ın [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) modeli ve [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (İngilizce); FunAudioLLM'in [CosyVoice 2](https://github.com/FunAudioLLM/CosyVoice) modeli ile [Matcha-TTS](https://github.com/shivammehta25/Matcha-TTS), [WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing), [Whisper](https://github.com/openai/whisper), [PyTorch](https://pytorch.org) ve [Transformers](https://github.com/huggingface/transformers) (Çince); Supertone'un [Supertonic](https://huggingface.co/Supertone/supertonic-3) modeli (diğer diller); [ONNX Runtime](https://onnxruntime.ai); Çince sesi çalıştıran [uv](https://github.com/astral-sh/uv) ve [Python](https://www.python.org).
-- **Render ve film:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) (DevTools protokolü üzerinden), [Blender](https://www.blender.org) ve [Node.js](https://nodejs.org).
+- **Render ve film:** [FFmpeg](https://ffmpeg.org), [Google Chrome](https://www.google.com/chrome/) (DevTools protokolü üzerinden), [three.js](https://threejs.org) ve [Node.js](https://nodejs.org).
 - **Uygulama:** [Tauri](https://tauri.app), [React](https://react.dev), [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) ve [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk).
 - **Varlıklar ve veriler:** [Kenney](https://kenney.nl), [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com), [Poly Pizza](https://poly.pizza), [Smithsonian Open Access](https://www.si.edu/openaccess) ve [world-atlas](https://github.com/topojson/world-atlas) aracılığıyla [Natural Earth](https://www.naturalearthdata.com).
 

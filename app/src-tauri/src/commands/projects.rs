@@ -206,11 +206,7 @@ pub async fn derive_storyboard(handle: AppHandle, path: String) -> Result<Value,
     blocking(move || engine(&handle, Args::new(["storyboard", &path, "--derive"]))).await
 }
 
-/// 3D final render samples: read, set, or back to the default
-#[tauri::command]
-pub async fn quality(handle: AppHandle, path: String, samples: Option<u32>, reset: Option<bool>) -> Result<Value, String> {
-    blocking(move || engine(&handle, Args::new(["quality", &path]).opt("--samples", samples).flag(reset == Some(true), "--reset"))).await
-}
+
 
 /// What is where on a 2D shot's three stills, for the element picker
 #[tauri::command]

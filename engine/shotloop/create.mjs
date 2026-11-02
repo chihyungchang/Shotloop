@@ -11,7 +11,7 @@ import { editMode, entry, takes } from './cache.mjs'
 import { DEFAULT_STYLE, firstLine, lookById, LOOKS, round, STYLES, styleById } from './data.mjs'
 import { isProject, loadProject, saveConfig, SIZES } from './project.mjs'
 import { writeBed } from './settings.mjs'
-import { captions, starterCover, writePlan, writeShots, writeWorld2d, writeWorld3d } from './starters.mjs'
+import { starterCover, writePlan, writeShots, writeWorld2d, writeWorld3d } from './starters.mjs'
 import { voiceOn } from './cues.mjs'
 
 // Shots of about 5 s, a short hook first and an end card last
@@ -66,11 +66,9 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
 
   fs.mkdirSync(root, { recursive: true })
   if (track === '2d') writeWorld2d(root, look || null, size, style || DEFAULT_STYLE)
-  else writeWorld3d(root, duration, size)
+  else writeWorld3d(root, size)
   writeShots(root, track, plan, 'created from the idea')
   writePlan(root, title, plan, { idea })
-  // 2D draws its text in the frame: no caption layer over it
-  if (track === '3d') fs.writeFileSync(path.join(root, 'captions.html'), captions(size, plan))
   fs.writeFileSync(path.join(root, 'thumb.html'), starterCover(title))
   fs.writeFileSync(path.join(root, 'publish.md'), `# ${title} · Publish\n\n(written by the agent from copy.md: Export → Publish copy)\n`)
   fs.writeFileSync(path.join(root, '.gitignore'), '.shotloop/\nout/\n')
@@ -82,7 +80,6 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
     fps: 30,
     size,
     shots,
-    captions: track === '3d' ? 'captions.html' : null,
     music: 'music.json',
     cover: 'thumb.html',
     publish: 'publish.md',

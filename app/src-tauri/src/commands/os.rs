@@ -30,10 +30,10 @@ pub fn open_path(path: String) -> Result<(), String> {
 
 /// The sites the app links to, with their subdomains: the AI providers'
 /// key pages (src/ai/presets.ts) and the CLI agents' (agent/src/cli.ts),
-/// the asset sources and their key pages, Blender's download page, the
+/// the asset sources and their key pages, the
 /// project's own pages. The licenses page adds its links' sites
 /// (licenses_hosts)
-const SITES: [&str; 23] = [
+const SITES: [&str; 22] = [
     "anthropic.com",
     "platform.openai.com",
     "aistudio.google.com",
@@ -53,7 +53,6 @@ const SITES: [&str; 23] = [
     // Smithsonian records link to their pages and persistent ids
     "si.edu",
     "n2t.net",
-    "blender.org",
     "github.com",
     "oliverz.dev",
     "huggingface.co",
@@ -95,7 +94,7 @@ fn linkable(url: &str) -> bool {
 }
 
 /// A web page the app links to (a provider's key page, a license, an
-/// asset's source page, Blender's download page)
+/// asset's source page)
 #[tauri::command]
 pub fn open_url(url: String) -> Result<(), String> {
     if !linkable(&url) {
@@ -126,11 +125,10 @@ mod tests {
 
     #[test]
     fn links_only_to_the_sites_the_app_names() {
-        assert!(linkable("https://www.blender.org/download/"));
         assert!(linkable("https://console.anthropic.com/settings/keys"));
         assert!(linkable("https://github.com/chihyungchang/Shotloop/releases"));
         assert!(linkable("https://collections.si.edu/search/detail/x"));
-        assert!(!linkable("http://www.blender.org/"));
+        assert!(!linkable("http://github.com/"));
         assert!(!linkable("https://evil.example/"));
         assert!(!linkable("https://github.com.evil.example/"));
         assert!(!linkable("https://github.com@evil.example/"));

@@ -57,3 +57,26 @@ test('list reports a project that can\'t be read instead of hiding it', () => {
   assert.deepEqual(Object.keys(result[1]).sort(), fields('BrokenProject'))
   assert.match(result[1].error, /shotloop\.json/)
 })
+
+test('a 3D film is drawn in WebGL; one Blender drew gets the kit and is built again', () => {
+  const dir = path.join(tmp(), 'webgl')
+  newProject(dir, { idea: 'How gears mesh', track: '3d', duration: 12 })
+  assert.ok(fs.existsSync(path.join(dir, 'world', 'page.html')))
+  assert.ok(fs.existsSync(path.join(dir, 'shots', '01-hook', 'shot.js')))
+  // A film from before: a Blender world, no page
+  fs.rmSync(path.join(dir, 'world', 'page.html'))
+  fs.writeFileSync(path.join(dir, 'world', 'world.py'), 'import kit\n')
+  const { events } = run('status', dir)
+  assert.ok(fs.existsSync(path.join(dir, 'world', 'page.html')))
+  assert.ok(events.some(e => /drawn in Blender/.test(e.message ?? '')))
+})
+
+test('a WebGL film\'s kit page is brought up to the engine\'s before a command reads it', () => {
+  const dir = path.join(tmp(), 'kit')
+  newProject(dir, { idea: 'How gears mesh', track: '3d', duration: 12 })
+  const page = path.join(dir, 'world', 'page.html')
+  const current = fs.readFileSync(page, 'utf8')
+  fs.writeFileSync(page, current.replace('function frame()', 'function frameOld()'))
+  run('status', dir)
+  assert.equal(fs.readFileSync(page, 'utf8'), current)
+})

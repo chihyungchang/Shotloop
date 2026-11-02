@@ -13,4 +13,4 @@ No battery. What keeps it ticking?
 Slow push-in and orbit of about 20° around the floating watch; seconds hand ticks.
 
 ## Review history
-- 2026-10-31: planned in the storyboard.
+- 2026-11-02: planned in the storyboard.

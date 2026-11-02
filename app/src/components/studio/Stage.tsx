@@ -22,7 +22,7 @@ export function Stage({ project, shot, view, mode, refresh, picker }: {
   view: ShotView
   mode: Mode
   refresh: () => void
-  picker: PickerState | null
+  picker: PickerState
 }) {
   const [tab, setTab] = useState<Tab>(view.clip ? 'preview' : 'stills')
   const [take, setTake] = useState<Take | null>(null)
@@ -34,7 +34,7 @@ export function Stage({ project, shot, view, mode, refresh, picker }: {
   const takes = [...shot.takes].reverse()
   const { error, guard } = useErrorLine()
   const stage = useRef<HTMLDivElement>(null)
-  const picking = !!picker?.picking && tab === 'stills'
+  const picking = picker.picking && tab === 'stills'
   // The pick map of the shot's code as it is now (its cache key), one
   // that could not be made (its key), the thing under the pointer, and a
   // click that found only the background. Stills of older code (stale)
@@ -48,19 +48,19 @@ export function Stage({ project, shot, view, mode, refresh, picker }: {
   // Picking shows the latest stills: the map is of the shot's code as it
   // is now
   useEffect(() => {
-    if (!picker?.picking) return
+    if (!picker.picking) return
     setTab('stills')
     setTake(null)
-  }, [picker?.picking])
+  }, [picker.picking])
   // Leaving the stills ends picking
   const show = (next: Tab) => {
     setTab(next)
-    if (next !== 'stills') picker?.setPicking(false)
+    if (next !== 'stills') picker.setPicking(false)
   }
 
   useEffect(() => {
     if (!picking) return
-    const cancel = (e: KeyboardEvent) => e.key === 'Escape' && picker?.setPicking(false)
+    const cancel = (e: KeyboardEvent) => e.key === 'Escape' && picker.setPicking(false)
     window.addEventListener('keydown', cancel)
     return () => {
       window.removeEventListener('keydown', cancel)
@@ -120,7 +120,7 @@ export function Stage({ project, shot, view, mode, refresh, picker }: {
             value={take?.take ?? ''}
             onChange={e => {
               setTake(takes.find(t => t.take === Number(e.target.value)) ?? null)
-              picker?.setPicking(false)
+              picker.setPicking(false)
             }}
             aria-label={t('stage.takeAria')}
           >
@@ -182,7 +182,7 @@ export function Stage({ project, shot, view, mode, refresh, picker }: {
               </div>
             </div>
           ))}
-        {tab === 'stills' && !take && picker?.pick && <Highlight stage={stage} pick={picker.pick} />}
+        {tab === 'stills' && !take && picker.pick && <Highlight stage={stage} pick={picker.pick} />}
         {hover && <Highlight stage={stage} pick={hover} hover />}
         {picking && (
           <div className="stage-pick-note">

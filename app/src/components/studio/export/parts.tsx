@@ -1,9 +1,9 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useCallback, useEffect, useState } from 'react'
-import { DEFAULT_SAMPLES, MUSIC_MOODS } from '../../../../../engine/shotloop/data.mjs'
-import { api, type Job, type MusicInfo, type Project, type VoiceInfo } from '../../../api'
+import { MUSIC_MOODS } from '../../../../../engine/shotloop/data.mjs'
+import { api, type Job, type MusicInfo, type Project, type SoundChange, type SoundInfo, type VoiceInfo } from '../../../api'
 import { useAudioPreview, useAutosave, useErrorLine } from '../../../hooks'
-import { activityLine, isActive, secondsPerFrame3d } from '../../../model'
+import { activityLine, isActive } from '../../../model'
 import { t } from '../../../i18n'
 import type { Key } from '../../../i18n/en'
 import { AgentError } from '../../AgentError'
@@ -178,6 +178,91 @@ export function Music({ project, refresh }: { project: Project; refresh: () => v
   )
 }
 
+// The film's ambience and sound effects (engine/shotloop/sound.mjs): the
+// ambience and its level, effects on or off and their level, and every
+// effect by time, each (or every one of a kind) switched on or off. A
+// change mixes the sound again; the picture stays as it is
+export function Sound({ project, refresh }: { project: Project; refresh: () => void }) {
+  const [sound, setSound] = useState<SoundInfo | null>(null)
+  const [listOpen, setListOpen] = useState(false)
+  const { error, guard } = useErrorLine()
+  useEffect(() => {
+    guard(api.sound(project.root)).then(s => s && setSound(s))
+  }, [project.root, guard])
+  const change = async (c: SoundChange) => {
+    const next = await guard(api.sound(project.root, c))
+    if (!next) return
+    setSound(next)
+    refresh()
+  }
+  if (!sound) return error ? <p className="xrow-note error">{error}</p> : null
+
+  const effects = sound.effects !== false
+  const kindOff = (k: string) => !!sound.off?.includes(`kind:${k}`)
+  const kinds = [...new Set(sound.cues.map(c => c.sound))]
+  const shotLabel = (id: string) => {
+    const i = project.shots.findIndex(s => s.id === id)
+    return i < 0 ? id : `${String(i + 1).padStart(2, '0')} ${project.shots[i].title ?? id}`
+  }
+  const slider = (value: number, set: (v: number) => void, label: string) => (
+    <input type="range" min={0} max={2} step={0.05} defaultValue={value} key={value}
+      onPointerUp={e => set(Number(e.currentTarget.value))} onKeyUp={e => set(Number(e.currentTarget.value))} aria-label={label} />
+  )
+  return (
+    <>
+      <div className="xrow">
+        <span className="xrow-label">{t('sound.ambience')}</span>
+        <div className="chips">
+          <div className="seg" role="radiogroup" aria-label={t('sound.ambience')}>
+            {['', ...sound.ambiences].map(a => {
+              const on = (sound.ambience ?? '') === a
+              return <button key={a || 'none'} role="radio" aria-checked={on} className={on ? 'on' : ''} onClick={() => !on && change({ ambience: a || 'none' })}>{t(a ? `sound.amb.${a}` as Key : 'sound.none')}</button>
+            })}
+          </div>
+          {sound.ambience && <div className="vol">{slider(sound.ambienceGain ?? 1, v => change({ ambienceGain: v }), t('music.volume'))}</div>}
+        </div>
+      </div>
+      <div className="xrow">
+        <span className="xrow-label">{t('sound.effects')}</span>
+        <div className="chips">
+          <input type="checkbox" className="switch" checked={effects} onChange={e => change({ effects: e.target.checked })} aria-label={t('sound.effects')} />
+          {sound.cues.length
+            ? <button className="link" onClick={() => setListOpen(!listOpen)} disabled={!effects}>
+                {t('sound.count', { on: sound.cues.filter(c => c.on).length, n: sound.cues.length })} <Icon name="chevron" size={11} />
+              </button>
+            : <span className="muted small">{t('sound.noEffects')}</span>}
+          {effects && sound.cues.length > 0 && <div className="vol">{slider(sound.effectsGain ?? 1, v => change({ effectsGain: v }), t('music.volume'))}</div>}
+        </div>
+      </div>
+      {listOpen && effects && sound.cues.length > 0 && (
+        <div className="xrow top">
+          <span className="xrow-label" />
+          <div className="sound-list">
+            <p className="hint">{t('sound.hint')}</p>
+            {/* Every effect of a kind at once */}
+            <div className="chips">
+              {kinds.map(k => (
+                <button key={k} className={`chip${kindOff(k) ? '' : ' on'}`} aria-pressed={!kindOff(k)} onClick={() => change({ kind: k, on: kindOff(k) })}>
+                  {t(`sound.fx.${k}` as Key)} <span className="muted">{sound.cues.filter(c => c.sound === k).length}</span>
+                </button>
+              ))}
+            </div>
+            {sound.cues.map(c => (
+              <label key={c.key} className={`sound-cue${c.on ? '' : ' off'}`}>
+                <span className="mono">{t('unit.s', { n: c.at.toFixed(1) })}</span>
+                <span className="ellipsis">{shotLabel(c.shot)}</span>
+                <span>{t(`sound.fx.${c.sound}` as Key)}</span>
+                <input type="checkbox" className="switch" checked={c.on} disabled={kindOff(c.sound)} onChange={e => change({ cue: c.key, on: e.target.checked })} aria-label={`${shotLabel(c.shot)} · ${t(`sound.fx.${c.sound}` as Key)}`} />
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+      {error && <p className="xrow-note error">{error}</p>}
+    </>
+  )
+}
+
 interface Post { id: string; name: string; title?: string; description?: string; tags?: string[]; pinned?: string; label?: string }
 
 // The publish copy (publish.json), read again whenever its job changes
@@ -314,59 +399,6 @@ function Field({ label, value, rows = 1, onChange, copyOnly }: { label: string; 
         : rows > 1
           ? <textarea rows={rows} value={value} onChange={e => onChange?.(e.target.value)} />
           : <input value={value} onChange={e => onChange?.(e.target.value)} />}
-    </div>
-  )
-}
-
-const SAMPLE_PRESETS = [
-  { n: 16, label: 'samples.fast' },
-  { n: DEFAULT_SAMPLES, label: 'samples.standard' },
-  { n: 64, label: 'samples.fine' }
-] as const
-
-// 3D final quality, for those who want it: EEVEE samples per frame. More
-// cleans up glossy reflections and fast motion, at more time a frame
-export function Samples({ project, refresh }: { project: Project; refresh: () => void }) {
-  const current = project.samples ?? DEFAULT_SAMPLES
-  const preset = SAMPLE_PRESETS.some(p => p.n === current)
-  const [custom, setCustom] = useState(!preset)
-  const [draft, setDraft] = useState(String(current))
-  const { error, guard } = useErrorLine()
-  const set = async (change: { samples?: number; reset?: boolean }) => {
-    const r = await guard(api.quality(project.root, change))
-    if (!r) return setDraft(String(current))
-    setDraft(String(r.samples))
-    refresh()
-  }
-  const commit = () => {
-    const n = Math.round(Number(draft))
-    if (n >= 4 && n <= 512 && n !== current) set({ samples: n })
-    else setDraft(String(current))
-  }
-  return (
-    <div className="samples">
-      <div className="row between">
-        <span className="small">{t('samples.title')}</span>
-        <span className="small muted">{t('samples.perFrame', { s: secondsPerFrame3d(current).toFixed(1) })}</span>
-      </div>
-      <div className="music-chips">
-        {SAMPLE_PRESETS.map(p => (
-          <button key={p.n} className={`provider-chip${!custom && current === p.n ? ' on' : ''}`}
-            onClick={() => { setCustom(false); setDraft(String(p.n)); set(p.n === DEFAULT_SAMPLES ? { reset: true } : { samples: p.n }) }}>
-            {t(p.label)} <span className="muted">{p.n}</span>
-          </button>
-        ))}
-        {custom
-          ? (
-            <label className="provider-chip on samples-input">
-              <input type="number" min={4} max={512} step={1} value={draft} autoFocus aria-label={t('samples.title')}
-                onChange={e => setDraft(e.target.value)} onBlur={commit}
-                onKeyDown={e => e.key === 'Enter' && (e.currentTarget as HTMLInputElement).blur()} />
-            </label>
-          )
-          : <button className="provider-chip" onClick={() => setCustom(true)}>{t('samples.custom')}</button>}
-      </div>
-      {error && <p className="small error">{error}</p>}
     </div>
   )
 }

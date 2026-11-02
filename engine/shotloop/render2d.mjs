@@ -1,6 +1,6 @@
-// 2D track: the world is an HTML page (world/page.html: styles, layout,
-// helpers) and each shot is an ES module (shots/<id>/shot.js) that draws
-// the page at shot-local time:
+// A film drawn by a page, 2D or 3D in WebGL: the world is an HTML page
+// (world/page.html: styles, layout, helpers) and each shot is an ES module
+// (shots/<id>/shot.js) that draws the page at shot-local time:
 //
 //   export function setup(ctx) {}           optional, once per render
 //   export default function render(t, ctx)  t = 0 at the shot's first frame
@@ -11,8 +11,9 @@
 // shot's voice-over, one { text, at, end } per sentence in shot time (an
 // empty list without one), so the picture can land on the words.
 // ctx.three() loads three.js (the copy in vendor/), for a part a flat
-// drawing can't show (gears that mesh, motion seen from a turning frame):
-// const THREE = await ctx.three() in setup.
+// drawing can't show (gears that mesh, motion seen from a turning frame)
+// or a WebGL film's whole world: const THREE = await ctx.three() in setup;
+// ctx.three('addons/loaders/GLTFLoader.js') loads one of its add-ons.
 //
 // The page also has window.subtitles.keep(x, y, w, h, name): canvas
 // drawing reports, each frame, a region the viewer must see (page CSS
@@ -25,13 +26,13 @@ import { capture, frameName, openRenderPage, pageGeometry, progress } from './co
 import { voiceCues } from './cues.mjs'
 
 // Its version is in the folder's name, so a new one changes this file and
-// with it every 2D shot's cache key (cache.mjs, RENDERER_FILES)
-const THREE = pathToFileURL(path.join(import.meta.dirname, 'vendor', 'three-0.187.0', 'three.module.js')).href
+// with it every page's shot's cache key (cache.mjs, RENDERER_FILES)
+const THREE = pathToFileURL(path.join(import.meta.dirname, 'vendor', 'three-0.187.0', '/')).href
 
 // The shot's page, ready to draw: openShot(...).draw(t) renders shot time t
 export async function openShot(project, shot, mode) {
   const page = path.join(project.world, 'page.html')
-  if (!fs.existsSync(page)) throw new Error('2D project needs world/page.html')
+  if (!fs.existsSync(page)) throw new Error('this project needs world/page.html')
   if (!fs.existsSync(shot.code)) throw new Error(`missing ${path.relative(project.root, shot.code)}`)
   const p = await openRenderPage(page, pageGeometry(project, mode), { query: { shotloop: shot.id }, render: false })
   try {
@@ -43,7 +44,7 @@ export async function openShot(project, shot, mode) {
       const m = await import(${JSON.stringify(url)})
       if (typeof m.default !== 'function') throw new Error('shot.js must export default render(t, ctx)')
       const worldRender = typeof window.render === 'function' ? window.render : null
-      const three = () => import(${JSON.stringify(THREE)})
+      const three = (file = 'three.module.js') => import(new URL(file, ${JSON.stringify(THREE)}).href)
       window.__shotloop = { render: m.default, ctx: { ...${ctx}, window, document, world: worldRender, three } }
       await m.setup?.(window.__shotloop.ctx)
     })()`)

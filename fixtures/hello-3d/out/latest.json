@@ -1,0 +1,19 @@
+{
+  "mode": "draft",
+  "at": "20261029-051953",
+  "films": [
+    {
+      "aspect": "9:16",
+      "file": "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/out/hello-3d.draft.9x16.20261029-051953.mp4"
+    },
+    {
+      "aspect": "16:9",
+      "file": "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/out/hello-3d.draft.16x9.20261029-051953.mp4"
+    }
+  ],
+  "cover": "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/out/hello-3d.cover.20261029-051953.png",
+  "publish": "/Volumes/Portable HD/chihyungchang/Shotloop/examples/hello-3d/out/hello-3d.publish.20261029-051953.md",
+  "rendered": [
+    "02-close"
+  ]
+}

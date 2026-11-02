@@ -19,7 +19,7 @@ export interface StartEvent {
   frames: number
 }
 
-// Work in steps (compose.mjs progress): frames, captions, screen, subtitle
+// Work in steps (compose.mjs progress): frames, subtitle
 // check, voice, export; a download counts MB (voice-model, download).
 // eta: seconds left, null until one step is done
 export interface ProgressEvent {
@@ -255,12 +255,10 @@ export interface StatusResult {
   voice: VoiceSettings | null
   // The voice-over plays: on, with lines (cues.mjs voiceOn)
   voiced: boolean
-  files: { captions: string | null; music: string | null; cover: string | null; publish: string | null }
+  files: { music: string | null; cover: string | null; publish: string | null }
   shots: ShotStatus[]
   example: boolean
   draft: boolean
-  // 3D: final render samples per frame (null for 2D)
-  samples: number | null
   look: string | null
   coverFrame: { shot: string; time: number } | null
   coverMade: { how: 'default' | 'free' | 'template' | 'reference'; template?: string; at?: string } | null
@@ -371,6 +369,33 @@ export interface VoiceResult {
 }
 
 // shotloop music <project>
+// shotloop sound <project> [changes]: the ambience and the shots' sound
+// effects (engine/shotloop/sound.mjs), each with whether it is on
+export interface SoundCue {
+  // <shot>@<at>:<sound>, what --cue switches
+  key: string
+  shot: string
+  // Film seconds
+  at: number
+  sound: string
+  gain: number
+  pan: number
+  on: boolean
+}
+export interface SoundResult {
+  ambience?: string | null
+  ambienceGain?: number
+  effects?: boolean
+  effectsGain?: number
+  // Switched off: cue keys and "kind:<sound>"
+  off?: string[]
+  // The person chose the ambience (a plan keeps it)
+  chosen?: boolean
+  cues: SoundCue[]
+  ambiences: string[]
+  sounds: string[]
+}
+
 export interface MusicResult {
   kind: 'preset' | 'file' | 'none'
   // A synthesized bed's mood (data.mjs MUSIC_MOODS), 'custom' for a hand-written one
@@ -382,9 +407,3 @@ export interface MusicResult {
   bed?: string | null
 }
 
-// shotloop quality <project>
-export interface QualityResult {
-  samples: number
-  custom: boolean
-  default: number
-}

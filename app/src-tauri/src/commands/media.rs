@@ -65,6 +65,39 @@ pub async fn music(handle: AppHandle, path: String, change: Option<MusicChange>)
     .await
 }
 
+/// A change to the ambience or the sound effects; nothing set reads them
+#[derive(Deserialize, Default)]
+#[serde(default, rename_all = "camelCase")]
+pub struct SoundChange {
+    /// An ambience by name, or "none"
+    ambience: Option<String>,
+    ambience_gain: Option<f64>,
+    effects: Option<bool>,
+    effects_gain: Option<f64>,
+    /// One effect (its key) or every effect of a kind, switched on or off
+    cue: Option<String>,
+    kind: Option<String>,
+    on: Option<bool>,
+}
+
+/// The film's ambience and sound effects: read them, or change which play
+#[tauri::command]
+pub async fn sound(handle: AppHandle, path: String, change: Option<SoundChange>) -> Result<Value, String> {
+    blocking(move || {
+        let c = change.unwrap_or_default();
+        let args = Args::new(["sound", &path])
+            .opt("--ambience", c.ambience)
+            .opt("--ambience-gain", c.ambience_gain)
+            .opt("--effects", c.effects.map(|on| if on { "on" } else { "off" }))
+            .opt("--effects-gain", c.effects_gain)
+            .opt("--cue", c.cue)
+            .opt("--kind", c.kind)
+            .flag(c.on == Some(false), "--off");
+        engine(&handle, args)
+    })
+    .await
+}
+
 /// The voice-over: read it (with the voices of the project's language), or
 /// turn it on or off and pick the voice (each speaks the lines again and
 /// fits the shots to them); sample: a WAV of the voice to listen to

@@ -1,13 +1,12 @@
 import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react'
 import { firstLine } from '../../../engine/shotloop/data.mjs'
-import { api, BLENDER_DOWNLOAD, fileUrl, isBroken, type ListEntry, type ProjectSummary } from '../api'
+import { api, fileUrl, isBroken, type ListEntry, type ProjectSummary } from '../api'
 import { aspectOf, formatSeconds, isWide } from '../model'
 import { BrandIcon, hasBrand } from '../ai/BrandIcon'
 import { aiSummary, useDetected } from '../ai/backends'
-import { useErrorLine } from '../hooks'
 import { baseName, listRecent, projectsFolder, setProjectsFolder } from '../recent'
-import { patchSettings, useSettings } from '../settings'
+import { useSettings } from '../settings'
 import { Icon } from './Icon'
 import { ExampleGallery } from './ExampleGallery'
 import { LookPicker } from './LookPicker'
@@ -152,8 +151,6 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
   const [folder, setFolder] = useState(projectsFolder())
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // 3D needs Blender: null until checked, 'missing' shows the install prompt
-  const [blender, setBlender] = useState<null | 'missing' | 'stillMissing'>(null)
 
   const chooseFolder = async () => {
     const dir = await pick({ directory: true, title: t('home.dialog.folder') })
@@ -162,21 +159,9 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
     setFolder(dir)
   }
 
-  // The check failing reads as Blender missing: the prompt that follows
-  // offers to create the project anyway
-  const hasBlender = () => api.doctor().then(d => !!d.blender, () => false)
-
-  // `anyway` creates a 3D project without Blender (install it before rendering)
-  const create = async (anyway = false) => {
+  const create = async () => {
     if (!idea.trim() || busy) return
     setError(null)
-    if (track === '3d' && !anyway) {
-      setBusy(true)
-      const ok = await hasBlender()
-      setBusy(false)
-      if (!ok) return setBlender('missing')
-    }
-    setBlender(null)
     setBusy(true)
     try {
       const parent = folder ?? (await ensureFolder())
@@ -278,38 +263,8 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
           <span className="muted small">{t(TRACKS[track].hint)}</span>
         </div>
       </div>
-      {blender && track === '3d' && (
-        <BlenderPrompt stillMissing={blender === 'stillMissing'} create={() => create(true)}
-          checkAgain={async () => ((await hasBlender()) ? create(true) : setBlender('stillMissing'))} />
-      )}
       {error && <p className="error">{error}</p>}
     </>
-  )
-}
-
-// 3D without Blender: download it, show where it is (saved as the Blender
-// tool path), check again, or create the project anyway
-function BlenderPrompt({ stillMissing, create, checkAgain }: { stillMissing: boolean; create: () => void; checkAgain: () => void }) {
-  const { error, guard } = useErrorLine()
-  const locate = async () => {
-    const picked = await pick({ title: t('blender.dialog'), defaultPath: '/Applications', filters: [{ name: t('filter.app'), extensions: ['app'] }] })
-    if (typeof picked !== 'string') return
-    const path = picked.endsWith('.app') ? `${picked}/Contents/MacOS/Blender` : picked
-    if (await guard(patchSettings({ blender: path }))) checkAgain()
-  }
-  return (
-    <div className="panel blender-needed" role="alert">
-      <strong>{t('blender.title')}</strong>
-      <p className="muted">{t('blender.body')}</p>
-      {stillMissing && <p className="error small">{t('blender.notFound')}</p>}
-      {error && <p className="error small">{error}</p>}
-      <div className="row">
-        <button className="primary" onClick={() => guard(api.openUrl(BLENDER_DOWNLOAD))}>{t('blender.download')}</button>
-        <button onClick={locate}>{t('blender.locate')}</button>
-        <button className="ghost" onClick={checkAgain}>{t('setup.checkAgain')}</button>
-        <button className="ghost" onClick={create}>{t('blender.anyway')}</button>
-      </div>
-    </div>
   )
 }
 

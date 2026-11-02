@@ -120,16 +120,16 @@ export function ideaOf(project: ProjectStatus) {
   return copy.match(/## Idea\n+([\s\S]*?)(\n## |$)/)?.[1]?.trim() || project.title
 }
 
-export function trackBrief(project: ProjectStatus, threeD: boolean) {
-  if (project.trackAuto) return `Track: chosen by you through the style (${threeD ? '2D or 3D' : '2D; Blender is not installed, so no 3D'})`
+export function trackBrief(project: ProjectStatus) {
+  if (project.trackAuto) return 'Track: chosen by you through the style (2D, or 3D drawn in WebGL)'
   return `Track: ${project.track.toUpperCase()} (chosen by the person)`
 }
 
 // The visual styles the plan picks from (engine/shotloop/styles.mjs)
-export function stylesBrief(project: ProjectStatus, threeD: boolean) {
+export function stylesBrief(project: ProjectStatus) {
   const chosen = project.styleChosen ? STYLES.find(s => s.id === project.style) : null
   if (chosen) return `\n\nVisual style: "${chosen.id}" (${chosen.name.en}), chosen by the person: keep it as "style" and plan every shot in it. ${chosen.frames} Reference: ${chosen.why} Look at its reference stills (view_style) first.`
-  const open = STYLES.filter(s => (s.track === project.track && project.track === '2d') || (s.track === '3d' && threeD))
+  const open = STYLES.filter(s => (s.track === project.track && project.track === '2d') || (s.track === '3d' && project.trackAuto))
   if (project.track === '3d' || !open.length) return ''
   return `\n\nVisual styles (pick one for "style"; look at each candidate's reference stills with view_style before you decide):\n${open.map(s =>
     `- ${s.id} (${s.name.en}): use when ${s.when} Avoid when: ${s.avoid} Frames: ${s.frames} Reference: ${s.why}${s.looks.length ? ` Looks: ${s.looks.join(', ')}.` : ''}`).join('\n')}`

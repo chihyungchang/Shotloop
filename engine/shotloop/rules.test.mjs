@@ -93,3 +93,24 @@ test('rules: every tool says the tracks it fits; a 2D tool staged in 3D says how
   assert.deepEqual(tool.tracks, ['3d'])
   rules.removeTool(tool.id)
 })
+
+test('rules: a fixed rule can be switched off and on, never removed', () => {
+  assert.throws(() => rules.remove('honest'), /fixed rule/)
+  rules.setOn('honest', false)
+  assert.equal(rules.list().fixed.find(r => r.id === 'honest').off, true)
+  assert.doesNotMatch(rules.checklist('2d'), /\*\*honest\*\*/)
+  rules.setOn('honest', true)
+  assert.match(rules.checklist('2d'), /\*\*honest\*\*/)
+  assert.throws(() => rules.setOn('visual', false), /no fixed rule or tool/)
+})
+
+test('rules: any tool can be switched off and on', () => {
+  rules.setOn('waffle', false)
+  assert.equal(rules.list().tools.find(t => t.id === 'waffle').off, true)
+  rules.setOn('waffle', true)
+  const own = rules.addTool({ name: 'Split screen' }).tools.at(-1)
+  rules.setOn(own.id, false)
+  assert.equal(rules.list().tools.find(t => t.id === own.id).off, true)
+  rules.removeTool(own.id)
+  assert.equal(rules.list().tools.some(t => t.off), false)
+})

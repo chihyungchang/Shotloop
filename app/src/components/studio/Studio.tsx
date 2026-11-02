@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 import { api, type Job, type PreviewResult, type Project } from '../../api'
 import { useDismiss, useErrorLine } from '../../hooks'
-import { aspectOf, editMode, formatSeconds, isActive, shotView } from '../../model'
+import { aspectOf, EDIT_MODE, formatSeconds, isActive, shotView } from '../../model'
 import type { useTheme } from '../../theme/theme'
 import { Icon } from '../Icon'
 import { ThemeToggle } from '../ThemeToggle'
@@ -45,7 +45,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   save?: () => void
   saving?: boolean
 }) {
-  const mode = editMode(project)
+  const mode = EDIT_MODE
   const [selected, setSelected] = useState(project.shots[0]?.id ?? '')
   // null: the stylesheet's default for the window's size
   const [agentWidth, setAgentWidth] = useState<number | null>(() => Number(readStored(AGENT_WIDTH)) || null)
@@ -54,10 +54,10 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
     writeStored(AGENT_WIDTH, w == null ? null : String(w))
   }
   // The element picker, for the selected shot: picking now, and what was
-  // picked for the next fix (2D only: a 3D frame is Blender's)
+  // picked for the next fix
   const [picking, setPicking] = useState(false)
   const [pick, setPick] = useState<Pick | null>(null)
-  const picker: PickerState | null = project.track === '2d' ? { picking, setPicking, pick, setPick } : null
+  const picker: PickerState = { picking, setPicking, pick, setPick }
   useEffect(() => {
     setPicking(false)
     setPick(null)

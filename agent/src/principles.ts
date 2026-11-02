@@ -5,21 +5,21 @@
 // before anything is built (lintPlan). Within them, the AI makes each
 // frame as rich to watch as it can.
 
-import { readTime, rules, SUBTITLE_BAND, VOICE_LEAD, VOICE_TAIL, type Rule, type Tool } from './enginelib.ts'
+import { AMBIENCE_NAMES, EFFECT_NAMES, readTime, rules, SUBTITLE_BAND, VOICE_LEAD, VOICE_TAIL, type Rule, type Tool } from './enginelib.ts'
 
 type Track = '2d' | '3d'
 const RULES = rules.list()
 const said = (r: Rule) => (r.name ? `${r.name}. ${r.rule}` : r.rule)
 const forTrack = (track: Track) => (r: Rule) => r.track === 'all' || r.track === track
 const tools = (track: Track, group: Tool['group']) => RULES.tools
-  .filter(t => t.group === group && t.tracks.includes(track))
+  .filter(t => !t.off && t.group === group && t.tracks.includes(track))
   .map(t => {
     const text = track === '3d' && t.text3d ? t.text3d : t.text
     return `- ${t.name}${text ? `: ${text}` : ''}`
   })
 
 function rulesFor(track: Track) {
-  const fixed = RULES.fixed.filter(forTrack(track)).filter(r => r.rule)
+  const fixed = RULES.fixed.filter(r => !r.off && forTrack(track)(r) && r.rule)
   // The taste rules that are on, the person's own among them
   const taste = RULES.taste.filter(r => !r.off && forTrack(track)(r))
   const mine = tools(track, 'mine')
@@ -28,9 +28,20 @@ function rulesFor(track: Track) {
 ${tools('2d', 'story').join('\n')}
 For a science subject (a mechanism, a law, a process):
 ${tools('2d', 'science').join('\n')}`
-    : `Within them, make it cinematic: stage the point with objects, light and the camera, not with charts. A toolbox to pick from (and add to):
+    : `Within them, make it cinematic: stage the point with objects, light and the camera, not with charts. A toolbox to pick from (and add to), from film and animation craft:
+Camera moves:
 ${tools('3d', 'camera').join('\n')}
-Staged in the set (stories and science):
+Composition:
+${tools('3d', 'frame').join('\n')}
+Editing and transitions:
+${tools('3d', 'cut').join('\n')}
+Staging and acting:
+${tools('3d', 'staging').join('\n')}
+Light and colour:
+${tools('3d', 'light').join('\n')}
+Explaining in 3D:
+${tools('3d', 'explain').join('\n')}
+Stories and science, staged in the set:
 ${[...tools('3d', 'story'), ...tools('3d', 'science')].join('\n')}`
   return `The ${track.toUpperCase()} rules.
 Fixed (never broken, whatever else is asked):
@@ -80,6 +91,28 @@ export const CODE_2D = `2D code rules:
 - A little depth is fine with CSS 3D (perspective, transform-style: preserve-3d) on DOM elements.
 - Only when a part can't be shown flat (gears that must mesh, a mechanism turning in space, motion seen from a frame that turns with it), draw that part with three.js; the rest of the shot stays DOM and SVG. const THREE = await ctx.three() in setup(), which also builds the scene once: a WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true }) whose canvas sits behind the stage, sized to the frame. It only has to read clearly, never to look real: simple geometry built in code (boxes, cylinders, extruded shapes, lathes), no model files. render(t) sets every position, rotation and the camera from t, by the mechanism's own math (a gear turned by its ratio, a piston by its crank), then calls renderer.render. Shade it in the look's colors (flat shading, EdgesGeometry lines for a drawn look). Labels and text stay in SVG or the DOM, placed each frame by projecting a point of the part (vector.project(camera)); report the part's projected extent with subtitles.keep.
 - Within a frame, keep caption, picture and source line from overlapping: give each its band of the safe area.`
+
+// How a WebGL 3D shot's code stays renderable frame by frame and reads
+// as film (after oliverzdev ep20's three.js cut)
+export const CODE_WEBGL = `WebGL code rules:
+- Every frame is a pure function of t: no Math.random (kit.hash, kit.prng), no clock, no state carried between frames; physics in closed form or stepped with fixed steps from t = 0 (in setup). Frames and stills are drawn in any order.
+- Build in setup, pose in render: geometry, materials and models are made once in setup; render(t) only sets positions, rotations, scales, visibility and material values, in this order: kit.begin(t); objects; the camera (kit.look); type, labels and kit.keep(); kit.frame().
+- Real sizes in metres, written down in the world module (a watch 0.04 m, a person 1.7 m), the same object the same size in every shot; to make something small readable, use a longer lens or a closer camera, never a bigger object between shots. A stretched size or time is said on screen ("not to scale").
+- One camera move per shot, eased in and out, a lens from 24 mm (places) to 100 mm (close-ups); position, aim and lens never all change at once. Motivate the move: reveal, follow or come closer.
+- Mechanisms by their own math: a gear turned by its ratio, a wheel by its circumference, an orbit by its period; things that touch keep touching.
+- Light reads as light: one key light, a rim, the studio's reflections; emissive parts capped (kit.glow), backgrounds dim, bloom only on what is brighter than white. Metal and glass need the environment to look like metal and glass. Call kit.studio({ size }) with the subject's size in metres (0.05 for a watch), so its soft shadow and the floor fit it.
+- The kit renders like an offline renderer: kit.frame() averages several sub-frames (antialiasing, soft shadows, ambient occlusion). For true motion blur on fast parts (gears, a throw), pass the pose: kit.frame(dt => pose(t + dt)), where pose sets every moving object and the camera for a time. For a shallow focus, kit.post({ fstop: 2.8, samples: 16 }) (it focuses on the last kit.look target). Keep exposure and tone at their defaults unless the shot needs a change (kit.post({ exposure, tone: 'neutral' }) for true product colours).
+- No flicker: no coplanar faces (decals 1 mm proud), the near plane not too close (kit.look sets it from the subject's distance).
+- Text is never in the 3D scene: headlines, numbers and labels are DOM type (kit.caption, kit.label, kit.block) above the world, inside the safe area. Mark the subject the viewer must see each frame with kit.keep(object, 'name') after the camera is set: the subtitle check and the element picker use it, and a person picks a part by that name.
+- Characters (when the story has one): simple and original, built from rounded primitives in a joint hierarchy; poses as tables of joint angles mixed by eased keys; anticipation before a big move, overlapping action after it.`
+
+// Sound effects and the ambience (engine/shotloop/sound.mjs), planned in
+// words and written by the shot's builder where its animation lands
+export const SOUND = `Sound:
+- The film has an ambience under it (one of ${AMBIENCE_NAMES.join(', ')}, or none) and sound effects on the picture's beats, made by the engine from these names: ${EFFECT_NAMES.join(', ')} (riser ends on its beat; the others start on it).
+- Few and exact: only the beats that matter get a sound (a gear locking, a part landing, a crash zoom, a smash cut), at most one clear effect every 2 to 3 seconds; silence makes the next one count.
+- With a voice-over the voice comes first: put loud effects (thud, impact, whoosh, riser) in the pauses between sentences (ctx.voice gives their times); quiet ones (click, tick, pop, ding, glass, beep, hum) may sit under a word. The engine moves a loud one off a line by up to 0.3 s, else halves it.
+- A shot's effects go in shots/<id>/sounds.json, written with its code so they land on its animation: [{ "at": <shot seconds>, "sound": "<name>", "gain": <0–2, default 1>, "pan": <-1 left … 1 right, default 0> }]. The person can switch any of them off.`
 
 // The voice-over in a shot's code
 export const CODE_VOICE = `Voice-over in code:

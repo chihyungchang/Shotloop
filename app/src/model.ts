@@ -34,9 +34,9 @@ export interface ShotView {
 const activeFor = (jobs: Job[], project: Project, shot: string, mode: Mode) =>
   jobs.find(j => j.project === project.root && j.shot === shot && j.kind === 'render' && j.mode === mode && isActive(j)) ?? null
 
-// The quality the editor works in (the engine's editMode): 3D shows fast
-// previews and renders final frames only to export; 2D is final throughout
-export const editMode = (project: Project): Mode => (project.track === '3d' ? 'draft' : 'final')
+// The quality the editor works in (the engine's editMode): a page's frames
+// are cheap, so the editor works in final quality and an export joins them
+export const EDIT_MODE: Mode = 'final'
 
 export function shotView(project: Project, shot: Shot, mode: Mode, jobs: Job[]): ShotView {
   const entry = shot[mode]
@@ -61,24 +61,21 @@ export function shotView(project: Project, shot: Shot, mode: Mode, jobs: Job[]):
   }
 }
 
-// Seconds per frame when a shot has never been rendered in a mode
+// Seconds per frame when a shot has never been rendered in a mode: 3D
+// averages sub-frames like an offline renderer (the watch: ~0.5 s a frame
+// at 1080×1920 on an M4)
 const PER_FRAME: Record<Project['track'], Record<Mode, number>> = {
   '2d': { draft: 0.06, final: 0.12 },
-  '3d': { draft: 0.4, final: 3 }
+  '3d': { draft: 0.25, final: 0.5 }
 }
-
-// 3D final: seconds a frame at these samples (measured on an M4: 1.0 s a
-// frame at 24, 2.4 s at 64)
-export const secondsPerFrame3d = (samples: number) => 0.35 + 0.028 * samples
 
 // Estimated render time: the last render of this shot in this mode, or
 // a per-frame guess for the track
 export function estimate(project: Project, shot: Shot, mode: Mode, stills = false): number {
-  if (stills) return project.track === '3d' ? (mode === 'draft' ? 25 : 40) : 3
+  if (stills) return project.track === '3d' ? 6 : 3
   const last = shot[mode].seconds ?? [...shot.takes].reverse().find(t => t.mode === mode && t.kind === 'clip')?.seconds
   if (last) return last
-  const perFrame = project.track === '3d' && mode === 'final' && project.samples ? secondsPerFrame3d(project.samples) : PER_FRAME[project.track][mode]
-  return Math.round(shot.duration * project.fps * perFrame + (project.track === '3d' ? 20 : 3))
+  return Math.round(shot.duration * project.fps * PER_FRAME[project.track][mode] + 3)
 }
 
 export function jobEstimate(project: Project | null, job: Job): number | null {

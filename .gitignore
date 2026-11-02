@@ -3,10 +3,6 @@ node_modules/
 *.log
 __pycache__/
 
-# Downloaded CC0 assets (manifest: engine/assets/README.md)
-engine/assets/*
-!engine/assets/README.md
-
 # Docs
 docs/PRD.md
 # Bundled Node.js and ffmpeg, fetched by app/scripts/sidecars.mjs

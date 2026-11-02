@@ -12,5 +12,9 @@ The gold balance wheel and its blue-steel hairspring, seen from above at an angl
 
 Balance oscillates continuously; camera slowly orbits about 30°; counter rolls and lands with a bounce.
 
+## Source line
+
+28,800 beats/hour (common rate) × 24 h ≈ 691,200
+
 ## Review history
-- 2026-10-31: planned in the storyboard.
+- 2026-11-02: planned in the storyboard.

@@ -120,7 +120,7 @@ async function shotTask(kind: 'fix' | 'check') {
   const record = path.join(project.root, '.shotloop', 'shots', shot.id, 'fixes', stamp())
   // The before stills, in the editor's quality (3D previews, 2D final),
   // the same the agent's renders make; rendered if needed
-  const current = (project.track === '3d' ? shot.draft : shot.final).stills ?? (await renderStills(project.root, shot.id)).stills
+  const current = shot.final.stills ?? (await renderStills(project.root, shot.id)).stills
   const before = keepStills(current, record, 'before')
 
   const ctx = context(project.root, reviewOnly ? [] : [`shots/${shot.id}/`, 'world/', 'captions.html'])
@@ -183,7 +183,6 @@ async function planTask() {
   // none yet, so it isn't "voiced" until this plan)
   const speaks = !!project.voice?.on
   const system = planSystem(project.track, speaks) + remembered(project.track, false) + replyLanguage(values.lang)
-  const threeD = await threeDPossible(project)
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent('copy', {
     effort: 'medium',
@@ -192,7 +191,7 @@ async function planTask() {
 
 Idea: ${ideaOf(project)}
 Title: ${project.title}
-${trackBrief(project, threeD)} · frame ${size} · target length ${project.lengthAuto ? 'auto (choose it from the content, 15 to 60 s, then make the shots add up to it)' : `${project.duration} s`}${stylesBrief(project, threeD)}${await looksBrief(project)}`,
+${trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 'auto (choose it from the content, 15 to 60 s, then make the shots add up to it)' : `${project.duration} s`}${stylesBrief(project)}${await looksBrief(project)}`,
     ctx
   })
   // The page reads it: it has to be valid
@@ -248,17 +247,6 @@ function keepChosenLook(project: ProjectStatus, before: string | null, earlier?:
   else delete next.lookChosen
   writeAtomic(file, JSON.stringify(next, null, 2) + '\n')
   return ai
-}
-
-// 3D is a choice only for a project made with "auto" and a Mac with Blender
-async function threeDPossible(project: ProjectStatus) {
-  if (!project.trackAuto) return false
-  try {
-    return !!(await engine<{ blender: unknown }>(['doctor'])).blender
-  } catch (err) {
-    warn(`could not ask the engine whether Blender is installed (${reason(err)}); planning in 2D`)
-    return false
-  }
 }
 
 // At most n at a time, in order
@@ -387,7 +375,7 @@ async function buildShots(project: ProjectStatus, b: Build, lead: ShotStatus | u
 async function renderStale(b: Build) {
   const after = await status(dir)
   for (const s of after.shots) {
-    if ((after.track === '3d' ? s.draft : s.final).stills) continue
+    if (s.final.stills) continue
     emit({ type: 'tool', name: 'render_stills', summary: s.id })
     try {
       await renderStills(after.root, s.id)
@@ -457,7 +445,7 @@ async function coverTask() {
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent('code', {
     effort: template ? 'medium' : 'high',
-    system: coverSystem() + remembered(project.track, false) + replyLanguage(values.lang),
+    system: coverSystem(project.track) + remembered(project.track, false) + replyLanguage(values.lang),
     prompt: `${ask}${template}${values.template ? 'Fill the template for' : values.reference ? 'Recreate that design for' : 'Design the cover of'} ${head(project)}.\n\nShots:\n${shots}\n\n${docs}\n\n${page} now:\n${read(project.files.cover)}`,
     ctx
   })

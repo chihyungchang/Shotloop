@@ -67,7 +67,7 @@ impl Args {
 
 /// Node running `script` with `--json` first (an argument after "--"
 /// would swallow it), in its own process group so stopping it stops what
-/// it started (Blender, ffmpeg, Chrome, a CLI agent)
+/// it started (ffmpeg, Chrome, a CLI agent)
 pub fn node_command(launch: &Launch, script: Script, args: &[String]) -> Result<Command, String> {
     // Node found at launch, or now (installed since)
     let node = match &launch.node {

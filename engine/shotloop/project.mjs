@@ -2,9 +2,9 @@
 //
 //   my-video/
 //     shotloop.json        title, track, size, fps, shot order
-//     world/               3D: world.py; 2D: page.html (+ shared files)
-//     shots/<id>/          shot.py | shot.js, notes.md
-//     captions.html  music.json  thumb.html  publish.md  copy.md …
+//     world/               page.html (+ shared files; 3D: the engine's WebGL kit and world/*.js)
+//     shots/<id>/          shot.js, notes.md, sounds.json
+//     music.json  thumb.html  publish.md  copy.md …
 //     .shotloop/           cache, takes, logs (never edited by hand)
 //     out/                 exported films and publish kits
 //
@@ -13,7 +13,7 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { DEFAULT_SAMPLES, round } from './data.mjs'
+import { round } from './data.mjs'
 import { readJson, writeJson } from './files.mjs'
 
 const FILE = 'shotloop.json'
@@ -26,10 +26,10 @@ export const SIZES = {
 // A shot id, which is also its folder's name
 export const SHOT_ID = /^[a-z0-9][a-z0-9-]*$/
 
-// A shot's code file on each track
-export const codeFile = track => (track === '3d' ? 'shot.py' : 'shot.js')
+// A shot's code: an ES module drawing the world page at a time
+export const CODE_FILE = 'shot.js'
 
-// Pages (world, captions, subtitles) are laid out in CSS px at 2/3 of the
+// Pages (world, subtitles) are laid out in CSS px at 2/3 of the
 // film's pixel size (720×1280 for 1080×1920) and captured at 1.5x
 export const cssSize = size => ({ width: Math.round(size.width / 1.5), height: Math.round(size.height / 1.5) })
 
@@ -51,7 +51,7 @@ export function loadProject(dir) {
       start: round(t),
       end: round(t + s.duration),
       dir: path.join(root, 'shots', s.id),
-      code: path.join(root, 'shots', s.id, codeFile(cfg.track)),
+      code: path.join(root, 'shots', s.id, CODE_FILE),
       notes: path.join(root, 'shots', s.id, 'notes.md')
     }
     t += s.duration
@@ -70,7 +70,6 @@ export function loadProject(dir) {
     duration: round(t),
     shots,
     world: path.join(root, 'world'),
-    captions: opt('captions'),
     music: opt('music'),
     cover: opt('cover'),
     publish: opt('publish'),
@@ -109,9 +108,6 @@ export function findShot(project, id) {
   if (!shot) throw new Error(`no shot "${id}" (shots: ${project.shots.map(s => s.id).join(', ')})`)
   return shot
 }
-
-// 3D final quality: EEVEE render samples per frame
-export const finalSamples = project => project.config.samples ?? DEFAULT_SAMPLES
 
 // Frames are counted per shot: frame 1 is the shot's first frame
 export function frameCount(project, shot) {

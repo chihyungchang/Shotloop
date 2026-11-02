@@ -12,7 +12,8 @@ import { DEFAULT_LOOK, DEFAULT_STYLE, lookById, round, styleById } from './data.
 import { writeJson } from './files.mjs'
 import { untouchedLook } from './looks.mjs'
 import { loadProject, SHOT_ID, updateConfig } from './project.mjs'
-import { captions, isStarter, isStarterCaptions, unbuilt, writePlan, writeShots, writeWorld2d, writeWorld3d } from './starters.mjs'
+import { isStarter, unbuilt, writePlan, writeShots, writeWorld2d, writeWorld3d } from './starters.mjs'
+import { AMBIENCE_NAMES } from './sound.mjs'
 
 export const STORYBOARD_FILE = 'storyboard.json'
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 4).join('-')
@@ -35,12 +36,10 @@ const isStarterPage = file => fs.existsSync(file) && fs.readFileSync(file, 'utf8
 // A project made with track "auto" becomes 3D when the plan picks the 3D
 // style, while nothing is built yet: the world and the starters change
 function toThreeD(project) {
-  writeWorld3d(project.root, project.duration, project.size)
-  fs.rmSync(path.join(project.root, 'world', 'page.html'), { force: true })
+  writeWorld3d(project.root, project.size)
   // Nothing is built yet: the 2D starter shots go, the plan's shots come as 3D
   for (const s of project.shots) fs.rmSync(path.dirname(s.code), { recursive: true, force: true })
-  fs.writeFileSync(path.join(project.root, 'captions.html'), captions(project.size, project.shots))
-  updateConfig(project.root, ({ look, trackAuto, ...cfg }) => ({ ...cfg, track: '3d', captions: 'captions.html' }))
+  updateConfig(project.root, ({ look, trackAuto, ...cfg }) => ({ ...cfg, track: '3d' }))
   return loadProject(project.root)
 }
 
@@ -72,7 +71,7 @@ export function applyStoryboard(project) {
     }
     used.add(id)
     const say = String(s.say ?? '').trim()
-    return { id, title: String(s.title).trim().slice(0, 80), duration: round(s.duration, 1), show: s.show, text: s.text, motion: s.motion, source: s.source, ...(say ? { say } : {}) }
+    return { id, title: String(s.title).trim().slice(0, 80), duration: round(s.duration, 1), show: s.show, text: s.text, motion: s.motion, sound: s.sound, source: s.source, ...(say ? { say } : {}) }
   })
   const film = writeShots(project.root, project.track, shots, 'planned in the storyboard')
 
@@ -111,13 +110,10 @@ export function applyStoryboard(project) {
   const fields = {
     shots: shots.map(s => ({ id: s.id, title: s.title, duration: s.duration, ...(s.say ? { say: s.say, ...timing(s) } : {}) })),
     ...(typeof sb.lang === 'string' && sb.lang.trim() ? { lang: sb.lang.trim() } : {}),
-    ...(look ? { look } : {}), ...(styleId ? { style: styleId } : {}), ...(project.track === '3d' ? { style: '3d' } : {})
-  }
-  // The starter caption layer follows the plan: 3D shows each shot's
-  // text; 2D draws its text in the frame, so the layer goes
-  if (project.captions && isStarterCaptions(project.captions)) {
-    if (project.track === '3d') fs.writeFileSync(project.captions, captions(project.size, shots))
-    else fields.captions = null
+    ...(look ? { look } : {}), ...(styleId ? { style: styleId } : {}), ...(project.track === '3d' ? { style: '3d' } : {}),
+    // The plan's ambience, unless the person chose one
+    ...(!project.config.sound?.chosen && (AMBIENCE_NAMES.includes(sb.ambience) || sb.ambience === 'none')
+      ? { sound: { ...(project.config.sound ?? {}), ambience: sb.ambience === 'none' ? null : sb.ambience } } : {})
   }
   updateConfig(project.root, cfg => ({ ...cfg, ...fields }))
   return { shots: shots.map(s => s.id), duration: film }
@@ -142,6 +138,7 @@ export function deriveStoryboard(project) {
       id: s.id, title: s.title ?? s.id, duration: s.duration,
       show: section(notes, 'Must show'), text: section(notes, 'On screen'), motion: section(notes, 'Motion'),
       ...((s.say ?? section(notes, 'Voice-over')) ? { say: s.say ?? section(notes, 'Voice-over') } : {}),
+      ...(section(notes, 'Sound') ? { sound: section(notes, 'Sound') } : {}),
       ...(section(notes, 'Source line') ? { source: section(notes, 'Source line') } : {})
     }
   })

@@ -6,27 +6,14 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { writeJson } from './files.mjs'
-import { loadProject, updateConfig } from './project.mjs'
+import { updateConfig } from './project.mjs'
 import { unbuilt } from './starters.mjs'
-import { DEFAULT_SAMPLES, MUSIC_MOODS, styleById } from './data.mjs'
+import { MUSIC_MOODS, styleById } from './data.mjs'
 import { composeBed, cutTimes, newSeed } from './score.mjs'
 
 // A new bed in a mood, written as the project's music.json
 export function writeBed(root, mood, project) {
   writeJson(path.join(root, 'music.json'), composeBed(mood, { seed: newSeed(), duration: project.duration, cuts: cutTimes(project) }))
-}
-
-// 3D final quality as the app shows it: the samples, whether the person
-// set them, and the default (data.mjs DEFAULT_SAMPLES)
-export const samplesInfo = project =>
-  ({ samples: project.config.samples ?? DEFAULT_SAMPLES, custom: project.config.samples != null, default: DEFAULT_SAMPLES })
-
-// samples: 4–512, or null for the default
-export function setSamples(project, samples) {
-  const n = samples == null ? null : Math.round(Number(samples))
-  if (n != null && !(n >= 4 && n <= 512)) throw new Error('samples must be 4–512')
-  updateConfig(project.root, ({ samples: _, ...cfg }) => (n == null ? cfg : { ...cfg, samples: n }))
-  return samplesInfo(loadProject(project.root))
 }
 
 // The visual style the person picked (styles.mjs): the planner keeps it
