@@ -7,7 +7,7 @@
 Bir fikir metne, senaryo taslağına ve çekimlerden oluşan bir filme dönüşür. Her çekimin kendi döngüsü vardır: yapay zekâ yazar, Shotloop işler, siz incelersiniz, yapay zekâ düzeltir. Bir düzeltme tüm filmi değil, yalnızca o çekimi yeniden işler.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Shotloop Studio: 3D bir telefonun parçalarına ayrılması, patlatılmış görünüm çekiminin başlangıç, orta ve bitiş kareleri, altta film şeridi ve solda yapay zekâ asistanı" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Shotloop Studio: 3D mekanik bir saat, balans çarkı çekiminin başlangıç, orta ve bitiş kareleri, altta film şeridi ve solda yapay zekâ asistanı" width="100%" />
 </p>
 
 <p align="center">

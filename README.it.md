@@ -7,7 +7,7 @@
 Un’idea diventa testi, uno storyboard e un video fatto di inquadrature. Ogni inquadratura ha il suo ciclo: l’IA la scrive, Shotloop la renderizza, tu la controlli e l’IA la corregge. Una correzione renderizza di nuovo solo quell’inquadratura, non l’intero video.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Lo Studio di Shotloop: lo smontaggio 3D di un telefono, la sua inquadratura in esploso come fotogrammi di inizio, metà e fine, la striscia delle inquadrature sotto e l’assistente IA a sinistra" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Lo Studio di Shotloop: un orologio meccanico in 3D, la sua inquadratura sul bilanciere come fotogrammi di inizio, metà e fine, la striscia delle inquadrature sotto e l’assistente IA a sinistra" width="100%" />
 </p>
 
 <p align="center">

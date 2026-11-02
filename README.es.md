@@ -7,7 +7,7 @@
 Una idea se convierte en texto, guion gráfico y una película hecha de planos. Cada plano tiene su propio ciclo: la IA lo escribe, Shotloop lo renderiza, tú lo revisas y la IA lo corrige. Una corrección vuelve a renderizar solo ese plano, no la película entera.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Editor de Shotloop: el desmontaje de un teléfono en 3D, su plano de vista explosionada en fotogramas de inicio, mitad y final, la tira de planos debajo y el asistente de IA a la izquierda" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Editor de Shotloop: un reloj mecánico en 3D, su plano del volante en fotogramas de inicio, mitad y final, la tira de planos debajo y el asistente de IA a la izquierda" width="100%" />
 </p>
 
 <p align="center">

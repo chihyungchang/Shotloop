@@ -123,7 +123,7 @@ async function shotTask(kind: 'fix' | 'check') {
   const current = shot.final.stills ?? (await renderStills(project.root, shot.id)).stills
   const before = keepStills(current, record, 'before')
 
-  const ctx = context(project.root, reviewOnly ? [] : [`shots/${shot.id}/`, 'world/', 'captions.html'])
+  const ctx = context(project.root, reviewOnly ? [] : [`shots/${shot.id}/`, 'world/'])
   const ask = kind === 'fix'
     ? `The person says about shot ${shot.id}: "${values.request}"${element ? `\n${elementBrief(element)}` : ''}\n\nFix it, then check the shot.`
     : reviewOnly
@@ -141,7 +141,7 @@ async function shotTask(kind: 'fix' | 'check') {
   const afterFiles = ctx.renders.get(shot.id) ?? (ctx.touched.size ? (await renderStills(project.root, shot.id)).stills : current)
   const after = keepStills(afterFiles, record, 'after')
   const touched = [...ctx.touched].sort()
-  const worldTouched = touched.some(f => f.startsWith('world/') || f === 'captions.html')
+  const worldTouched = touched.some(f => f.startsWith('world/'))
   const result = {
     at: new Date().toISOString(),
     task: kind,
@@ -304,7 +304,7 @@ async function buildTask() {
 // One visual system for the whole film; returns the project as it now is
 async function buildWorld(project: ProjectStatus, b: Build) {
   emit({ type: 'phase', phase: 'world' })
-  const ctx = context(project.root, ['world/', 'captions.html'])
+  const ctx = context(project.root, ['world/'])
   await runAgent('code', {
     effort: 'high',
     system: buildWorldSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),

@@ -7,7 +7,7 @@
 Sebuah ide menjadi teks, storyboard, lalu film yang tersusun dari adegan. Setiap adegan punya loop sendiri: AI menulisnya, Shotloop merendernya, Anda meninjaunya, dan AI memperbaikinya. Perbaikan hanya merender ulang adegan itu, bukan seluruh film.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Shotloop Studio: bongkaran ponsel 3D, adegan tampilan urai dalam bingkai awal, tengah dan akhir, filmstrip di bawah dan asisten AI di kiri" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Shotloop Studio: jam mekanis 3D, adegan roda keseimbangan dalam bingkai awal, tengah dan akhir, filmstrip di bawah dan asisten AI di kiri" width="100%" />
 </p>
 
 <p align="center">

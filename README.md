@@ -7,7 +7,7 @@
 An idea becomes copy, a storyboard and a film made of shots. Each shot has its own loop: the AI writes it, Shotloop renders it, you review it and the AI fixes it. A fix re-renders that shot only, not the whole film.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Shotloop Studio: a 3D phone teardown, its exploded-view shot as start, middle and end stills, the filmstrip below and the AI assistant on the left" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Shotloop Studio: a 3D mechanical watch, its balance-wheel shot as start, middle and end stills, the filmstrip below and the AI assistant on the left" width="100%" />
 </p>
 
 <p align="center">

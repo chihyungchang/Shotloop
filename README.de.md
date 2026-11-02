@@ -7,7 +7,7 @@
 Aus einer Idee werden Text, Storyboard und ein Film aus Shots. Jeder Shot hat seine eigene Schleife: Die KI schreibt ihn, Shotloop rendert ihn, du prüfst ihn, die KI korrigiert ihn. Eine Korrektur rendert nur diesen Shot neu, nicht den ganzen Film.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Shotloop-Studio: ein 3D-Smartphone-Teardown, der Explosionsansicht-Shot als Start-, Mittel- und Endbild, darunter der Filmstreifen, links der KI-Assistent" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Shotloop-Studio: eine mechanische Uhr in 3D, der Unruh-Shot als Start-, Mittel- und Endbild, darunter der Filmstreifen, links der KI-Assistent" width="100%" />
 </p>
 
 <p align="center">

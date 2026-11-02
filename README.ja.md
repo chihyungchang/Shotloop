@@ -7,7 +7,7 @@
 アイデアがコピーになり、絵コンテになり、ショットを並べた動画になります。ショットにはそれぞれのループがあります。AI が書き、Shotloop がレンダリングし、あなたが確認し、AI が直す。修正するとそのショットだけを再レンダリングし、動画全体はやり直しません。</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Shotloop のエディタ：3D のスマホ分解。分解図ショットの開始・中間・終了の静止画、その下にフィルムストリップ、左に AI アシスタント" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Shotloop のエディタ：3D の機械式時計。テンプのショットの開始・中間・終了の静止画、その下にフィルムストリップ、左に AI アシスタント" width="100%" />
 </p>
 
 <p align="center">
