@@ -29,6 +29,9 @@
 //                     the voice-over: settings, the voices for the project's language,
 //                     --fit: speak every line and fit the shots to them (a new voice or speed fits too)
 //                     --sample: a WAV of the voice saying the first line, to choose by ear
+//   shotloop sound    <project> [--ambience room|wind|space|machine|night|none] [--ambience-gain 0–2]
+//                     [--effects on|off] [--effects-gain 0–2] [--cue <shot>@<at>:<sound> | --kind <sound>] [--off]
+//                     the ambience and the shots' sound effects (sounds.json), which are on
 //   shotloop voice-models [--download <id>]                the speech models: languages, size, license,
 //                     on this Mac or not; --download fetches one (progress in MB)
 //   shotloop check-subtitles <project> [--shot <id>]      what the voice-over's subtitles would cover
@@ -77,6 +80,7 @@ import { pickMap } from './pick.mjs'
 import { musicBed } from './bed.mjs'
 import { fitVoice, pruneVoice, sampleVoice, setVoice, voiceInfo, voiceModels } from './voice.mjs'
 import { voiceCues, voiceOn } from './cues.mjs'
+import { AMBIENCE_NAMES, EFFECT_NAMES, setSound, soundCues } from './sound.mjs'
 import { checkSubtitles, describeIssues } from './check.mjs'
 
 const OPTIONS = {
@@ -116,6 +120,12 @@ const OPTIONS = {
     text: { type: 'string' },
     track: { type: 'string' },
     renderer: { type: 'string' },
+    ambience: { type: 'string' },
+    'ambience-gain': { type: 'string' },
+    effects: { type: 'string' },
+    'effects-gain': { type: 'string' },
+    cue: { type: 'string' },
+    kind: { type: 'string' },
     duration: { type: 'string' },
     look: { type: 'string' },
     style: { type: 'string' },
@@ -360,6 +370,18 @@ try {
       const fitted = refit && voiceOn(project) ? await fitVoice(project) : null
       const sample = values.sample ? await sampleVoice(loadProject(args[0])) : null
       result({ ...(await voiceInfo(loadProject(args[0]))), ...(fitted ? { fit: fitted } : {}), ...(sample ? { sample } : {}) })
+      break
+    }
+    case 'sound': {
+      // The ambience, the effects and which are on; with options, changes them
+      const project = loadProject(args[0])
+      const num = v => (v === undefined ? undefined : Number(v))
+      const change = { ambience: values.ambience === 'none' ? '' : values.ambience, ambienceGain: num(values['ambience-gain']),
+        effects: values.effects === undefined ? undefined : values.effects !== 'off', effectsGain: num(values['effects-gain']),
+        cue: values.cue, kind: values.kind, on: !values.off }
+      const changed = Object.entries(change).some(([k, v]) => k !== 'on' && v !== undefined)
+      const now = changed ? setSound(project, change) : { ...(project.config.sound ?? {}), cues: soundCues(project) }
+      result({ ...now, ambiences: AMBIENCE_NAMES, sounds: EFFECT_NAMES })
       break
     }
     case 'voice-models':

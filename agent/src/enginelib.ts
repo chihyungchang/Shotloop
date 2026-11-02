@@ -58,6 +58,7 @@ export const rules = await load<{
   asBuilt: (id: string) => boolean
   checklist: (track: string, own?: string | null) => string
 }>('rules.mjs')
+export const { AMBIENCE_NAMES, EFFECT_NAMES } = await load<{ AMBIENCE_NAMES: string[]; EFFECT_NAMES: string[] }>('sound.mjs')
 export const { STILLS } = await load<{ STILLS: readonly string[] }>('cache.mjs')
 export const { emit: emitLine, exit, parseFlags } = await load<{
   emit: (event: object) => void

@@ -3,7 +3,7 @@
 // (principles.ts).
 
 import type { Memory } from './enginelib.ts'
-import { CODE_2D, CODE_VOICE, CODE_WEBGL, PRINCIPLES_2D, PRINCIPLES_3D, PRINCIPLES_VOICE } from './principles.ts'
+import { CODE_2D, CODE_VOICE, CODE_WEBGL, PRINCIPLES_2D, PRINCIPLES_3D, PRINCIPLES_VOICE, SOUND } from './principles.ts'
 
 type Track = '2d' | '3d'
 // How a film is drawn, which sets its format and code rules: a 2D page, a
@@ -14,7 +14,7 @@ const paged = (kind: Kind) => kind !== 'blender'
 
 const rules = (kind: Kind) => `\n\n${kind === '2d' ? PRINCIPLES_2D : PRINCIPLES_3D}`
 // voice: the film has a voice-over (engine/shotloop/voice.mjs)
-const principles = (kind: Kind, voice = false) => rules(kind) + (voice ? `\n\n${PRINCIPLES_VOICE}` : '')
+const principles = (kind: Kind, voice = false) => rules(kind) + (voice ? `\n\n${PRINCIPLES_VOICE}` : '') + `\n\n${SOUND}`
 // What builds and fixes code also needs the code rules of its page; the
 // subtitle check and ctx.voice exist on any page
 const coding = (kind: Kind, voice = false) =>
@@ -138,7 +138,8 @@ storyboard.json, exactly this shape (JSON, no comments):
   "styleAlt": "<the second-best style id from the list, or empty>",
   "look": "<2D: the id of one look from the list in the request, one the style can use; 3D: leave it out>",
   "lookWhy": "<2D: one short sentence for the person: the mood of this subject, and how this look carries it>",
-  "lookTune": <2D, optional: { "accent": "#rrggbb", "accent2": "#rrggbb", "accent3": "#rrggbb", "bg": "<a CSS background: colors and gradients>" }, any of them, to shade the look for this subject; leave it out to take the look as it is>,${voice ? `
+  "lookTune": <2D, optional: { "accent": "#rrggbb", "accent2": "#rrggbb", "accent3": "#rrggbb", "bg": "<a CSS background: colors and gradients>" }, any of them, to shade the look for this subject; leave it out to take the look as it is>,
+  "ambience": "<the sound under the whole film, from the sound rules: the place it happens in (machine for a workshop, space, wind outdoors), or none>",${voice ? `
   "lang": "<the language the video speaks and writes, as a code: ${LANGUAGE_CODES.slice(0, -1).join(', ')} or ${LANGUAGE_CODES.at(-1)}>",` : ''}
   "copy": {
     "idea": "<the idea in one or two sentences>",
@@ -152,6 +153,7 @@ storyboard.json, exactly this shape (JSON, no comments):
 ${voice ? `      "say": "<the voice-over: what the voice says over this shot, one or two short spoken sentences>",
       "text": "<the on-screen text: the big number or a label of 1 to 4 words, never the spoken sentence; empty when the picture needs none>",` : `      "text": "<the caption on screen, short; two captions in one shot on two lines>",`}
       "motion": "<what moves and how>",
+      "sound": "<the effects that land on this shot's beats, in words with the sound names (a click as the gear locks, a whoosh on the crash zoom); empty for none>",
       "source": "<2D: the short source line shown small under the picture (publication, year; any arithmetic spelled out); empty when the shot states no fact>" }
   ],
   "recurring": [

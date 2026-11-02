@@ -4,7 +4,7 @@
 // script.md, storyboard.md). newProject (create.mjs) and applyStoryboard
 // (storyboard.mjs) both write them through these functions.
 //
-// A plan shot: { id, title, duration, show?, text?, motion?, say?, source? }
+// A plan shot: { id, title, duration, show?, text?, motion?, say?, sound?, source? }
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -86,7 +86,7 @@ ${shot.text?.trim() || '(no text)'}
 ## Motion
 
 ${shot.motion?.trim() || '(the move)'}
-${shot.source?.trim() ? `\n## Source line\n\n${shot.source.trim()}\n` : ''}`
+${shot.sound?.trim() ? `\n## Sound\n\n${shot.sound.trim()}\n` : ''}${shot.source?.trim() ? `\n## Source line\n\n${shot.source.trim()}\n` : ''}`
 }
 
 // Each plan shot's folder: starter code where the shot has none or only a

@@ -5,7 +5,7 @@
 // before anything is built (lintPlan). Within them, the AI makes each
 // frame as rich to watch as it can.
 
-import { readTime, rules, SUBTITLE_BAND, VOICE_LEAD, VOICE_TAIL, type Rule, type Tool } from './enginelib.ts'
+import { AMBIENCE_NAMES, EFFECT_NAMES, readTime, rules, SUBTITLE_BAND, VOICE_LEAD, VOICE_TAIL, type Rule, type Tool } from './enginelib.ts'
 
 type Track = '2d' | '3d'
 const RULES = rules.list()
@@ -105,6 +105,14 @@ export const CODE_WEBGL = `WebGL code rules:
 - No flicker: no coplanar faces (decals 1 mm proud), the near plane not too close (kit.look sets it from the subject's distance).
 - Text is never in the 3D scene: headlines, numbers and labels are DOM type (kit.caption, kit.label, kit.block) above the world, inside the safe area. Mark the subject the viewer must see each frame with kit.keep(object, 'name') after the camera is set: the subtitle check and the element picker use it, and a person picks a part by that name.
 - Characters (when the story has one): simple and original, built from rounded primitives in a joint hierarchy; poses as tables of joint angles mixed by eased keys; anticipation before a big move, overlapping action after it.`
+
+// Sound effects and the ambience (engine/shotloop/sound.mjs), planned in
+// words and written by the shot's builder where its animation lands
+export const SOUND = `Sound:
+- The film has an ambience under it (one of ${AMBIENCE_NAMES.join(', ')}, or none) and sound effects on the picture's beats, made by the engine from these names: ${EFFECT_NAMES.join(', ')} (riser ends on its beat; the others start on it).
+- Few and exact: only the beats that matter get a sound (a gear locking, a part landing, a crash zoom, a smash cut), at most one clear effect every 2 to 3 seconds; silence makes the next one count.
+- With a voice-over the voice comes first: put loud effects (thud, impact, whoosh, riser) in the pauses between sentences (ctx.voice gives their times); quiet ones (click, tick, pop, ding, glass, beep, hum) may sit under a word. The engine moves a loud one off a line by up to 0.3 s, else halves it.
+- A shot's effects go in shots/<id>/sounds.json, written with its code so they land on its animation: [{ "at": <shot seconds>, "sound": "<name>", "gain": <0–2, default 1>, "pan": <-1 left … 1 right, default 0> }]. The person can switch any of them off.`
 
 // The voice-over in a shot's code
 export const CODE_VOICE = `Voice-over in code:
