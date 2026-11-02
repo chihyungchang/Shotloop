@@ -7,7 +7,7 @@
 Aus einer Idee werden Text, Storyboard und ein Film aus Shots. Jeder Shot hat seine eigene Schleife: Die KI schreibt ihn, Shotloop rendert ihn, du prüfst ihn, die KI korrigiert ihn. Eine Korrektur rendert nur diesen Shot neu, nicht den ganzen Film.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Shotloop-Studio: eine mechanische Uhr in 3D, der Unruh-Shot als Start-, Mittel- und Endbild, darunter der Filmstreifen, links der KI-Assistent" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Shotloop-Studio: eine mechanische Uhr in 3D, der Unruh-Shot als Start-, Mittel- und Endbild, darunter der Filmstreifen, links der KI-Shot-Assistent" width="100%" />
 </p>
 
 <p align="center">
@@ -89,8 +89,8 @@ Die KI wählt den Stil, der zum Thema passt, und begründet ihn; du kannst im Pl
 <sub><b>Studio</b>: der Shot auf dunkler Bühne, der Filmstreifen sowie Notizen und Prüfungen zu jedem Shot.</sub>
 </td>
 <td width="50%" valign="top">
-<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="Antwort des KI-Assistenten mit Vorher-Nachher-Vergleich" /></a><br/>
-<sub><b>KI-Assistent</b>: sag, was nicht stimmt, und die KI korrigiert diesen Shot. Zieh den Trenner, um Vorher und Nachher zu vergleichen.</sub>
+<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="Antwort des KI-Shot-Assistenten mit Vorher-Nachher-Vergleich" /></a><br/>
+<sub><b>KI-Shot-Assistent</b>: sag, was nicht stimmt, und die KI korrigiert diesen Shot. Zieh den Trenner, um Vorher und Nachher zu vergleichen.</sub>
 </td>
 </tr>
 <tr>

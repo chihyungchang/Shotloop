@@ -7,7 +7,7 @@
 Một ý tưởng trở thành lời văn, phân cảnh và một video gồm nhiều cảnh. Mỗi cảnh có vòng lặp riêng: AI viết, Shotloop render, bạn xem lại và AI sửa. Sửa một cảnh chỉ render lại cảnh đó, không phải cả video.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Trình chỉnh sửa Shotloop: dự án 3D đồng hồ cơ, khung hình đầu, giữa và cuối của cảnh bánh lắc, dải phim bên dưới và Trợ lý AI bên trái" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Trình chỉnh sửa Shotloop: dự án 3D đồng hồ cơ, khung hình đầu, giữa và cuối của cảnh bánh lắc, dải phim bên dưới và Trợ lý cảnh AI bên trái" width="100%" />
 </p>
 
 <p align="center">
@@ -89,8 +89,8 @@ Video 2D tuân theo một bộ quy tắc: các quy tắc cố định giữ mọ
 <sub><b>Trình chỉnh sửa</b>: cảnh trên sân khấu tối, dải phim, ghi chú và kết quả kiểm tra của từng cảnh.</sub>
 </td>
 <td width="50%" valign="top">
-<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="Câu trả lời của Trợ lý AI với khung so sánh trước/sau" /></a><br/>
-<sub><b>Trợ lý AI</b>: nói điều chưa ổn và AI sửa cảnh đó. Kéo thanh chia để so sánh trước và sau.</sub>
+<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="Câu trả lời của Trợ lý cảnh AI với khung so sánh trước/sau" /></a><br/>
+<sub><b>Trợ lý cảnh AI</b>: nói điều chưa ổn và AI sửa cảnh đó. Kéo thanh chia để so sánh trước và sau.</sub>
 </td>
 </tr>
 <tr>

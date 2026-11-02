@@ -7,7 +7,7 @@
 一個想法會變成文案、分鏡，再變成由多個鏡頭組成的成片。每個鏡頭都有自己的循環：AI 撰寫，Shotloop 渲染，你來檢查，AI 再修改。修一個鏡頭只會重新渲染那一個，不必整支重做。</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Shotloop 編輯器：3D 機械錶，擺輪鏡頭的開頭、中間、結尾三張靜態畫面，下方是鏡頭列，左側是 AI 助理" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Shotloop 編輯器：3D 機械錶，擺輪鏡頭的開頭、中間、結尾三張靜態畫面，下方是鏡頭列，左側是 AI 鏡頭助理" width="100%" />
 </p>
 
 <p align="center">
@@ -89,8 +89,8 @@ AI 會依題材挑選合適的風格並說明理由；你可以在規劃頁切�
 <sub><b>編輯器</b>：深色舞台上的鏡頭、鏡頭列，以及每個鏡頭的說明與檢查。</sub>
 </td>
 <td width="50%" valign="top">
-<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="AI 助理的回覆，附修改前後對比" /></a><br/>
-<sub><b>AI 助理</b>：說出哪裡不對，AI 就修好那個鏡頭。拖動分隔線即可對比修改前後。</sub>
+<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="AI 鏡頭助理的回覆，附修改前後對比" /></a><br/>
+<sub><b>AI 鏡頭助理</b>：說出哪裡不對，AI 就修好那個鏡頭。拖動分隔線即可對比修改前後。</sub>
 </td>
 </tr>
 <tr>

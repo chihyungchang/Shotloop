@@ -7,7 +7,7 @@
 Un’idea diventa testi, uno storyboard e un video fatto di inquadrature. Ogni inquadratura ha il suo ciclo: l’IA la scrive, Shotloop la renderizza, tu la controlli e l’IA la corregge. Una correzione renderizza di nuovo solo quell’inquadratura, non l’intero video.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Lo Studio di Shotloop: un orologio meccanico in 3D, la sua inquadratura sul bilanciere come fotogrammi di inizio, metà e fine, la striscia delle inquadrature sotto e l’assistente IA a sinistra" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Lo Studio di Shotloop: un orologio meccanico in 3D, la sua inquadratura sul bilanciere come fotogrammi di inizio, metà e fine, la striscia delle inquadrature sotto e l’assistente IA delle inquadrature a sinistra" width="100%" />
 </p>
 
 <p align="center">
@@ -89,8 +89,8 @@ I video 2D seguono un insieme di regole: quelle fisse, che mantengono pulito ogn
 <sub><b>Studio</b>: l’inquadratura su un palco scuro, la striscia delle inquadrature, e le note e verifiche di ognuna.</sub>
 </td>
 <td width="50%" valign="top">
-<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="La risposta dell’assistente IA con il confronto prima/dopo" /></a><br/>
-<sub><b>Assistente IA</b>: di’ cosa non va e l’IA corregge quell’inquadratura. Trascina il divisore per confrontare prima e dopo.</sub>
+<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="La risposta dell’assistente IA delle inquadrature con il confronto prima/dopo" /></a><br/>
+<sub><b>Assistente IA delle inquadrature</b>: di’ cosa non va e l’IA corregge quell’inquadratura. Trascina il divisore per confrontare prima e dopo.</sub>
 </td>
 </tr>
 <tr>
