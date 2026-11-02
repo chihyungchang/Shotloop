@@ -31,7 +31,7 @@ An idea becomes copy, a storyboard and a film made of shots. Each shot has its o
 
 Shotloop is a desktop app for short videos that are drawn with code: product promos, science explainers, data stories and slide-style animation, made in 2D (web pages rendered frame by frame) or 3D (three.js worlds rendered like an offline renderer), in eight visual styles.
 
-You start with one sentence. The AI picks how to show it (a cinematic scene, an infographic, a map, an interface demo, a blueprint, kinetic type, a news story or 3D) and a theme, unless you choose them. It writes the hook, the script and the facts with their sources, then splits them into a storyboard, with the line a voice-over says over each shot. You edit the storyboard, and the AI builds every shot. In the Studio you look at each shot and say what is wrong in plain words, such as "the text is too small" or "it's too still: add some motion". The AI changes that shot, renders it, checks it against the notes and shows you a before/after. When the film reads right, Export joins the shots, lays the voice-over with its subtitles and the music under them, the AI designs a cover in the film's look (or fills your series' template) and writes the post for each platform, all into a folder of its own.
+You start with one sentence. The AI picks how to show it (a cinematic scene, an infographic, a map, an interface demo, a blueprint, kinetic type, a news story or 3D) and a theme, unless you choose them. It writes the hook, the script and the facts with their sources, then splits them into a storyboard, with the line a voice-over says over each shot. You edit the storyboard, and the AI builds every shot. In the Studio you look at each shot and say what is wrong in plain words, such as "the text is too small" or "it's too still: add some motion". The AI looks first and offers a few ways to change that shot; you pick one (or say your own), and it changes the shot and shows you a before/after. When the film reads right, Export joins the shots, lays the voice-over with its subtitles and the music under them, the AI designs a cover in the film's look (or fills your series' template) and writes the post for each platform, all into a folder of its own.
 
 The AI is the one you already use: Claude Code or another coding agent you're signed in to, a model API with your own key, or a local model.
 
@@ -68,7 +68,7 @@ The AI picks the style that fits the subject and tells you why; you can switch o
 </tr>
 </table>
 
-2D videos follow a set of rules: fixed ones that keep every frame clean and the video true (nothing covered, no broken frames, time to read every line, honest, sourced), and a house taste you can reword, switch off or add to in Settings → Rules, together with a toolbox of animation devices you can extend with your own. They live in [engine/shotloop/rules.mjs](engine/shotloop/rules.mjs) and reach every 2D prompt.
+2D videos follow a set of rules: fixed ones that keep every frame clean and the video true (nothing covered, no broken frames, time to read every line, honest, sourced), and a house taste you can reword, switch off or add to in Settings → Rules, together with a toolbox of animation devices you can extend with your own. They live in [engine/shotloop/rules.mjs](engine/shotloop/rules.mjs) and reach every 2D prompt. Run checks reviews a shot against them, and every failed check links to its rule.
 
 ## Product tour
 
@@ -86,7 +86,7 @@ The AI picks the style that fits the subject and tells you why; you can switch o
 <tr>
 <td width="50%" valign="top">
 <a href="docs/screenshots/studio.jpg"><img src="docs/screenshots/studio.jpg" alt="Studio with a 2D shot on the stage and the filmstrip" /></a><br/>
-<sub><b>Studio</b>: the shot on a dark stage, the filmstrip, and each shot's notes and checks.</sub>
+<sub><b>Studio</b>: the shot on a dark stage, the filmstrip with the sound tracks under it, and each shot's notes and checks.</sub>
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="The AI shot assistant's reply with a before/after compare view" /></a><br/>
@@ -117,16 +117,16 @@ flowchart LR
 ```
 
 - **Shots, not one long render.** A film is a list of shots. Each shot is a small program, `shot.js`, that draws its page at a time t: a 2D page, or a three.js world for 3D. Each one is cached by a hash of its inputs, so a fix re-renders one shot in seconds, and Export only joins clips.
-- **Plain-language fixes.** The AI only touches the shot you're on, unless the fix needs the shared world. It renders stills, checks them against a checklist (readable, nothing covered, out of the caption zone and so on) and reports what it changed.
+- **Plain-language fixes.** The AI only touches the shot you're on, unless the fix needs the shared world. It first offers a few concrete ways to make your change; the one you pick (or your own) is the fix, done in well under a minute, and the shot's clip renders right after so it plays at once. Run checks reviews the shot against the checklist (readable, nothing covered, out of the caption zone and so on) without changing anything, and fixes what it found in one click.
 - **Eight visual styles.** A cinematic scene, an infographic, a map, an interface demo, a blueprint, kinetic type, a news story or 3D, each with its own kit and reference stills the AI looks at before it chooses and builds ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). A theme sets only the ground and the type; pictures and data keep the colors their subject needs.
 - **Rules a plan is measured against.** Captions are checked for length and for the time they stay up before anything is built. A picture that recurs across shots is drawn once and shared, so it looks the same in each.
 - **Facts with sources.** The copy keeps each fact next to its source, and the publish copy may only use facts from the copy.
 - **Covers.** The AI designs a cover in the film's look and checks its own renders. Save one as a template to keep a series consistent, or upload a cover you like and the AI follows its design.
 - **A voice-over, spoken on your Mac, when you want one.** Off by default: the picture sets the timing, with captions on screen. Turn it on and each shot has a line that leads the cut: a shot lasts as long as its line, and the picture lands on the words. Or add a narration once the shots are done: the lines are written to fit the shots, which keep their lengths, and a line a little too long runs on over the cut. Kokoro speaks English, CosyVoice 2 Chinese and Supertonic the other languages, all offline. Subtitles of the spoken words are added automatically, and a check lists anything they would cover (text and the marked subject), so a covered film is never exported.
-- **Sound once the picture is right.** Sound in the studio has the AI go through the whole film, put effects on the picture's beats (read from each shot's code) and pick an ambience. Listen to each track around the shot you are on (voice, music, ambience, effects, or all together), change it there, and switch any effect off.
+- **Sound once the picture is right.** The sound sits under the filmstrip as coloured tracks, each with its waveform: voice, music, ambience and effects. Play from anywhere and the picture follows. Each track's volume is in its header and is heard at once while you drag; its settings open beside it, and any effect switches off with a click. AI sound asks which parts to make (effects on the picture's beats, read from each shot's code, an ambience, and narration when there is no voice-over) and goes through the whole film at once.
 - **Music that fits the cut.** The synthesized bed is tuned so the cuts land on its beats, runs to the last frame and fades out. Under a voice-over it sits lower and dips while a line is spoken.
 - **3D that renders like an offline renderer, in minutes.** Each 3D frame averages several sub-frames (antialiasing, soft shadows, ambient occlusion, depth of field, motion blur) in about half a second, so a 30-second film renders in a few minutes, with nothing to install.
-- **Asset library: models and sounds.** Search CC0 models on [Poly Pizza](https://poly.pizza) and [Smithsonian Open Access](https://www.si.edu/openaccess) with your own key, and sound effects, ambiences and music on [Openverse](https://openverse.org) (Freesound, Wikimedia, Jamendo) with no key; listen before you download. Each one is downloaded once and can be added to any project: a model to a 3D world, a sound to a beat or as the ambience under the film.
+- **Asset library: models and sounds.** Search CC0 models on [Poly Pizza](https://poly.pizza) and [Smithsonian Open Access](https://www.si.edu/openaccess) with your own key, and sound effects, ambiences and music on [Openverse](https://openverse.org) (Freesound, Wikimedia, Jamendo) with no key; listen before you download. Each one is downloaded once and can be added to any project: a model to a 3D world, a sound to a beat or as the ambience under the film. Downloads wait in the Queue for your approval.
 
 ## The AI that drives it
 

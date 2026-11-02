@@ -31,7 +31,7 @@ Một ý tưởng trở thành lời văn, phân cảnh và một video gồm nh
 
 Shotloop là ứng dụng desktop để làm video ngắn được vẽ bằng code: quảng bá sản phẩm, giải thích khoa học, kể chuyện bằng dữ liệu và hoạt ảnh kiểu slide, ở dạng 2D (trang web render từng khung hình) hoặc 3D (thế giới three.js được render như bằng trình render offline), với tám phong cách hình ảnh.
 
-Bạn bắt đầu bằng một câu. Nếu bạn không tự chọn, AI sẽ chọn cách thể hiện (cảnh điện ảnh, infographic, bản đồ, demo giao diện, bản vẽ kỹ thuật, chữ chuyển động, kể chuyện tin tức hoặc 3D) và chủ đề màu. AI viết câu mở đầu, kịch bản và các dữ kiện kèm nguồn, rồi chia thành phân cảnh, kèm lời thoại mà giọng lồng tiếng đọc trên từng cảnh. Bạn chỉnh phân cảnh, AI dựng từng cảnh. Trong trình chỉnh sửa, bạn xem từng cảnh và nói điều chưa ổn bằng lời thường, ví dụ "chữ nhỏ quá" hay "tĩnh quá, thêm chút chuyển động đi". AI sửa cảnh đó, render, đối chiếu với ghi chú và cho bạn xem trước/sau. Khi video đã ổn, Xuất sẽ ghép các cảnh, đặt lồng tiếng cùng phụ đề và nhạc nằm bên dưới; AI thiết kế ảnh bìa theo phong cách của video (hoặc điền vào mẫu của series) và viết bài đăng cho từng nền tảng, tất cả trong một thư mục riêng.
+Bạn bắt đầu bằng một câu. Nếu bạn không tự chọn, AI sẽ chọn cách thể hiện (cảnh điện ảnh, infographic, bản đồ, demo giao diện, bản vẽ kỹ thuật, chữ chuyển động, kể chuyện tin tức hoặc 3D) và chủ đề màu. AI viết câu mở đầu, kịch bản và các dữ kiện kèm nguồn, rồi chia thành phân cảnh, kèm lời thoại mà giọng lồng tiếng đọc trên từng cảnh. Bạn chỉnh phân cảnh, AI dựng từng cảnh. Trong trình chỉnh sửa, bạn xem từng cảnh và nói điều chưa ổn bằng lời thường, ví dụ "chữ nhỏ quá" hay "tĩnh quá, thêm chút chuyển động đi". AI xem qua cảnh đó rồi đề xuất vài cách sửa; bạn chọn một cách (hoặc nói ý của mình), rồi AI sửa cảnh và cho bạn xem trước/sau. Khi video đã ổn, Xuất sẽ ghép các cảnh, đặt lồng tiếng cùng phụ đề và nhạc nằm bên dưới; AI thiết kế ảnh bìa theo phong cách của video (hoặc điền vào mẫu của series) và viết bài đăng cho từng nền tảng, tất cả trong một thư mục riêng.
 
 AI là cái bạn đang dùng: Claude Code hoặc một coding agent khác đã đăng nhập, API mô hình với khóa của bạn, hoặc mô hình chạy cục bộ.
 
@@ -68,7 +68,7 @@ AI chọn phong cách hợp với chủ đề và giải thích lý do; bạn c�
 </tr>
 </table>
 
-Video 2D tuân theo một bộ quy tắc: các quy tắc cố định giữ mọi khung hình sạch sẽ và video trung thực (không che khuất, không có khung hình lỗi, đủ thời gian đọc mọi dòng, trung thực, ghi nguồn), và một gu mặc định mà bạn có thể viết lại, tắt hoặc thêm vào trong Cài đặt → Quy tắc, cùng một hộp công cụ gồm các thủ pháp hoạt hình mà bạn có thể bổ sung thủ pháp của riêng mình. Chúng nằm trong [engine/shotloop/rules.mjs](engine/shotloop/rules.mjs) và có mặt trong mọi prompt 2D.
+Video 2D tuân theo một bộ quy tắc: các quy tắc cố định giữ mọi khung hình sạch sẽ và video trung thực (không che khuất, không có khung hình lỗi, đủ thời gian đọc mọi dòng, trung thực, ghi nguồn), và một gu mặc định mà bạn có thể viết lại, tắt hoặc thêm vào trong Cài đặt → Quy tắc, cùng một hộp công cụ gồm các thủ pháp hoạt hình mà bạn có thể bổ sung thủ pháp của riêng mình. Chúng nằm trong [engine/shotloop/rules.mjs](engine/shotloop/rules.mjs) và có mặt trong mọi prompt 2D. Nút Kiểm tra đối chiếu một cảnh với các quy tắc này, và mỗi mục không đạt đều dẫn tới quy tắc tương ứng.
 
 ## Tham quan sản phẩm
 
@@ -86,7 +86,7 @@ Video 2D tuân theo một bộ quy tắc: các quy tắc cố định giữ mọ
 <tr>
 <td width="50%" valign="top">
 <a href="docs/screenshots/studio.jpg"><img src="docs/screenshots/studio.jpg" alt="Trình chỉnh sửa với một cảnh 2D trên sân khấu và dải phim" /></a><br/>
-<sub><b>Trình chỉnh sửa</b>: cảnh trên sân khấu tối, dải phim, ghi chú và kết quả kiểm tra của từng cảnh.</sub>
+<sub><b>Trình chỉnh sửa</b>: cảnh trên sân khấu tối, dải phim với các track âm thanh bên dưới, ghi chú và kết quả kiểm tra của từng cảnh.</sub>
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="Câu trả lời của Trợ lý cảnh AI với khung so sánh trước/sau" /></a><br/>
@@ -117,16 +117,16 @@ flowchart LR
 ```
 
 - **Theo từng cảnh, không phải một lần render dài.** Video là một danh sách cảnh. Mỗi cảnh là một chương trình nhỏ, `shot.js`, vẽ trang của nó tại thời điểm t: một trang 2D, hoặc một thế giới three.js cho 3D. Mỗi cảnh được cache theo hash của đầu vào, nên sửa một cảnh chỉ render lại cảnh đó trong vài giây, và Xuất chỉ ghép các clip.
-- **Sửa bằng lời thường.** AI chỉ đụng vào cảnh bạn đang xem, trừ khi cần sửa thế giới dùng chung. AI render khung hình tĩnh, đối chiếu với danh sách kiểm tra (đọc được, không bị che, không lấn vùng phụ đề…) và báo lại đã thay đổi gì.
+- **Sửa bằng lời thường.** AI chỉ đụng vào cảnh bạn đang xem, trừ khi cần sửa thế giới dùng chung. Trước tiên AI đề xuất vài cách cụ thể để thực hiện thay đổi của bạn; cách bạn chọn (hoặc ý của riêng bạn) chính là bản sửa, xong trong chưa tới một phút, và clip của cảnh được render ngay sau đó để phát được liền. Nút Kiểm tra đối chiếu cảnh với danh sách kiểm tra (đọc được, không bị che, không lấn vùng phụ đề…) mà không thay đổi gì, và sửa những gì tìm thấy chỉ với một cú nhấp.
 - **Tám phong cách hình ảnh.** Cảnh điện ảnh, infographic, bản đồ, demo giao diện, bản vẽ kỹ thuật, chữ chuyển động, kể chuyện tin tức hoặc 3D, mỗi phong cách có bộ kit và khung hình tham khảo riêng mà AI xem trước khi chọn và dựng ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Chủ đề chỉ quyết định nền và chữ; hình ảnh và dữ liệu giữ màu mà nội dung cần.
 - **Kế hoạch được đo theo quy tắc.** Trước khi dựng, phụ đề được kiểm tra độ dài và thời gian hiển thị. Hình xuất hiện lặp lại qua nhiều cảnh chỉ vẽ một lần và dùng chung, nên trông giống nhau ở mọi cảnh.
 - **Dữ kiện có nguồn.** Lời văn giữ mỗi dữ kiện cạnh nguồn của nó, và bài đăng chỉ được dùng dữ kiện có trong lời văn.
 - **Ảnh bìa.** AI thiết kế ảnh bìa theo phong cách video và tự kiểm tra bản render. Lưu một ảnh làm mẫu để giữ series đồng nhất, hoặc tải lên ảnh bìa bạn thích để AI làm theo bố cục đó.
 - **Lồng tiếng, đọc ngay trên Mac của bạn, khi bạn cần.** Mặc định tắt: hình ảnh quyết định nhịp, kèm chữ trên màn hình. Bật lên thì mỗi cảnh có một lời thoại dẫn nhịp dựng: cảnh dài đúng bằng lời thoại của nó, hình ảnh khớp với từng chữ. Hoặc thêm lời dẫn khi các cảnh đã xong: lời thoại được viết vừa với các cảnh, cảnh giữ nguyên độ dài, và câu hơi dài một chút sẽ kéo qua điểm cắt. Kokoro đọc tiếng Anh, CosyVoice 2 đọc tiếng Trung và Supertonic đọc các ngôn ngữ khác, tất cả đều offline. Phụ đề của lời đọc được thêm tự động, và một bước kiểm tra liệt kê mọi thứ phụ đề sẽ che (chữ và chủ thể được đánh dấu), nên video bị che sẽ không bao giờ được xuất.
-- **Âm thanh khi hình đã ổn.** Bấm Âm thanh trong trình chỉnh sửa, AI sẽ xem qua cả video, đặt hiệu ứng âm thanh vào các nhịp của hình (đọc từ code của từng cảnh) và chọn một âm thanh nền. Nghe từng track quanh cảnh đang chọn (lồng tiếng, nhạc, âm thanh nền, hiệu ứng hoặc tất cả cùng lúc), chỉnh ngay tại đó và tắt bất kỳ hiệu ứng nào.
+- **Âm thanh khi hình đã ổn.** Âm thanh nằm dưới dải phim thành các track có màu, mỗi track kèm dạng sóng: lồng tiếng, nhạc, âm thanh nền và hiệu ứng. Phát từ bất kỳ đâu, hình sẽ chạy theo. Âm lượng của mỗi track nằm ở đầu track và nghe được ngay khi bạn kéo; phần cài đặt mở ngay bên cạnh, và hiệu ứng nào cũng tắt được bằng một cú nhấp. Nút Âm thanh AI sẽ hỏi cần tạo những phần nào (hiệu ứng trên các nhịp của hình, đọc từ code của từng cảnh, âm thanh nền, và lời dẫn khi chưa có lồng tiếng) rồi xử lý cả video một lượt.
 - **Nhạc khớp nhịp cắt.** Nhạc nền tổng hợp được chỉnh để điểm cắt rơi đúng nhịp, chạy đến khung hình cuối rồi nhỏ dần. Khi có lồng tiếng, nhạc nhỏ hơn và hạ xuống mỗi khi một lời thoại được đọc.
 - **3D render như trình render offline, chỉ trong vài phút.** Mỗi khung hình 3D lấy trung bình nhiều khung con (khử răng cưa, bóng đổ mềm, ambient occlusion, độ sâu trường ảnh, nhòe chuyển động) trong khoảng nửa giây, nên một video 30 giây render xong trong vài phút, không cần cài gì thêm.
-- **Thư viện tài nguyên: mô hình và âm thanh.** Tìm mô hình CC0 trên [Poly Pizza](https://poly.pizza) và [Smithsonian Open Access](https://www.si.edu/openaccess) bằng khóa của bạn, cùng hiệu ứng âm thanh, âm thanh nền và nhạc trên [Openverse](https://openverse.org) (Freesound, Wikimedia, Jamendo) mà không cần khóa; nghe thử trước khi tải. Mỗi tài nguyên chỉ tải một lần và thêm được vào bất kỳ dự án nào: mô hình vào thế giới 3D, âm thanh vào một nhịp của hình ảnh hoặc làm âm thanh nền cho cả phim.
+- **Thư viện tài nguyên: mô hình và âm thanh.** Tìm mô hình CC0 trên [Poly Pizza](https://poly.pizza) và [Smithsonian Open Access](https://www.si.edu/openaccess) bằng khóa của bạn, cùng hiệu ứng âm thanh, âm thanh nền và nhạc trên [Openverse](https://openverse.org) (Freesound, Wikimedia, Jamendo) mà không cần khóa; nghe thử trước khi tải. Mỗi tài nguyên chỉ tải một lần và thêm được vào bất kỳ dự án nào: mô hình vào thế giới 3D, âm thanh vào một nhịp của hình ảnh hoặc làm âm thanh nền cho cả phim. Các bản tải xuống chờ bạn duyệt trong Hàng đợi.
 
 ## AI điều khiển
 
