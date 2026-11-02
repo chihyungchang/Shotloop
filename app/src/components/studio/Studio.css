@@ -69,7 +69,11 @@ body.resizing { cursor: col-resize; }
 .check-pill { align-self: flex-start; display: inline-flex; gap: 5px; align-items: center; font-size: 11.5px; border-radius: var(--r-md); padding: 2px 9px; }
 .check-pill.ok { background: var(--success-soft); color: var(--success); }
 /* Under a check's failures: fixing them is a fix the person asks for */
-.fix-found { align-self: flex-start; margin-top: 2px; }
+/* A reply's failed checks: a card with each rule, then the fix */
+.check-card { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px; border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--danger-soft) 55%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 18%, transparent); }
+.check-card-head { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--danger); }
+.fix-found { align-self: stretch; justify-content: center; margin-top: 2px; }
 .check-pill.bad { background: var(--danger-soft); color: var(--danger); }
 .suggestions { display: flex; flex-wrap: wrap; gap: 6px; padding: 2px 4px 10px; }
 .suggestion { min-height: 28px; padding: 0 11px; border-radius: var(--r-pill); border-color: var(--border-soft); background: var(--surface); font-size: 12px; color: var(--text-2); }
