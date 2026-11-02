@@ -356,6 +356,9 @@ export interface PreviewResult {
 // shotloop voice <project>
 export interface VoiceResult {
   on: boolean
+  // The picture leads: narration added to a finished film never changes a
+  // shot's length (the fit reports overruns instead)
+  picture: boolean
   voice: string | null
   speed: number
   gain: number
@@ -371,6 +374,9 @@ export interface VoiceResult {
     lang: string
     voice: string
     changes: { shot: string; from: number; to: number }[]
+    // With the picture leading: lines too long for their shot even spoken
+    // faster (seconds spoken, seconds the shot has)
+    overruns: { shot: string; spoken: number; room: number }[]
     // Words the voice can't say, per shot
     unspoken: { shot: string; words: string[] }[]
     duration: number
@@ -400,8 +406,6 @@ export interface SoundResult {
   effectsGain?: number
   // Switched off: cue keys and "kind:<sound>"
   off?: string[]
-  // The person chose the ambience (a plan keeps it)
-  chosen?: boolean
   cues: SoundCue[]
   // The synth's ambiences and effects, by name
   ambiences: string[]

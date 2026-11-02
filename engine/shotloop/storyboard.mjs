@@ -13,7 +13,6 @@ import { writeJson } from './files.mjs'
 import { untouchedLook } from './looks.mjs'
 import { loadProject, SHOT_ID, updateConfig } from './project.mjs'
 import { isStarter, unbuilt, writePlan, writeShots, writeWorld2d, writeWorld3d } from './starters.mjs'
-import { AMBIENCE_NAMES } from './sound.mjs'
 
 export const STORYBOARD_FILE = 'storyboard.json'
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 4).join('-')
@@ -110,10 +109,7 @@ export function applyStoryboard(project) {
   const fields = {
     shots: shots.map(s => ({ id: s.id, title: s.title, duration: s.duration, ...(s.say ? { say: s.say, ...timing(s) } : {}) })),
     ...(typeof sb.lang === 'string' && sb.lang.trim() ? { lang: sb.lang.trim() } : {}),
-    ...(look ? { look } : {}), ...(styleId ? { style: styleId } : {}), ...(project.track === '3d' ? { style: '3d' } : {}),
-    // The plan's ambience, unless the person chose one
-    ...(!project.config.sound?.chosen && (AMBIENCE_NAMES.includes(sb.ambience) || sb.ambience === 'none')
-      ? { sound: { ...(project.config.sound ?? {}), ambience: sb.ambience === 'none' ? null : sb.ambience } } : {})
+    ...(look ? { look } : {}), ...(styleId ? { style: styleId } : {}), ...(project.track === '3d' ? { style: '3d' } : {})
   }
   updateConfig(project.root, cfg => ({ ...cfg, ...fields }))
   return { shots: shots.map(s => s.id), duration: film }

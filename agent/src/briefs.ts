@@ -31,7 +31,7 @@ function assetList(project: ProjectStatus) {
 // CC-BY models and sounds need their authors credited in every post
 export const credits = (project: ProjectStatus) => creditsPrompt(assetList(project).filter(a => /cc-by/i.test(a.license)))
 
-function assetsBrief(project: ProjectStatus) {
+export function assetsBrief(project: ProjectStatus) {
   const assets = assetList(project)
   const by = (a: ReturnType<typeof assetList>[number]) => `${a.license}${a.author ? `, ${a.author}` : ''}`
   const models = assets.filter(a => a.kind === 'model')

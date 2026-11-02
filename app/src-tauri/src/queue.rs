@@ -58,6 +58,9 @@ pub enum Spec {
     Plan { project: String, request: Option<String>, lang: Option<String> },
     /// The world and every shot, from the applied storyboard
     Build { project: String, lang: Option<String> },
+    /// The film's sound once its shots are approved: effects and ambience,
+    /// and with `narrate` a narration that fits the finished shots
+    Sound { project: String, narrate: Option<bool>, lang: Option<String> },
     /// A speech model for the voice-over, downloaded with progress (its own
     /// lane: it never waits behind renders or the agent)
     VoiceModel { model: String },
@@ -79,6 +82,7 @@ impl Spec {
             Spec::Cover { .. } => "cover",
             Spec::Plan { .. } => "plan",
             Spec::Build { .. } => "build",
+            Spec::Sound { .. } => "sound",
             Spec::VoiceModel { .. } => "voiceModel",
             Spec::VoiceFit { .. } => "voiceFit",
             Spec::Preview { .. } => "preview",
@@ -104,6 +108,7 @@ impl Spec {
             | Spec::Cover { project, .. }
             | Spec::Plan { project, .. }
             | Spec::Build { project, .. }
+            | Spec::Sound { project, .. }
             | Spec::Preview { project, .. }
             | Spec::VoiceFit { project } => project,
             Spec::VoiceModel { .. } => "",
@@ -123,6 +128,7 @@ impl Spec {
             Spec::Plan { request: Some(r), .. } => format!("Plan: {}", r),
             Spec::Plan { .. } => "Plan the copy and storyboard".into(),
             Spec::Build { .. } => "Build the shots".into(),
+            Spec::Sound { .. } => "Sound for the film".into(),
             Spec::VoiceModel { model } => format!("Download voice {}", model),
             Spec::VoiceFit { .. } => "Speak the lines".into(),
             Spec::Preview { mode, .. } => format!("Preview the film {}", mode),
@@ -167,6 +173,9 @@ impl Spec {
                 (Script::Agent, Args::new(["plan", project]).opt("--request", request.as_ref()).opt("--lang", lang.as_ref()))
             }
             Spec::Build { project, lang } => (Script::Agent, Args::new(["build", project]).opt("--lang", lang.as_ref())),
+            Spec::Sound { project, narrate, lang } => {
+                (Script::Agent, Args::new(["sound", project]).flag(*narrate == Some(true), "--narrate").opt("--lang", lang.as_ref()))
+            }
             Spec::VoiceModel { model } => (Script::Engine, Args::new(["voice-models", "--download", model])),
             Spec::VoiceFit { project } => (Script::Engine, Args::new(["voice", project, "--fit"])),
             Spec::Preview { project, mode } => {

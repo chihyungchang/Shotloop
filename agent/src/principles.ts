@@ -71,6 +71,10 @@ const WORDS_PER_S = 3.2
 const CJK_PER_S = 4.5
 const VOICE_PAD = VOICE_LEAD + VOICE_TAIL
 
+// How a line is written for the ear: the planned voice-over and narration
+// added to a finished film
+const HEARD = `Lines are written to be heard: short words, no lists, no parentheses, no abbreviations a voice can't say (respell an unusual name the way it sounds). Numbers as they are said: digits are fine in English and Chinese; in other languages write numbers in words. Where the screen shows ≈ the voice says "about".`
+
 // With a voice-over (when the person turns it on, engine/shotloop/voice.mjs) the
 // voice carries the explanation: these rules change the caption and
 // reading rules, and the rest stand
@@ -79,7 +83,7 @@ export const PRINCIPLES_VOICE = `The voice-over (this film has one; it changes t
 - The voice's words are subtitled automatically, in a band near the bottom (portrait: ${band('portrait')} of the frame height; landscape: ${band('landscape')}). The shot keeps its own text and anything important out of that band, and never repeats the spoken sentence on screen: ${CAPTION_RULE ? 'its on-screen text shrinks to the big number or a label of 1 to 4 words' : 'its on-screen text follows the person\'s caption rule'}.
 - Time follows the voice: after planning, every line is spoken and its shot gets the line's length plus a breath. Write each line to fill its shot: about ${WORDS_PER_S} words a second (Chinese or Japanese: ${CJK_PER_S} characters a second) plus ${VOICE_PAD} s. A shot may hold up to ${VOICE_HOLD} s past its line; any longer and it is cut to the line, so a film whose lines are short comes out shorter than planned.
 - The picture lands on the words: a number rolls in, an object appears or a chart turns as the voice says it (the shot's code gets each sentence's start and end).
-- Lines are written to be heard: short words, no lists, no parentheses, no abbreviations a voice can't say (respell an unusual name the way it sounds). Numbers as they are said: digits are fine in English and Chinese; in other languages write numbers in words. Where the screen shows ≈ the voice says "about".`
+- ${HEARD}`
 
 // How a 2D shot's code stays renderable frame by frame
 export const CODE_2D = `2D code rules:
@@ -107,14 +111,25 @@ export const CODE_WEBGL = `WebGL code rules:
 - Text is never in the 3D scene: headlines, numbers and labels are DOM type (kit.caption, kit.label, kit.block) above the world, inside the safe area. Mark the subject the viewer must see each frame with kit.keep(object, 'name') after the camera is set: the subtitle check and the element picker use it, and a person picks a part by that name.
 - Characters (when the story has one): simple and original, built from rounded primitives in a joint hierarchy; poses as tables of joint angles mixed by eased keys; anticipation before a big move, overlapping action after it.`
 
-// Sound effects and the ambience (engine/shotloop/sound.mjs), planned in
-// words and written by the shot's builder where its animation lands
+// Sound effects and the ambience (engine/shotloop/sound.mjs), written in
+// the film's sound pass once the person has approved the shots
 export const SOUND = `Sound:
 - The film has an ambience under it (one of ${AMBIENCE_NAMES.join(', ')}, or none) and sound effects on the picture's beats, made by the engine from these names: ${EFFECT_NAMES.join(', ')} (riser ends on its beat; the others start on it).
 - Few and exact: only the beats that matter get a sound (a gear locking, a part landing, a crash zoom, a smash cut), at most one clear effect every 2 to 3 seconds; silence makes the next one count.
-- With a voice-over the voice comes first: put loud effects (thud, impact, whoosh, riser) in the pauses between sentences (ctx.voice gives their times); quiet ones (click, tick, pop, ding, glass, beep, hum) may sit under a word. The engine moves a loud one off a line by up to 0.3 s, else halves it.
-- A shot's effects go in shots/<id>/sounds.json, written with its code so they land on its animation: [{ "at": <shot seconds>, "sound": "<name>", "gain": <0–2, default 1>, "pan": <-1 left … 1 right, default 0> }]. The person can switch any of them off.
+- With a voice-over the voice comes first: put loud effects (thud, impact, whoosh, riser) in the pauses between sentences (each shot's "cues" in shotloop.json give its sentences' times in shot seconds); quiet ones (click, tick, pop, ding, glass, beep, hum) may sit under a word. The engine moves a loud one off a line by up to 0.3 s, else halves it.
+- A shot's effects go in shots/<id>/sounds.json: [{ "at": <shot seconds>, "sound": "<name>", "gain": <0–2, default 1>, "pan": <-1 left … 1 right, default 0> }]. Each lands on the frame its beat happens: read the shot's code for when it does (its keyframes, eased moves and cuts), never guess from the notes. The person can switch any of them off.
 - Sounds the person added from the asset library (listed with the project, when there are any) are real recordings: use one by its id as "sound" where it fits the beat better than a synth name. It plays from its start, up to 8 s, at the synth effects' peak, and is never moved off a word, so place a loud one in a pause yourself. The person may also choose one as the ambience.`
+
+// A shot whose code changes keeps its effects on its animation
+export const SOUND_KEEP = `Sound: when the shot has shots/<id>/sounds.json (its effects, at shot seconds), keep them on the animation: a beat you move takes its effect with it, and one you remove takes it away.`
+
+// Narration added to a finished film: the shots are final, the lines fit them
+export const NARRATION = `Narration (the person asked for one; the shots are final, so the picture leads):
+- No shot changes length. Write each shot's line to fit it: about ${WORDS_PER_S} words a second (Chinese or Japanese: ${CJK_PER_S} characters a second) for its length minus ${VOICE_PAD} s. Shorter is fine (it leaves a breath); longer is not.
+- The voice explains what the picture shows while it shows it, one or two plain, conversational sentences a shot. The first line hooks in its first words; the end card may stay silent.
+- ${HEARD}
+- The voice's words are subtitled automatically in a band near the bottom (portrait: ${band('portrait')} of the frame height; landscape: ${band('landscape')}).
+- Set every line at once with set_lines, in the language the film shows. It speaks them and lists any line too long for its shot even spoken a little faster: shorten those and set them again.`
 
 // The voice-over in a shot's code
 export const CODE_VOICE = `Voice-over in code:

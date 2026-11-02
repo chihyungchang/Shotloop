@@ -6,9 +6,10 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import fs from 'node:fs'
 import path from 'node:path'
-import { renderCover, renderStills } from './engine.ts'
+import type { VoiceResult } from '../../engine/shotloop/protocol.d.ts'
+import { engine, renderCover, renderStills } from './engine.ts'
 import { emit, reason, warn } from './events.ts'
-import { memory, STYLES, styleById, styleStills } from './enginelib.ts'
+import { AMBIENCE_NAMES, memory, STYLES, styleById, styleStills } from './enginelib.ts'
 
 type Tool = Anthropic.Beta.BetaTool
 
@@ -112,6 +113,11 @@ function canWrite(ctx: ToolContext, rel: string) {
   return ctx.writable.some(w => (w.endsWith('/') ? rel.startsWith(w) : rel === w))
 }
 
+// Parts of shotloop.json a task may set through a tool (the sound pass):
+// listed among its writable paths like files
+export const SET_AMBIENCE = 'shotloop.json#sound'
+export const SET_LINES = 'shotloop.json#say'
+
 const object = (properties: Record<string, unknown>, required: string[]) => ({
   type: 'object' as const,
   properties,
@@ -209,6 +215,26 @@ export const TOOLS: Tool[] = [
       track: { type: 'string', enum: ['all', '2d', '3d'], description: 'The videos it applies to.' },
       replaces: { type: 'string', description: 'Id of the lesson this one merges into and replaces; "" for a new one.' }
     }, ['text', 'track', 'replaces'])
+  },
+  {
+    name: 'set_ambience',
+    description: 'Set the sound under the whole film (only in the sound pass).',
+    strict: true,
+    input_schema: object({
+      ambience: { type: 'string', description: `One of ${AMBIENCE_NAMES.join(', ')}, the id of a sound in the project's assets, or "none".` }
+    }, ['ambience'])
+  },
+  {
+    name: 'set_lines',
+    description: 'Set the narration, every shot\'s line at once (only when the person asked for narration in the sound pass). The lines are spoken and fitted to the shots, which keep their lengths; the answer lists any line too long for its shot.',
+    strict: true,
+    input_schema: object({
+      lines: {
+        type: 'array',
+        description: 'One entry per shot, in film order; an empty say leaves a shot silent.',
+        items: object({ shot: { type: 'string', description: 'Shot id.' }, say: { type: 'string', description: 'What the voice says over it.' } }, ['shot', 'say'])
+      }
+    }, ['lines'])
   }
 ]
 
@@ -363,6 +389,29 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
       const m = memory.add({ text: str('text'), by: 'ai', track: str('track'), from: typeof title === 'string' ? title : null, replaces: str('replaces') || null })
       emit({ type: 'tool', name, summary: m.text })
       return `kept as ${m.id}`
+    }
+    case 'set_ambience': {
+      if (!canWrite(ctx, SET_AMBIENCE)) throw new Error('the ambience is set in the sound pass only')
+      const ambience = str('ambience') || 'none'
+      emit({ type: 'tool', name, summary: ambience })
+      await engine(['sound', ctx.root, '--ambience', ambience])
+      ctx.touched.add('shotloop.json')
+      return `ambience: ${ambience}`
+    }
+    case 'set_lines': {
+      if (!canWrite(ctx, SET_LINES)) throw new Error('narration is set only when the person asked for it in the sound pass')
+      const list = Array.isArray(input.lines) ? (input.lines as { shot: string; say: string }[]) : []
+      emit({ type: 'tool', name, summary: `${list.filter(l => l.say.trim()).length} lines` })
+      const lines = Object.fromEntries(list.map(l => [l.shot, l.say]))
+      // The picture leads: the shots keep their lengths, long lines come back
+      const r = await engine<VoiceResult>(['voice', ctx.root, '--on', '--picture', '--lines', JSON.stringify(lines)])
+      ctx.touched.add('shotloop.json')
+      const over = r.fit?.overruns ?? []
+      const unspoken = r.fit?.unspoken ?? []
+      return [
+        over.length ? `Too long even spoken faster; shorten these and set the lines again:\n${over.map(o => `- ${o.shot}: ${o.spoken} s spoken, ${o.room} s of shot`).join('\n')}` : 'Every line fits its shot.',
+        ...(unspoken.length ? [`The voice can't say ${unspoken.map(u => `${u.words.join(', ')} (${u.shot})`).join('; ')}: respell them as they sound.`] : [])
+      ].join('\n')
     }
     default:
       throw new Error(`unknown tool ${name}`)

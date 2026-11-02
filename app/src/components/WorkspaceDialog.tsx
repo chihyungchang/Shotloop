@@ -22,7 +22,7 @@ export function WorkspaceDialog({ done }: { done: (dir: string) => void }) {
   }
   return (
     <div className="dialog-backdrop">
-      <div className="dialog workspace-dialog" role="dialog" aria-label={t('workspace.title')}>
+      <div className="dialog column workspace-dialog" role="dialog" aria-label={t('workspace.title')}>
         <span className="workspace-icon"><Icon name="folder" size={20} /></span>
         <strong>{t('workspace.title')}</strong>
         <p className="muted small">{t('workspace.note')}</p>
@@ -42,7 +42,7 @@ export function LeaveDraftDialog({ busy, save, discard, cancel }: { busy: boolea
   useEscape(cancel)
   return (
     <div className="dialog-backdrop" onClick={cancel}>
-      <div className="dialog workspace-dialog" role="dialog" aria-label={t('draft.leaveTitle')} onClick={e => e.stopPropagation()}>
+      <div className="dialog column workspace-dialog" role="dialog" aria-label={t('draft.leaveTitle')} onClick={e => e.stopPropagation()}>
         <strong>{t('draft.leaveTitle')}</strong>
         <p className="muted small">{t('draft.leaveNote')}</p>
         <div className="dialog-actions">

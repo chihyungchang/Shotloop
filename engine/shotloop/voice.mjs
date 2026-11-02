@@ -154,16 +154,21 @@ function cuesOf(parts) {
 // a shot gets the time its line needs. A shot not built yet (its starter
 // code) lasts exactly what its line needs; a built one keeps its length
 // when its line fits, a line up to 8% too long is spoken faster, and only
-// a longer one makes the shot longer. Returns the changes, and the words
-// the voice would drop (English names it can't read), for the person.
+// a longer one makes the shot longer. When the picture leads (voice
+// "picture", narration added to a finished film) no shot changes length:
+// a line that doesn't fit even faster is an overrun, for its writer to
+// shorten. Returns the changes, the overruns, and the words the voice
+// would drop (English names it can't read), for the person.
 export async function fitVoice(project) {
   if (!project.config.voice?.on) throw new Error('the voice-over is off for this project')
   const { v, lang, voice, cfg } = await voiceSetup(project)
   const base = cfg.speed ?? 1
+  const picture = !!cfg.picture
   const spoken = project.shots.filter(s => s.say?.trim())
   const tick = progress({ stage: 'voice' }, spoken.length)
   tick(0)
   const changes = []
+  const overruns = []
   const unspoken = []
   let n = 0
   // What the fit sets, per shot: its length and its line's timing (a shot
@@ -183,7 +188,7 @@ export async function fitVoice(project) {
     const fits = sp => LEAD + sp + TAIL <= duration + 1e-6
     let duration = shot.duration
     let speed = base
-    const free = !fs.existsSync(shot.code) || isStarter(shot.code)
+    const free = !picture && (!fs.existsSync(shot.code) || isStarter(shot.code))
     // A shot not built yet takes its line's length, keeping the plan's
     // when that is at most VOICE_HOLD longer (the film keeps its length)
     if (free) {
@@ -198,7 +203,10 @@ export async function fitVoice(project) {
         speed = round(base * Math.min(MAX_SPEEDUP, speech / room) + 0.005, 2)
         ;({ parts, speech } = await speakShot(project, shot, { lang, voice, speed }))
       }
-      if (!fits(speech)) duration = Math.max(MIN_SHOT, ceil1(LEAD + speech + TAIL))
+      if (!fits(speech)) {
+        if (picture) overruns.push({ shot: shot.id, spoken: round(LEAD + speech + TAIL, 1), room: duration })
+        else duration = Math.max(MIN_SHOT, ceil1(LEAD + speech + TAIL))
+      }
     }
     if (duration !== shot.duration) changes.push({ shot: shot.id, from: shot.duration, to: duration })
     fitted.set(shot.id, { say: shot.say, fit: { duration, cues: cuesOf(parts), ...(speed !== base ? { sayFast: speed } : {}) } })
@@ -216,7 +224,20 @@ export async function fitVoice(project) {
     })
   }))
   syncStoryboard(project.root, shots)
-  return { lang, voice, changes, unspoken, duration: round(shots.reduce((t, s) => t + s.duration, 0), 2) }
+  return { lang, voice, changes, overruns, unspoken, duration: round(shots.reduce((t, s) => t + s.duration, 0), 2) }
+}
+
+// The lines the voice says, by shot ({ "<shot id>": "…" }; "" for none),
+// into shotloop.json and the plan page's storyboard
+export function setLines(project, lines) {
+  const ids = new Set(project.shots.map(s => s.id))
+  const unknown = Object.keys(lines).filter(id => !ids.has(id))
+  if (unknown.length) throw new Error(`no shot ${unknown.join(', ')} (shots: ${[...ids].join(', ')})`)
+  const { shots } = updateConfig(project.root, c => ({
+    ...c, shots: c.shots.map(s => (s.id in lines ? { ...s, say: String(lines[s.id] ?? '').trim() } : s))
+  }))
+  syncStoryboard(project.root, shots)
+  return loadProject(project.root)
 }
 
 // The plan page shows storyboard.json: its durations follow the fit
@@ -375,7 +396,7 @@ export async function voiceInfo(project) {
     emit({ type: 'log', message: `voice-over unavailable: ${err.message}` })
   }
   return {
-    on: !!cfg.on, voice, speed: cfg.speed ?? 1, gain: cfg.gain ?? 1,
+    on: !!cfg.on, picture: !!cfg.picture, voice, speed: cfg.speed ?? 1, gain: cfg.gain ?? 1,
     lang, available, voices, model,
     lines: project.shots.filter(s => s.say?.trim()).length
   }
@@ -436,9 +457,11 @@ export async function pruneVoice(project) {
 }
 
 // Turns the voice-over on or off, or changes its voice, speed or volume
-export function setVoice(project, { on, voice, speed, gain } = {}) {
+// picture: the picture leads, so the fit never changes a shot's length
+export function setVoice(project, { on, voice, speed, gain, picture } = {}) {
   const change = {}
   if (on != null) change.on = !!on
+  if (picture != null) change.picture = !!picture
   if (voice != null) change.voice = String(voice)
   if (speed != null) {
     change.speed = Number(speed)

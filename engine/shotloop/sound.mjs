@@ -10,8 +10,8 @@
 //                            they land on its animation:
 //                            [{ "at": 1.2, "sound": "click", "gain": 1, "pan": 0 }]
 //                            (at: shot seconds; pan -1 left … 1 right)
-//   shotloop.json "sound":   what the person chose:
-//                            { "ambience": "room", "ambienceGain": 1, "chosen": true,
+//   shotloop.json "sound":   the ambience and what the person chose:
+//                            { "ambience": "room", "ambienceGain": 1,
 //                              "effects": true, "effectsGain": 1,
 //                              "off": ["<shot>@<at>:<sound>", "kind:<sound>"] }
 //
@@ -202,13 +202,13 @@ export function soundCues(project) {
 // their level, one effect (by key) or every effect of a kind on or off
 export function setSound(project, { ambience, ambienceGain, effects, effectsGain, cue, kind, on } = {}) {
   const cfg = JSON.parse(fs.readFileSync(path.join(project.root, 'shotloop.json'), 'utf8'))
-  const s = { ...settings(project) }
+  // A film from before the sound pass may carry "chosen" (a plan kept the
+  // person's ambience): nothing reads it any more
+  const { chosen, ...s } = settings(project)
   const library = projectSounds(project)
   if (ambience !== undefined) {
     if (ambience && !AMBIENCES[ambience] && !library.has(ambience)) throw new Error(`ambience is one of ${[...AMBIENCE_NAMES, ...library.keys()].join(', ')} or none`)
     s.ambience = ambience || null
-    // The person's choice: a later plan keeps it
-    s.chosen = true
   }
   if (ambienceGain !== undefined) s.ambienceGain = Math.min(2, Math.max(0, Number(ambienceGain)))
   if (effects !== undefined) s.effects = !!effects

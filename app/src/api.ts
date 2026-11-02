@@ -38,6 +38,8 @@ type Spec =
   | { kind: 'cover'; project: string; request?: string; template?: string; reference?: boolean; lang?: string }
   | { kind: 'plan'; project: string; request?: string; lang?: string }
   | { kind: 'build'; project: string; lang?: string }
+  // The film's sound once its shots are approved; narrate: a narration that fits them
+  | { kind: 'sound'; project: string; narrate?: boolean; lang?: string }
   // A speech model for the voice-over, downloaded with progress
   | { kind: 'voiceModel'; model: string }
   // Every line spoken and the shots fitted to them
@@ -296,7 +298,7 @@ interface NewProject {
 type MusicChange = { preset?: string; shuffle?: boolean; file?: string; none?: boolean; gain?: number; bed?: boolean }
 
 // Agent jobs (and an export's copy) reply in the UI language
-const SPOKEN: Spec['kind'][] = ['fix', 'check', 'plan', 'build', 'publish', 'cover', 'export']
+const SPOKEN: Spec['kind'][] = ['fix', 'check', 'plan', 'build', 'sound', 'publish', 'cover', 'export']
 
 export const api = {
   doctor: () => invoke<Doctor>('doctor'),

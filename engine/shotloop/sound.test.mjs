@@ -26,7 +26,7 @@ test('sound: a shot\'s effects in film time; one, or a kind, switched off; bad o
   setSound(loadProject(root), { kind: 'click', on: true })
   assert.deepEqual(soundCues(loadProject(root)).map(c => c.on), [false, true, true])
   assert.throws(() => setSound(loadProject(root), { ambience: 'rain' }), /ambience is one of/)
-  assert.equal(setSound(loadProject(root), { ambience: 'space' }).chosen, true)
+  assert.equal(setSound(loadProject(root), { ambience: 'space' }).ambience, 'space')
 })
 
 test('sound: with nothing to add, the film sounds as it did', async () => {

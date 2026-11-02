@@ -14,6 +14,7 @@ import type { Pick, PickerState } from './Picker'
 import { Filmstrip } from './Filmstrip'
 import { QueuePanel } from './QueuePanel'
 import { ShotNotes } from './ShotNotes'
+import { SoundDialog } from './SoundDialog'
 import { Stage } from './Stage'
 import { t } from '../../i18n'
 import { readStored, writeStored } from '../../storage'
@@ -73,6 +74,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   const previewJob = jobs.find(j => j.id === previewId) ?? null
   const joining = !!previewJob && isActive(previewJob)
   const [menu, setMenu] = useState(false)
+  const [soundOpen, setSoundOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
 
   // Keep the selection valid when shots are renamed or removed
@@ -166,6 +168,10 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
         <button className={drawer === 'assets' ? 'ghost on' : 'ghost'} onClick={() => toggle('assets')}>
           <Icon name={project.track === '3d' ? 'cube' : 'volume'} size={14} /> {t('studio.assets')}
         </button>
+        {/* The film's sound, once the shots look right */}
+        <button className="ghost" onClick={() => setSoundOpen(true)}>
+          <Icon name="volume" size={14} /> {t('studio.sound')}
+        </button>
         <button className={drawer === 'queue' ? 'ghost on' : 'ghost'} onClick={() => toggle('queue')}>
           <Icon name="queue" size={14} /> {t('studio.queue')}{active.length ? <span className="count">{active.length}</span> : null}
         </button>
@@ -210,6 +216,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
           ]} />
       )}
       {film && <FilmPreview project={project} file={film.file} close={() => setFilm(null)} />}
+      {soundOpen && <SoundDialog project={project} jobs={jobs} started={() => setDrawer('queue')} close={() => setSoundOpen(false)} />}
       {exportOpen && <ExportDialog project={project} jobs={jobs} refresh={refresh} openSettings={openSettings} close={() => setExportOpen(false)} />}
 
       {drawer && (

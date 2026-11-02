@@ -26,7 +26,9 @@
 //                     use <project> <id> | unuse <project> <id> | import <file.glb|sound> [--title]
 //                     the asset library: 3D models and sounds
 //   shotloop voice    <project> [--on|--off] [--voice <id>] [--speed 0.8–1.25] [--gain 0–2] [--fit]
+//                     [--lines '{"<shot>": "…"}'] [--picture]
 //                     the voice-over: settings, the voices for the project's language,
+//                     --lines: what each shot says; --picture: the picture leads (no shot changes length)
 //                     --fit: speak every line and fit the shots to them (a new voice or speed fits too)
 //                     --sample: a WAV of the voice saying the first line, to choose by ear
 //   shotloop sound    <project> [--ambience room|wind|space|machine|night|none] [--ambience-gain 0–2]
@@ -78,7 +80,7 @@ import * as rules from './rules.mjs'
 import { renderShot } from './render.mjs'
 import { pickMap } from './pick.mjs'
 import { musicBed } from './bed.mjs'
-import { fitVoice, pruneVoice, sampleVoice, setVoice, voiceInfo, voiceModels } from './voice.mjs'
+import { fitVoice, pruneVoice, sampleVoice, setLines, setVoice, voiceInfo, voiceModels } from './voice.mjs'
 import { voiceCues, voiceOn } from './cues.mjs'
 import { AMBIENCE_NAMES, EFFECT_NAMES, projectSounds, setSound, soundCues } from './sound.mjs'
 import { checkSubtitles, describeIssues } from './check.mjs'
@@ -103,6 +105,8 @@ const OPTIONS = {
     voice: { type: 'string' },
     speed: { type: 'string' },
     fit: { type: 'boolean' },
+    lines: { type: 'string' },
+    picture: { type: 'boolean' },
     sample: { type: 'boolean' },
     download: { type: 'string' },
     'voice-over': { type: 'boolean' },
@@ -360,11 +364,12 @@ try {
     }
     case 'voice': {
       let project = loadProject(args[0])
-      const change = values.on || values.off || values.voice || values.speed != null || values.gain != null
-      if (change) project = setVoice(project, { on: values.on ? true : values.off ? false : null, voice: values.voice, speed: values.speed, gain: values.gain })
+      const change = values.on || values.off || values.voice || values.speed != null || values.gain != null || values.picture
+      if (change) project = setVoice(project, { on: values.on ? true : values.off ? false : null, voice: values.voice, speed: values.speed, gain: values.gain, picture: values.picture || null })
+      if (values.lines) project = setLines(project, JSON.parse(values.lines))
       // A new voice or speed speaks every line again, so the shots are fitted
       // to it (as when asked); a project without lines keeps its timing
-      const refit = values.fit || values.on || values.voice || values.speed != null
+      const refit = values.fit || values.on || values.voice || values.speed != null || values.lines
       const fitted = refit && voiceOn(project) ? await fitVoice(project) : null
       const sample = values.sample ? await sampleVoice(loadProject(args[0])) : null
       result({ ...(await voiceInfo(loadProject(args[0]))), ...(fitted ? { fit: fitted } : {}), ...(sample ? { sample } : {}) })

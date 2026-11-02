@@ -12,6 +12,9 @@
 //   shotloop-agent test                       one tiny request through the chosen backend
 //   shotloop-agent plan    <project> [--request "…"]  copy and storyboard (storyboard.json)
 //   shotloop-agent build   <project>             the world and every shot, from the plan
+//   shotloop-agent sound   <project> [--narrate]  the film's sound once its shots are approved:
+//                                             effects and ambience; --narrate adds narration
+//                                             that fits the finished shots
 //   shotloop-agent models  --url <…> [--key k] [--protocol anthropic|openai]
 //                                             the chat models an endpoint offers
 //
@@ -21,15 +24,15 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { credits, elementBrief, head, ideaOf, looksBrief, read, recurring, shotBrief, stylesBrief, trackBrief, worldFiles } from './briefs.ts'
+import { assetsBrief, credits, elementBrief, head, ideaOf, looksBrief, read, recurring, shotBrief, stylesBrief, trackBrief, worldFiles } from './briefs.ts'
 import type { PickedElement } from '../../engine/shotloop/protocol.d.ts'
 import { engine, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
 import { lookFits, memory, parseFlags, rules, STILLS, type Memory } from './enginelib.ts'
 import { emit, exit, reason, setJson, warn } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
-import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, memoryPrompt, planSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, TEMPLATE_RULES } from './prompts.ts'
+import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, memoryPrompt, planSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, soundSystem, TEMPLATE_RULES } from './prompts.ts'
 import { lintPlan, lintVoice } from './principles.ts'
-import { newContext, writeAtomic, type ToolContext } from './tools.ts'
+import { newContext, SET_AMBIENCE, SET_LINES, writeAtomic, type ToolContext } from './tools.ts'
 
 const OPTIONS = {
     shot: { type: 'string' },
@@ -37,6 +40,7 @@ const OPTIONS = {
     element: { type: 'string' },
     template: { type: 'string' },
     reference: { type: 'boolean' },
+    narrate: { type: 'boolean' },
     model: { type: 'string' },
     'review-only': { type: 'boolean' },
     lang: { type: 'string' },
@@ -420,6 +424,26 @@ async function publishTask() {
   return { task: 'publish', summary, touched: [...ctx.touched], file }
 }
 
+// The film's sound, once its shots are approved: one pass over every shot
+// for the effects and the ambience; with --narrate, narration written to
+// fit the finished shots (the picture leads)
+async function soundTask() {
+  const project = await status(dir)
+  const narrate = !!values.narrate
+  if (narrate && project.voiced) throw new Error('this film already has a voice-over')
+  const sounds = project.shots.map(s => `shots/${s.id}/sounds.json`)
+  const ctx = context(project.root, [...sounds, SET_AMBIENCE, ...(narrate ? [SET_LINES] : [])])
+  const shots = project.shots.map(s => `- ${s.id}${s.title ? ` (${s.title})` : ''}: ${s.duration} s${s.say ? `, says "${s.say}"` : ''}`).join('\n')
+  emit({ type: 'log', message: `agent: ${describe()}` })
+  const summary = await runAgent('code', {
+    effort: 'medium',
+    system: soundSystem(project.track, !!project.voiced, narrate) + replyLanguage(values.lang),
+    prompt: `Give ${head(project)} its sound${narrate ? ' and a narration' : ''}.\n\nShots:\n${shots}${assetsBrief(project)}\n\ncopy.md:\n${read(path.join(project.root, 'copy.md'))}`,
+    ctx
+  })
+  return { task: 'sound', summary, touched: [...ctx.touched].sort() }
+}
+
 // The cover: thumb.html designed from the copy, the look and the shots'
 // stills, then rendered for the export panel's preview
 async function coverTask() {
@@ -468,12 +492,12 @@ try {
     if (!values.url && protocol === 'openai') throw new Error('models needs --url <base URL>')
     value = await listModels(values.url ?? '', values.key, protocol)
   } else {
-    if (!dir || !['fix', 'check', 'publish', 'cover', 'plan', 'build'].includes(task)) {
+    if (!dir || !['fix', 'check', 'publish', 'cover', 'plan', 'build', 'sound'].includes(task)) {
       console.error('usage: shotloop-agent fix|check|publish|cover|plan|build <project> [--shot <id>] [--request "…"] [--json] | detect | models --url <…>')
       await exit(1)
     }
     preflight()
-    value = task === 'publish' ? await publishTask() : task === 'cover' ? await coverTask() : task === 'plan' ? await planTask() : task === 'build' ? await buildTask() : await shotTask(task as 'fix' | 'check')
+    value = task === 'publish' ? await publishTask() : task === 'cover' ? await coverTask() : task === 'plan' ? await planTask() : task === 'build' ? await buildTask() : task === 'sound' ? await soundTask() : await shotTask(task as 'fix' | 'check')
   }
   emit({ type: 'result', value })
 } catch (err) {
