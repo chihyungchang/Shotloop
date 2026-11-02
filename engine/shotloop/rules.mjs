@@ -54,8 +54,8 @@ const FIXED = [
   },
   {
     id: 'clean', track: 'all', name: 'No broken frames',
-    rule: 'Every frame is clean: nothing clipped, flickering or cut off by the frame or the camera, no text spilling out of its box or wrapping where it shouldn\'t, no blank or half-drawn frame, no placeholder left over.',
-    check: 'No clipping through geometry, no subject under the floor, no z-fighting or flicker, nothing cut off by the camera\'s clip range or the frame edge. No text overflowing or wrapping badly, no blank, half-drawn or placeholder frame.'
+    rule: 'Every frame is clean: nothing clipped, flickering or cut off by the frame or the camera, nothing blown out but a light source, no text spilling out of its box or wrapping where it shouldn\'t, no blank or half-drawn frame, no placeholder left over.',
+    check: 'No clipping through geometry, no subject under the floor, no z-fighting or flicker, nothing cut off by the camera\'s clip range or the frame edge. Nothing blown to flat white but a light source (the stills\' exposure check stripes such areas). No text overflowing or wrapping badly, no blank, half-drawn or placeholder frame.'
   },
   {
     id: 'readable', track: 'all', name: 'Readable',

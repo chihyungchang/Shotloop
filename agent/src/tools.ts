@@ -238,6 +238,8 @@ function image(file: string, label?: string): ToolImage {
 }
 
 const STILL_NAMES = ['start', 'middle', 'end']
+// What to do about a blown area: told with the exposure check
+const EXPOSURE_FIX = 'A light source may clip (a lamp, the sun, a screen, a glint). A lit surface or the subject may not (skin, paper, a white body or shell): it loses its shape. Fix that before you finish: move back or dim the light near it, make the material off-white (about #d8d4cc) instead of white, or lower the bloom or exposure; then render again.'
 
 // Runs one tool call; a failure comes back as its message (and is shown
 // in the activity log), for the model to read and recover from
@@ -297,12 +299,19 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
       if (!r.stills) throw new Error('the render produced no stills')
       ctx.renders.set(shot, r.stills)
       const images = r.stills.map((f, i) => image(f, `${STILL_NAMES[i]} frame`))
+      const text: string[] = []
       // The subtitle check that ran before the render: the stills don't
       // show the subtitles, so what they would cover is said in words
-      if (!r.subtitles) return { images }
-      return { images, text: [r.subtitles.length
+      if (r.subtitles) text.push(r.subtitles.length
         ? `Subtitle check: the voice-over's subtitles would cover\n${r.subtitles.map(i => `- ${i.from.toFixed(1)}–${i.to.toFixed(1)} s: ${i.what}`).join('\n')}\nMove it out of the subtitle band, or let it pass under only if it is background.`
-        : 'Subtitle check: nothing the viewer must see is under the subtitles.'] }
+        : 'Subtitle check: nothing the viewer must see is under the subtitles.')
+      // The exposure check: blown areas striped, beside the stills
+      const blown = (r.exposure ?? []).map((e, i) => ({ ...e, name: STILL_NAMES[i] })).filter(e => e.zebra)
+      if (blown.length) {
+        images.push(...blown.map(e => image(e.zebra!, `${e.name} frame, blown areas striped red`)))
+        text.push(`Exposure check: areas blown to white, striped red and boxed: ${blown.map(e => `${e.name} ${e.areas.map(a => `${(a.share * 100).toFixed(1)}%`).join(', ')} of the frame`).join('; ')}. ${EXPOSURE_FIX}`)
+      }
+      return text.length ? { images, text } : { images }
     }
     case 'view_style': {
       const id = str('style')

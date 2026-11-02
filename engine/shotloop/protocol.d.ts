@@ -316,6 +316,16 @@ export interface RenderResult {
   preview: string | null
   // A voiced 2D shot's subtitle check, run before the render
   subtitles?: SubtitleIssue[]
+  // --stills: each still's areas blown to white (exposure.mjs)
+  exposure?: StillExposure[]
+}
+
+export interface StillExposure {
+  still: string
+  // Boxes in the still's pixels, largest first; share: of the frame's area
+  areas: { x: number; y: number; w: number; h: number; share: number }[]
+  // The still with those areas striped and boxed, when there are any
+  zebra: string | null
 }
 
 // shotloop export <project>
