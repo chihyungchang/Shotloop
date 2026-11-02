@@ -56,7 +56,7 @@ export function webglPage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSi
     float(t, amp = 4, period = 3, phase = 0), readTime(text), hash(a, b), prng(seed),
     count(p, from, to, digits = 0), fmt(x, digits = 0), mix(a, b, p) (arrays)
 
-    await init(ctx, { background = '#06080d', exposure = 1.2, bloom = 0.15, env = 1, tone = 'agx' })
+    await init(ctx, { background = '#06080d', exposure = 1, bloom = 0.15, env = 1, tone = 'agx' })
                                     once, in setup: three.js, the renderer, a studio
                                     environment metal and glass reflect (env: its
                                     strength), tone mapping (agx like Blender, neutral
@@ -187,7 +187,7 @@ ${kitType({ headTop, headSize })}      // ---- 3D ----
       // Fixed low-discrepancy points for the sub-samples (Halton), never random
       const halton = (i, b) => { let f = 1, r = 0; while (i > 0) { f /= b; r += f * (i % b); i = Math.floor(i / b) } return r }
 
-      async function init(ctx, { background = '#06080d', exposure = 1.2, bloom = 0.15, env = 1, tone = 'agx' } = {}) {
+      async function init(ctx, { background = '#06080d', exposure = 1, bloom = 0.15, env = 1, tone = 'agx' } = {}) {
         if (THREE) return kit
         THREE = await ctx.three()
         const names = ${JSON.stringify(Object.keys(ADDONS))}
@@ -234,7 +234,10 @@ ${kitType({ headTop, headSize })}      // ---- 3D ----
           uniforms: { map: { value: null }, weight: { value: 1 } },
           vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
           fragmentShader: 'uniform sampler2D map; uniform float weight; varying vec2 vUv; void main() { gl_FragColor = texture2D(map, vUv) * weight; }',
-          blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false, transparent: true
+          // Plain sums (one × source + one × destination): additive blending
+          // would weight each sub-sample by its alpha again
+          blending: THREE.CustomBlending, blendEquation: THREE.AddEquation, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor,
+          depthTest: false, depthWrite: false, transparent: true
         }))
         // Once a frame, on the average: bloom, tone mapping, vignette, grain
         postComposer = new A.EffectComposer(renderer)
@@ -269,10 +272,10 @@ ${kitType({ headTop, headSize })}      // ---- 3D ----
           m.lookAt(0, 0, 0)
           env.add(m)
         }
-        panel(6, 3, 6, [0, 6.5, 1])
-        panel(1.5, 6, 8, [-6.5, 1.5, 2])
-        panel(1.5, 6, 4, [6.5, 1.5, -1], '#dfe8ff')
-        panel(5, 1.5, 3, [0, 2.5, -6.5], '#ffe9d6')
+        panel(6, 3, 3, [0, 6.5, 1])
+        panel(1.5, 6, 4, [-6.5, 1.5, 2])
+        panel(1.5, 6, 2, [6.5, 1.5, -1], '#dfe8ff')
+        panel(5, 1.5, 1.5, [0, 2.5, -6.5], '#ffe9d6')
         return env
       }
 
