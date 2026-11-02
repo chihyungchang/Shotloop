@@ -1,0 +1,8 @@
+[
+  { "at": 0.92, "sound": "tick", "gain": 0.6, "pan": -0.3 },
+  { "at": 1.16, "sound": "tick", "gain": 0.6, "pan": -0.15 },
+  { "at": 1.4, "sound": "tick", "gain": 0.6, "pan": 0 },
+  { "at": 1.64, "sound": "tick", "gain": 0.6, "pan": 0.15 },
+  { "at": 1.88, "sound": "tick", "gain": 0.6, "pan": 0.3 },
+  { "at": 2.3, "sound": "ding", "gain": 0.7 }
+]

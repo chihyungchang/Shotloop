@@ -1,0 +1,105 @@
+{
+  "target": 30,
+  "ambience": "room",
+  "lang": "en",
+  "copy": {
+    "idea": "A pin tumbler lock is blocked by stacks of spring-loaded pins that cross the gap between the turning plug and the fixed housing; the right key lifts every stack so its split sits exactly on that gap, the shear line, and the plug can turn.",
+    "hook": "Why does only one key turn this lock?",
+    "body": "Why does only one key turn this lock?\n\nInside, springs push stacks of pins down across the gap, so the inner cylinder can't turn.\n\nSlide the key in, and each ridge lifts its pin stack to a different height.\n\nWith the right key, every split between pins lines up exactly at the gap.\n\nNothing blocks it now, so the cylinder turns and the bolt slides back.\n\nOne key, one exact pattern.",
+    "facts": [
+      {
+        "text": "A pin tumbler lock has a plug (inner cylinder) inside a housing, with stacks of key pins and driver pins pushed down by springs across the gap between them.",
+        "source": "Wikipedia, Pin tumbler lock, https://en.wikipedia.org/wiki/Pin_tumbler_lock"
+      },
+      {
+        "text": "Without the right key, the driver pins sit across the gap and stop the plug from turning.",
+        "source": "Wikipedia, Pin tumbler lock, https://en.wikipedia.org/wiki/Pin_tumbler_lock"
+      },
+      {
+        "text": "The cuts of the correct key raise each pin stack so the split between key pin and driver pin aligns with the shear line, letting the plug rotate and work the bolt through a cam.",
+        "source": "Wikipedia, Pin tumbler lock, https://en.wikipedia.org/wiki/Pin_tumbler_lock"
+      }
+    ]
+  },
+  "shots": [
+    {
+      "title": "Hook: the lock",
+      "duration": 2.5,
+      "show": "Hero image: the lock cutaway, big and lit square on in a dark room, a warm rim light along the brass plug; the key's tip hovers just left of the keyway, pointing right. Housing shown as a clear ghost so the five pin stacks already read inside. Headline in the top band.",
+      "say": "Why does only one key turn this lock?",
+      "text": "One key. Why?",
+      "motion": "Slow push-in of a few centimetres onto the lock; the key eases a little toward the keyway (anticipation) and stops; hold on the end frame.",
+      "sound": "a soft tick as the key stops at the keyway"
+    },
+    {
+      "title": "Pins block the gap",
+      "duration": 5.4,
+      "show": "X-ray ghost: the steel housing fades to a faint wireframe so the cutaway is clear, seen square on. Five springs press five stacks down: blue driver pins on top, copper key pins below. The driver pins cross the glowing cyan gap between plug and housing. The plug tries to turn a few degrees, jams against the blue pins and springs back. Label 'shear line' pinned to the cyan gap, off the subject to the left.",
+      "say": "Inside, springs push stacks of pins down across the gap, so the inner cylinder can't turn.",
+      "text": "Shear line",
+      "motion": "Springs compress and push the stacks down one after another, left to right, as 'springs push' is spoken; on 'can't turn' the plug rattles twice and stops. Camera slow 20° hero orbit from three-quarter view to square on, held at the end.",
+      "sound": "a click as each stack drops (two or three, quiet); a thud as the plug jams, in the pause after the line"
+    },
+    {
+      "title": "Key lifts the pins",
+      "duration": 4.3,
+      "show": "Square-on cutaway. The key slides in from the left, its ridged edge riding under the copper key pins; each stack bobs up and down over the bumps and settles at a different height. Tracking with foreground: the key's bow passes close to camera, out of focus, as the camera rides alongside.",
+      "say": "Slide the key in, and each ridge lifts its pin stack to a different height.",
+      "text": "",
+      "motion": "Key travels left to right with ease-in and ease-out; pin heights follow the key profile under each pin (driven by the geometry, not by eye), the springs squeezing and stretching; overshoot as the key seats. Camera tracks right with the key, then holds.",
+      "sound": "quick ticks as pins ride over the ridges; a pop as the key seats"
+    },
+    {
+      "title": "Splits line up",
+      "duration": 4.5,
+      "show": "Push-in on the cyan shear line: all five splits between blue and copper pins now sit exactly on it. Each split flashes as it lands, left to right, drawing a continuous bright line across the plug's top. Brief inset beat: a wrong key leaves one copper pin poking above the line, red, then the right key returns.",
+      "say": "With the right key, every split between pins lines up exactly at the gap.",
+      "text": "Lined up",
+      "motion": "Slow push-in on realisation from the whole cutaway to the five splits; the cyan line draws left to right as the splits light; hold at the end.",
+      "sound": "five quiet ticks in a row as the splits light; a ding when the line completes"
+    },
+    {
+      "title": "The cylinder turns",
+      "duration": 4.2,
+      "show": "Camera crane round to a three-quarter view: the brass plug and key turn together, the copper pins turning with the plug while the blue pins stay up in the housing. The cam on the plug's back sweeps the bolt; the bolt slides back out of the strike plate into the lock.",
+      "say": "Nothing blocks it now, so the cylinder turns and the bolt slides back.",
+      "text": "Unlocked",
+      "motion": "Anticipation: a slight back-turn of the key, then the plug rotates 90° with ease and the cam pushes the bolt back right to left; overlapping settle of the bolt. Camera arcs 40° to see the plug's turn, held.",
+      "sound": "a click as the plug starts to turn; a thud as the bolt stops, after the line"
+    },
+    {
+      "title": "One pattern",
+      "duration": 2.3,
+      "show": "Crane up and back: the whole lock in a door edge, door swinging open a crack, a warm light spilling through. The key profile and the five pin heights glow as matching outlines.",
+      "say": "One key, one exact pattern.",
+      "text": "One exact pattern",
+      "motion": "Crane up and pull back, ease out, hold the final frame 1 s.",
+      "sound": "a soft whoosh on the pull-back"
+    }
+  ],
+  "recurring": [
+    {
+      "name": "lock cutaway",
+      "design": "Seen square on, keyway horizontal in the lower middle of the frame, key entering from the left. Fixed steel housing (grey, ghosted to a faint wireframe once inside), brass plug (warm gold) below it, five pin stacks evenly spaced left to right: silver coil springs on top, blue driver pins, copper key pins at the bottom. The gap between plug and housing is a thin glowing cyan line labelled 'shear line'. Key is nickel silver with five ridges matching the five stacks. Bolt sits to the right of the plug.",
+      "shots": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "name": "key",
+      "design": "Nickel-silver key, bow on the left, ridged blade pointing right, five cuts of different depths; always travels left to right into the lock.",
+      "shots": [
+        1,
+        3,
+        4,
+        5,
+        6
+      ]
+    }
+  ]
+}

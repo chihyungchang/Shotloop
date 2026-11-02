@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- Cover, 1080×1920; the text stays inside the centred 3:4 crop (y 240–1680). -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root { --text: #f4f7ff; --accent: #ffb340; --cyan: #4fd1c5; --head: 'PingFang SC', -apple-system, sans-serif; }
+      * { box-sizing: border-box; margin: 0; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #06080d; color: var(--text); -webkit-font-smoothing: antialiased; }
+      /* The lined-up pins (shot 04's end), moved down to leave the top band for the headline */
+      .frame { position: absolute; left: 0; top: 250px; width: 1080px; height: 1920px; object-fit: cover; }
+      /* Hides the frame's own caption and darkens the band under the headline */
+      .fade { position: absolute; left: 0; right: 0; top: 0; height: 770px;
+        background: linear-gradient(#06080d 0%, #06080d 79%, rgba(6, 8, 13, 0) 100%); }
+      h1 { position: absolute; left: 80px; right: 60px; top: 250px; font: 800 124px/1.06 var(--head); letter-spacing: -0.01em;
+        text-shadow: 0 6px 40px rgba(0, 0, 0, 0.7); }
+      h1 b { color: var(--accent); font-weight: inherit; text-shadow: 0 0 36px rgba(255, 179, 64, 0.7); }
+    </style>
+  </head>
+  <body>
+    <img class="frame" src="out/cover-frame.png" alt="" />
+    <div class="fade"></div>
+    <h1>Why does only<br /><b>one key</b><br />turn this lock?</h1>
+    <script>window.ready = document.fonts.ready</script>
+  </body>
+</html>
