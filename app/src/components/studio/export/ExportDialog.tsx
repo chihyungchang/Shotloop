@@ -4,7 +4,7 @@ import { api, fileUrl, type ExportResult, type Job, type Mode, type Project } fr
 import { useErrorLine, useEscape } from '../../../hooks'
 import { t } from '../../../i18n'
 import type { Key } from '../../../i18n/en'
-import { estimate, formatSeconds, isActive, sizeText } from '../../../model'
+import { estimate, formatSeconds, inBlender, isActive, sizeText } from '../../../model'
 import { baseName, tildePath } from '../../../recent'
 import { Icon } from '../../Icon'
 import { ChangesDialog } from '../ChangesDialog'
@@ -184,7 +184,7 @@ export function ExportDialog({ project, jobs, refresh, openSettings, close }: {
 
       {ask && (
         <ChangesDialog project={project} shots={pending} mode={mode} close={() => setAsk(false)}
-          title={t('changes.titleExport', { n: pending.length })} note={t(project.track === '3d' ? 'changes.noteExport3d' : 'changes.noteExport')}
+          title={t('changes.titleExport', { n: pending.length })} note={t(inBlender(project) ? 'changes.noteExport3d' : 'changes.noteExport')}
           actions={[
             { label: t('plan.cancel'), onClick: () => setAsk(false) },
             { label: t('changes.export'), onClick: run, primary: true }
@@ -246,7 +246,7 @@ function Setup({ project, jobs, refresh, name, setName, rename, parts, tick, asp
         </div>
         <Voice project={project} jobs={jobs} refresh={refresh} />
         <Music project={project} refresh={refresh} />
-        {project.track === '3d' && (
+        {inBlender(project) && (
           <div className="xrow top">
             <span className="xrow-label">{t('studio.quality')}</span>
             <Samples project={project} refresh={refresh} />

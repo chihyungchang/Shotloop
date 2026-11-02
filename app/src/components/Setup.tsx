@@ -19,7 +19,7 @@ export function Setup({ settings, update }: { settings: Settings; update: (s: Pa
 
   // Node and ffmpeg ship inside the app: listed only when missing (a
   // build from source without them). Chrome is the one thing to install;
-  // Blender is optional (3D only).
+  // Blender is optional (3D films drawn in Blender only).
   type Row = [string, string | null, string | null, boolean]
   const inApp = !!(doctor?.bundled?.node && doctor.bundled.ffmpeg)
   const rows: Row[] = doctor

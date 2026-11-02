@@ -52,7 +52,7 @@ export const memory = await load<{
   add: (m: { text: string; by: 'ai'; track: string; from: string | null; replaces: string | null }) => Memory
 }>('memory.mjs')
 export interface Rule { id: string; track: 'all' | '2d' | '3d'; name: string | null; rule?: string; off?: boolean }
-export interface Tool { id: string; group: 'story' | 'science' | 'camera' | 'mine'; tracks: ('2d' | '3d')[]; name: string; text: string; text3d?: string }
+export interface Tool { id: string; group: 'story' | 'science' | 'camera' | 'frame' | 'cut' | 'staging' | 'light' | 'explain' | 'mine'; tracks: ('2d' | '3d')[]; name: string; text: string; text3d?: string }
 export const rules = await load<{
   list: () => { damaged: string | null; fixed: Rule[]; taste: Rule[]; tools: Tool[] }
   asBuilt: (id: string) => boolean

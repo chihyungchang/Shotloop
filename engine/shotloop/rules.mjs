@@ -163,22 +163,39 @@ const TASTE = [
     rule: 'Anticipation before a big move (the wind-up, the swell before a collapse), ease in and out, overlapping action after it, holds where the beat lands; cuts and hits in step with the music.'
   },
   {
-    id: 'words-when-needed', track: '3d', name: 'Words only when they help',
-    rule: 'The picture and the voice carry a 3D video. Put words or a number on screen only when they make the point easier to grasp: a short label or one key number, on the caption layer.',
-    check: 'On-screen text is at most a short label or one key number, and only where it helps.'
+    id: 'words-help', track: '3d', name: 'Words and numbers that help, off the subject',
+    rule: 'A 3D short reads better with a little type: a headline per beat, a live number where it is the point (a timer, a counter, a distance), short labels pinned to things, an honesty tag ("not to scale", "time x48") and the source line. All of it in the type layer above the world, never over the subject: the picture still carries the story.',
+    check: 'The text and numbers help the point and none of them covers the subject.'
   },
   {
-    id: 'shot-sizes', track: '3d', name: 'Vary the shot size',
-    rule: 'Wide to place the viewer, medium for the action, close for the detail that matters; no three shots of the same size in a row.'
+    id: 'size-importance', track: '3d', name: 'Size equals importance',
+    rule: 'What the beat is about is the largest, brightest, most contrasted thing in frame; change the shot size when importance moves, not for variety (Hitchcock\'s rule): a wide to place the viewer, closer as attention narrows.',
+    check: 'What the beat is about is the largest, brightest thing in frame.'
   },
   {
-    id: 'motivated-camera', track: '3d', name: 'Every camera move has a reason',
-    rule: 'A move reveals, follows, or brings the viewer closer to what matters; the camera never drifts for its own sake.',
-    check: 'The camera move reveals, follows or approaches the subject; it does not wander.'
+    id: 'motivated-camera', track: '3d', name: 'Every move has a reason and held ends',
+    rule: 'A move follows a subject, reveals something or expresses a feeling, never drifts for its own sake; it starts and ends on a composed frame held for a moment, one move per shot.',
+    check: 'The camera move reveals, follows or approaches the subject, and starts and ends on a composed frame.'
+  },
+  {
+    id: 'cause-effect', track: '3d', name: 'Cause before effect, one idea a shot',
+    rule: 'Show the trigger (a lever, a spark, a push) before the result, never the result first; stage each shot so it reads with the sound off and from the silhouette alone (Disney\'s staging).'
+  },
+  {
+    id: 'contrast-build', track: '3d', name: 'Contrast builds to the climax',
+    rule: 'Plan contrast across the film: similar shapes, light and pace at the start, the strongest contrast of shape, light, speed and colour at the payoff, calm again at the end (Bruce Block\'s contrast and affinity).'
+  },
+  {
+    id: 'cut-emotion', track: '3d', name: 'Cut for feeling and the eye',
+    rule: 'Choose each cut for the feeling first, then hand the eye on: the next shot\'s subject where the eye already is at the end of the last (Walter Murch\'s rule of six, eye-trace).'
+  },
+  {
+    id: 'geography', track: '3d', name: 'Keep the world\'s geography',
+    rule: 'Things keep their screen direction (outbound left to right, the way back right to left) and a close-up comes after a view that shows where it is, so the viewer never loses the place (the 180° rule).'
   },
   {
     id: 'breathing-room', track: '3d', name: 'Let it breathe',
-    rule: 'Cinema holds on a striking image: let a shot rest when it lands, and frame the subject with darkness and empty space.'
+    rule: 'Cinema holds on a striking image: after a payoff hold the frame 0.5 to 1.5 s with nothing new so the point lands, and frame the subject with darkness and empty space.'
   }
 ]
 
@@ -213,12 +230,33 @@ export const TOOLS = [
   { id: 'draws-its-graph', group: 'science', name: 'The thing draws its graph', text: 'the phenomenon traces its own curve beside it (a pendulum drawing a sine, a sample drawing its decay curve, a falling ball drawing its parabola), the axis labelled in real units.', tracks: ['2d'] },
   { id: 'conservation-ledger', group: 'science', name: 'Conservation ledger', text: 'the quantity that is kept (energy, charge, mass, momentum) as stacked bars that trade between their forms while the total never moves.', tracks: ['2d'] },
   { id: 'myth-mechanism', group: 'science', name: 'Myth, then mechanism', text: 'the common wrong picture first, stamped "wrong" in the color kept for it, then the real mechanism replacing it in the same layout.', tracks: ['2d', '3d'], text3d: 'the wrong version staged first, then the real one in the same set and camera, so the difference is all you see.' },
-  { id: 'reveal', group: 'camera', tracks: ['3d'], name: 'Reveal', text: 'start on a detail and pull or crane back until the whole situation is in view (or the reverse), so the viewer discovers the point.' },
-  { id: 'scale-comparison', group: 'camera', tracks: ['3d'], name: 'Scale comparison', text: 'the unfamiliar beside something everyone knows (a cell beside a hair, a ship beside a city block), both lit, the camera taking them in together.' },
-  { id: 'light-leads', group: 'camera', tracks: ['3d'], name: 'Light leads the eye', text: 'what matters is lit and the rest falls into shade; a light that moves moves the viewer\'s attention.' },
-  { id: 'follow-shot', group: 'camera', tracks: ['3d'], name: 'Follow shot', text: 'the camera travels with one object through the whole process, so the viewer lives it from start to end.' },
-  { id: 'match-cut', group: 'camera', tracks: ['3d'], name: 'Match cut', text: 'the last shape or motion of one shot becomes the first of the next (a wheel to a planet, a drop to a ripple), carrying the story across.' },
-  { id: 'turntable', group: 'camera', tracks: ['3d'], name: 'Hero turntable', text: 'the object turns slowly under a key light so its structure reads from every side.' }
+  { id: 'pull-back-reveal', group: 'camera', tracks: ['3d'], name: 'Pull-back reveal', text: 'start on a detail and pull or crane back until the whole situation is in view, so the wide is the punchline.' },
+  { id: 'push-in', group: 'camera', tracks: ['3d'], name: 'Push-in on realisation', text: 'dolly slowly toward the subject while the key idea lands, so the viewer feels that this is the moment.' },
+  { id: 'crane', group: 'camera', tracks: ['3d'], name: 'Crane up, crane down', text: 'rise above a situation to show its extent or end the film, sink into a place to begin; in a tall frame it replaces the pan.' },
+  { id: 'hero-orbit', group: 'camera', tracks: ['3d'], name: 'Hero orbit', text: 'arc 30 to 90 degrees round a still subject and ease to a stop on its most readable angle, so its volume reads; once a film, for the main object.' },
+  { id: 'tracking-foreground', group: 'camera', tracks: ['3d'], name: 'Tracking with foreground', text: 'travel alongside a moving subject while near things slide past faster, so speed and depth read through parallax.' },
+  { id: 'dolly-zoom', group: 'camera', tracks: ['3d'], name: 'Dolly zoom', text: 'dolly in while widening the lens (or the reverse): the subject keeps its size while the world stretches round it; for shock or vertigo, once a film.' },
+  { id: 'crash-zoom', group: 'camera', tracks: ['3d'], name: 'Crash zoom', text: 'a sudden, very fast push onto a detail for emphasis, often into a match cut on another scale (into the sun disc, cut to the Sun).' },
+  { id: 'depth-staging', group: 'frame', tracks: ['3d'], name: 'Depth staging', text: 'something in the foreground, the subject in the middle, context behind, so the flat frame reads as space.' },
+  { id: 'frame-in-frame', group: 'frame', tracks: ['3d'], name: 'Frame within a frame', text: 'the subject seen through a doorway, a ring or a gap between things, which isolates it and points at it without an arrow.' },
+  { id: 'negative-space', group: 'frame', tracks: ['3d'], name: 'Negative space', text: 'a small subject in a large empty sky, floor or dark, for isolation, scale or calm; the empty part holds the type.' },
+  { id: 'camera-height', group: 'frame', tracks: ['3d'], name: 'Camera height', text: 'look up to make a subject powerful or huge, down to make it small or part of a system, straight down to read movement as a map.' },
+  { id: 'leading-lines', group: 'frame', tracks: ['3d'], name: 'Leading lines', text: 'roads, cables, rails or rows that converge on the subject; in a tall frame run them from the bottom up.' },
+  { id: 'match-cut', group: 'cut', tracks: ['3d'], name: 'Match cut', text: 'cut between two shots that share a shape, motion, colour or screen place (a wheel to a planet, a drop to a ripple), so the cut states the comparison.' },
+  { id: 'cut-on-action', group: 'cut', tracks: ['3d'], name: 'Cut on action', text: 'end a shot mid-motion and pick up the same motion in the next, so the cut disappears and the energy carries over.' },
+  { id: 'eye-trace', group: 'cut', tracks: ['3d'], name: 'Eye-trace hand-off', text: 'put the next shot\'s subject where the eye already is at the end of the last; in a tall frame this matters more than direction.' },
+  { id: 'smash-cut', group: 'cut', tracks: ['3d'], name: 'Smash cut', text: 'cut straight from calm to its opposite (silence to chaos, small to huge, "it\'s fine" to disaster), for surprise or a laugh.' },
+  { id: 'cross-cut', group: 'cut', tracks: ['3d'], name: 'Cross-cut', text: 'alternate two things happening at once in short shots that converge, each side framed the same, for tension or a parallel.' },
+  { id: 'anticipation-beat', group: 'staging', tracks: ['3d'], name: 'Anticipation beat', text: 'before a big action, a small opposite move or a pause (a crouch, a lean back, the camera settling), so the viewer knows something is coming.' },
+  { id: 'reaction-shot', group: 'staging', tracks: ['3d'], name: 'Reaction shot', text: 'after an event, a character or object reacting simply (a flinch, a turn, a slump), so the viewer knows how to feel about it.' },
+  { id: 'light-leads', group: 'light', tracks: ['3d'], name: 'Light leads the eye', text: 'the brightest, most contrasted area is the subject and the rest falls into shade; to move attention, move the light.' },
+  { id: 'light-reveal', group: 'light', tracks: ['3d'], name: 'Light reveal', text: 'begin in darkness or silhouette and bring up a motivated light (a sunrise, a lamp, the object\'s own glow) to reveal the subject or the answer.' },
+  { id: 'rim-light', group: 'light', tracks: ['3d'], name: 'Rim separation', text: 'a backlight outlines the subject against a dark or busy ground; pushed to silhouette, it hides the detail for mystery.' },
+  { id: 'colour-shift', group: 'light', tracks: ['3d'], name: 'Colour shift', text: 'the key light changes colour when the story\'s state changes: warm to cold for danger, day to dusk for time, grey to colour for fixed.' },
+  { id: 'exploded-view', group: 'explain', tracks: ['3d'], name: 'Exploded view', text: 'the parts move apart along their assembly axes, hold, then come back together, so the structure reads at a glance.' },
+  { id: 'x-ray', group: 'explain', tracks: ['3d'], name: 'X-ray ghost', text: 'the outer shell fades to a faint wireframe or tint so the mechanism shows through, the part that matters solid and bright.' },
+  { id: 'step-build', group: 'explain', tracks: ['3d'], name: 'Step-by-step build', text: 'the object (or the idea) assembles one piece per spoken clause, each landing with a small overshoot, so the order of parts is learnt.' },
+  { id: 'scale-comparison', group: 'explain', tracks: ['3d'], name: 'Scale comparison', text: 'the unfamiliar beside something everyone knows (a person, a bus, a coin) at true scale, ideally sliding together.' }
 ]
 
 const tasteById = id => TASTE.find(r => r.id === id)

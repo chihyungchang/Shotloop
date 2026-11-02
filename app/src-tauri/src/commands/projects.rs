@@ -44,6 +44,8 @@ pub struct NewProject {
     idea: String,
     title: String,
     track: String,
+    /// 3D: drawn in WebGL (fast) or Blender (higher quality)
+    renderer: Option<String>,
     aspect: String,
     /// Seconds, or "auto" for the planner to choose
     duration: String,
@@ -62,7 +64,8 @@ pub async fn create_project(handle: AppHandle, project: NewProject) -> Result<Va
         let args = Args::new(["new", &p.dir, "--idea", &p.idea, "--title", &p.title, "--track", &p.track, "--aspect", &p.aspect, "--duration", &p.duration])
             .flag(p.voice == Some(false), "--no-voice")
             .opt("--look", given(p.look))
-            .opt("--style", given(p.style));
+            .opt("--style", given(p.style))
+            .opt("--renderer", given(p.renderer));
         engine(&handle, args)
     })
     .await

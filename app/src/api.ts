@@ -249,7 +249,7 @@ export interface Rule {
   edited?: boolean
   off?: boolean
 }
-export interface RuleTool { id: string; group: 'story' | 'science' | 'camera' | 'mine'; tracks: ('2d' | '3d')[]; name: string; text: string; builtIn: boolean; image: string | null }
+export interface RuleTool { id: string; group: 'story' | 'science' | 'camera' | 'frame' | 'cut' | 'staging' | 'light' | 'explain' | 'mine'; tracks: ('2d' | '3d')[]; name: string; text: string; builtIn: boolean; image: string | null }
 // damaged: where a rules file that couldn't be read was set aside, while
 // the defaults stand in for it
 export interface Rules { damaged: string | null; fixed: Rule[]; taste: Rule[]; tools: RuleTool[] }
@@ -273,6 +273,8 @@ interface NewProject {
   title: string
   // 'auto': the planner picks 2D or 3D through the visual style
   track: '2d' | '3d' | 'auto'
+  // 3D: WebGL (three.js, fast) or Blender (slower, higher quality)
+  renderer?: 'webgl' | 'blender'
   aspect: '9:16' | '16:9'
   // Seconds as text, or 'auto' for the planner to choose 15–60 s
   duration: string

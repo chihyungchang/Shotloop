@@ -34,9 +34,14 @@ export interface ShotView {
 const activeFor = (jobs: Job[], project: Project, shot: string, mode: Mode) =>
   jobs.find(j => j.project === project.root && j.shot === shot && j.kind === 'render' && j.mode === mode && isActive(j)) ?? null
 
-// The quality the editor works in (the engine's editMode): 3D shows fast
-// previews and renders final frames only to export; 2D is final throughout
-export const editMode = (project: Project): Mode => (project.track === '3d' ? 'draft' : 'final')
+// Blender draws the film (slow, higher quality); 2D and WebGL films are
+// pages, drawn in seconds
+export const inBlender = (project: Project) => project.renderer === 'blender'
+
+// The quality the editor works in (the engine's editMode): Blender shows
+// fast previews and renders final frames only to export; a page is final
+// throughout
+export const editMode = (project: Project): Mode => (inBlender(project) ? 'draft' : 'final')
 
 export function shotView(project: Project, shot: Shot, mode: Mode, jobs: Job[]): ShotView {
   const entry = shot[mode]
@@ -62,9 +67,11 @@ export function shotView(project: Project, shot: Shot, mode: Mode, jobs: Job[]):
 }
 
 // Seconds per frame when a shot has never been rendered in a mode
-const PER_FRAME: Record<Project['track'], Record<Mode, number>> = {
-  '2d': { draft: 0.06, final: 0.12 },
-  '3d': { draft: 0.4, final: 3 }
+const PER_FRAME: Record<Project['renderer'], Record<Mode, number>> = {
+  page: { draft: 0.06, final: 0.12 },
+  // ep20's three.js cut: 0.067 s a frame at 1080×1920 on an M4
+  webgl: { draft: 0.06, final: 0.1 },
+  blender: { draft: 0.4, final: 3 }
 }
 
 // 3D final: seconds a frame at these samples (measured on an M4: 1.0 s a
@@ -72,13 +79,14 @@ const PER_FRAME: Record<Project['track'], Record<Mode, number>> = {
 export const secondsPerFrame3d = (samples: number) => 0.35 + 0.028 * samples
 
 // Estimated render time: the last render of this shot in this mode, or
-// a per-frame guess for the track
+// a per-frame guess for the renderer
 export function estimate(project: Project, shot: Shot, mode: Mode, stills = false): number {
-  if (stills) return project.track === '3d' ? (mode === 'draft' ? 25 : 40) : 3
+  const blender = inBlender(project)
+  if (stills) return blender ? (mode === 'draft' ? 25 : 40) : 3
   const last = shot[mode].seconds ?? [...shot.takes].reverse().find(t => t.mode === mode && t.kind === 'clip')?.seconds
   if (last) return last
-  const perFrame = project.track === '3d' && mode === 'final' && project.samples ? secondsPerFrame3d(project.samples) : PER_FRAME[project.track][mode]
-  return Math.round(shot.duration * project.fps * perFrame + (project.track === '3d' ? 20 : 3))
+  const perFrame = blender && mode === 'final' && project.samples ? secondsPerFrame3d(project.samples) : PER_FRAME[project.renderer][mode]
+  return Math.round(shot.duration * project.fps * perFrame + (blender ? 20 : 3))
 }
 
 export function jobEstimate(project: Project | null, job: Job): number | null {

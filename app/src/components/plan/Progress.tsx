@@ -1,7 +1,7 @@
 import { fileUrl, type Job, type Project, type Storyboard } from '../../api'
 import { useTick } from '../../hooks'
 import { t } from '../../i18n'
-import { agentNow, buildStepList, buildSteps, formatSeconds, isActive, isWide, planSteps, type Step } from '../../model'
+import { agentNow, buildStepList, buildSteps, editMode, formatSeconds, isActive, isWide, planSteps, type Step } from '../../model'
 import { Icon } from '../Icon'
 import { ShotSketch } from './ShotSketch'
 import { shotHue } from './Storyboard'
@@ -17,8 +17,8 @@ const hasParts = (project: Project, plan: Storyboard | null) =>
 export function BuildView({ project, plan, job, toStudio, back }: { project: Project; plan: Storyboard | null; job: Job | null; toStudio: () => void; back: () => void }) {
   const running = !!job && isActive(job)
   useTick(running)
-  // The stills the editor shows: 3D previews, 2D finals
-  const stills = (s: Project['shots'][number]) => (project.track === '3d' ? s.draft : s.final).stills
+  // The stills the editor shows: Blender's previews, a page's finals
+  const stills = (s: Project['shots'][number]) => s[editMode(project)].stills
   const ready = project.shots.filter(s => stills(s)).length
   const steps = buildSteps(job)
   const elapsed = job?.startedAt ? ((job.finishedAt ?? Date.now()) - job.startedAt) / 1000 : null

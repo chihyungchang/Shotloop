@@ -28,9 +28,20 @@ function rulesFor(track: Track) {
 ${tools('2d', 'story').join('\n')}
 For a science subject (a mechanism, a law, a process):
 ${tools('2d', 'science').join('\n')}`
-    : `Within them, make it cinematic: stage the point with objects, light and the camera, not with charts. A toolbox to pick from (and add to):
+    : `Within them, make it cinematic: stage the point with objects, light and the camera, not with charts. A toolbox to pick from (and add to), from film and animation craft:
+Camera moves:
 ${tools('3d', 'camera').join('\n')}
-Staged in the set (stories and science):
+Composition:
+${tools('3d', 'frame').join('\n')}
+Editing and transitions:
+${tools('3d', 'cut').join('\n')}
+Staging and acting:
+${tools('3d', 'staging').join('\n')}
+Light and colour:
+${tools('3d', 'light').join('\n')}
+Explaining in 3D:
+${tools('3d', 'explain').join('\n')}
+Stories and science, staged in the set:
 ${[...tools('3d', 'story'), ...tools('3d', 'science')].join('\n')}`
   return `The ${track.toUpperCase()} rules.
 Fixed (never broken, whatever else is asked):
