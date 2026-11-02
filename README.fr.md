@@ -90,7 +90,7 @@ Les vidéos 2D suivent un ensemble de règles : des règles fixes qui gardent ch
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="La réponse de l’assistant IA des plans avec une vue de comparaison avant/après" /></a><br/>
-<sub><b>Assistant IA des plans</b> : dites ce qui ne va pas et l’IA corrige ce plan. Faites glisser le séparateur pour comparer avant et après.</sub>
+<sub><b>Assistant IA des plans</b> : dites ce qui ne va pas, choisissez une des façons que propose l’IA (ou la vôtre) et elle corrige ce plan. Faites glisser le séparateur pour comparer avant et après.</sub>
 </td>
 </tr>
 <tr>

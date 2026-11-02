@@ -168,7 +168,8 @@ export interface Checks {
 // paths are read in this project
 export interface FixRecord {
   at: string
-  task: 'fix' | 'check'
+  // propose: ways to make the request, for the person to pick (no edits)
+  task: 'propose' | 'fix' | 'check'
   shot: string
   request: string | null
   // The element the request was about, picked in the frame
@@ -178,10 +179,14 @@ export interface FixRecord {
   worldTouched: boolean
   affectedShots: string[]
   checks: Checks[]
+  // A proposal's ways to make the change, the AI's pick first
+  options?: ShotOption[]
   before: string[] | null
   after: string[] | null
   record: string
 }
+
+export interface ShotOption { title: string; plan: string }
 
 // What the person picked on a 2D shot's still, for a fix: a target of
 // the pick map, with the point clicked (page CSS px) and the still's time

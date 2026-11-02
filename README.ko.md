@@ -90,7 +90,7 @@ AI가 주제에 맞는 스타일을 고르고 이유를 알려 줍니다. 계획
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="전후 비교 화면이 포함된 AI 샷 어시스턴트의 답변" /></a><br/>
-<sub><b>AI 샷 어시스턴트</b>: 무엇이 문제인지 말하면 AI가 그 샷을 고칩니다. 구분선을 끌어 전후를 비교하세요.</sub>
+<sub><b>AI 샷 어시스턴트</b>: 무엇이 문제인지 말하면 AI가 몇 가지 방법을 제안합니다. 하나를 고르거나 직접 말하면 그 샷을 고칩니다. 구분선을 끌어 전후를 비교하세요.</sub>
 </td>
 </tr>
 <tr>

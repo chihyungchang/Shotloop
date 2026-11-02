@@ -90,7 +90,7 @@ Die KI wählt den Stil, der zum Thema passt, und begründet ihn; du kannst im Pl
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="Antwort des KI-Shot-Assistenten mit Vorher-Nachher-Vergleich" /></a><br/>
-<sub><b>KI-Shot-Assistent</b>: sag, was nicht stimmt, und die KI korrigiert diesen Shot. Zieh den Trenner, um Vorher und Nachher zu vergleichen.</sub>
+<sub><b>KI-Shot-Assistent</b>: sag, was nicht stimmt, wähl einen der Wege, die die KI vorschlägt (oder nenne deinen), und sie korrigiert diesen Shot. Zieh den Trenner, um Vorher und Nachher zu vergleichen.</sub>
 </td>
 </tr>
 <tr>

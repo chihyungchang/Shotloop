@@ -90,7 +90,7 @@ AI 會依題材挑選合適的風格並說明理由；你可以在規劃頁切�
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="AI 鏡頭助理的回覆，附修改前後對比" /></a><br/>
-<sub><b>AI 鏡頭助理</b>：說出哪裡不對，AI 就修好那個鏡頭。拖動分隔線即可對比修改前後。</sub>
+<sub><b>AI 鏡頭助理</b>：說出哪裡不對，AI 先給你幾個改法，選一個（或說說你的想法），它再修好那個鏡頭。拖動分隔線即可對比修改前後。</sub>
 </td>
 </tr>
 <tr>

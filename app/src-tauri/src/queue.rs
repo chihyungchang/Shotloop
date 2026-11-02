@@ -53,6 +53,8 @@ pub enum Spec {
         name: Option<String>,
         lang: Option<String>,
     },
+    /// Ways to make a change to a shot, offered before anything is edited
+    Propose { project: String, shot: String, request: String, element: Option<Value>, lang: Option<String> },
     /// `element`: what the person picked in the frame (engine pick)
     Fix { project: String, shot: String, request: String, element: Option<Value>, lang: Option<String> },
     Check { project: String, shot: String, lang: Option<String> },
@@ -91,6 +93,7 @@ impl Spec {
         match self {
             Spec::Render { .. } => "render",
             Spec::Export { .. } => "export",
+            Spec::Propose { .. } => "propose",
             Spec::Fix { .. } => "fix",
             Spec::Check { .. } => "check",
             Spec::Publish { .. } => "publish",
@@ -119,6 +122,7 @@ impl Spec {
         match self {
             Spec::Render { project, .. }
             | Spec::Export { project, .. }
+            | Spec::Propose { project, .. }
             | Spec::Fix { project, .. }
             | Spec::Check { project, .. }
             | Spec::Publish { project, .. }
@@ -139,6 +143,7 @@ impl Spec {
                 format!("{} {} {}", if *stills { "Stills" } else { "Render" }, shot, mode)
             }
             Spec::Export { mode, aspects, .. } => format!("Export {} ({})", mode, aspects.join(", ")),
+            Spec::Propose { shot, request, .. } => format!("Options for {}: {}", shot, request),
             Spec::Fix { shot, request, .. } => format!("Fix {}: {}", shot, request),
             Spec::Check { shot, .. } => format!("Check {}", shot),
             Spec::Publish { .. } => "Write publish copy".into(),
@@ -170,6 +175,12 @@ impl Spec {
                     .opt("--name", name.as_ref())
                     .opt("--lang", lang.as_ref())
                     .flag(mode == "draft", "--draft"),
+            ),
+            Spec::Propose { project, shot, request, element, lang } => (
+                Script::Agent,
+                Args::new(["propose", project, "--shot", shot, "--request", request])
+                    .opt("--element", element.as_ref())
+                    .opt("--lang", lang.as_ref()),
             ),
             Spec::Fix { project, shot, request, element, lang } => (
                 Script::Agent,
@@ -295,7 +306,7 @@ impl Job {
     fn new(id: u64, spec: Spec) -> Job {
         let (shot, mode, stills) = match &spec {
             Spec::Render { shot, mode, stills, .. } => (Some(shot.clone()), Some(mode.clone()), *stills),
-            Spec::Fix { shot, .. } | Spec::Check { shot, .. } => (Some(shot.clone()), None, false),
+            Spec::Propose { shot, .. } | Spec::Fix { shot, .. } | Spec::Check { shot, .. } => (Some(shot.clone()), None, false),
             Spec::Export { mode, .. } | Spec::Preview { mode, .. } => (None, Some(mode.clone()), false),
             _ => (None, None, false),
         };
@@ -321,12 +332,12 @@ impl Job {
                 _ => vec![],
             },
             request: match &spec {
-                Spec::Fix { request, .. } => Some(request.clone()),
+                Spec::Propose { request, .. } | Spec::Fix { request, .. } => Some(request.clone()),
                 Spec::Plan { request, .. } | Spec::Cover { request, .. } => request.clone(),
                 _ => None,
             },
             element: match &spec {
-                Spec::Fix { element, .. } => element.clone(),
+                Spec::Propose { element, .. } | Spec::Fix { element, .. } => element.clone(),
                 _ => None,
             },
             state: if spec.downloads() { "approval" } else { "queued" }.into(),

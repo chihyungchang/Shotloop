@@ -90,7 +90,7 @@ Os vídeos 2D seguem um conjunto de regras: as fixas, que mantêm cada quadro li
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="A resposta do assistente IA de planos com uma comparação antes/depois" /></a><br/>
-<sub><b>Assistente IA de planos</b>: diga o que está errado e a IA corrige aquela cena. Arraste o divisor para comparar o antes e o depois.</sub>
+<sub><b>Assistente IA de planos</b>: diga o que está errado, escolha uma das formas que a IA propõe (ou diga a sua) e ela corrige aquela cena. Arraste o divisor para comparar o antes e o depois.</sub>
 </td>
 </tr>
 <tr>

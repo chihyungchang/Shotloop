@@ -90,7 +90,7 @@ The AI picks the style that fits the subject and tells you why; you can switch o
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="The AI shot assistant's reply with a before/after compare view" /></a><br/>
-<sub><b>AI shot assistant</b>: say what's wrong and the AI fixes that shot. Drag the divider to compare before and after.</sub>
+<sub><b>AI shot assistant</b>: say what's wrong, pick one of the ways the AI offers (or say your own), and it fixes that shot. Drag the divider to compare before and after.</sub>
 </td>
 </tr>
 <tr>

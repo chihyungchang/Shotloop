@@ -90,7 +90,7 @@ Los vídeos 2D siguen un conjunto de reglas: unas fijas que mantienen limpio cad
 </td>
 <td width="50%" valign="top">
 <a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="La respuesta del asistente IA de planos con una vista comparativa antes/después" /></a><br/>
-<sub><b>Asistente IA de planos</b>: di qué falla y la IA corrige ese plano. Arrastra el divisor para comparar el antes y el después.</sub>
+<sub><b>Asistente IA de planos</b>: di qué falla, elige una de las formas que propone la IA (o di la tuya) y corrige ese plano. Arrastra el divisor para comparar el antes y el después.</sub>
 </td>
 </tr>
 <tr>

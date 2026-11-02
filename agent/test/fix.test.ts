@@ -110,7 +110,7 @@ test('fix: reads, edits only the shot, renders, reports checks, keeps before/aft
     assert.deepEqual(result.element, ELEMENT)
     assert.equal(first.model, 'claude-opus-5-5')
     assert.deepEqual(first.tools.map((t: any) => t.name),
-      ['list_files', 'read_file', 'write_file', 'edit_file', 'render_stills', 'view_style', 'view_image', 'render_cover', 'read_checklist', 'report_checks', 'remember', 'set_ambience', 'set_lines'])
+      ['list_files', 'read_file', 'write_file', 'edit_file', 'render_stills', 'view_style', 'view_image', 'render_cover', 'read_checklist', 'report_checks', 'offer_options', 'remember', 'set_ambience', 'set_lines'])
     assert.equal(first.fallbacks, 'default')
 
     // Refusals came back as tool errors, and nothing outside the shot changed
@@ -135,6 +135,39 @@ test('fix: reads, edits only the shot, renders, reports checks, keeps before/aft
     assert.equal(checks.results[0].rule, 'safe-area')
     assert.match(fs.readFileSync(path.join(project, 'shots', SHOT, 'notes.md'), 'utf8'), /fix "show "Follow for more"/)
     assert.equal(result.summary, 'Made the follow line visible from the start of the end card.')
+  } finally {
+    api.close()
+    fs.rmSync(project, { recursive: true, force: true })
+  }
+})
+
+test('propose: looks, offers ways to make the change, edits nothing', async () => {
+  const project = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-agent-'))
+  fs.cpSync(EXAMPLE, project, { recursive: true, filter: src => !/\.shotloop|\/out(\/|$)/.test(src) })
+  const code = `shots/${SHOT}/shot.js`
+  const original = fs.readFileSync(path.join(project, code), 'utf8')
+  const notes = fs.readFileSync(path.join(project, 'shots', SHOT, 'notes.md'), 'utf8')
+  const options = [
+    { title: 'Fade it in early', plan: 'The follow line fades in over the first 0.3 s.' },
+    { title: 'Show it from frame one', plan: 'The follow line is visible for the whole card.' }
+  ]
+  const api = await mockApi([
+    [use('t1', 'read_file', { path: code }), use('t2', 'write_file', { path: code, content: 'nope' })],
+    [use('t3', 'offer_options', { options })],
+    [{ type: 'text', text: 'The follow line only appears at the end.' }]
+  ])
+  try {
+    const { code: exit, events } = await runAgent(['propose', project, '--shot', SHOT, '--request', 'show "Follow for more" from the start'], api.url)
+    assert.equal(exit, 0, JSON.stringify(events.filter(e => e.type === 'error')))
+    const result = events.find(e => e.type === 'result').value
+    assert.equal(result.task, 'propose')
+    assert.deepEqual(result.options, options)
+    assert.equal(result.summary, 'The follow line only appears at the end.')
+    // Nothing written, and the shot's history unchanged until a fix
+    assert.ok(api.requests[1].messages.at(-1).content[1].is_error)
+    assert.deepEqual(result.touched, [])
+    assert.equal(fs.readFileSync(path.join(project, code), 'utf8'), original)
+    assert.equal(fs.readFileSync(path.join(project, 'shots', SHOT, 'notes.md'), 'utf8'), notes)
   } finally {
     api.close()
     fs.rmSync(project, { recursive: true, force: true })
