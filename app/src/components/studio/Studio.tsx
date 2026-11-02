@@ -99,6 +99,18 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   // The renders of this project under way: the queue shows them
   const renders = active.filter(j => j.project === project.root && j.kind === 'render')
   const toggle = (d: Drawer) => setDrawer(cur => (cur === d ? null : d))
+  // A fix that changed a shot renders its clip at once (the fix itself
+  // only renders stills), so the shot plays as changed: once per fix that
+  // ends while the studio is open
+  const fixed = jobs.filter(j => j.kind === 'fix' && j.project === project.root && j.state === 'done' && j.shot && (j.result?.touched?.length ?? 0) > 0)
+  const seenFixes = useRef(new Set(fixed.map(j => j.id)))
+  useEffect(() => {
+    for (const j of fixed) {
+      if (seenFixes.current.has(j.id)) continue
+      seenFixes.current.add(j.id)
+      guard(api.enqueue({ kind: 'render', project: project.root, shot: j.shot!, mode, stills: false }))
+    }
+  }, [fixed.map(j => j.id).join()])
   // A download asking for approval opens the queue, where it is approved
   const asking = jobs.filter(j => j.state === 'approval').length
   const asked = useRef(asking)
