@@ -7,7 +7,7 @@
 Bir fikir metne, senaryo taslağına ve çekimlerden oluşan bir filme dönüşür. Her çekimin kendi döngüsü vardır: yapay zekâ yazar, Shotloop işler, siz incelersiniz, yapay zekâ düzeltir. Bir düzeltme tüm filmi değil, yalnızca o çekimi yeniden işler.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Shotloop Studio: 3D mekanik bir saat, balans çarkı çekiminin başlangıç, orta ve bitiş kareleri, altta film şeridi ve solda yapay zekâ asistanı" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Shotloop Studio: 3D mekanik bir saat, balans çarkı çekiminin başlangıç, orta ve bitiş kareleri, altta film şeridi ve solda yapay zekâ çekim asistanı" width="100%" />
 </p>
 
 <p align="center">
@@ -89,8 +89,8 @@ Yapay zekâ konuya uyan stili seçer ve nedenini söyler; planda değiştirebili
 <sub><b>Studio</b>: karanlık sahnede çekim, film şeridi ve her çekimin notları ile denetimleri.</sub>
 </td>
 <td width="50%" valign="top">
-<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="Yapay zekâ asistanının önce/sonra karşılaştırmalı yanıtı" /></a><br/>
-<sub><b>Yapay zekâ asistanı</b>: neyin yanlış olduğunu söyleyin, yapay zekâ o çekimi düzeltsin. Önceyi ve sonrayı karşılaştırmak için ayırıcıyı sürükleyin.</sub>
+<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="Yapay zekâ çekim asistanının önce/sonra karşılaştırmalı yanıtı" /></a><br/>
+<sub><b>Yapay zekâ çekim asistanı</b>: neyin yanlış olduğunu söyleyin, yapay zekâ o çekimi düzeltsin. Önceyi ve sonrayı karşılaştırmak için ayırıcıyı sürükleyin.</sub>
 </td>
 </tr>
 <tr>

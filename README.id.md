@@ -7,7 +7,7 @@
 Sebuah ide menjadi teks, storyboard, lalu film yang tersusun dari adegan. Setiap adegan punya loop sendiri: AI menulisnya, Shotloop merendernya, Anda meninjaunya, dan AI memperbaikinya. Perbaikan hanya merender ulang adegan itu, bukan seluruh film.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Shotloop Studio: jam mekanis 3D, adegan roda keseimbangan dalam bingkai awal, tengah dan akhir, filmstrip di bawah dan asisten AI di kiri" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Shotloop Studio: jam mekanis 3D, adegan roda keseimbangan dalam bingkai awal, tengah dan akhir, filmstrip di bawah dan asisten AI adegan di kiri" width="100%" />
 </p>
 
 <p align="center">
@@ -89,8 +89,8 @@ Video 2D mengikuti seperangkat aturan: aturan tetap yang menjaga setiap bingkai 
 <sub><b>Studio</b>: adegan di panggung gelap, filmstrip, serta catatan dan pemeriksaan tiap adegan.</sub>
 </td>
 <td width="50%" valign="top">
-<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="Balasan asisten AI dengan tampilan perbandingan sebelum/sesudah" /></a><br/>
-<sub><b>Asisten AI</b>: sebutkan apa yang salah, AI memperbaiki adegan itu. Geser pembatas untuk membandingkan sebelum dan sesudah.</sub>
+<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="Balasan asisten AI adegan dengan tampilan perbandingan sebelum/sesudah" /></a><br/>
+<sub><b>Asisten AI adegan</b>: sebutkan apa yang salah, AI memperbaiki adegan itu. Geser pembatas untuk membandingkan sebelum dan sesudah.</sub>
 </td>
 </tr>
 <tr>

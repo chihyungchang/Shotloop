@@ -7,7 +7,7 @@
 アイデアがコピーになり、絵コンテになり、ショットを並べた動画になります。ショットにはそれぞれのループがあります。AI が書き、Shotloop がレンダリングし、あなたが確認し、AI が直す。修正するとそのショットだけを再レンダリングし、動画全体はやり直しません。</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Shotloop のエディタ：3D の機械式時計。テンプのショットの開始・中間・終了の静止画、その下にフィルムストリップ、左に AI アシスタント" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Shotloop のエディタ：3D の機械式時計。テンプのショットの開始・中間・終了の静止画、その下にフィルムストリップ、左に AI ショットアシスタント" width="100%" />
 </p>
 
 <p align="center">
@@ -89,8 +89,8 @@ AI は題材に合うスタイルを選び、その理由を伝えます。プ�
 <sub><b>エディタ</b>：暗いステージ上のショット、フィルムストリップ、ショットごとのメモとチェック。</sub>
 </td>
 <td width="50%" valign="top">
-<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="変更前後の比較ビュー付きの AI アシスタントの返答" /></a><br/>
-<sub><b>AI アシスタント</b>：気になる点を伝えると、AI がそのショットを直します。境界線をドラッグして変更前と変更後を比較できます。</sub>
+<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="変更前後の比較ビュー付きの AI ショットアシスタントの返答" /></a><br/>
+<sub><b>AI ショットアシスタント</b>：気になる点を伝えると、AI がそのショットを直します。境界線をドラッグして変更前と変更後を比較できます。</sub>
 </td>
 </tr>
 <tr>

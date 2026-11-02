@@ -7,7 +7,7 @@
 一个想法会变成文案、分镜和由多个镜头组成的成片。每个镜头都有自己的循环：AI 编写，Shotloop 渲染，你来检查，AI 来修改。修一个镜头只重新渲染这一个，不用重做整部片子。</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero-zh.jpg" alt="Shotloop 工作室：3D 机械表项目，舞台上是摆轮镜头的开头、中间、结尾三帧，下方是镜头条，左边是 AI 助手" width="100%" />
+  <img src="docs/screenshots/hero-zh.jpg" alt="Shotloop 工作室：3D 机械表项目，舞台上是摆轮镜头的开头、中间、结尾三帧，下方是镜头条，左边是 AI 镜头助手" width="100%" />
 </p>
 
 <p align="center">
@@ -89,8 +89,8 @@ AI 会按题目挑选最合适的画面方式并说明理由；你可以在策�
 <sub><b>工作室</b>：深色舞台上的镜头、镜头条，以及每个镜头的说明与检查。</sub>
 </td>
 <td width="50%" valign="top">
-<a href="docs/screenshots/agent-zh.jpg"><img src="docs/screenshots/agent-zh.jpg" alt="AI 助手的回复，带改动前后对比图" /></a><br/>
-<sub><b>AI 助手</b>：说出哪里不对，AI 就修改这个镜头。拖动分割线可以对比改动前后。</sub>
+<a href="docs/screenshots/agent-zh.jpg"><img src="docs/screenshots/agent-zh.jpg" alt="AI 镜头助手的回复，带改动前后对比图" /></a><br/>
+<sub><b>AI 镜头助手</b>：说出哪里不对，AI 就修改这个镜头。拖动分割线可以对比改动前后。</sub>
 </td>
 </tr>
 <tr>

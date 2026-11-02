@@ -7,7 +7,7 @@
 Una idea se convierte en texto, guion gráfico y una película hecha de planos. Cada plano tiene su propio ciclo: la IA lo escribe, Shotloop lo renderiza, tú lo revisas y la IA lo corrige. Una corrección vuelve a renderizar solo ese plano, no la película entera.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Editor de Shotloop: un reloj mecánico en 3D, su plano del volante en fotogramas de inicio, mitad y final, la tira de planos debajo y el asistente de IA a la izquierda" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Editor de Shotloop: un reloj mecánico en 3D, su plano del volante en fotogramas de inicio, mitad y final, la tira de planos debajo y el asistente IA de planos a la izquierda" width="100%" />
 </p>
 
 <p align="center">
@@ -89,8 +89,8 @@ Los vídeos 2D siguen un conjunto de reglas: unas fijas que mantienen limpio cad
 <sub><b>Editor</b>: el plano sobre un escenario oscuro, la tira de planos y las notas y comprobaciones de cada plano.</sub>
 </td>
 <td width="50%" valign="top">
-<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="La respuesta del asistente de IA con una vista comparativa antes/después" /></a><br/>
-<sub><b>Asistente de IA</b>: di qué falla y la IA corrige ese plano. Arrastra el divisor para comparar el antes y el después.</sub>
+<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="La respuesta del asistente IA de planos con una vista comparativa antes/después" /></a><br/>
+<sub><b>Asistente IA de planos</b>: di qué falla y la IA corrige ese plano. Arrastra el divisor para comparar el antes y el después.</sub>
 </td>
 </tr>
 <tr>

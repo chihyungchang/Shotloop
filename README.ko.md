@@ -7,7 +7,7 @@
 아이디어 하나가 문안, 스토리보드, 그리고 여러 샷으로 이뤄진 영상이 됩니다. 샷마다 자체 루프가 있습니다. AI가 작성하고, Shotloop이 렌더링하고, 사용자가 검토하면 AI가 고칩니다. 수정하면 영상 전체가 아니라 그 샷만 다시 렌더링합니다.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Shotloop 편집기: 3D 기계식 시계 프로젝트. 밸런스 휠 샷의 시작·중간·끝 정지 화면, 아래쪽 필름 스트립, 왼쪽 AI 어시스턴트" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Shotloop 편집기: 3D 기계식 시계 프로젝트. 밸런스 휠 샷의 시작·중간·끝 정지 화면, 아래쪽 필름 스트립, 왼쪽 AI 샷 어시스턴트" width="100%" />
 </p>
 
 <p align="center">
@@ -89,8 +89,8 @@ AI가 주제에 맞는 스타일을 고르고 이유를 알려 줍니다. 계획
 <sub><b>편집기</b>: 어두운 무대 위의 샷, 필름 스트립, 샷별 노트와 검사 결과.</sub>
 </td>
 <td width="50%" valign="top">
-<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="전후 비교 화면이 포함된 AI 어시스턴트의 답변" /></a><br/>
-<sub><b>AI 어시스턴트</b>: 무엇이 문제인지 말하면 AI가 그 샷을 고칩니다. 구분선을 끌어 전후를 비교하세요.</sub>
+<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="전후 비교 화면이 포함된 AI 샷 어시스턴트의 답변" /></a><br/>
+<sub><b>AI 샷 어시스턴트</b>: 무엇이 문제인지 말하면 AI가 그 샷을 고칩니다. 구분선을 끌어 전후를 비교하세요.</sub>
 </td>
 </tr>
 <tr>

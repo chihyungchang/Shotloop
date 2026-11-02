@@ -7,7 +7,7 @@
 Uma ideia vira texto, storyboard e um filme feito de cenas. Cada cena tem o seu próprio ciclo: a IA escreve, o Shotloop renderiza, você revisa e a IA corrige. Uma correção renderiza de novo só aquela cena, não o filme inteiro.</p>
 
 <p align="center">
-  <img src="docs/screenshots/hero.jpg" alt="Editor do Shotloop: um relógio mecânico em 3D, a cena do balanço em quadros de início, meio e fim, a faixa de cenas embaixo e o assistente de IA à esquerda" width="100%" />
+  <img src="docs/screenshots/hero.jpg" alt="Editor do Shotloop: um relógio mecânico em 3D, a cena do balanço em quadros de início, meio e fim, a faixa de cenas embaixo e o assistente IA de planos à esquerda" width="100%" />
 </p>
 
 <p align="center">
@@ -89,8 +89,8 @@ Os vídeos 2D seguem um conjunto de regras: as fixas, que mantêm cada quadro li
 <sub><b>Editor</b>: a cena em um palco escuro, a faixa de cenas e as notas e verificações de cada cena.</sub>
 </td>
 <td width="50%" valign="top">
-<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="A resposta do assistente de IA com uma comparação antes/depois" /></a><br/>
-<sub><b>Assistente de IA</b>: diga o que está errado e a IA corrige aquela cena. Arraste o divisor para comparar o antes e o depois.</sub>
+<a href="docs/screenshots/agent.jpg"><img src="docs/screenshots/agent.jpg" alt="A resposta do assistente IA de planos com uma comparação antes/depois" /></a><br/>
+<sub><b>Assistente IA de planos</b>: diga o que está errado e a IA corrige aquela cena. Arraste o divisor para comparar o antes e o depois.</sub>
 </td>
 </tr>
 <tr>
