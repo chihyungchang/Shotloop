@@ -36,7 +36,7 @@
 //                     [--effects on|off] [--effects-gain 0–2] [--cue <shot>@<at>:<sound> | --kind <sound>] [--off]
 //                     the ambience and the shots' sound effects (sounds.json), which are on
 //   shotloop timeline <project>                          the sound as the studio's timeline shows it: each
-//                     track's waveform, the voice's lines, the effects' cues, the mix to play
+//                     track alone at gain 1 with its waveform (the app mixes them), the voice's lines, the effects' cues
 //   shotloop voice-models [--download <id>]                the speech models: languages, size, license,
 //                     on this Mac or not; --download fetches one (progress in MB)
 //   shotloop check-subtitles <project> [--shot <id>]      what the voice-over's subtitles would cover

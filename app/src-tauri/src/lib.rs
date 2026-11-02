@@ -189,6 +189,7 @@ pub fn run() {
             commands::app::enqueue,
             commands::app::jobs,
             commands::app::cancel_job,
+            commands::app::approve_job,
             commands::app::clear_jobs,
             commands::app::telemetry_due,
             commands::app::telemetry_sent,

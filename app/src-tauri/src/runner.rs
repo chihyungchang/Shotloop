@@ -81,6 +81,9 @@ pub fn node_command(launch: &Launch, script: Script, args: &[String]) -> Result<
         .process_group(0)
         .current_dir(&launch.root)
         .env("PATH", &launch.path)
+        // Downloads are the person's to approve (queue.rs): nothing run
+        // from the app fetches a speech model on its own
+        .env("SHOTLOOP_DOWNLOADS", "ask")
         .envs(launch.env.iter().cloned())
         .stdin(Stdio::null())
         .stdout(Stdio::piped())

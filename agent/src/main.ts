@@ -12,9 +12,10 @@
 //   shotloop-agent test                       one tiny request through the chosen backend
 //   shotloop-agent plan    <project> [--request "…"]  copy and storyboard (storyboard.json)
 //   shotloop-agent build   <project>             the world and every shot, from the plan
-//   shotloop-agent sound   <project> [--narrate]  the film's sound once its shots are approved:
-//                                             effects and ambience; --narrate adds narration
-//                                             that fits the finished shots
+//   shotloop-agent sound   <project> [--parts effects,ambience,narration] [--request "…"]
+//                                             the film's sound once its shots are approved: the
+//                                             parts asked for (default effects and ambience);
+//                                             narration fits the finished shots
 //   shotloop-agent models  --url <…> [--key k] [--protocol anthropic|openai]
 //                                             the chat models an endpoint offers
 //
@@ -30,7 +31,7 @@ import { engine, renderCover, renderStills, status, type ProjectStatus, type Sho
 import { lookFits, memory, parseFlags, rules, STILLS, type Memory } from './enginelib.ts'
 import { emit, exit, reason, setJson, warn } from './events.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
-import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, memoryPrompt, planSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, soundSystem, TEMPLATE_RULES } from './prompts.ts'
+import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, memoryPrompt, planSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, SOUND_PARTS, soundSystem, TEMPLATE_RULES, type SoundPart } from './prompts.ts'
 import { lintPlan, lintVoice } from './principles.ts'
 import { newContext, SET_AMBIENCE, SET_LINES, writeAtomic, type ToolContext } from './tools.ts'
 
@@ -40,7 +41,7 @@ const OPTIONS = {
     element: { type: 'string' },
     template: { type: 'string' },
     reference: { type: 'boolean' },
-    narrate: { type: 'boolean' },
+    parts: { type: 'string' },
     model: { type: 'string' },
     'review-only': { type: 'boolean' },
     lang: { type: 'string' },
@@ -425,20 +426,25 @@ async function publishTask() {
 }
 
 // The film's sound, once its shots are approved: one pass over every shot
-// for the effects and the ambience; with --narrate, narration written to
-// fit the finished shots (the picture leads)
+// for the parts the person chose (the effects, the ambience, narration
+// written to fit the finished shots, the picture leading); the others are
+// left as they are
 async function soundTask() {
   const project = await status(dir)
-  const narrate = !!values.narrate
-  if (narrate && project.voiced) throw new Error('this film already has a voice-over')
-  const sounds = project.shots.map(s => `shots/${s.id}/sounds.json`)
-  const ctx = context(project.root, [...sounds, SET_AMBIENCE, ...(narrate ? [SET_LINES] : [])])
+  const parts = new Set((values.parts ?? 'effects,ambience').split(',').map(p => p.trim()))
+  const unknown = [...parts].filter(p => !SOUND_PARTS.includes(p as SoundPart))
+  if (unknown.length || !parts.size) throw new Error(`--parts takes some of ${SOUND_PARTS.join(', ')}`)
+  const has = (p: SoundPart) => parts.has(p)
+  if (has('narration') && project.voiced) throw new Error('this film already has a voice-over')
+  const sounds = has('effects') ? project.shots.map(s => `shots/${s.id}/sounds.json`) : []
+  const ctx = context(project.root, [...sounds, ...(has('ambience') ? [SET_AMBIENCE] : []), ...(has('narration') ? [SET_LINES] : [])])
   const shots = project.shots.map(s => `- ${s.id}${s.title ? ` (${s.title})` : ''}: ${s.duration} s${s.say ? `, says "${s.say}"` : ''}`).join('\n')
+  const ask = values.request?.trim() ? `The person asks: "${values.request.trim()}"\n\n` : ''
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent('code', {
     effort: 'medium',
-    system: soundSystem(project.track, !!project.voiced, narrate) + replyLanguage(values.lang),
-    prompt: `Give ${head(project)} its sound${narrate ? ' and a narration' : ''}.\n\nShots:\n${shots}${assetsBrief(project)}\n\ncopy.md:\n${read(path.join(project.root, 'copy.md'))}`,
+    system: soundSystem(project.track, !!project.voiced, SOUND_PARTS.filter(has)) + replyLanguage(values.lang),
+    prompt: `${ask}Give ${head(project)} its ${SOUND_PARTS.filter(has).join(' and ')}.\n\nShots:\n${shots}${assetsBrief(project)}\n\ncopy.md:\n${read(path.join(project.root, 'copy.md'))}`,
     ctx
   })
   return { task: 'sound', summary, touched: [...ctx.touched].sort() }

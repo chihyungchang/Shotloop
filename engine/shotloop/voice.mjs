@@ -81,6 +81,13 @@ const shotSpeed = (shot, cfg) => shot.sayFast ?? cfg.speed ?? 1
 const lineKey = (text, lang, voice, speed) => createHash('sha256')
   .update(JSON.stringify([VOICE_VERSION, lang, voice, Math.round(speed * 1000), text])).digest('hex').slice(0, 16)
 
+// What a fit depends on: the lines, the shots' lengths, the voice and how
+// it leads. Stored by the fit (voice.fitted), so switching the voice-over
+// off and on again, with nothing else changed, needs no new fit
+const fitKey = (shots, lang, voice, cfg) => createHash('sha256')
+  .update(JSON.stringify([VOICE_VERSION, lang, voice, cfg.speed ?? 1, !!cfg.picture, shots.map(s => [s.id, s.say?.trim() ?? '', s.duration])]))
+  .digest('hex').slice(0, 16)
+
 // A model download's progress, as MB a step: progress events for the
 // app's queue bar (the last step once the model is unpacked in place)
 function downloadTicker(stage, bytes) {
@@ -119,8 +126,13 @@ async function speak(project, text, { lang, voice, speed = 1 }) {
   const meta = readJson(path.join(voiceDir(project), `${key}.json`), null)
   if (meta && fs.existsSync(file)) return { file, duration: meta.duration }
   const v = await voicePackage()
-  // The model downloads here only when nothing fetched it first (the app
-  // queues the download as a job of its own)
+  // The model downloads here only when nothing fetched it first; from the
+  // app (SHOTLOOP_DOWNLOADS=ask) never: its download is a queue job the
+  // person approves
+  const model = v.engineFor(lang)?.model
+  if (process.env.SHOTLOOP_DOWNLOADS === 'ask' && model && !v.installed(model)) {
+    throw new Error(`the voice model (${v.MODELS[model]?.name ?? model}) isn't on this Mac yet: approve its download in the queue`)
+  }
   let tick = null
   const out = await v.synthesize(text, {
     lang, voice, speed,
@@ -232,15 +244,15 @@ export async function fitVoice(project) {
   }
   // Into shotloop.json as it is now: speaking took a while, and a shot
   // whose line changed meanwhile keeps what it has (the next fit times it)
-  const { shots } = updateConfig(project.root, c => ({
-    ...c, lang, voice: { ...c.voice, voice },
-    shots: c.shots.map(s => {
+  const { shots } = updateConfig(project.root, c => {
+    const shots = c.shots.map(s => {
       const f = fitted.get(s.id)
       if (!f || f.say !== s.say) return s
       const { cues, sayFast, sayAt, ...rest } = s
       return { ...rest, ...f.fit }
     })
-  }))
+    return { ...c, lang, voice: { ...c.voice, voice, fitted: fitKey(shots, lang, voice, cfg) }, shots }
+  })
   syncStoryboard(project.root, shots)
   return { lang, voice, changes, overruns, crossings, unspoken, duration: round(shots.reduce((t, s) => t + s.duration, 0), 2) }
 }
@@ -414,36 +426,49 @@ async function mixSound(project, music, lines) {
   return withEffects(project, lines.length ? await soundtrack(project, bed, lines) : bed, lines)
 }
 
-// The film's sound as the timeline draws it: each track's waveform (the
-// music as it plays, ducked under the voice), the voice's lines and the
-// effects' cues in film seconds, and the mix to play from any point. A
-// voice-over that can't be spoken (its model missing) is left out and
-// said, as in a preview
+// The project as if every track were at its own level (gain 1): the
+// timeline's tracks, which the app plays at the person's volumes, so a
+// volume changed is heard at once and renders nothing
+const atUnitGain = project => ({
+  ...project,
+  config: {
+    ...project.config, musicGain: 1,
+    voice: { ...project.config.voice, gain: 1 },
+    sound: { ...project.config.sound, ambienceGain: 1, effectsGain: 1 }
+  }
+})
+
+// The film's sound as the timeline draws and plays it: each track on its
+// own at gain 1 (the app mixes them at the person's volumes, as mixSound
+// does for the film), with its waveform, the voice's lines and the
+// effects' cues in film seconds. The music and the ambience play as in
+// the film, dipping under the voice. A voice-over that can't be spoken
+// (its model missing) is left out and said, as in a preview
 export async function soundTimeline(project, { rate = 20 } = {}) {
-  const music = await musicBed(project)
+  const unit = atUnitGain(project)
   let lines = []
-  if (voiceOn(project)) {
+  if (voiceOn(unit)) {
     try {
-      lines = await voiceLines(project)
+      lines = await voiceLines(unit)
     } catch (err) {
       emit({ type: 'log', message: `voice-over left out: ${err.message}` })
     }
   }
-  const peaks = async file => (file ? peaksOf(file, project.duration, rate) : null)
-  const ambience = await withAmbience(project, null)
+  const ducked = async file => (file && lines.length ? duckedMusic(unit, file, lines) : file)
+  const track = async file => (file ? { file, peaks: await peaksOf(file, project.duration, rate) } : null)
+  const voice = lines.length ? await track(await voiceTrack(unit, lines)) : null
   return {
     duration: project.duration,
     rate,
-    voice: lines.length ? { lines: lines.map(l => ({ shot: l.shot, text: l.text, at: round(l.at, 2), end: round(l.end, 2) })), peaks: await peaks(await voiceTrack(project, lines)) } : null,
-    music: music ? { peaks: await peaks(lines.length ? await duckedMusic(project, music, lines) : music) } : null,
-    ambience: ambience ? { peaks: await peaks(ambience) } : null,
-    effects: { cues: soundCues(project), peaks: await peaks(await withEffects(project, null, lines)) },
-    mix: await mixSound(project, music, lines)
+    voice: voice && { ...voice, lines: lines.map(l => ({ shot: l.shot, text: l.text, at: round(l.at, 2), end: round(l.end, 2) })) },
+    music: await track(await ducked(await musicBed(unit))),
+    ambience: await track(await ducked(await withAmbience(unit, null))),
+    effects: { cues: soundCues(project), ...((await track(await withEffects(unit, null, lines))) ?? { file: null, peaks: null }) }
   }
 }
 
-// The music alone as it plays under the voice (dipping while a line is
-// spoken), for the timeline to draw
+// A bed alone (the music, or the ambience) as it plays under the voice,
+// dipping while a line is spoken, for the timeline
 function duckedMusic(project, music, lines) {
   const curve = duckCurve(lines)
   const key = createHash('sha256').update(`1:${path.basename(music)}:${curve}`).digest('hex').slice(0, 16)
@@ -477,11 +502,14 @@ export async function voiceInfo(project) {
   let available = false
   let model = null
   let voice = null
+  // The lines are timed for this voice already: turning it on needs no fit
+  let fitted = false
   try {
     const v = await voicePackage()
     available = v.speaks(lang)
     voices = v.voicesFor(lang)
     voice = available ? voiceFor(v, cfg, lang) : null
+    fitted = !!voice && cfg.fitted === fitKey(project.config.shots, lang, voice, cfg)
     const e = v.engineFor(lang)
     if (e) model = { id: e.model, name: v.MODELS[e.model].name, bytes: v.MODELS[e.model].bytes, installed: v.installed(e.model) }
   } catch (err) {
@@ -491,7 +519,7 @@ export async function voiceInfo(project) {
   }
   return {
     on: !!cfg.on, picture: !!cfg.picture, voice, speed: cfg.speed ?? 1, gain: cfg.gain ?? 1,
-    lang, available, voices, model,
+    lang, available, voices, model, fitted,
     lines: project.shots.filter(s => s.say?.trim()).length
   }
 }

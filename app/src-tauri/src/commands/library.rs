@@ -18,6 +18,11 @@ fn given(key: String) -> Option<String> {
     Some(key).filter(|k| !k.is_empty())
 }
 
+/// The person's Poly Pizza key, for a download job of its files
+pub fn polypizza_key(handle: &AppHandle) -> Option<String> {
+    given(saved(handle).polypizza_key)
+}
+
 /// Search a source with the person's key
 #[tauri::command]
 pub async fn library_search(handle: AppHandle, source: String, query: String, cursor: Option<String>, all: bool, category: Option<String>) -> Result<Value, String> {
@@ -38,18 +43,13 @@ pub async fn library_search(handle: AppHandle, source: String, query: String, cu
     .await
 }
 
-/// Download a search result, hear a sound first, list, remove, use in a project
+/// Hear a sound first, list, remove, use in a project (a download is a
+/// queue job the person approves: Spec::Download)
 #[tauri::command]
 pub async fn library(handle: AppHandle, action: String, item: Option<Value>, id: Option<String>, project: Option<String>) -> Result<Value, String> {
     blocking(move || {
         let base = Args::new(["library", action.as_str()]);
         let args = match action.as_str() {
-            "get" => {
-                // Poly Pizza's files need the person's key too
-                let poly = item.as_ref().is_some_and(|i| i["source"] == "polypizza");
-                let key = if poly { given(saved(&handle).polypizza_key) } else { None };
-                base.arg("--item").arg(item.map_or("null".into(), |i| i.to_string())).opt("--key", key)
-            }
             "preview" => base.arg("--item").arg(item.map_or("null".into(), |i| i.to_string())),
             "list" => base.args(project),
             "remove" | "import" => base.args(id),

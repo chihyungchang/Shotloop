@@ -4,10 +4,15 @@ import { Icon } from '../Icon'
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 
+// The film's sound playing or paused at a moment of this clip: at, in
+// clip seconds when `since` (performance.now()) was
+export interface Follow { at: number; playing: boolean; since: number }
+
 // A quiet player instead of the system controls: click to play or pause;
 // on hover, a thin bar fades in with play, a scrubber and the time (and
-// sound, when the clip has it).
-export function VideoPlayer({ src, className = '', autoPlay = true, loop = true, muted = true, sound = false }: {
+// sound, when the clip has it). With follow, it keeps to the film's sound
+// instead: there, playing or paused with it, and not looping.
+export function VideoPlayer({ src, className = '', autoPlay = true, loop = true, muted = true, sound = false, follow = null }: {
   src: string
   className?: string
   autoPlay?: boolean
@@ -15,6 +20,7 @@ export function VideoPlayer({ src, className = '', autoPlay = true, loop = true,
   muted?: boolean
   // Show a mute toggle (the film preview has music; shot clips don't)
   sound?: boolean
+  follow?: Follow | null
 }) {
   const ref = useRef<HTMLVideoElement>(null)
   const [playing, setPlaying] = useState(autoPlay)
@@ -33,7 +39,7 @@ export function VideoPlayer({ src, className = '', autoPlay = true, loop = true,
       setDuration(v.duration || 0)
       // Autoplay with sound may be refused: then it waits, paused, with
       // the big play button
-      if (autoPlay) v.play().catch(() => setPlaying(false))
+      if (autoPlay && !follow) v.play().catch(() => setPlaying(false))
     }
     v.addEventListener('timeupdate', sync)
     v.addEventListener('play', sync)
@@ -46,6 +52,22 @@ export function VideoPlayer({ src, className = '', autoPlay = true, loop = true,
       v.removeEventListener('loadedmetadata', meta)
     }
   }, [src])
+
+  // Kept to the sound: the time it has reached by the time the clip is
+  // ready (a clip loads while the sound plays on)
+  useEffect(() => {
+    const v = ref.current
+    if (!v || !follow) return
+    const apply = () => {
+      const at = follow.at + (follow.playing ? (performance.now() - follow.since) / 1000 : 0)
+      v.currentTime = Math.max(0, Math.min(v.duration || at, at))
+      if (follow.playing) v.play().catch(() => setPlaying(false))
+      else v.pause()
+    }
+    if (v.readyState >= 1) return apply()
+    v.addEventListener('loadedmetadata', apply, { once: true })
+    return () => v.removeEventListener('loadedmetadata', apply)
+  }, [follow, src])
 
   const toggle = () => {
     const v = ref.current
@@ -60,7 +82,7 @@ export function VideoPlayer({ src, className = '', autoPlay = true, loop = true,
 
   return (
     <div className={`player ${className}`}>
-      <video ref={ref} src={src} loop={loop} muted={isMuted} playsInline onClick={toggle} />
+      <video ref={ref} src={src} loop={loop && !follow} muted={isMuted} playsInline onClick={toggle} />
       {!playing && (
         <button className="player-big" onClick={toggle} aria-label={t('player.play')}>
           <Icon name="play" size={26} />

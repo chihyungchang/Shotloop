@@ -370,6 +370,9 @@ export interface VoiceResult {
   model: { id: string; name: string; bytes: number; installed: boolean } | null
   // Shots with a line
   lines: number
+  // The lines are timed for this voice and these shots: turning the
+  // voice-over on needs no new fit
+  fitted: boolean
   // --fit (or a new voice or speed): what the fit changed
   fit?: {
     lang: string
@@ -394,13 +397,13 @@ export interface VoiceResult {
 export interface TimelineResult {
   duration: number
   rate: number
-  voice: { lines: { shot: string; text: string; at: number; end: number }[]; peaks: number[] } | null
-  // As it plays: dipping under the voice
-  music: { peaks: number[] } | null
-  ambience: { peaks: number[] } | null
-  effects: { cues: SoundCue[]; peaks: number[] | null }
-  // Everything mixed, to play from any point
-  mix: string | null
+  // Each track alone at gain 1 (a WAV of the whole film) and its
+  // waveform; the app plays them together at the person's volumes
+  voice: { file: string; peaks: number[]; lines: { shot: string; text: string; at: number; end: number }[] } | null
+  // The music and the ambience as they play: dipping under the voice
+  music: { file: string; peaks: number[] } | null
+  ambience: { file: string; peaks: number[] } | null
+  effects: { cues: SoundCue[]; file: string | null; peaks: number[] | null }
 }
 
 // shotloop music <project>

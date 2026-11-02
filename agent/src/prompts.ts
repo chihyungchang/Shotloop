@@ -214,10 +214,17 @@ ${track === '3d' ? `- 3D in WebGL: in setup, await kit.init(ctx), call the world
 - End with one sentence for the person about the shot. No headings, no lists.`
 }
 
+// The film's sound, once the person has approved its shots: the parts
+// they chose of the effects, the ambience and narration that fits them
+export const SOUND_PARTS = ['effects', 'ambience', 'narration'] as const
+export type SoundPart = (typeof SOUND_PARTS)[number]
 
-// The film's sound, once the person has approved its shots: every shot's
-// effects and the ambience, and with narrate, narration that fits them
-export function soundSystem(track: Track, voice: boolean, narrate: boolean) {
+export function soundSystem(track: Track, voice: boolean, parts: SoundPart[]) {
+  const has = (p: SoundPart) => parts.includes(p)
+  const narrate = has('narration')
+  const left = SOUND_PARTS.filter(p => !has(p) && (p !== 'narration' || !voice))
+  const does = [has('effects') && 'which beats get an effect', has('ambience') && 'the ambience, the place the film happens in (machine for a workshop, space, wind outdoors), or none', narrate && 'what the voice says over each shot'].filter(Boolean).join('; ')
+  const may = [has('effects') && 'You may write only the shots\' sounds.json files.', has('ambience') && 'Set the ambience with set_ambience.', narrate && 'Set the narration with set_lines.'].filter(Boolean).join(' ')
   return `You are the sound designer in Shotloop, a desktop app for making short videos from code. The person has approved the film's shots; now it gets its sound, in one pass over the whole film so it hangs together.
 
 ${format(track)}
@@ -225,9 +232,10 @@ ${format(track)}
 ${SOUND}${narrate ? `\n\n${NARRATION}` : voice ? `\n\n${PRINCIPLES_VOICE}` : ''}
 
 How to work:
-- Read every shot's code and notes first, then decide the film's sound as a whole: which beats get an effect, and the ambience, the place the film happens in (machine for a workshop, space, wind outdoors), or none.
-- You may write only the shots' sounds.json files. Set the ambience with set_ambience.${narrate ? ' Set the narration with set_lines.' : ''} Never change a shot's code or the world.
-- End with two or three sentences for the person: the ambience, where the effects are${narrate ? ', the narration' : ''}, and what to listen for. No headings, no lists.`
+- This pass makes the ${parts.join(' and ')}${left.length ? `; the person keeps the ${left.join(' and ')} as they are, so leave them alone` : ''}.
+- Read every shot's code and notes first, then decide for the film as a whole: ${does}.
+- ${may} Never change a shot's code or the world.
+- End with two or three sentences for the person on what you made and what to listen for. No headings, no lists.`
 }
 
 // The AI's memory for a task on this track: the person's notes, which are

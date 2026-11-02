@@ -9,7 +9,8 @@ import { lookName } from './looks'
 type ShotState = 'cached' | 'stale' | 'missing' | 'queued' | 'rendering' | 'failed'
 
 // A job still to finish: waiting in the queue or running
-export const isActive = (job: Job) => job.state === 'running' || job.state === 'queued'
+// In the queue: running, queued, or a download waiting for approval
+export const isActive = (job: Job) => job.state === 'running' || job.state === 'queued' || job.state === 'approval'
 
 type Size = Project['size']
 export const isWide = (size: Size) => size.width > size.height
@@ -135,6 +136,8 @@ export function jobLabel(job: Job): string {
       return t('job.sound')
     case 'voiceModel':
       return t('job.voiceModel', { model: job.model ?? '' })
+    case 'download':
+      return t('job.download', { name: job.item?.name ?? '' })
     case 'voiceFit':
       return t('job.voiceFit')
     case 'preview':

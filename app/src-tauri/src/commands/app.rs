@@ -68,8 +68,20 @@ pub async fn update_settings(handle: AppHandle, patch: Value) -> Result<Settings
 }
 
 #[tauri::command]
-pub fn enqueue(handle: AppHandle, app: State<'_, App>, spec: Spec) -> u64 {
+pub fn enqueue(handle: AppHandle, app: State<'_, App>, mut spec: Spec) -> u64 {
+    // Poly Pizza's files need the person's key; the other sources none
+    if let Spec::Download { item, key } = &mut spec {
+        if item["source"] == "polypizza" {
+            *key = crate::commands::library::polypizza_key(&handle);
+        }
+    }
     app.queue.enqueue(&handle, spec)
+}
+
+/// A download the person approved, from the queue
+#[tauri::command]
+pub fn approve_job(handle: AppHandle, app: State<'_, App>, id: u64) {
+    app.queue.approve(&handle, id)
 }
 
 #[tauri::command]
