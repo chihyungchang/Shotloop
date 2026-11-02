@@ -97,12 +97,14 @@ body.resizing { cursor: col-resize; }
   background: radial-gradient(70% 80% at 50% 45%, color-mix(in srgb, var(--stage) 88%, #fff), var(--stage) 70%); }
 .stage.code { background: var(--surface); background-image: none; padding: 0; align-items: stretch; }
 .player.shot video { display: block; cursor: pointer; width: 100%; height: 100%; border-radius: var(--r-md); background: #000; box-shadow: 0 0 0 1px var(--stage-frame), 0 12px 40px rgb(0 0 0 / 0.55); }
+/* Each still sized by the stage (Stage's fitIn): gap and caption height
+   are STILL_GAP and CAPTION there */
 .stage-stills { display: flex; gap: 14px; height: 100%; align-items: center; justify-content: center; }
-.stage-stills figure { margin: 0; height: 100%; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
-.stage-stills img { height: calc(100% - 22px); max-width: 100%; object-fit: contain; border-radius: var(--r-md); cursor: zoom-in; box-shadow: 0 0 0 1px var(--stage-frame), 0 10px 30px rgb(0 0 0 / 0.5); }
-.stage-stills.wide { flex-direction: column; }
-.stage-stills.wide figure { height: 32%; }
-.stage-stills figcaption { color: var(--stage-text); font-size: var(--text-xs); }
+.stage-stills figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.stage-stills img, .stage-stills .still-ph { display: block; object-fit: contain; border-radius: var(--r-md); }
+.stage-stills img { cursor: zoom-in; box-shadow: 0 0 0 1px var(--stage-frame), 0 10px 30px rgb(0 0 0 / 0.5); }
+.stage-stills.stacked { flex-direction: column; }
+.stage-stills figcaption { line-height: 16px; color: var(--stage-text); font-size: var(--text-xs); }
 .stage-empty { color: var(--stage-text); text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .stage-empty button { background: var(--stage-raised); color: #fafafa; border-color: var(--stage-border); }
 .stage-error { position: absolute; top: 12px; left: 12px; right: 12px; background: color-mix(in srgb, var(--danger) 18%, var(--stage)); border: 1px solid color-mix(in srgb, var(--danger) 50%, transparent); color: #fecaca;
@@ -162,6 +164,9 @@ body.resizing { cursor: col-resize; }
 .md ul { margin: 0 0 8px; padding-left: 18px; }
 .md li { margin: 3px 0; }
 .md code { font-size: 12px; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+/* An AI reply in its bubble: the bubble's size, no trailing space */
+.bubble .md { max-width: none; font-size: inherit; line-height: 1.6; }
+.bubble .md > :last-child { margin-bottom: 0; }
 .notes-input { flex: 1; border: 0; border-radius: 0; resize: none; background: var(--surface); padding: 24px 32px; font-size: 13px; line-height: 1.7; }
 .notes-input:focus-visible { outline: none; }
 

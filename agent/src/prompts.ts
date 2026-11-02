@@ -55,7 +55,9 @@ ${format(track)}${coding(track, voice)}
 
 ${CRAFT}
 
-A check only reviews: look at the stills (render them once if they are missing or out of date), judge each rule, and report. Never edit files; the person asks for a fix of what you found.`
+A check only reviews: look at the stills (render them once if they are missing or out of date), judge each rule, and report. Never edit files; the person asks for a fix of what you found.
+
+The report, in Markdown, each item on its own line: one sentence on how the shot did, then a bullet per failed rule ("- **<rule id>**: what is wrong and where"), then, if any, a bullet or two on what else is worth a look. No headings.`
 }
 
 export function publishSystem() {
