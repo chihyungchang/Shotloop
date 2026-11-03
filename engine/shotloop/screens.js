@@ -568,10 +568,25 @@ export function cursor(t, { path, clicks = [], p = 1, size }) {
 
 const HEAD = () => `var(--brand-head, ${kit().HEAD_FONT})`
 // The film's ground, as the page paints it (the look's background, tuned
-// to the brand): what ink shows on, and the colour of words set on ink
+// to the brand): what ink shows on, and the colour of words set on ink.
+// A ground painted as a gradient has no one colour: the first colour of
+// the gradient stands for it, and with none, whichever of near-black and
+// white the ink doesn't look like (words set on ink must never vanish)
 const paper = () => {
-  const bg = getComputedStyle(document.body).backgroundColor
-  return /rgba?\(/.test(bg) && !/,\s*0\)$/.test(bg) ? bg : '#ffffff'
+  const style = getComputedStyle(document.body)
+  const bg = style.backgroundColor
+  if (/rgba?\(/.test(bg) && !/,\s*0\)$/.test(bg)) return bg
+  const stop = style.backgroundImage.match(/rgba?\([^)]*\)/)?.[0]
+  if (stop && !/,\s*0\)$/.test(stop)) return stop
+  return lightness(kit().C.text) > 0.5 ? '#0b0d12' : '#ffffff'
+}
+// How light a CSS colour is, 0 (black) to 1 (white), drawn to find out
+const lightness = color => {
+  const g = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext('2d')
+  g.fillStyle = color
+  g.fillRect(0, 0, 1, 1)
+  const [r, gr, b] = g.getImageData(0, 0, 1, 1).data
+  return (0.2126 * r + 0.7152 * gr + 0.0722 * b) / 255
 }
 const MONO = () => `var(--brand-mono, ui-monospace, 'SF Mono', Menlo, monospace)`
 const RULE = () => Math.max(1.5, 2 * unit())
