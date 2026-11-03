@@ -265,6 +265,11 @@ const TASTE = [
     check: 'Screens sit framed beside their headline or run off the frame; no heavy-shadowed floating card; nothing read while tilted.'
   },
   {
+    id: 'promo-in-use', track: 'all', kind: 'promo', name: 'Show it in use',
+    rule: 'A promo shows the product being used, not only looked at: at least the film\'s main beat drives it on the Mac\'s desktop, the cursor gliding to a real control and clicking it while the desktop\'s camera moves in to centre the click, and what the click does follows (a state that changes, words typed, a panel that opens). A screenshot only pushed in on is a picture of the product, not a demo of it.',
+    check: 'At least one beat drives the product on the desktop: the cursor clicks a real control, the camera centres the click, and its result shows.'
+  },
+  {
     id: 'promo-motion', track: 'all', kind: 'promo', name: 'Calm, exact motion',
     rule: 'Things rise in short ease-outs (half a second at most), staggered 60 to 100 ms, with no bounce; a cut is a wipe (an ink panel crossing the frame in about 0.36 s) or the camera moving in; a screen that has landed keeps pushing in slowly (about 4% over its beat), so nothing sits frozen for more than a second. Never rush a transition.',
     check: 'Rises are short and unbouncy; cuts are wipes or camera moves; no frame sits frozen for more than a second.'
