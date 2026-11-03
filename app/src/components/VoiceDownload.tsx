@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { api, type Job } from '../api'
-import { useErrorLine } from '../hooks'
+import { api, type Job, type VoiceInfo } from '../api'
+import { useErrorLine, useEscape } from '../hooks'
 import { formatEta, isActive } from '../model'
 import { t } from '../i18n'
 import { Icon } from './Icon'
@@ -26,7 +26,8 @@ export function VoiceDownload({ model, project, jobs, onDone }: {
     seen.current = job?.state
   }, [job?.state, onDone])
 
-  if (model.installed && !busy) return null
+  // Downloaded (the model read before it landed may still say not)
+  if ((model.installed || job?.state === 'done') && !busy) return null
   const mb = Math.round(model.bytes / 1e6)
   const p = job?.progress
   if (busy) {
@@ -47,6 +48,36 @@ export function VoiceDownload({ model, project, jobs, onDone }: {
         <Icon name="download" size={12} /> {t(job?.state === 'failed' ? 'voiceDl.retry' : 'voiceDl.get', { name: model.name, mb })}
       </button>
       <ErrorText error={failure} as="span" className="error small ellipsis" />
+    </div>
+  )
+}
+
+type Model = NonNullable<VoiceInfo['model']>
+
+// Before a voiced film plays: its voice model isn't on this Mac yet. The
+// download, then the film (onDone); or the film without its voice now
+export function VoiceModelDialog({ model, project, jobs, onDone, silent, close }: {
+  model: Model
+  project: string
+  jobs: Job[]
+  onDone: () => void
+  silent: () => void
+  close: () => void
+}) {
+  useEscape(close)
+  return (
+    <div className="dialog-backdrop" onClick={close}>
+      <div className="dialog column" role="dialog" aria-label={t('voiceDl.needTitle')} onClick={e => e.stopPropagation()}>
+        <div className="row between">
+          <strong>{t('voiceDl.needTitle')}</strong>
+          <button className="icon-button" onClick={close} aria-label={t('common.close')}><Icon name="x" size={14} /></button>
+        </div>
+        <p className="muted small">{t('voiceDl.needNote', { name: model.name, mb: Math.round(model.bytes / 1e6) })}</p>
+        <VoiceDownload model={model} project={project} jobs={jobs} onDone={onDone} />
+        <div className="dialog-actions">
+          <button className="ghost" onClick={silent}>{t('voiceDl.watchSilent')}</button>
+        </div>
+      </div>
     </div>
   )
 }

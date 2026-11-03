@@ -12,7 +12,7 @@ import { TelemetryNotice } from './components/TelemetryNotice'
 import { LeaveDraftDialog, WorkspaceDialog } from './components/WorkspaceDialog'
 import { checkForUpdate } from './update'
 import { startTelemetry } from './telemetry'
-import { isActive } from './model'
+import { EDIT_MODE, isActive } from './model'
 import { pickProject, projectsFolder, remember, setProjectsFolder } from './recent'
 import { useTheme } from './theme/theme'
 import { t, useLanguage } from './i18n'
@@ -212,6 +212,8 @@ export default function App() {
     }
   }, [refresh])
 
+  useRenderAfterBuild(jobs, setError)
+
   // The menu bar menu speaks the UI's language
   const active = jobs.filter(isActive).length
   useEffect(() => {
@@ -253,4 +255,28 @@ export default function App() {
       </main>
     </div>
   )
+}
+
+// A build renders only its shots' stills: when one finishes, every shot
+// of its film not rendered yet is queued (the render lane, several at
+// once), so the film is ready to watch by the time the shots are looked
+// at. Once per build that ends while the app runs: builds already done
+// when the queue is first read are left alone
+function useRenderAfterBuild(jobs: Job[], onError: (e: string) => void) {
+  const seen = useRef<Set<number> | null>(null)
+  useEffect(() => {
+    const done = jobs.filter(j => j.kind === 'build' && j.state === 'done')
+    if (!seen.current) {
+      if (jobs.length) seen.current = new Set(done.map(j => j.id))
+      return
+    }
+    for (const j of done) {
+      if (seen.current.has(j.id)) continue
+      seen.current.add(j.id)
+      api.status(j.project)
+        .then(p => Promise.all(p.shots.filter(s => s[EDIT_MODE].state !== 'cached')
+          .map(s => api.enqueue({ kind: 'render', project: p.root, shot: s.id, mode: EDIT_MODE, stills: false }))))
+        .catch(e => onError(String(e)))
+    }
+  }, [jobs, onError])
 }

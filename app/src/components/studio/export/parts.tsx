@@ -80,6 +80,13 @@ export function Voice({ project, jobs, refresh, state }: { project: Project; job
     }
   }
 
+  // The model's download finished somewhere else (the queue, the film's
+  // or the plan's prompt): read the settings again, so none is offered
+  const downloaded = jobs.find(j => j.kind === 'voiceModel' && j.model === info?.model?.id && j.state === 'done')
+  useEffect(() => {
+    if (downloaded && info?.model && !info.model.installed) landed()
+  }, [downloaded?.id])
+
   if (!info) return error ? <p className="xrow-note">{error}</p> : null
   const missing = !!info.model && !info.model.installed
   return (
@@ -91,7 +98,13 @@ export function Voice({ project, jobs, refresh, state }: { project: Project; job
             <button role="radio" aria-checked={!info.on} className={!info.on ? 'on' : ''} disabled={busy || !!fitting} onClick={() => info.on && change({ on: false })}>{t('voice.off')}</button>
             <button role="radio" aria-checked={info.on} className={info.on ? 'on' : ''} disabled={busy || !!fitting || !info.available} onClick={() => !info.on && change({ on: true })}>{t('voice.on')}</button>
           </div>
-          {(busy || fitting) && <span className="muted voice-busy"><span className="spinner small" /> {t('voice.fitting')}{fitting?.progress?.total ? ` ${fitting.progress.done}/${fitting.progress.total}` : ''}</span>}
+          {(busy || fitting) && (
+            <span className="muted voice-busy">
+              <span className="spinner small" /> {t('voice.fitting')}{fitting?.progress?.total ? ` ${fitting.progress.done}/${fitting.progress.total}` : ''}
+              {/* Nothing said yet: the model is loading (a minute or two the first time) */}
+              {fitting?.state === 'running' && !fitting.progress?.done && ` · ${t('voice.starting')}`}
+            </span>
+          )}
         </div>
       </div>
       {!info.available && <p className="xrow-note">{t('voice.unavailable')}</p>}

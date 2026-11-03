@@ -228,6 +228,8 @@ export interface ShotStatus {
   cues: { text: string; at: number; end: number }[]
   code: string
   notes: string
+  // Still the card a new shot starts as: the AI hasn't drawn it yet
+  starter: boolean
   draft: CacheEntry
   final: CacheEntry
   takes: Take[]

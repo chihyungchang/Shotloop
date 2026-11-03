@@ -63,9 +63,16 @@ export function applyStoryboard(project) {
   const taken = id => used.has(id) || kept.has(id) || fs.existsSync(path.join(project.root, 'shots', id))
   const shots = sb.shots.map((s, i) => {
     let id
+    // A shot still a starter card at this place keeps its id (its card is
+    // written again, and its renders stay findable); a new id is the place
+    // and a slug of the title, the place alone for a title in another script
+    const old = project.shots[i]
+    const blank = old && !kept.has(old.id) && !used.has(old.id) && (!fs.existsSync(old.code) || isStarter(old.code))
     if (valid(s.id) && !used.has(s.id)) id = s.id
+    else if (blank) id = old.id
     else {
-      id = `${String(i + 1).padStart(2, '0')}-${slug(s.title) || 'shot'}`
+      const name = slug(String(s.title ?? ''))
+      id = name ? `${String(i + 1).padStart(2, '0')}-${name}` : String(i + 1).padStart(2, '0')
       while (taken(id)) id += '-b'
     }
     used.add(id)
@@ -73,6 +80,9 @@ export function applyStoryboard(project) {
     return { id, title: String(s.title).trim().slice(0, 80), duration: round(s.duration, 1), show: s.show, text: s.text, motion: s.motion, sound: s.sound, source: s.source, ...(say ? { say } : {}) }
   })
   const film = writeShots(project.root, project.track, shots, 'planned in the storyboard')
+  // Each planned shot keeps the id it got: the plan applied again (to
+  // build, or to go to the editor) finds the same shots, built ones too
+  writeJson(path.join(project.root, STORYBOARD_FILE), { ...sb, shots: sb.shots.map((s, i) => ({ ...s, id: shots[i].id })) })
 
   // Shots the plan dropped go if they are still starters; edited ones stay
   // on disk, out of the shot list

@@ -80,7 +80,8 @@ export function estimate(project: Project, shot: Shot, mode: Mode, stills = fals
 }
 
 export function jobEstimate(project: Project | null, job: Job): number | null {
-  if (job.state === 'running' && job.progress?.eta != null) return job.progress.eta
+  // An agent's progress is its tools' (a build's voice-over fit), not its own
+  if (job.state === 'running' && job.lane !== 'agent' && job.progress?.eta != null) return job.progress.eta
   if (!project || job.project !== project.root) return null
   if (job.kind === 'render' && job.shot && job.mode) {
     const shot = project.shots.find(s => s.id === job.shot)

@@ -15,11 +15,20 @@ const hasParts = (project: Project, plan: Storyboard | null) =>
 // The build: what the AI is doing now, and each shot as its stills land.
 // A build runs for minutes with long quiet turns, so the page always says
 // what is happening and for how long
-export function BuildView({ project, plan, job, toStudio, back }: { project: Project; plan: Storyboard | null; job: Job | null; toStudio: () => void; back: () => void }) {
+// download: the speech model the build waits for, while it lands
+export function BuildView({ project, plan, job, download, toStudio, back }: {
+  project: Project
+  plan: Storyboard | null
+  job: Job | null
+  download?: Job
+  toStudio: () => void
+  back: () => void
+}) {
   const running = !!job && isActive(job)
   useTick(running)
-  // The stills the editor shows
-  const stills = (s: Project['shots'][number]) => s[EDIT_MODE].stills
+  // The stills the editor shows; a starter card's are not the shot (the
+  // AI hasn't drawn it yet)
+  const stills = (s: Project['shots'][number]) => (s.starter ? null : s[EDIT_MODE].stills)
   const ready = project.shots.filter(s => stills(s)).length
   const steps = buildSteps(job)
   const elapsed = job?.startedAt ? ((job.finishedAt ?? Date.now()) - job.startedAt) / 1000 : null
@@ -28,7 +37,7 @@ export function BuildView({ project, plan, job, toStudio, back }: { project: Pro
   // Each shot's state: stills, in work (and how), code written, waiting
   const view = project.shots.map((s, i) => {
     const current = stills(s)
-    const still = current ?? latestStills(s)
+    const still = current ?? (s.starter ? null : latestStills(s))
     const action = steps.active.get(s.id)
     const written = steps.written.has(s.id) || steps.done.has(s.id)
     const state = action ? t(action === 'stills' ? 'build.rendering' : 'build.writing')
@@ -59,7 +68,16 @@ export function BuildView({ project, plan, job, toStudio, back }: { project: Pro
             className={v.current ? 'done' : v.action ? 'active' : v.written ? 'written' : ''} />
         ))}
       </div>
-      {running && job!.state === 'queued' && <p className="muted small">{t('queue.waiting')}</p>}
+      {running && job!.state === 'queued' && (download
+        ? (
+          <div className="voice-dl">
+            <div className={`bar${download.progress?.total ? '' : ' indeterminate'}`}>
+              <i style={download.progress?.total ? { width: `${Math.max(3, (download.progress.done / download.progress.total) * 100)}%` } : undefined} />
+            </div>
+            <span className="muted small">{t('build.waitVoice', { done: download.progress?.done ?? 0, total: download.progress?.total ?? '…' })}</span>
+          </div>
+        )
+        : <p className="muted small">{t('queue.waiting')}</p>)}
       {running && job!.state === 'running' && <StepList steps={buildStepList(job!, project.shots, project.look ?? null, hasParts(project, plan))} row />}
       <ErrorText error={job?.state === 'failed' && job.error} as="div" className="error-box small" />
       <div className={`build-grid${wide ? ' wide' : ''}`}>

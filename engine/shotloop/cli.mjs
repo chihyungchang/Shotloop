@@ -71,7 +71,7 @@ import { readJson, writeJson } from './files.mjs'
 import { deliverCopy } from './deliver.mjs'
 import { emit, setJson } from './compose.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
-import { freshWebglPage, isStarterCover } from './starters.mjs'
+import { freshWebglPage, isStarter, isStarterCover } from './starters.mjs'
 import { assemble, exportFilm, filmPreview, renderCover, setCoverFrame } from './film.mjs'
 import { findShot, isProject, loadProject } from './project.mjs'
 import { musicInfo, setMusic, setStyle, setTitle } from './settings.mjs'
@@ -238,6 +238,8 @@ function projectStatus(project) {
       cues: voiceCues(project, s),
       code: s.code,
       notes: s.notes,
+      // Still the card a new shot starts as: nothing drawn for it yet
+      starter: !fs.existsSync(s.code) || isStarter(s.code),
       ...status(project, s)
     }))
   }
