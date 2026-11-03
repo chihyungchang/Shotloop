@@ -119,6 +119,11 @@ const FIXED = [
     id: 'promo-real', track: 'all', kind: 'promo', locked: true, name: 'Only what the product has',
     rule: 'Screens come from the product\'s pictures and words from its page, quoted as it says them: never draw a feature, a number or a screen it doesn\'t have, and state a price only as the page does. A screen drawn for a beat the pictures don\'t cover stays plain and true to the real one.',
     check: 'Every screen shown comes from the product\'s pictures (or is plainly true to them), and every claim from its page.'
+  },
+  {
+    id: 'promo-desktop', track: 'all', kind: 'promo', locked: true, name: 'Screens on a desktop',
+    rule: 'Every screen of the product (a program, a website, an app) is shown in a window on a computer\'s desktop (screens.js desktop(): wallpaper, menu bar, Dock), never as a bare screenshot, a cut-out part or a window loose on the film\'s ground. A close-up is the desktop\'s camera moving in on the window; clicking, typing and dragging happen on the desktop.',
+    check: 'Every product screen sits in a window on the desktop; none is a bare screenshot, a cut-out part or a loose window on the ground.'
   }
 ]
 
@@ -251,18 +256,18 @@ const TASTE = [
   },
   {
     id: 'promo-space', track: 'all', kind: 'promo', name: 'Room between things',
-    rule: 'Words, pictures and the source line never touch: a gap of at least 5% of the frame\'s height between a headline and its picture, between a picture and the source line, and between pictures; the source line has its own band at the bottom. A screen the camera moves in on stays inside its own box. Place each beat\'s pieces in the boxes screens.js layout() gives rather than by hand.',
+    rule: 'Words, pictures and the source line never touch: a gap of at least 5% of the frame\'s height between a headline and its picture, between a picture and the source line, and between pictures; the source line has its own band at the bottom. A screen the camera moves in on stays inside its own box. Place each beat\'s pieces in the boxes screens.js layout() gives rather than by hand, and whatever goes under a headline (steps, a bubble) at its words.under, never right against the headline\'s last line.',
     check: 'Nothing touches or overlaps: headlines, chips, screens and the source line each keep a clear gap from one another.'
   },
   {
     id: 'promo-one-part', track: 'all', kind: 'promo', name: 'One part of the product, big',
-    rule: 'Each beat puts one part of the product forward, big enough to read at phone size: the text on it at least about 1/40 of the frame\'s height. A whole window may sit beside its headline; come close to the part a beat is about.',
+    rule: 'Each beat puts one part of the product forward, big enough to read at phone size: the text on it at least about 1/40 of the frame\'s height. The desktop\'s camera comes close to the part a beat is about.',
     check: 'The product part the beat is about is readable at phone size.'
   },
   {
-    id: 'promo-screens', track: 'all', kind: 'promo', name: 'Screens framed or running off, never floating cards',
-    rule: 'A real screen sits in its own column as a window (a hairline, a light shadow) beside its headline. When the camera moves in, clicks or drags, the windows sit on a Mac\'s desktop in that column, with its own camera, so the moves happen there and nothing else in the frame moves; what the camera follows sits in the middle of that desktop. Never a small card floating in the middle with a heavy shadow; nothing tilted while it must be read.',
-    check: 'Screens sit framed beside their headline or run off the frame; no heavy-shadowed floating card; nothing read while tilted.'
+    id: 'promo-screens', track: 'all', kind: 'promo', name: 'The desktop big, in its own column',
+    rule: 'The desktop sits in its own column beside its headline (or under it), filling most of the frame, with a light shadow; what the camera follows sits in the middle of the desktop, and nothing outside it moves with it. Never a small desktop floating in the middle, nothing tilted while it must be read.',
+    check: 'The desktop fills its column beside or under the headline; it is not small, floating or tilted while read.'
   },
   {
     id: 'promo-in-use', track: 'all', kind: 'promo', name: 'Show it in use',
@@ -399,7 +404,6 @@ export const TOOLS = [
   { id: 'steps', group: 'product', name: 'Steps lighting', text: 'the product\'s steps as bordered chips lighting one after another in the accent (steps).', tracks: ['2d'] },
   { id: 'request', group: 'product', name: 'A request typed', text: 'what a person asks the product for, typed into a dark bubble under their name (bubble).', tracks: ['2d'] },
   { id: 'before-after', group: 'product', name: 'Before and after', text: 'two pictures in one box, a divider in the accent sweeping across to uncover the after (compare).', tracks: ['2d'] },
-  { id: 'screen-beside', group: 'product', name: 'Screen beside its headline', text: 'a real screen framed as a window in its own column beside the headline, rising in and then pushing in slowly (shot with frame: "window" and a box).', tracks: ['2d'] },
   { id: 'desktop', group: 'product', name: 'A Mac\'s desktop', text: 'the product\'s windows on a Mac\'s screen (wallpaper, menu bar, Dock) in its own box beside the headline, with its own camera: moving in, clicking and dragging happen there and nothing else in the frame moves (desktop).', tracks: ['2d'] },
   { id: 'dive', group: 'product', name: 'Dive to the action', text: 'on the desktop, the camera moves in to the part where the action is and centres it, the whole screen growing with it (desktop with camera).', tracks: ['2d'] },
   { id: 'cursor-action', group: 'product', name: 'Cursor action', text: 'a large pointer glides on a curve, presses and lets a soft ring go, while the desktop\'s camera moves in so the click sits in the middle of the screen (cursor with follow and desktopPoint).', tracks: ['2d'] },

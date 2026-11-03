@@ -127,6 +127,7 @@ test('rules: a product promo\'s taste is checked for a demo only, and can be swi
 test('rules: a locked rule stays on; a kind\'s rules stay with their part of the work', () => {
   assert.throws(() => rules.setOn('honest', false), /locked/)
   assert.throws(() => rules.setOn('real-people', false), /locked/)
+  assert.throws(() => rules.setOn('promo-desktop', false), /locked/)
   assert.equal(rules.list().fixed.find(r => r.id === 'original').off, false)
   // The cover's and the sound's taste never join a shot's checklist
   const shots = rules.checklist('2d')
