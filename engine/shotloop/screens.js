@@ -339,6 +339,25 @@ const onShot = (under, html) => `<div style="position:absolute;left:${n(under.se
   `<div style="position:absolute;left:${n(-under.seen.x)}px;top:${n(-under.seen.y)}px">${html}</div></div>`
 
 // ---- A desktop: windows on a simulated screen, with its own camera ----
+
+// The Dock's apps, drawn here as plain, original icons in the manner of a
+// Mac's (a folder, a browser, mail, a calendar, notes, music, settings, a
+// terminal, and the trash past a divider): they read as a Mac's Dock and
+// copy no one's marks. Each is SVG on a 100-unit square
+const squircle = fill => `<rect x="4" y="4" width="92" height="92" rx="22" fill="${fill}"/>`
+const grad = (id, a, b) => `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`
+const DOCK_APPS = [
+  `<defs>${grad('dkf', '#7fd0ff', '#1f8bff')}</defs>${squircle('url(#dkf)')}<path d="M22 34h20l6 6h30v34H22z" fill="#cfeaff"/><path d="M22 44h56v30H22z" fill="#fff" opacity=".95"/>`,
+  `<defs>${grad('dkb', '#ffffff', '#e3e9f2')}${grad('dkg', '#58b5ff', '#1d6ee8')}</defs>${squircle('url(#dkb)')}<circle cx="50" cy="50" r="30" fill="url(#dkg)"/><g fill="none" stroke="#fff" stroke-width="3" opacity=".9"><ellipse cx="50" cy="50" rx="13" ry="30"/><path d="M20 50h60M24 36h52M24 64h52"/></g>`,
+  `<defs>${grad('dkm', '#63c0ff', '#1b6fea')}</defs>${squircle('url(#dkm)')}<rect x="22" y="32" width="56" height="38" rx="5" fill="#fff"/><path d="M23 34l27 20 27-20" fill="none" stroke="#1b6fea" stroke-width="4" stroke-linejoin="round"/>`,
+  `${squircle('#fff')}<path d="M4 26a22 22 0 0 1 22-22h48a22 22 0 0 1 22 22v8H4z" fill="#ff4a3d"/><text x="50" y="27" text-anchor="middle" font-family="-apple-system,Helvetica,sans-serif" font-size="15" font-weight="700" fill="#fff">NOV</text><text x="50" y="80" text-anchor="middle" font-family="-apple-system,Helvetica,sans-serif" font-size="46" font-weight="300" fill="#1d1d1f">3</text>`,
+  `<defs>${grad('dkn', '#fff8d0', '#ffe46a')}</defs>${squircle('url(#dkn)')}<path d="M4 26a22 22 0 0 1 22-22h48a22 22 0 0 1 22 22v6H4z" fill="#ffd23a"/><g stroke="#cbbf8f" stroke-width="2.5"><path d="M18 48h64M18 60h64M18 72h64M18 84h46"/></g>`,
+  `<defs>${grad('dku', '#ff6f8b', '#f42c53')}</defs>${squircle('url(#dku)')}<path d="M40 30l28-6v34" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round"/><ellipse cx="34" cy="68" rx="9" ry="7" fill="#fff"/><ellipse cx="62" cy="62" rx="9" ry="7" fill="#fff"/><path d="M43 66V30" stroke="#fff" stroke-width="5"/>`,
+  `<defs>${grad('dks', '#b4bcc6', '#69727e')}</defs>${squircle('url(#dks)')}<circle cx="50" cy="50" r="22" fill="none" stroke="#3a3f47" stroke-width="10" stroke-dasharray="7 4.5"/><circle cx="50" cy="50" r="15" fill="#d9dde2"/><circle cx="50" cy="50" r="6" fill="#69727e"/>`,
+  `<defs>${grad('dkt', '#3a3a3c', '#151517')}</defs>${squircle('url(#dkt)')}<path d="M26 38l12 10-12 10" fill="none" stroke="#e8e8e8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M44 62h22" stroke="#e8e8e8" stroke-width="5" stroke-linecap="round"/>`
+]
+const DOCK_TRASH = `<path d="M30 30h40l-4 54H34z" fill="rgba(255,255,255,.55)" stroke="rgba(255,255,255,.9)" stroke-width="2"/><path d="M26 28h48" stroke="rgba(255,255,255,.9)" stroke-width="4" stroke-linecap="round"/><g stroke="rgba(120,130,150,.55)" stroke-width="2"><path d="M42 38v38M50 38v38M58 38v38"/></g>`
+
 //
 // A promo's camera moves on a desktop of its own, so a push-in, a click
 // or a window dragged never moves anything else in the frame: a box (a
@@ -373,10 +392,11 @@ export function desktopPoint({ box, windows }, i, px, py) {
 // fractions; follow() and desktopPoint() aim it at clicks). The view's
 // point is centred in the box; zoom never passes the pictures' pixels.
 // app: the name in the menu bar; dock: the product's icon (a picture of
-// the project) among the Dock's, or none
+// the project), first in the Dock; apps: pictures of the project to stand
+// in for the Dock's own icons (the person's, licensed to show), when given
 // Gives back { html, at(i, px, py) → frame px, window(i) } for the
 // cursor and words; window(i) is what field() takes for that window
-export function desktop({ box, windows, view = { x: 0.5, y: 0.5, zoom: 1 }, app = '', dock = '', p = 1 }) {
+export function desktop({ box, windows, view = { x: 0.5, y: 0.5, zoom: 1 }, app = '', dock = '', apps = null, p = 1 }) {
   const { C } = kit()
   const u = unit()
   const wins = desktopWindows(windows, u)
@@ -404,11 +424,12 @@ export function desktop({ box, windows, view = { x: 0.5, y: 0.5, zoom: 1 }, app 
     `<b style="font-weight:700">${esc(app)}</b>${['File', 'Edit', 'View', 'Window', 'Help'].map(m => `<span>${m}</span>`).join('')}` +
     `<span style="margin-left:auto">Mon 9:41</span></div>`
   const tile = 30 * u
-  const tiles = ['#5aa0ff,#2a6fe0', '#7dd87a,#2fa34a', '#ffd25e,#f2a23a', '#ff8a7a,#e04a4a', '#c9c9cf,#8e8e96', '#9b8cff,#6a55e8']
-  const icon = dock ? `<img src="${url(dock)}" style="width:${n(tile)}px;height:${n(tile)}px;border-radius:${n(tile * 0.23)}px;object-fit:cover">` : ''
-  const dockHtml = `<div style="position:absolute;left:50%;bottom:${n(6 * u)}px;transform:translateX(-50%);display:flex;gap:${n(6 * u)}px;padding:${n(5 * u)}px ${n(7 * u)}px;` +
+  const svg = body => `<svg viewBox="0 0 100 100" width="${n(tile)}" height="${n(tile)}" style="display:block;flex:none;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.25))">${body}</svg>`
+  const img = file => `<img src="${url(file)}" style="display:block;flex:none;width:${n(tile)}px;height:${n(tile)}px;border-radius:${n(tile * 0.23)}px;object-fit:cover">`
+  const divider = `<i style="display:block;flex:none;width:1px;align-self:stretch;margin:${n(2 * u)}px ${n(1 * u)}px;background:rgba(255,255,255,.45)"></i>`
+  const dockHtml = `<div style="position:absolute;left:50%;bottom:${n(6 * u)}px;transform:translateX(-50%);display:flex;align-items:center;gap:${n(6 * u)}px;padding:${n(5 * u)}px ${n(7 * u)}px;` +
     `border-radius:${n(14 * u)}px;background:rgba(255,255,255,.28);backdrop-filter:blur(14px);box-shadow:0 0 0 1px rgba(255,255,255,.35)">` +
-    icon + tiles.map(c => `<i style="display:block;width:${n(tile)}px;height:${n(tile)}px;border-radius:${n(tile * 0.23)}px;background:linear-gradient(160deg,${c})"></i>`).join('') + '</div>'
+    (dock ? img(dock) : '') + (apps ? apps.map(img) : DOCK_APPS.map(svg)).join('') + divider + svg(DOCK_TRASH) + '</div>'
   const windowHtml = wins.map(w => {
     const q = clamp(w.p ?? 1)
     const rise = (1 - arrive(q * 1.4, 0)) * 30 * u
