@@ -4,8 +4,8 @@
 // promo's world before each command: never edit it here; a promo's own
 // pieces go in world/*.js modules beside it. Shots import what they use:
 //
-//   import { load, depth, chapter, headline, row, counter, steps, bubble, compare, wipe, endCard,
-//     shot, camera, follow, drift, cursor, typing, field, livePart, fill } from '../../world/screens.js'
+//   import { load, depth, layout, source, chapter, headline, row, counter, steps, bubble, compare, wipe, endCard,
+//     desktop, desktopPoint, shot, camera, follow, drift, cursor, typing, field, livePart, fill } from '../../world/screens.js'
 //
 // The craft it follows is the promo's taste (Settings → Rules, kind
 // promo), after oliverz.dev's product films: the problem first, then the
@@ -37,6 +37,9 @@
 //   It returns the layer, so a live part's field can be filled after.
 // - kit.stage(svg) above it: cursor().
 //
+// The camera's moves (in to a click, along to the next, a window dragged)
+// happen on a desktop(): a simulated screen in its own box, so nothing
+// else in the frame moves, and what the camera follows sits in its middle.
 // A shot sits in stageBox() unless given a box: the product running off
 // the bottom and the right. Its camera: { x, y } the point of the picture
 // at the box's centre (0–1 across and down it), zoom 1 the whole picture
@@ -334,6 +337,99 @@ function windowShot({ file, width, height, box, view = { x: 0.5, y: 0.5, zoom: 1
 // Something drawn on a shot's picture, cut to the part of it in frame
 const onShot = (under, html) => `<div style="position:absolute;left:${n(under.seen.x)}px;top:${n(under.seen.y)}px;width:${n(under.seen.w)}px;height:${n(under.seen.h)}px;overflow:hidden">` +
   `<div style="position:absolute;left:${n(-under.seen.x)}px;top:${n(-under.seen.y)}px">${html}</div></div>`
+
+// ---- A desktop: windows on a simulated screen, with its own camera ----
+//
+// A promo's camera moves on a desktop of its own, so a push-in, a click
+// or a window dragged never moves anything else in the frame: a box (a
+// layout() picture box) showing a Mac's screen, as a viewer knows one (a
+// soft blue wallpaper drawn here, a menu bar, a Dock), and the product's
+// windows on it (pictures with a title bar). The whole screen is in the
+// camera, so moving in enlarges the bar and the Dock too.
+// Its camera centres what it looks at: a click it follows lands in the
+// middle of the box. Positions on it are desktop px: (0, 0) its top-left,
+// box.w × box.h its size at zoom 1.
+
+// Each window's place on the desktop: { x, y, w } in desktop px (its
+// height follows the picture and its title bar)
+function desktopWindows(windows, u) {
+  const bar = 26 * u
+  return windows.map(win => {
+    const s = win.w / win.width
+    return { ...win, s, bar, h: win.height * s + bar }
+  })
+}
+
+// Where a point of a window's picture is on the desktop (desktop px),
+// to aim the camera at: follow() takes these divided by the box's size
+export function desktopPoint({ box, windows }, i, px, py) {
+  const w = desktopWindows(windows, unit())[i]
+  return { x: (w.x + px * w.s) / box.w, y: (w.y + w.bar + py * w.s) / box.h }
+}
+
+// The desktop in box { x, y, w, h }, its windows [{ file, width, height,
+// x, y, w, title, p, over }] (p brings a window in; x, y may change with t
+// to drag it), seen by view { x, y, zoom } (a camera(t, keys) over desktop
+// fractions; follow() and desktopPoint() aim it at clicks). The view's
+// point is centred in the box; zoom never passes the pictures' pixels.
+// app: the name in the menu bar; dock: the product's icon (a picture of
+// the project) among the Dock's, or none
+// Gives back { html, at(i, px, py) → frame px, window(i) } for the
+// cursor and words; window(i) is what field() takes for that window
+export function desktop({ box, windows, view = { x: 0.5, y: 0.5, zoom: 1 }, app = '', dock = '', p = 1 }) {
+  const { C } = kit()
+  const u = unit()
+  const wins = desktopWindows(windows, u)
+  // Sharp: the window shown largest sets how close the camera may come
+  const sharp = Math.min(...wins.map(w => 1 / OUT / w.s))
+  const z = clamp(view.zoom, 0.5, Math.max(1, sharp))
+  const cx = box.w / 2, cy = box.h / 2
+  // Desktop px → box px: the view's point to the box's centre
+  const tx = cx - view.x * box.w * z, ty = cy - view.y * box.h * z
+  const at = (i, px, py) => {
+    const w = wins[i]
+    return { x: box.x + tx + (w.x + px * w.s) * z, y: box.y + ty + (w.y + w.bar + py * w.s) * z }
+  }
+  const mb = blur((view.vx ?? 0) * box.w * z, (view.vy ?? 0) * box.h * z)
+  // The screen: a soft blue wallpaper (drawn, wider than the desktop so
+  // no edge shows when the camera centres something near one), a menu
+  // bar, a Dock
+  const ui = `-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif`
+  const wallpaper = `<div style="position:absolute;left:${n(-box.w)}px;top:${n(-box.h)}px;width:${n(box.w * 3)}px;height:${n(box.h * 3)}px;` +
+    'background:radial-gradient(40% 35% at 38% 30%, #9fc4ff, transparent 70%),radial-gradient(35% 40% at 70% 70%, #b49cf2, transparent 70%),' +
+    'radial-gradient(30% 30% at 55% 45%, #e9b6d8, transparent 70%),linear-gradient(160deg, #3a5fb8, #6b4fb0 55%, #2c3f86)"></div>'
+  const bar = 22 * u
+  const menu = `<div style="position:absolute;left:0;top:0;width:${n(box.w)}px;height:${n(bar)}px;background:rgba(246,246,248,.62);backdrop-filter:blur(14px);` +
+    `display:flex;align-items:center;gap:${n(16 * u)}px;padding:0 ${n(14 * u)}px;box-sizing:border-box;font:400 ${n(10.5 * u)}px/1 ${ui};color:#1d1d1f">` +
+    `<b style="font-weight:700">${esc(app)}</b>${['File', 'Edit', 'View', 'Window', 'Help'].map(m => `<span>${m}</span>`).join('')}` +
+    `<span style="margin-left:auto">Mon 9:41</span></div>`
+  const tile = 30 * u
+  const tiles = ['#5aa0ff,#2a6fe0', '#7dd87a,#2fa34a', '#ffd25e,#f2a23a', '#ff8a7a,#e04a4a', '#c9c9cf,#8e8e96', '#9b8cff,#6a55e8']
+  const icon = dock ? `<img src="${url(dock)}" style="width:${n(tile)}px;height:${n(tile)}px;border-radius:${n(tile * 0.23)}px;object-fit:cover">` : ''
+  const dockHtml = `<div style="position:absolute;left:50%;bottom:${n(6 * u)}px;transform:translateX(-50%);display:flex;gap:${n(6 * u)}px;padding:${n(5 * u)}px ${n(7 * u)}px;` +
+    `border-radius:${n(14 * u)}px;background:rgba(255,255,255,.28);backdrop-filter:blur(14px);box-shadow:0 0 0 1px rgba(255,255,255,.35)">` +
+    icon + tiles.map(c => `<i style="display:block;width:${n(tile)}px;height:${n(tile)}px;border-radius:${n(tile * 0.23)}px;background:linear-gradient(160deg,${c})"></i>`).join('') + '</div>'
+  const windowHtml = wins.map(w => {
+    const q = clamp(w.p ?? 1)
+    const rise = (1 - arrive(q * 1.4, 0)) * 30 * u
+    const chrome = `<div style="position:absolute;left:0;top:0;width:${n(w.w)}px;height:${n(w.bar)}px;background:#ececec;border-bottom:1px solid rgba(0,0,0,.08);display:flex;align-items:center;gap:${n(6 * u)}px;padding-left:${n(10 * u)}px;box-sizing:border-box">` +
+      ['#ff5f57', '#febc2e', '#28c840'].map(col => `<i style="display:block;width:${n(9 * u)}px;height:${n(9 * u)}px;border-radius:50%;background:${col}"></i>`).join('') +
+      (w.title ? `<span style="position:absolute;left:0;right:0;text-align:center;font:500 ${n(10 * u)}px/1 ${HEAD()};color:#555">${esc(w.title)}</span>` : '') + '</div>'
+    return `<div style="position:absolute;left:${n(w.x)}px;top:${n(w.y + rise)}px;width:${n(w.w)}px;height:${n(w.h)}px;opacity:${n(clamp(q * 1.6))};` +
+      `border-radius:${n(10 * u)}px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.12),0 ${n(14 * u)}px ${n(36 * u)}px rgba(0,0,0,.22)">${chrome}` +
+      `<div style="position:absolute;left:0;top:${n(w.bar)}px;width:${n(w.w)}px;height:${n(w.h - w.bar)}px;overflow:hidden">` +
+      `<div style="position:absolute;left:0;top:0;transform:scale(${w.s});transform-origin:0 0">${layers(w.file, w.width, w.height, w.over)}</div></div></div>`
+  }).join('')
+  const q = clamp(p)
+  const html = mb.svg + `<div style="position:absolute;left:${n(box.x)}px;top:${n(box.y)}px;width:${n(box.w)}px;height:${n(box.h)}px;overflow:hidden;border-radius:${n(12 * u)}px;` +
+    `background:#2c3f86;box-shadow:${SHADOW(u)};opacity:${n(clamp(q * 1.6))};transform:translateY(${n((1 - arrive(q * 1.4, 0)) * 30 * u)}px)">` +
+    `<div style="position:absolute;left:0;top:0;width:${n(box.w)}px;height:${n(box.h)}px;transform:translate(${n(tx)}px,${n(ty)}px) scale(${n(z * 1000) / 1000});transform-origin:0 0;${mb.css}">` +
+    `${wallpaper}${windowHtml}${menu}${dockHtml}</div></div>`
+  const { W, H } = kit()
+  const x0 = Math.max(box.x, 0), y0 = Math.max(box.y, 0)
+  const seen = { x: x0, y: y0, w: Math.min(box.x + box.w, W) - x0, h: Math.min(box.y + box.h, H) - y0 }
+  return { html, at, zoom: z, window: i => ({ at: (px, py) => at(i, px, py), scale: wins[i].s * z, seen }) }
+}
 
 // A live part (load it first): its left edge at box.x, centred on box.y,
 // box.w wide; sharp at any size, being HTML. tilt and p as a shot's

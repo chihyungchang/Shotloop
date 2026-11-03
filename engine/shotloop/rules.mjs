@@ -261,7 +261,7 @@ const TASTE = [
   },
   {
     id: 'promo-screens', track: 'all', kind: 'promo', name: 'Screens framed or running off, never floating cards',
-    rule: 'A real screen sits in its own column as a window (a hairline, a light shadow) beside its headline, or runs off the frame\'s edge when the camera is close. Never a small card floating in the middle with a heavy shadow; nothing tilted while it must be read.',
+    rule: 'A real screen sits in its own column as a window (a hairline, a light shadow) beside its headline. When the camera moves in, clicks or drags, the windows sit on a Mac\'s desktop in that column, with its own camera, so the moves happen there and nothing else in the frame moves; what the camera follows sits in the middle of that desktop. Never a small card floating in the middle with a heavy shadow; nothing tilted while it must be read.',
     check: 'Screens sit framed beside their headline or run off the frame; no heavy-shadowed floating card; nothing read while tilted.'
   },
   {
@@ -395,8 +395,9 @@ export const TOOLS = [
   { id: 'request', group: 'product', name: 'A request typed', text: 'what a person asks the product for, typed into a dark bubble under their name (bubble).', tracks: ['2d'] },
   { id: 'before-after', group: 'product', name: 'Before and after', text: 'two pictures in one box, a divider in the accent sweeping across to uncover the after (compare).', tracks: ['2d'] },
   { id: 'screen-beside', group: 'product', name: 'Screen beside its headline', text: 'a real screen framed as a window in its own column beside the headline, rising in and then pushing in slowly (shot with frame: "window" and a box).', tracks: ['2d'] },
-  { id: 'dive', group: 'product', name: 'Dive to the action', text: 'the camera moves in to the part where the action is, the interface running off the frame, and settles there (shot and camera).', tracks: ['2d'] },
-  { id: 'cursor-action', group: 'product', name: 'Cursor action', text: 'a large pointer glides on a curve, presses and lets a soft ring go, while the camera moves in around the click (cursor with follow).', tracks: ['2d'] },
+  { id: 'desktop', group: 'product', name: 'A Mac\'s desktop', text: 'the product\'s windows on a Mac\'s screen (wallpaper, menu bar, Dock) in its own box beside the headline, with its own camera: moving in, clicking and dragging happen there and nothing else in the frame moves (desktop).', tracks: ['2d'] },
+  { id: 'dive', group: 'product', name: 'Dive to the action', text: 'on the desktop, the camera moves in to the part where the action is and centres it, the whole screen growing with it (desktop with camera).', tracks: ['2d'] },
+  { id: 'cursor-action', group: 'product', name: 'Cursor action', text: 'a large pointer glides on a curve, presses and lets a soft ring go, while the desktop\'s camera moves in so the click sits in the middle of the screen (cursor with follow and desktopPoint).', tracks: ['2d'] },
   { id: 'type-in', group: 'product', name: 'Type it in', text: 'words typed into a field of the product key by key, a caret blinking (typing on a live part, or field over a picture).', tracks: ['2d'] },
   { id: 'state-change', group: 'product', name: 'State change', text: 'the same screen before and after: what stays holds still, what changed blends in (shot with over).', tracks: ['2d'] },
   { id: 'wipe-cut', group: 'product', name: 'Wipe cut', text: 'an ink panel crossing the frame in about 0.36 s, half at the end of one beat and half at the start of the next (wipe).', tracks: ['2d'] },
