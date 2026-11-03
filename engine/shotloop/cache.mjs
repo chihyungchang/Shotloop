@@ -19,6 +19,8 @@ import { subtitleStyle, timedLines, voiceCues, voiceLang } from './cues.mjs'
 import { subtitleLookKey } from './data.mjs'
 import { pageLayout } from './looks.mjs'
 import { readJson, writeJson } from './files.mjs'
+import { IMAGES_DIR, SITE_DIR } from './images.mjs'
+import { REPO_DIR } from './repo.mjs'
 import { localPath, projectPath } from './project.mjs'
 import { cutTimes } from './score.mjs'
 
@@ -87,7 +89,9 @@ export function worldKey(project) {
 }
 
 // What goes into a shot's frames, part by part: its code, the shared
-// scene (the world, and for 3D the models copied into the project), its
+// scene (the world, for 3D the models copied into the project, for a
+// product promo its material: the person's pictures, the repository's
+// and the page's), its
 // timing (with the voice-over's sentences and times, which its code may
 // follow: ctx.voice), and the engine (renderer, mode). A stale shot says
 // which parts changed since its last render
@@ -98,6 +102,7 @@ export function keyParts(project, shot, mode) {
     scene: digest(h => {
       hashFiles(h, project.root, listFiles(project.world))
       if (project.track === '3d' && fs.existsSync(own)) hashFiles(h, project.root, listFiles(own))
+      if (project.config.promo) for (const dir of [IMAGES_DIR, REPO_DIR, SITE_DIR]) hashFiles(h, project.root, listFiles(path.join(project.root, dir)))
     }),
     // Empty since the caption layer went with Blender, kept so films keep their keys
     captions: digest(() => {}),

@@ -129,6 +129,17 @@ workflows map onto it:
     platform, delivered into a folder named after the work.
 11. **3D asset library** (Poly Pizza, Smithsonian Open Access) copied
     into the project that uses a model.
+12. **Product promo** (Home's "Explainer | Product promo" switch; wide,
+    16:9, and narrated by default): the product's story is read from its
+    repository (a GitHub address or a folder: README, docs, changelog,
+    releases and its screenshots, repo.mjs) and its page (site.mjs: name,
+    tagline, features, pricing, colours, fonts, sections captured at 3x and
+    framed as windows, parts kept as live HTML), plus the person's own
+    pictures. Shots explain with drawn pieces in the product's own system
+    and prove with its real screens (world/screens.js: chapters, rising
+    headlines, rows of states, counters, steps, a typed request, before and
+    after, wipes, an end card; a spring camera over the screens, a cursor,
+    typing), after the promo's taste rules and the toolbox's product group.
 
 ### Next
 
@@ -150,6 +161,7 @@ my-video/
                        # parts.js (recurring pictures), style data
   shots/<id>/          # shot.py | shot.js in shot-local time; notes.md
   assets/<id>/         # 3D models from the asset library
+  images/ repo/ site/ # a product promo: the person's pictures; the repository read; the page read
   captions.html        # 3D: the caption layer
   music.json  thumb.html  publish.md
   .shotloop/           # cache (engine/shotloop/cache.mjs): frames per shot and key,

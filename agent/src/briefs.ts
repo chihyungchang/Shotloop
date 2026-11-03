@@ -9,7 +9,8 @@ import type { PickedElement } from '../../engine/shotloop/protocol.d.ts'
 import type { ProjectStatus, ShotStatus } from './engine.ts'
 import { reason, warn } from './events.ts'
 import { creditsPrompt } from './prompts.ts'
-import { LOOKS, STYLES, SUBTITLE_STYLES } from './enginelib.ts'
+import { LOOKS, promoImages, STYLES, SUBTITLE_STYLES } from './enginelib.ts'
+import { PROMO_RULES, PROMO_TOOLS } from './principles.ts'
 
 export const read = (f: string) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '(missing)')
 
@@ -120,6 +121,39 @@ function voiceBrief(shot: ShotStatus) {
   return `\nVoice-over (ctx.voice; subtitled by the engine, keep the subtitle band clear):\n${shot.cues.map(c => `- ${c.at.toFixed(2)}–${c.end.toFixed(2)} s: "${c.text}"`).join('\n')}`
 }
 
+// A product promo (software or a website): what it is made from. plan: the whole product brief
+// (site/brief.md) and how a promo is told; a shot gets the pictures, the
+// brand and the screenshot devices
+export function promoBrief(project: ProjectStatus, { plan = false } = {}) {
+  if (!project.promo) return ''
+  const siteBrief = path.join(project.root, 'site', 'brief.md')
+  const repoBrief = path.join(project.root, 'repo', 'brief.md')
+  const pictures = promoImages(project.root)
+  const mine = pictures.filter(p => p.from === 'person')
+  // The plan reads all of both briefs; a shot gets the brand
+  const repo = fs.existsSync(repoBrief)
+    ? plan ? `\n\n${read(repoBrief)}` : ''
+    : project.promo.repo ? `\n\nThe repository (${project.promo.repo}) could not be read.` : ''
+  const site = fs.existsSync(siteBrief)
+    ? plan ? `\n\n${read(siteBrief)}` : `\n\nThe product's brand (site/brief.md):\n${read(siteBrief).match(/## Brand\n+([\s\S]*?)(\n## |$)/)?.[1]?.trim() ?? 'not read'}`
+    : project.promo.site ? `\n\nThe product page (${project.promo.site}) could not be read.` : ''
+  const list = (plan ? mine : pictures).map(p => (p.live
+    ? `- ${p.file} (live part, ${p.width}×${p.height} CSS px${p.fields?.length ? `; fields ${p.fields.join(', ')}` : ''})`
+    : `- ${p.file} (${p.width}×${p.height} px)`))
+  const taste = PROMO_RULES.length ? `\n\nThe rules of a product promo (it is wide, 16:9; follow each as it stands):\n${PROMO_RULES.join('\n')}` : ''
+  return `\n\nThis is a product promo of software, a website or an app: the product is the hero, its story told from its makers' own words, shown through its own screens.${repo}${site}${list.length ? `\n\n${plan ? 'The person\'s own pictures' : 'Pictures to show (with world/screens.js, at these sizes)'}:\n${list.join('\n')}` : ''}${plan ? `
+
+Working with the material:
+- Write the product's story in copy.body first (the problem, who has it, what the product does about it, the one thing to remember), from the briefs above, then plan the shots that tell it. Every claim in copy.facts, its source the repository's file or the page's address.
+- A shot that shows the product names its picture in "show" by its file (repo/pictures/…, site/framed/…, site/hero.png, site/parts/…, site/live/…, or the person's pictures). Look at the pictures (view_image) before you pick them.
+- The brand's colors (in the page's brief) reach the film through the look: pick the look nearest them and shade it with "lookTune".
+- Devices (world/screens.js; name the device in "show"):
+${PROMO_TOOLS.join('\n')}${taste}` : `
+
+Devices (world/screens.js):
+${PROMO_TOOLS.join('\n')}${taste}`}`
+}
+
 // The idea, from copy.md's Idea section
 export function ideaOf(project: ProjectStatus) {
   const copy = read(path.join(project.root, 'copy.md'))
@@ -135,6 +169,8 @@ export function trackBrief(project: ProjectStatus) {
 export function stylesBrief(project: ProjectStatus) {
   const chosen = project.styleChosen ? STYLES.find(s => s.id === project.style) : null
   if (chosen) return `\n\nVisual style: "${chosen.id}" (${chosen.name.en}), chosen by the person: keep it as "style" and plan every shot in it. ${chosen.frames} Reference: ${chosen.why} Look at its reference stills (view_style) first.`
+  // A product promo has its own page: no style to pick
+  if (project.promo) return ''
   const open = STYLES.filter(s => (s.track === project.track && project.track === '2d') || (s.track === '3d' && project.trackAuto))
   if (project.track === '3d' || !open.length) return ''
   return `\n\nVisual styles (pick one for "style"; look at each candidate's reference stills with view_style before you decide):\n${open.map(s =>

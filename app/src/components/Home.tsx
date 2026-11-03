@@ -12,6 +12,7 @@ import { ExampleGallery } from './ExampleGallery'
 import { LookPicker } from './LookPicker'
 import { StylePicker } from './StylePicker'
 import { SubtitlePicker } from './SubtitleLooks'
+import { DropOverlay, PromoMaterial, usePictureDrop, usePromoImages } from './PromoMaterial'
 import { examplesFor, lookFits, styleName } from '../styles'
 import type { Key } from '../i18n/en'
 import { t, tSplit } from '../i18n'
@@ -28,6 +29,8 @@ const TRACKS: Record<Track, { word: Key; chip: Key; hint: Key; idea: Key; icon: 
   '3d': { word: 'home.track.3d', chip: 'home.chip.3d', hint: 'home.hint.3d', idea: 'home.idea.3d', icon: 'cube' }
 }
 const NEXT_TRACK: Record<Track, Track> = { auto: '2d', '2d': '3d', '3d': 'auto' }
+// A product promo is drawn in 2D for now: the chip skips 3D
+const NEXT_PROMO_TRACK: Record<Track, Track> = { auto: '2d', '2d': 'auto', '3d': 'auto' }
 // 'auto': the planner sets the length from the content; any other length
 // in seconds is typed in (the engine takes 6–180 s)
 // An idea written in Chinese or Japanese: no spaces between its words
@@ -127,9 +130,37 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
     setTrack(tr)
     if (tr === 'auto') setStyle('')
   }
+  // What the film is about: an explainer, or a promo of the person's
+  // software or website from its page and pictures (2D, in a style its
+  // screenshot kit draws on)
+  const [promo, setPromo] = useState(false)
+  const choosePromo = (on: boolean) => {
+    setPromo(on)
+    if (!on) return
+    // A promo is narrated (its taste): the voice-over comes on with it
+    setVoice(true)
+    if (track === '3d') setTrack('2d')
+    // Its look follows the product: no style to choose
+    setStyle('')
+  }
+  // A promo's product page and pictures; a picture pasted or dropped into
+  // the idea makes the film a promo
+  const [site, setSite] = useState('')
+  const [repo, setRepo] = useState('')
+  const promoImages = usePromoImages()
+  const takePictures = (files: File[]) => {
+    if (!files.some(f => f.type.startsWith('image/'))) return false
+    if (!promo) choosePromo(true)
+    promoImages.add(files)
+    return true
+  }
+  const drop = usePictureDrop(takePictures)
+  // A promo is wide: a product's screens don't read in a tall frame
+  const frame = promo ? '16:9' : aspect
   const ideaBox = useRef<HTMLTextAreaElement>(null)
   // An example's style for the next video: back to the composer to write it
   const pickStyle = (id: string) => {
+    setPromo(false)
     if (id === '3d') {
       setTrack('3d')
       setStyle('')
@@ -174,26 +205,35 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
     setFolder(dir)
   }
 
+  // A promo can start from its page or pictures alone
+  const ready = !!idea.trim() || (promo && (!!site.trim() || !!repo || promoImages.images.length > 0))
   const create = async () => {
-    if (!idea.trim() || busy) return
+    if (!ready || busy) return
     setError(null)
     setBusy(true)
     try {
       const parent = folder ?? (await ensureFolder())
       setFolder(parent)
-      const title = firstLine(idea.trim())
+      // A promo without words: the idea names the product, in the person's language
+      const text = idea.trim() || t('promo.idea', { name: siteName(site) || repo.split('/').filter(Boolean).at(-1) || t('promo.product') })
+      const title = firstLine(text)
       const r = await api.createProject({
         dir: `${parent}/${slugify(title)}`,
-        idea: idea.trim(),
+        idea: text,
         title,
         track,
-        aspect,
+        aspect: frame,
         duration: length,
         look: track === '3d' ? '' : look,
-        style: track === '3d' ? '' : style,
+        style: track === '3d' || promo ? '' : style,
         voice,
-        subtitles: voice ? subtitles : ''
+        subtitles: voice ? subtitles : '',
+        promo,
+        site: promo ? site.trim() : '',
+        repo: promo ? repo : ''
       })
+      // Saved before the plan starts, which looks at them
+      if (promo) for (const i of promoImages.images) await api.addImage(r.root, i.name, i.bytes)
       // A new project starts on its planning page: copy and storyboard first
       open(r.root, true)
     } catch (e) {
@@ -209,17 +249,30 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
   return (
     <>
       <h1 className="hero">
-        {before}{track === 'auto'
+        {before}{promo
+          ? <mark>{t('home.track.promo')}</mark>
+          : track === 'auto'
           ? <Rotating words={[t('home.track.2d'), t('home.track.3d')]} />
           : <mark>{t(TRACKS[track].word)}</mark>}{after}
       </h1>
       <p className="hero-sub muted">{t('home.sub')}</p>
 
       <div className="composer">
-        <div className="composer-card">
+        {/* What the film is about, beside how it is drawn (the track chip) */}
+        <div className="kind-switch chip-group" role="radiogroup" aria-label={t('home.aria.kind')}>
+          {([false, true] as const).map(on => (
+            <button key={String(on)} role="radio" aria-checked={promo === on} className={`chip${promo === on ? ' on' : ''}`} onClick={() => choosePromo(on)}
+              title={on ? t('home.hint.promo') : undefined}>
+              <Icon name={on ? 'monitor' : 'book'} size={13} /> {t(on ? 'home.kind.promo' : 'home.kind.explainer')}
+            </button>
+          ))}
+        </div>
+        <div className={`composer-card${drop.over ? ' dropping' : ''}`} {...drop.handlers}
+          onPaste={e => { if (takePictures([...e.clipboardData.files])) e.preventDefault() }}>
+          {drop.over && <DropOverlay />}
           {/* What kind of film, as the idea's prefix: a click steps Auto → 2D → 3D */}
           <button type="button" className={`track-chip${track === 'auto' ? ' auto' : ''}`} ref={trackChip} title={t(TRACKS[track].hint)}
-            aria-label={`${t('home.aria.track')}: ${t(TRACKS[track].chip)}`} onClick={() => chooseTrack(NEXT_TRACK[track])}>
+            aria-label={`${t('home.aria.track')}: ${t(TRACKS[track].chip)}`} onClick={() => chooseTrack((promo ? NEXT_PROMO_TRACK : NEXT_TRACK)[track])}>
             <Icon name={TRACKS[track].icon} size={12} />
             {t(TRACKS[track].chip)}
             <Icon name="refresh" size={10} />
@@ -229,21 +282,26 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
             value={idea}
             rows={3}
             style={{ paddingLeft: indent }}
-            placeholder={t('home.placeholder', { example: t(TRACKS[track].idea) })}
+            placeholder={t('home.placeholder', { example: t(promo ? 'home.idea.promo' : TRACKS[track].idea) })}
             onChange={e => setIdea(e.target.value)}
             onKeyDown={e => {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) create()
             }}
           />
+          {promo && <PromoMaterial site={site} setSite={setSite} repo={repo} setRepo={setRepo} images={promoImages.images} add={promoImages.add} remove={promoImages.remove} />}
           <div className="composer-bar">
             <div className="chips">
-              <div className="chip-group" role="radiogroup" aria-label={t('home.aria.aspect')}>
-                {(['9:16', '16:9'] as Aspect[]).map(a => (
-                  <button key={a} role="radio" aria-checked={aspect === a} className={`chip${aspect === a ? ' on' : ''}`} onClick={() => setAspect(a)}>
-                    <span className={`aspect-glyph a${a.replace(':', '')}`} /> {a}
-                  </button>
-                ))}
-              </div>
+              {promo
+                ? <span className="chip static" title={t('promo.wideOnly')}><span className="aspect-glyph a169" /> 16:9</span>
+                : (
+                  <div className="chip-group" role="radiogroup" aria-label={t('home.aria.aspect')}>
+                    {(['9:16', '16:9'] as Aspect[]).map(a => (
+                      <button key={a} role="radio" aria-checked={aspect === a} className={`chip${aspect === a ? ' on' : ''}`} onClick={() => setAspect(a)}>
+                        <span className={`aspect-glyph a${a.replace(':', '')}`} /> {a}
+                      </button>
+                    ))}
+                  </div>
+                )}
               {/* Length as one chip with a menu: four buttons would wrap the row.
                   "Custom" opens a box for any length in seconds. The menu lies
                   invisibly over its label: a native select is as wide as its
@@ -274,7 +332,7 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
               {/* Subtitles come with the voice: picked once it is on */}
               <SubtitlePicker value={subtitles} onChange={setSubtitles} spaced={!UNSPACED.test(idea)} disabled={!voice} />
               {track !== '3d' && <span className="bar-divider" aria-hidden />}
-              {track !== '3d' && <StylePicker value={style} onChange={chooseStyle} />}
+              {track !== '3d' && !promo && <StylePicker value={style} onChange={chooseStyle} />}
               {track !== '3d' && <LookPicker value={look} onChange={setLook} style={style} />}
             </div>
             {ai && (
@@ -284,7 +342,7 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
                 {!ai.ready && <span className="dot warn" />}
               </button>
             )}
-            <button className="send" onClick={() => create()} disabled={!idea.trim() || busy} aria-label={t('home.create')} title={t('home.create')}>
+            <button className="send" onClick={() => create()} disabled={!ready || busy} aria-label={t('home.create')} title={t('home.create')}>
               {busy ? <span className="spinner" /> : <Icon name="send" size={18} />}
             </button>
           </div>
@@ -293,12 +351,27 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
           <button className="workdir" onClick={chooseFolder} title={folder ?? ''}>
             <Icon name="folder" size={14} /> <span className="ellipsis">{folder ? baseName(folder) : t('home.chooseFolder')}</span> <Icon name="chevron" size={12} />
           </button>
-          <span className="muted small">{t(TRACKS[track].hint)}</span>
+          <span className="muted small">{t(promo ? 'home.hint.promo' : TRACKS[track].hint)}</span>
         </div>
       </div>
-      <ErrorText error={error} className="error" />
+      <ErrorText error={error ?? promoImages.error} className="error" />
     </>
   )
+}
+
+// A product's name from its address ("www.raycast.com/pro" → raycast.com,
+// "github.com/owner/app" → app)
+function siteName(site: string) {
+  const s = site.trim()
+  if (!s) return ''
+  try {
+    const url = new URL(/^[a-z]+:\/\//i.test(s) ? s : `https://${s}`)
+    const host = url.host.replace(/^www\./, '')
+    return host === 'github.com' ? url.pathname.split('/')[2] || host : host
+  } catch {
+    // Not an address yet: the engine says so when the project is made
+    return s
+  }
 }
 
 // The lists of projects in outline while they load
@@ -330,7 +403,9 @@ function ProjectRow({ p, onClick }: { p: ProjectSummary; onClick: () => void }) 
         <strong>{p.title}{!p.example && !p.poster && <span className="tag draft-tag">{t('home.draft')}</span>}</strong>
         {p.description && <span className="example-desc ellipsis">{p.description}</span>}
         <span className="example-meta">
-          {p.style && p.style !== '3d' && <span className="tag style-tag">{styleName(p.style)}</span>}
+          {p.promo
+            ? <span className="tag style-tag">{t('home.kind.promo')}</span>
+            : p.style && p.style !== '3d' && <span className="tag style-tag">{styleName(p.style)}</span>}
           {p.track.toUpperCase()} · {t('common.shots', { n: p.shots })} · {formatSeconds(p.duration)} · {aspectOf(p.size)}
         </span>
       </div>

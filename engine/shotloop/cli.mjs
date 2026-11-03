@@ -12,6 +12,12 @@
 //   shotloop cover    <project> [--frame <shot>@<seconds> | --none] [--preview]
 //                     (--frame/--none: set the background frame first; --preview: to .shotloop/cover.png)
 //   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>] [--voice-over] [--subtitles <look>]
+//                     [--promo [--site <product page>] [--repo <github.com/… or folder>]]
+//                     a product promo (2D), from its repository, its page and the person's pictures
+//   shotloop site     <project>                          read a promo's product page into site/: its brief,
+//                     logo, colors, fonts, its sections captured and framed as windows, its live parts
+//   shotloop repo     <project>                          read a promo's repository into repo/: its README,
+//                     docs, changelog and releases, and its screenshots
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
 //   shotloop move     <project> --to <folder>               move a project (a draft being saved)
@@ -71,12 +77,12 @@ import { exit, parseFlags } from '../lib/jsonl.mjs'
 import { editMode, prune, status, worldKey } from './cache.mjs'
 import { readJson, writeJson } from './files.mjs'
 import { deliverCopy } from './deliver.mjs'
-import { emit, setJson } from './compose.mjs'
+import { emit, progress, setJson } from './compose.mjs'
 import { downloadTicker } from './downloads.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
 import { freshWebglPage, isStarter, isStarterCover } from './starters.mjs'
 import { assemble, exportFilm, filmPreview, renderCover, setCoverFrame } from './film.mjs'
-import { findShot, isProject, loadProject } from './project.mjs'
+import { findShot, isProject, loadProject, updateConfig } from './project.mjs'
 import { musicInfo, setMusic, setStyle, setTitle } from './settings.mjs'
 import { applyStoryboard, deriveStoryboard } from './storyboard.mjs'
 import * as covers from './covers.mjs'
@@ -90,6 +96,8 @@ import { fitVoice, pruneVoice, sampleVoice, setLines, setVoice, soundTimeline, v
 import { voiceCues, voiceOn } from './cues.mjs'
 import { AMBIENCE_NAMES, EFFECT_NAMES, projectSounds, setSound, soundCues } from './sound.mjs'
 import { checkSubtitles, describeIssues } from './check.mjs'
+import { readSite, siteUrl } from './site.mjs'
+import { readRepo } from './repo.mjs'
 
 const OPTIONS = {
     shot: { type: 'string' },
@@ -146,6 +154,9 @@ const OPTIONS = {
     'no-publish': { type: 'boolean' },
     name: { type: 'string' },
     lang: { type: 'string' },
+    promo: { type: 'boolean' },
+    site: { type: 'string' },
+    repo: { type: 'string' },
     json: { type: 'boolean' }
 }
 
@@ -279,7 +290,9 @@ try {
           // The cover: its background frame, and how the AI last made it (.shotloop/cover.json)
           coverFrame: project.config.coverFrame ?? null, coverMade: coverMade(project),
           // The visual style (styles.mjs), and what the planner still decides
-          style: project.config.style ?? null, styleChosen: !!project.config.styleChosen, trackAuto: !!project.config.trackAuto, lengthAuto: !!project.config.lengthAuto })
+          style: project.config.style ?? null, styleChosen: !!project.config.styleChosen, trackAuto: !!project.config.trackAuto, lengthAuto: !!project.config.lengthAuto,
+          // A product promo: its page (read into site/) and pictures
+          promo: project.config.promo ?? null })
       }
       break
     case 'render': {
@@ -362,7 +375,7 @@ try {
       else if (sub === 'add') result(rules.add(values.text, values.track))
       else if (sub === 'add-tool') result(rules.addTool({ name: values.name, text: values.text, image: values.file, track: values.track }))
       else if (sub === 'remove-tool') result(rules.removeTool(a))
-      else if (sub === 'checklist') result(rules.checklist(values.track ?? '2d'))
+      else if (sub === 'checklist') result(rules.checklist(values.track ?? '2d', null, { promo: !!values.promo, voice: !!values['voice-over'] }))
       else throw new Error('rules list|edit|remove|reset|switch|add|add-tool|remove-tool|checklist')
       break
     }
@@ -459,9 +472,42 @@ try {
         look: values.look ?? '',
         style: values.style ?? '',
         voice: !!values['voice-over'],
-        subtitles: values.subtitles ?? ''
+        subtitles: values.subtitles ?? '',
+        promo: !!values.promo,
+        site: values.site ?? '',
+        repo: values.repo ?? ''
       }))
       break
+    case 'repo': {
+      const project = loadProject(args[0])
+      const source = project.config.promo?.repo
+      if (!source) throw new Error('this project has no repository to read')
+      let tick = null
+      const read = await readRepo(project.root, source, (message, done, total) => {
+        emit({ type: 'log', message: `repo: ${message}` })
+        if (!total) return
+        tick ??= progress({ stage: 'repo' }, total)
+        tick(done)
+      })
+      // Its home page is the product's page when none was given
+      if (read.homepage && !project.config.promo.site) updateConfig(project.root, cfg => ({ ...cfg, promo: { ...cfg.promo, site: siteUrl(read.homepage) } }))
+      result(read)
+      break
+    }
+    case 'site': {
+      const project = loadProject(args[0])
+      const url = project.config.promo?.site
+      if (!url) throw new Error('this project has no product page to read')
+      let tick = null
+      const brief = await readSite(project.root, url, (message, done, total) => {
+        emit({ type: 'log', message: `site: ${message}` })
+        if (!total) return
+        tick ??= progress({ stage: 'site' }, total)
+        tick(done)
+      })
+      result({ url: brief.url, name: brief.name, pictures: brief.pictures.length })
+      break
+    }
     case 'list':
       result(summaries([
         ...args,

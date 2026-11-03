@@ -27,9 +27,9 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { assetsBrief, credits, elementBrief, head, ideaOf, looksBrief, read, recurring, shotBrief, stylesBrief, subtitlesBrief, trackBrief, worldFiles } from './briefs.ts'
+import { assetsBrief, credits, elementBrief, head, ideaOf, looksBrief, promoBrief, read, recurring, shotBrief, stylesBrief, subtitlesBrief, trackBrief, worldFiles } from './briefs.ts'
 import type { PickedElement } from '../../engine/shotloop/protocol.d.ts'
-import { engine, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
+import { engine, readRepo, readSite, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
 import { lookFits, memory, parseFlags, rules, STILLS, type Memory } from './enginelib.ts'
 import { emit, exit, reason, setJson, warn } from './events.ts'
 import { openLedger } from './ledger.ts'
@@ -82,7 +82,7 @@ function checklistPath(root: string) {
   const own = cfg.checklist && path.join(root, cfg.checklist)
   const made = path.join(root, '.shotloop', 'checklist.md')
   fs.mkdirSync(path.dirname(made), { recursive: true })
-  writeAtomic(made, rules.checklist(cfg.track === '3d' ? '3d' : '2d', own && fs.existsSync(own) ? fs.readFileSync(own, 'utf8') : null))
+  writeAtomic(made, rules.checklist(cfg.track === '3d' ? '3d' : '2d', own && fs.existsSync(own) ? fs.readFileSync(own, 'utf8') : null, { promo: !!cfg.promo, voice: !!cfg.voice?.on }))
   return made
 }
 
@@ -146,7 +146,7 @@ async function shotTask(kind: ShotKind) {
     // in the plan the person picked); a check judges every rule
     effort: kind === 'check' ? 'medium' : 'low',
     system: { fix: fixSystem, check: checkSystem, propose: proposeSystem }[kind](project.track, !!project.voiced) + remembered(project.track, edits) + replyLanguage(values.lang),
-    prompt: `${ask}\n\n${shotBrief(project, shot)}`,
+    prompt: `${ask}\n\n${shotBrief(project, shot)}${promoBrief(project)}`,
     ctx
   })
 
@@ -186,7 +186,7 @@ async function shotTask(kind: ShotKind) {
 
 // Copy and storyboard in storyboard.json, from the idea (or revised on request)
 async function planTask() {
-  const project = await status(dir)
+  const project = await readPromoSources(await status(dir))
   const file = path.join(project.root, 'storyboard.json')
   const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null
   const ctx = context(project.root, ['storyboard.json'])
@@ -209,7 +209,7 @@ async function planTask() {
 
 Idea: ${ideaOf(project)}
 Title: ${project.title}
-${trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 'auto (choose it from the content, 15 to 60 s, then make the shots add up to it)' : `${project.duration} s`}${stylesBrief(project)}${await looksBrief(project)}${subtitlesBrief(project)}`,
+${trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 'auto (choose it from the content, 15 to 60 s, then make the shots add up to it)' : `${project.duration} s`}${stylesBrief(project)}${await looksBrief(project)}${subtitlesBrief(project)}${promoBrief(project, { plan: true })}`,
     ctx
   })
   // The page reads it: it has to be valid
@@ -245,6 +245,37 @@ ${trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 
     issues = lint()
   }
   return { task: 'plan', summary: final, shots: sb.shots.length, warnings: issues }
+}
+
+// A promo's repository, then its product page (the repository's home page
+// when none was given), each read once before its first plan (a new plan
+// keeps what was read; removing repo/ or site/ reads it again). One that
+// can't be read is said, and the plan goes on from what there is. Gives
+// back the project as it now is
+async function readPromoSources(project: ProjectStatus) {
+  const unread = (dir: string, file: string) => !fs.existsSync(path.join(project.root, dir, file))
+  const repo = !!project.promo?.repo && unread('repo', 'repo.json')
+  if (!repo && !(project.promo?.site && unread('site', 'brief.json'))) return project
+  emit({ type: 'phase', phase: 'site' })
+  if (repo) {
+    try {
+      const read = await readRepo(project.root)
+      emit({ type: 'log', message: `repo: read ${read.name} (${read.docs} docs, ${read.pictures} pictures)` })
+    } catch (err) {
+      warn(`the repository could not be read (${reason(err)}); planning from what else there is`)
+    }
+  }
+  const now = await status(project.root)
+  if (now.promo?.site && unread('site', 'brief.json')) {
+    try {
+      const read = await readSite(now.root)
+      emit({ type: 'log', message: `site: read ${read.name} (${read.pictures} pictures)` })
+    } catch (err) {
+      warn(`the product page could not be read (${reason(err)}); planning from what else there is`)
+    }
+  }
+  emit({ type: 'phase', phase: 'plan' })
+  return now
 }
 
 // The look the planner picked is the AI's (lookAi, offered on the plan
@@ -369,7 +400,7 @@ async function buildWorld(project: ProjectStatus, b: Build) {
     step: { kind: 'world' },
     effort: 'medium',
     system: buildWorldSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
-    prompt: `Design the world of ${head(project)} from its plan, and prove it on a test sheet in shot ${sheet.id}.\n\ncopy.md:\n${b.copy}\n\n${worldFiles(project)}\n\n${project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')}`,
+    prompt: `Design the world of ${head(project)} from its plan, and prove it on a test sheet in shot ${sheet.id}.\n\ncopy.md:\n${b.copy}\n\n${worldFiles(project)}\n\n${project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')}${promoBrief(project)}`,
     ctx
   }))
   collect(b, project, ctx)
@@ -487,7 +518,7 @@ async function buildShots(project: ProjectStatus, b: Build) {
         step: { kind: 'shot', shot: shot.id },
         effort: SHOT_EFFORT,
         system: buildShotSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
-        prompt: `Build shot ${shot.id} of ${head(project)} from its plan.\n\ncopy.md:\n${b.copy}\n\n${world}\n\n${shotBrief(project, shot)}`,
+        prompt: `Build shot ${shot.id} of ${head(project)} from its plan.\n\ncopy.md:\n${b.copy}\n\n${world}\n\n${shotBrief(project, shot)}${promoBrief(project)}`,
         ctx,
         maxTurns: 30
       })

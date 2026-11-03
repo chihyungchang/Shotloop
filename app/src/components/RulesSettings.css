@@ -10,6 +10,8 @@
 .count-badge { font-size: 10.5px; font-weight: 600; min-width: 18px; padding: 1px 6px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); text-align: center; }
 .seg-control button.on .count-badge { background: var(--accent-soft); color: var(--accent-text); }
 .rule-row .switch { margin-top: 2px; }
+/* A locked fixed rule: a lock where the switch would be */
+.rule-locked { display: inline-flex; align-items: center; justify-content: center; width: 36px; flex: none; margin-top: 2px; color: var(--text-3); }
 /* Not clipped: a tool's still floats out of its row */
 .rule-list { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--r-md); }
 .rule-row:first-child { border-radius: var(--r-md) var(--r-md) 0 0; }
@@ -40,6 +42,7 @@
 .tool-row { position: relative; align-items: center; }
 .tool-preview { display: none; position: absolute; right: 64px; top: 50%; z-index: 10; width: 132px; aspect-ratio: 9 / 16; object-fit: cover; transform: translateY(-50%);
   border-radius: 8px; box-shadow: var(--shadow-md), 0 0 0 1px var(--border); pointer-events: none; }
+.tool-preview.wide { width: 256px; aspect-ratio: 16 / 9; }
 .tool-row:hover .tool-preview { display: block; }
 .tool-file { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 

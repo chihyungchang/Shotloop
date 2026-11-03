@@ -45,6 +45,8 @@ export interface ProjectStatus {
   voice?: { on: boolean; voice?: string; speed?: number; gain?: number; subtitles?: string; subtitlesChosen?: boolean } | null
   // The voice-over plays: on, with lines (engine/shotloop/cues.mjs voiceOn)
   voiced?: boolean
+  // A product promo: the page it is made from (read into site/)
+  promo?: { site: string | null; repo?: string | null } | null
 }
 
 // What a render answers, as the engine's protocol types it
@@ -72,6 +74,11 @@ export async function engine<T>(args: string[]): Promise<T> {
 }
 
 export const status = (project: string) => engine<ProjectStatus>(['status', project])
+
+// A promo's product page read into site/ (engine/shotloop/site.mjs), and
+// its repository into repo/ (repo.mjs)
+export const readSite = (project: string) => engine<{ url: string; name: string; pictures: number }>(['site', project])
+export const readRepo = (project: string) => engine<{ name: string; homepage: string; docs: number; pictures: number }>(['repo', project])
 
 export const renderStills = (project: string, shot: string) =>
   engine<RenderResult>(['render', project, '--shot', shot, '--stills'])

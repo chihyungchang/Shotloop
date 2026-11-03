@@ -19,9 +19,10 @@ const tools = (track: Track, group: Tool['group']) => RULES.tools
   })
 
 function rulesFor(track: Track) {
-  const fixed = RULES.fixed.filter(r => !r.off && forTrack(track)(r) && r.rule)
-  // The taste rules that are on, the person's own among them
-  const taste = RULES.taste.filter(r => !r.off && forTrack(track)(r))
+  const fixed = RULES.fixed.filter(r => !r.off && !r.kind && forTrack(track)(r) && r.rule)
+  // The taste rules that are on, the person's own among them; a kind's
+  // own (a promo's, the cover's, the sound's) are said with its task
+  const taste = RULES.taste.filter(r => !r.off && !r.kind && forTrack(track)(r))
   const mine = tools(track, 'mine')
   const toolbox = track === '2d'
     ? `Within them, make it rich: aim for the richest, most dynamic picture the shot allows. A toolbox to pick from (and add to):
@@ -54,11 +55,27 @@ ${toolbox}${mine.length ? `\nThe person's own tools (they added these; reach for
 }
 
 export const PRINCIPLES_2D = rulesFor('2d')
+
+// A product promo's devices (the toolbox's product group), said in its
+// plan and its shots' briefs
+export const PROMO_TOOLS = tools('2d', 'product')
+
+// The rules of one kind of work, fixed then taste, as the person set
+// them: a product promo's (in its plan and shots' briefs, and checked:
+// rules.checklist with promo), the cover's and the sound pass's
+const ofKind = (kind: NonNullable<Rule['kind']>) => [...RULES.fixed, ...RULES.taste].filter(r => !r.off && r.kind === kind).map(r => `- ${said(r)}`)
+export const PROMO_RULES = ofKind('promo')
+export const COVER_RULES = ofKind('cover')
+export const SOUND_RULES = ofKind('sound')
+export const VOICE_RULES = ofKind('voice')
 export const PRINCIPLES_3D = rulesFor('3d')
 
-// lintPlan and lintVoice measure caption lengths by the house caption
-// rule: only while the person keeps it as it shipped
+// lintPlan and lintVoice measure what the house rules say only while the
+// person keeps them as they shipped: the caption's length, a voiced
+// film's on-screen text and its lines
 export const CAPTION_RULE = rules.asBuilt('caption')
+const VOICE_TEXT_RULE = rules.asBuilt('voice-roles')
+const VOICE_LINES_RULE = rules.asBuilt('voice-lines')
 
 // Where the subtitles sit (engine/shotloop/cues.mjs), as "68–79%"
 const band = (k: 'portrait' | 'landscape') => `${SUBTITLE_BAND[k].map(x => Math.round(x * 100)).join('–')}%`
@@ -78,12 +95,14 @@ const HEARD = `Lines are written to be heard: short words, no lists, no parenthe
 // With a voice-over (when the person turns it on, engine/shotloop/voice.mjs) the
 // voice carries the explanation: these rules change the caption and
 // reading rules, and the rest stand
+// A voiced film's own rules (rules.mjs, kind voice), as the person set them
+const voiceRules = VOICE_RULES.length ? `\nThe person's rules for a voice-over (they take the caption rules' place where they differ):\n${VOICE_RULES.join('\n')}` : ''
+
 export const PRINCIPLES_VOICE = `The voice-over (this film has one; it changes the caption and reading rules, the rest stand):
-- The voice explains, the picture shows, the screen sums up. Each shot has a spoken line ("say"): one or two short sentences, plain and conversational, about 8 to 25 words (Chinese or Japanese: 15 to 45 characters). The first shot's line hooks in its first words; the last can be a short sign-off or empty.
-- The voice's words are subtitled automatically, in a band near the bottom (portrait: ${band('portrait')} of the frame height; landscape: ${band('landscape')}). The shot keeps its own text and anything important out of that band, and never repeats the spoken sentence on screen: ${CAPTION_RULE ? 'its on-screen text shrinks to the big number or a label of 1 to 4 words' : 'its on-screen text follows the person\'s caption rule'}.
+- Each shot has a spoken line ("say"). Its words are subtitled automatically, in a band near the bottom (portrait: ${band('portrait')} of the frame height; landscape: ${band('landscape')}): the shot keeps its own text and anything important out of that band.
 - Time follows the voice: after planning, every line is spoken and its shot gets the line's length plus a breath. Write each line to fill its shot: about ${WORDS_PER_S} words a second (Chinese or Japanese: ${CJK_PER_S} characters a second) plus ${VOICE_PAD} s. A shot may hold up to ${VOICE_HOLD} s past its line; any longer and it is cut to the line, so a film whose lines are short comes out shorter than planned.
-- The picture lands on the words: a number rolls in, an object appears or a chart turns as the voice says it (the shot's code gets each sentence's start and end).
-- ${HEARD}`
+- The shot's code gets each sentence's start and end, so the picture can move with the words.
+- ${HEARD}${voiceRules}`
 
 // How a 2D shot's code stays renderable frame by frame
 export const CODE_2D = `2D code rules:
@@ -103,20 +122,21 @@ export const CODE_WEBGL = `WebGL code rules:
 - Every frame is a pure function of t: no Math.random (kit.hash, kit.prng), no clock, no state carried between frames; physics in closed form or stepped with fixed steps from t = 0 (in setup). Frames and stills are drawn in any order.
 - Build in setup, pose in render: geometry, materials and models are made once in setup; render(t) only sets positions, rotations, scales, visibility and material values, in this order: kit.begin(t); objects; the camera (kit.look); type, labels and kit.keep(); kit.frame().
 - Real sizes in metres, written down in the world module (a watch 0.04 m, a person 1.7 m), the same object the same size in every shot; to make something small readable, use a longer lens or a closer camera, never a bigger object between shots. A stretched size or time is said on screen ("not to scale").
-- One camera move per shot, eased in and out, a lens from 24 mm (places) to 100 mm (close-ups); position, aim and lens never all change at once. Motivate the move: reveal, follow or come closer.
+- The camera moves eased in and out (the lens and the move as the person's taste has them).
 - Mechanisms by their own math: a gear turned by its ratio, a wheel by its circumference, an orbit by its period; things that touch keep touching.
-- Light reads as light: one key light, a rim, the studio's reflections; emissive parts capped (kit.glow), backgrounds dim, bloom only on what is brighter than white. Metal and glass need the environment to look like metal and glass. Call kit.studio({ size }) with the subject's size in metres (0.05 for a watch), so its soft shadow and the floor fit it.
+- Light: cap emissive parts with kit.glow; metal and glass need the environment to look like metal and glass. Call kit.studio({ size }) with the subject's size in metres (0.05 for a watch), so its soft shadow and the floor fit it.
 - The kit renders like an offline renderer: kit.frame() averages several sub-frames (antialiasing, soft shadows, ambient occlusion). For true motion blur on fast parts (gears, a throw), pass the pose: kit.frame(dt => pose(t + dt)), where pose sets every moving object and the camera for a time. For a shallow focus, kit.post({ fstop: 2.8, samples: 16 }) (it focuses on the last kit.look target). Keep exposure and tone at their defaults unless the shot needs a change (kit.post({ exposure, tone: 'neutral' }) for true product colours).
 - No flicker: no coplanar faces (decals 1 mm proud), the near plane not too close (kit.look sets it from the subject's distance).
 - Text is never in the 3D scene: headlines, numbers and labels are DOM type (kit.caption, kit.label, kit.block) above the world, inside the safe area. Mark the subject the viewer must see each frame with kit.keep(object, 'name') after the camera is set: the subtitle check and the element picker use it, and a person picks a part by that name.
-- Characters (when the story has one): simple and original, built from rounded primitives in a joint hierarchy; poses as tables of joint angles mixed by eased keys; anticipation before a big move, overlapping action after it.`
+- Characters (when the story has one): built from rounded primitives in a joint hierarchy; poses as tables of joint angles mixed by eased keys.`
 
 // Sound effects and the ambience (engine/shotloop/sound.mjs), written in
 // the film's sound pass once the person has approved the shots
 export const SOUND = `Sound:
 - The film has an ambience under it (one of ${AMBIENCE_NAMES.join(', ')}, or none) and sound effects on the picture's beats, made by the engine from these names: ${EFFECT_NAMES.join(', ')} (riser ends on its beat; the others start on it).
-- Few and exact: only the beats that matter get a sound (a gear locking, a part landing, a crash zoom, a smash cut), at most one clear effect every 2 to 3 seconds; silence makes the next one count.
-- With a voice-over the voice comes first: put loud effects (thud, impact, whoosh, riser) in the pauses between sentences (each shot's "cues" in shotloop.json give its sentences' times in shot seconds); quiet ones (click, tick, pop, ding, glass, beep, hum) may sit under a word. The engine moves a loud one off a line by up to 0.3 s, else halves it.
+- Loud effects are thud, impact, whoosh and riser; the others are quiet. Each shot's "cues" in shotloop.json give its sentences' times in shot seconds. The engine moves a loud effect off a spoken line by up to 0.3 s, else halves it.${SOUND_RULES.length ? `
+The person's taste for the sound:
+${SOUND_RULES.join('\n')}` : ''}
 - A shot's effects go in shots/<id>/sounds.json: [{ "at": <shot seconds>, "sound": "<name>", "gain": <0–2, default 1>, "pan": <-1 left … 1 right, default 0> }]. Each lands on the frame its beat happens: read the shot's code for when it does (its keyframes, eased moves and cuts), never guess from the notes. The person can switch any of them off.
 - Sounds the person added from the asset library (listed with the project, when there are any) are real recordings: use one by its id as "sound" where it fits the beat better than a synth name. It plays from its start, up to 8 s, at the synth effects' peak, and is never moved off a word, so place a loud one in a pause yourself. The person may also choose one as the ambience.`
 
@@ -126,17 +146,17 @@ export const SOUND_KEEP = `Sound: when the shot has shots/<id>/sounds.json (its 
 // Narration added to a finished film: the shots are final, the lines fit them
 export const NARRATION = `Narration (the person asked for one; the shots are final, so the picture leads):
 - No shot changes length. Write each shot's line to fit it: about ${WORDS_PER_S} words a second (Chinese or Japanese: ${CJK_PER_S} characters a second) for its length minus ${VOICE_PAD} s. Shorter is fine (it leaves a breath); longer is not.
-- The voice explains what the picture shows while it shows it, one or two plain, conversational sentences a shot. The first line hooks in its first words; the end card may stay silent.
+- The voice explains what the picture shows while it shows it.
 - ${HEARD}
 - The voice's words are subtitled automatically in a band near the bottom (portrait: ${band('portrait')} of the frame height; landscape: ${band('landscape')}).
-- Set every line at once with set_lines, in the language the film shows. It speaks them; a line a little long for its shot is spoken slightly faster, or runs over the cut (on into the next shot, or starting at the end of the last one) when that meets no other line, and it lists the lines that still don't fit: shorten those and set them again. A line over a cut is fine where the thought carries across it; where the next shot starts a new thought, shorten the line instead.`
+- Set every line at once with set_lines, in the language the film shows. It speaks them; a line a little long for its shot is spoken slightly faster, or runs over the cut (on into the next shot, or starting at the end of the last one) when that meets no other line, and it lists the lines that still don't fit: shorten those and set them again. A line over a cut is fine where the thought carries across it; where the next shot starts a new thought, shorten the line instead.${voiceRules}`
 
 // The voice-over in a shot's code
 export const CODE_VOICE = `Voice-over in code:
-- ctx.voice is the shot's spoken line, one { text, at, end } per sentence in shot seconds (empty when the shot says nothing). A line placed over a cut starts before 0 (in the shot before) or ends after the shot; time to the part inside it. Time reveals to it: a number lands at the moment its sentence says it (estimate within a sentence by its share of the words), and nothing important appears after the last sentence ends.
+- ctx.voice is the shot's spoken line, one { text, at, end } per sentence in shot seconds (empty when the shot says nothing). A line placed over a cut starts before 0 (in the shot before) or ends after the shot; time to the part inside it. A moment within a sentence is estimated by its share of the words.
 - Keep text and key parts of the picture out of the subtitle band (portrait: y ${band('portrait')} of H; landscape: ${band('landscape')}); backgrounds and motion may pass behind it.
 - A subtitle check runs before every render of the shot and reports, with times, what the subtitles would cover: text in the DOM or SVG, elements marked data-keep="name", and canvas regions the shot reports each frame with window.subtitles.keep(x, y, w, h, 'name') (page CSS px). It can't see unreported canvas shapes, text drawn on a canvas or 3D, so: write on-screen text in the DOM or SVG, never on a canvas; mark the subject the viewer must see (a satellite, a zipper) with data-keep, or report it with subtitles.keep when it is drawn on a canvas; leave big backgrounds (a globe, a grid, a glow) unmarked, they may pass under the subtitles.
-- The on-screen text is ${CAPTION_RULE ? 'the number or a short label, ' : ''}never the spoken sentence.`
+- The on-screen text is as the voice-over rules have it.`
 
 const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu
 
@@ -165,11 +185,11 @@ export function lintVoice(shots: { title?: string; duration: number; text?: stri
     const name = `shot ${i + 1}${s.title ? ` (${s.title})` : ''}`
     const say = (s.say ?? '').trim()
     if (!say) {
-      if (i < shots.length - 1) issues.push(`${name}: no spoken line ("say"); every shot but the end card says something`)
+      if (VOICE_LINES_RULE && i < shots.length - 1) issues.push(`${name}: no spoken line ("say"); every shot but the end card says something`)
       return
     }
     const { cjk, words, numbers } = units(say)
-    if (words + numbers > 30 || cjk > 55) issues.push(`${name}: the spoken line is too long (${cjk ? `${cjk} characters` : `${words + numbers} words`}); split the beat into two shots or cut it to about 25 words (45 characters)`)
+    if (VOICE_LINES_RULE && (words + numbers > 30 || cjk > 55)) issues.push(`${name}: the spoken line is too long (${cjk ? `${cjk} characters` : `${words + numbers} words`}); split the beat into two shots or cut it to about 25 words (45 characters)`)
     const need = (words + numbers) / WORDS_PER_S + cjk / CJK_PER_S + VOICE_PAD
     if (s.duration + 1.5 < need) issues.push(`${name}: ${s.duration} s is short for its line (about ${need.toFixed(1)} s spoken); give it the time or cut the line`)
     // A line far shorter than its shot: the shot would be cut to the line
@@ -177,7 +197,7 @@ export function lintVoice(shots: { title?: string; duration: number; text?: stri
       const more = (s.duration - VOICE_HOLD - need) * (cjk ? CJK_PER_S : WORDS_PER_S)
       issues.push(`${name}: its line (about ${need.toFixed(1)} s spoken) is short for ${s.duration} s and the shot would be cut to it; write about ${Math.ceil(more)} more ${cjk ? 'characters' : 'words'}, or shorten the shot`)
     }
-    if (CAPTION_RULE) for (const c of captions(s.text ?? '')) {
+    if (VOICE_TEXT_RULE) for (const c of captions(s.text ?? '')) {
       const u = units(c)
       if (u.words > 6 || u.cjk > 12) issues.push(`${name}: the on-screen text "${c}" is long for a voiced film; the voice says it, the screen shows the number or a label of 1 to 4 words`)
     }

@@ -232,16 +232,23 @@ const stepStates = (n: number, at: number, finished: boolean): StepState[] =>
   Array.from({ length: n }, (_, i) => (finished || i < at ? 'done' : i === at ? 'active' : 'todo'))
 
 // A plan's steps for the person: it reads, then writes everything in one
-// long quiet turn, then saves storyboard.json
+// long quiet turn, then saves storyboard.json. A promo reads its product
+// page first (phase "site"), with its sections captured as progress
 export function planSteps(job: Job): Step[] {
-  const log = job.log
+  const reading = job.phase === 'site'
+  const log = job.log.filter(l => !/^(site:|warning:)/.test(l))
   const finished = job.state === 'done'
   const saving = log.some(l => /^(write_file|edit_file)\s+storyboard\.json/i.test(l))
   // Reading is quick; a few seconds of quiet after it is the writing
-  const at = saving ? 2 : log.length && (quietFor(job) > 5 || log.some(l => !/^(read_file|list_files|read_checklist|agent:)/i.test(l))) ? 1 : 0
+  const at = reading ? -1 : saving ? 2 : log.length && (quietFor(job) > 5 || log.some(l => !/^(read_file|list_files|read_checklist|agent:)/i.test(l))) ? 1 : 0
   const s = stepStates(3, at, finished)
   const time = job.startedAt ? formatSeconds((Date.now() - job.startedAt) / 1000) : ''
+  const site: Step[] = job.phase === 'site' || job.phase === 'plan'
+    ? [{ label: t('planStep.site'), state: reading && !finished ? 'active' : 'done',
+      detail: reading && job.progress?.stage === 'site' ? t('planStep.siteDetail', { done: job.progress.done, total: job.progress.total }) : undefined }]
+    : []
   return [
+    ...site,
     { label: t('planStep.read'), state: s[0] },
     { label: t('planStep.write'), state: s[1], detail: s[1] === 'active' ? t('planStep.writeDetail', { time }) : undefined },
     { label: t('planStep.save'), state: s[2] }

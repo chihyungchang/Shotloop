@@ -147,7 +147,9 @@ export async function openPage({
     evaluate,
     async goto(url) {
       const loaded = once('Page.loadEventFired')
-      await send('Page.navigate', { url })
+      // An address that can't be reached never fires a load: said instead
+      const { errorText } = await send('Page.navigate', { url })
+      if (errorText) throw new Error(`could not open ${url} (${errorText})`)
       await loaded
     },
     async screenshot(file, clip) {
@@ -156,7 +158,8 @@ export async function openPage({
       const { data } = await send('Page.captureScreenshot', {
         format,
         ...(format === 'png' ? {} : { quality: 90 }),
-        ...(clip ? { clip: { ...clip, scale: 1 } } : {})
+        // A clip in page coordinates, below the fold too
+        ...(clip ? { clip: { ...clip, scale: 1 }, captureBeyondViewport: true } : {})
       })
       fs.mkdirSync(path.dirname(file), { recursive: true })
       fs.writeFileSync(file, Buffer.from(data, 'base64'))

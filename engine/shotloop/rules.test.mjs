@@ -96,11 +96,11 @@ test('rules: every tool says the tracks it fits; a 2D tool staged in 3D says how
 
 test('rules: a fixed rule can be switched off and on, never removed', () => {
   assert.throws(() => rules.remove('honest'), /fixed rule/)
-  rules.setOn('honest', false)
-  assert.equal(rules.list().fixed.find(r => r.id === 'honest').off, true)
-  assert.doesNotMatch(rules.checklist('2d'), /\*\*honest\*\*/)
-  rules.setOn('honest', true)
-  assert.match(rules.checklist('2d'), /\*\*honest\*\*/)
+  rules.setOn('source', false)
+  assert.equal(rules.list().fixed.find(r => r.id === 'source').off, true)
+  assert.doesNotMatch(rules.checklist('2d'), /\*\*source\*\*/)
+  rules.setOn('source', true)
+  assert.match(rules.checklist('2d'), /\*\*source\*\*/)
   assert.throws(() => rules.setOn('visual', false), /no fixed rule or tool/)
 })
 
@@ -113,4 +113,29 @@ test('rules: any tool can be switched off and on', () => {
   assert.equal(rules.list().tools.find(t => t.id === own.id).off, true)
   rules.removeTool(own.id)
   assert.equal(rules.list().tools.some(t => t.off), false)
+})
+
+test('rules: a product promo\'s taste is checked for a demo only, and can be switched off', () => {
+  assert.doesNotMatch(rules.checklist('2d'), /promo-one-part/)
+  assert.match(rules.checklist('2d', null, { promo: true }), /\*\*promo-one-part\*\*: /)
+  rules.remove('promo-motion')
+  assert.doesNotMatch(rules.checklist('2d', null, { promo: true }), /promo-motion/)
+  rules.reset('promo-motion')
+  assert.match(rules.checklist('2d', null, { promo: true }), /promo-motion/)
+})
+
+test('rules: a locked rule stays on; a kind\'s rules stay with their part of the work', () => {
+  assert.throws(() => rules.setOn('honest', false), /locked/)
+  assert.throws(() => rules.setOn('real-people', false), /locked/)
+  assert.equal(rules.list().fixed.find(r => r.id === 'original').off, false)
+  // The cover's and the sound's taste never join a shot's checklist
+  const shots = rules.checklist('2d')
+  assert.match(shots, /\*\*real-people\*\*/)
+  assert.doesNotMatch(shots, /cover-message|sound-sparse|promo-real/)
+  assert.match(rules.checklist('2d', null, { promo: true }), /\*\*promo-real\*\*/)
+})
+
+test('rules: a voiced film\'s rules join its checklist only', () => {
+  assert.doesNotMatch(rules.checklist('2d'), /voice-roles/)
+  assert.match(rules.checklist('2d', null, { voice: true }), /\*\*voice-roles\*\*/)
 })

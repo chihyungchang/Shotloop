@@ -8,7 +8,7 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { DEFAULT_LOOK, DEFAULT_STYLE, lookById, round, styleById, SUBTITLE_STYLES } from './data.mjs'
+import { DEFAULT_LOOK, DEFAULT_STYLE, lookById, PROMO_STYLE, round, styleById, SUBTITLE_STYLES } from './data.mjs'
 import { writeJson } from './files.mjs'
 import { untouchedLook } from './looks.mjs'
 import { loadProject, SHOT_ID, updateConfig } from './project.mjs'
@@ -53,6 +53,8 @@ export function applyStoryboard(project) {
     else style = null
   }
   if (style && style.track !== project.track) style = null
+  // A product promo keeps its own page, whatever the plan says
+  if (project.config.promo) style = styleById(PROMO_STYLE)
   // Shots read back from the project keep their folders: their ids are
   // reserved first. A new shot gets an id from its place and title that
   // no kept shot and no folder on disk has, so it never inherits code

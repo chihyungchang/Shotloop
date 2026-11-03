@@ -101,7 +101,9 @@ function ProjectCard({ p, open }: { p: ProjectSummary; open: () => void }) {
         {/* What kind of film, on the picture: 2D or 3D, its style, a voice */}
         <span className="poster-tags">
           <span className="poster-tag">{p.track.toUpperCase()}</span>
-          {p.style && p.style !== '3d' && <span className="poster-tag">{styleName(p.style)}</span>}
+          {p.promo
+            ? <span className="poster-tag">{t('home.kind.promo')}</span>
+            : p.style && p.style !== '3d' && <span className="poster-tag">{styleName(p.style)}</span>}
           {p.voice && <span className="poster-tag" title={t('gallery.voiceHint')}><Icon name="mic" size={11} /> {t('gallery.voice')}</span>}
         </span>
         <span className="duration">{formatSeconds(p.duration)}</span>

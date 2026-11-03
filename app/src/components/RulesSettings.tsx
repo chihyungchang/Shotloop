@@ -73,7 +73,8 @@ export function RulesSettings({ focus }: { focus?: string }) {
           {tab === 'taste' && (
             <>
               <AddRule run={run} track={show} />
-              <ByTrack rules={rules.taste.filter(r => shown(r.track))} row={r => <TasteRow key={r.id} r={r} run={run} focus={r.id === focus} />} />
+              <ByTrack rules={rules.taste.filter(r => !r.kind && shown(r.track))} row={r => <TasteRow key={r.id} r={r} run={run} focus={r.id === focus} />} />
+              <ByKind rules={rules.taste.filter(r => shown(r.track))} row={r => <TasteRow key={r.id} r={r} run={run} focus={r.id === focus} />} />
             </>
           )}
           {tab === 'tools' && (
@@ -92,7 +93,12 @@ export function RulesSettings({ focus }: { focus?: string }) {
               })}
             </>
           )}
-          {tab === 'fixed' && <ByTrack rules={rules.fixed.filter(r => shown(r.track))} row={r => <FixedRow key={r.id} r={r} run={run} focus={r.id === focus} />} />}
+          {tab === 'fixed' && (
+            <>
+              <ByTrack rules={rules.fixed.filter(r => !r.kind && shown(r.track))} row={r => <FixedRow key={r.id} r={r} run={run} focus={r.id === focus} />} />
+              <ByKind rules={rules.fixed.filter(r => shown(r.track))} row={r => <FixedRow key={r.id} r={r} run={run} focus={r.id === focus} />} />
+            </>
+          )}
         </>
       )}
     </section>
@@ -102,7 +108,7 @@ export function RulesSettings({ focus }: { focus?: string }) {
 type Run = (p: Promise<Rules>) => Promise<boolean>
 
 const TOOL_GROUPS: [RuleTool['group'], Key][] = [
-  ['story', 'rules.story'], ['science', 'rules.science'], ['camera', 'rules.camera'], ['frame', 'rules.frame'],
+  ['story', 'rules.story'], ['science', 'rules.science'], ['product', 'rules.product'], ['camera', 'rules.camera'], ['frame', 'rules.frame'],
   ['cut', 'rules.cut'], ['staging', 'rules.staging'], ['light', 'rules.light'], ['explain', 'rules.explain'], ['mine', 'rules.yours']
 ]
 
@@ -137,7 +143,27 @@ function ByTrack({ rules, row }: { rules: Rule[]; row: (r: Rule) => React.ReactN
   )
 }
 
-// A fixed rule: read, and switched off or on (never edited)
+// The rules of one part of the work (a product promo's shots, the cover,
+// the sound pass), each under its own heading: said and checked there only
+const KINDS: [NonNullable<Rule['kind']>, Key][] = [['promo', 'rules.product'], ['voice', 'rules.voice'], ['cover', 'rules.cover'], ['sound', 'rules.sound']]
+function ByKind({ rules, row }: { rules: Rule[]; row: (r: Rule) => React.ReactNode }) {
+  return (
+    <>
+      {KINDS.map(([kind, label]) => {
+        const mine = rules.filter(r => r.kind === kind)
+        return mine.length > 0 && (
+          <div key={kind} className="rule-part">
+            <h5>{t(label)}</h5>
+            <div className="rule-list">{mine.map(row)}</div>
+          </div>
+        )
+      })}
+    </>
+  )
+}
+
+// A fixed rule: read, and switched off or on (never edited); a locked one
+// stays on
 function FixedRow({ r, run, focus }: { r: Rule; run: Run; focus: boolean }) {
   const name = ruleName(r.id, r.name)
   return (
@@ -147,7 +173,9 @@ function FixedRow({ r, run, focus }: { r: Rule; run: Run; focus: boolean }) {
         {r.off && <span className="tag">{t('rules.off')}</span>}
         <span className="rule-about">{ruleAbout(r.id)}</span>
       </div>
-      <input type="checkbox" className="switch" checked={!r.off} onChange={e => run(api.switchOn(r.id, e.target.checked))} aria-label={name} />
+      {r.locked
+        ? <span className="rule-locked" title={t('rules.locked')} aria-label={t('rules.locked')}><Icon name="lock" size={14} /></span>
+        : <input type="checkbox" className="switch" checked={!r.off} onChange={e => run(api.switchOn(r.id, e.target.checked))} aria-label={name} />}
     </label>
   )
 }
@@ -252,7 +280,8 @@ function ToolRow({ tool, show, run }: { tool: RuleTool; show: RuleTrack; run: Ru
         {tool.off && <span className="tag">{t('rules.off')}</span>}
         {about && <span className="rule-about">{about}</span>}
       </div>
-      {image && <img className="tool-preview" src={image} alt="" loading="lazy" />}
+      {/* A product promo's devices are shown in its wide frame */}
+      {image && <img className={`tool-preview${tool.group === 'product' ? ' wide' : ''}`} src={image} alt="" loading="lazy" />}
       {!tool.builtIn && (
         <button className="icon-button" onClick={() => run(api.removeTool(tool.id))} title={t('rules.remove')} aria-label={t('rules.remove')}>
           <Icon name="trash" size={14} />

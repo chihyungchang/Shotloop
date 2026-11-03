@@ -3,7 +3,7 @@
 // (principles.ts).
 
 import type { Memory } from './enginelib.ts'
-import { CODE_2D, CODE_VOICE, CODE_WEBGL, NARRATION, PRINCIPLES_2D, PRINCIPLES_3D, PRINCIPLES_VOICE, SOUND, SOUND_KEEP } from './principles.ts'
+import { CODE_2D, CODE_VOICE, CODE_WEBGL, COVER_RULES, NARRATION, PRINCIPLES_2D, PRINCIPLES_3D, PRINCIPLES_VOICE, SOUND, SOUND_KEEP } from './principles.ts'
 
 type Track = '2d' | '3d'
 const rules = (track: Track) => `\n\n${track === '2d' ? PRINCIPLES_2D : PRINCIPLES_3D}`
@@ -113,10 +113,7 @@ The cover is one HTML page, thumb.html in the project root, rendered in Chrome a
 How to design it:
 - Learn the video first: the copy and storyboard in the request, then the look. 2D: read world/page.html for its palette, fonts, weights and background (the :root tokens and kit styles) and reuse them exactly. 3D: render the stills of the shots that carry the look and take the palette and mood from them.
 - Look at the stills of two or three shots with render_stills (they are cached and quick). A strong frame (the key object, the big number, the payoff) can be the background or the hero of the cover.
-- One message: a headline that makes someone want to watch, from the hook or the payoff in the copy, usually 4–12 words (Chinese or Japanese: 6–14 characters), in the language of the video's on-screen text. At most one short supporting line or a single big number. Every number must come from copy.md.
-- Make it read at thumbnail size: the headline 120–200 px, heavy weight, one or two highlighted words in the accent color, strong contrast (darken or blur a busy frame under the text). One focal point, generous margins, nothing small.
-- It is a cover, not a frame of the video: compose it fresh in the video's style rather than copying the first shot.
-- Render it with render_cover and look at it. Fix what is off (clipped or crowded text, weak contrast, text outside the crop, a broken frame image) and render again; stop after four renders.
+${COVER_RULES.length ? `- Follow the person's taste for covers:\n${COVER_RULES.map(r => `  ${r}`).join('\n')}\n` : ''}- Render it with render_cover and look at it. Fix what is off (clipped or crowded text, weak contrast, text outside the crop, a broken frame image) and render again; stop after four renders.
 - If thumb.html was designed before, improve it rather than starting over, unless the person asks for something new.
 
 Write only thumb.html. End with one sentence for the person about the cover.`
@@ -170,23 +167,21 @@ ${voice ? `      "say": "<the voice-over: what the voice says over this shot, on
 }
 
 How to plan:
-- 4 to 8 shots, one idea each. The first shot is the hook (3–4 s), the last an end card (2–3 s). ${voice ? 'The durations follow the lines (spoken and fitted after you plan) and add up to about the target: write as many words as the target holds.' : 'The durations add up to the target within half a second.'}
-- Pick the visual style first, from what the subject IS, using the list in the request (its "use when" and "avoid when"): a real thing or process you could film is a cinematic scene; numbers and their relations an infographic; places and routes a map; something on a screen an interface demo; how a machine works inside a blueprint; words themselves kinetic type (only then); an event that happened (a hack, a heist, a crash, a ruling), told as it unfolded, a news story; real geometry or a camera through space 3D (when offered; its world takes several minutes more to make, so only when depth itself is the point, never for a principle drawn with arrows and labels). Look at the reference stills of each candidate (view_style) before deciding, and plan every shot in the style you picked, with its kit's devices.
+- Shots as the rules have them (how many, the hook, the end card). ${voice ? 'The durations follow the lines (spoken and fitted after you plan) and add up to about the target: write as many words as the target holds.' : 'The durations add up to the target within half a second.'}
+- Pick the visual style first, from what the subject IS, using the list in the request (its "use when" and "avoid when"). Look at the reference stills of each candidate (view_style) before deciding, and plan every shot in the style you picked, with its kit's devices.
 - Write for the track. 2D: animated typography, numbers, charts, diagrams, icons, lit scenes drawn in HTML, SVG and canvas, and, for a part no flat drawing can show (gears that mesh, a mechanism turning in space), that part in three.js inside the 2D frame. 3D: a story acted out with objects, places and characters in a 3D world drawn in WebGL, one camera move per shot.
-- Length "auto": as long as the content needs at the reading pace of the rules, no padding: usually 20 to 45 s, never under 15 or over 60.
-- On-screen text is short: a headline or a number, never a paragraph. Write it, and the copy${voice ? ' and the spoken lines' : ''}, in the language of the idea.
+- Length "auto": as the rules have it, and never under 15 or over 60 s.
+- Write the on-screen text, and the copy${voice ? ' and the spoken lines' : ''}, in the language of the idea.
 - 2D: plan by the 2D rules. Design each shot from what the viewer sees: its "show" is a picture in motion, built from the toolbox where one fits (name the device); its "text" is the on-screen caption, as the person's taste rules have it; its "source" is the source line. ${voice ? 'Write each shot\'s "say" first (the voice-over rules), then the picture that shows it, and give the shot the time its line takes to speak' : 'Give each shot the time its captions need to be read (the reading time in the rules, plus about 0.5 s to enter)'}; when a beat needs more words, split it into two shots rather than crowd one. The plan is measured against these limits after you write it.
 - Every number and claim in the video is in copy.facts with a source you are confident of. Prefer English-language sources; use a source in the language of the idea only when no good English one exists, and name it as it is published. Never invent statistics; when unsure, say it qualitatively and leave the number out.
-- No brand names or people unless the idea asks for them; a news story names the companies, agencies and people its sources name, dates every event, and keeps "alleged" or "says" where its sources do.
 - 2D: pick the look that fits the idea's tone from the list in the request (or keep the one the person chose). Every shot is drawn in it, so plan visuals it can carry: typography, charts, diagrams, simple icons.
-- Recurring pictures: when the same picture (a diagram, an object, a chart, a character) appears in more than one shot, list it once in "recurring" with a fixed design, and describe it the same way in every shot's "show". The viewer must recognise it: never mirror its layout or change its colors from one shot to the next. Leave "recurring" empty when nothing recurs.
+- Recurring pictures: when the same picture (a diagram, an object, a chart, a character) appears in more than one shot, list it once in "recurring" with a fixed design, and describe it the same way in every shot's "show", as the rules keep it recognisable. Leave "recurring" empty when nothing recurs.
 - If storyboard.json already exists and the person asks for changes, revise it rather than starting over.
 
 Write the file with write_file (it is the only file you may write), then end with one or two sentences for the person about the plan.`
 }
 
-const TYPE_RULES = `- Type: use the platform's normal-width faces (2D: the kit's FONT and HEAD_FONT); never squeeze or stretch text with transforms or condensed widths to make it fit; shorten or wrap it instead.
-- Keep text large and inside the safe area: on a 720×1280 frame x 40–620 and y 110–1024 (the bottom 20% and the right edge carry the platforms' buttons; 2D: the kit's PAD, SAFE_RIGHT, SAFE_TOP and SAFE_BOTTOM).
+const TYPE_RULES = `- Keep text inside the safe area: on a 720×1280 frame x 40–620 and y 110–1024 (the bottom 20% and the right edge carry the platforms' buttons; 2D: the kit's PAD, SAFE_RIGHT, SAFE_TOP and SAFE_BOTTOM).
 - Everything is a pure function of time: any frame renders on its own. Ease motion; nothing pops.
 - Comments in code are English and short.`
 
@@ -252,7 +247,7 @@ How to build the shot:
 - 2D: a recurring picture listed for the shot is drawn with its function from world/parts.js (documented at its top), never redrawn by hand, so it matches the other shots.
 - 2D: make the frame as rich to watch as the rules allow, with the toolbox device the notes name and the kit's motion (staggered reveals, a camera move on the stage, rolling numbers, lines drawing on, gentle idle motion), while the caption stays still and readable for its reading time (the kit's readTime and hold). Draw with the kit documented at the top of world/page.html: on an infographic page, pictures in SVG on the stage and the caption through frame(); on a scene page, a lit canvas world (stage(t, { camera }) first, then light, sphere, beam, trail, particles; labels placed with screen()) and the caption through caption(). The notes' source line sits small under the picture (source() on a scene page).
 ${track === '3d' ? `- 3D in WebGL: in setup, await kit.init(ctx), call the world's look and builders, add what only this shot needs; in render(t), kit.begin(t), pose every object from t, then the camera (kit.look with a lens, one eased move), then the type, labels and kit.keep() for the subject, then kit.frame(). Stage the point (the toolbox's camera and staging devices); the type sits in the DOM above the world.
-- 3D framing: the subject the shot is about fills the frame between the caption and the subtitle band, at least half the frame's width, the thing the line talks about (the gap under the car, the fan) closest and biggest; no wide empty floor, wall or sky. Vary the camera from the shots around it (closer, lower, a three-quarter view), never the same side view twice in a row.\n` : ''}${TYPE_RULES}
+` : ''}${TYPE_RULES}
 - After writing the shot, render its stills and look at all three. Fix what is off (overlaps, clipped text, nothing moving, poor contrast) and render again; stop after three renders.
 - Call report_checks for the shot after its last render, with a result for every checklist rule.
 - End with one sentence for the person about the shot. No headings, no lists.`

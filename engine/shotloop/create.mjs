@@ -8,11 +8,16 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { editMode, entry, takes } from './cache.mjs'
-import { DEFAULT_STYLE, firstLine, lookById, LOOKS, round, STYLES, styleById, SUBTITLE_STYLES } from './data.mjs'
+import { DEFAULT_STYLE, firstLine, lookById, LOOKS, PROMO_STYLE, round, STYLES, styleById, SUBTITLE_STYLES } from './data.mjs'
 import { isProject, loadProject, saveConfig, SIZES } from './project.mjs'
 import { writeBed } from './settings.mjs'
 import { starterCover, writePlan, writeShots, writeWorld2d, writeWorld3d } from './starters.mjs'
 import { voiceOn } from './cues.mjs'
+import { siteUrl } from './site.mjs'
+import { githubRepo, repoSource } from './repo.mjs'
+
+// A product promo's screenshot kit, copied into its world
+const SCREENS = new URL('screens.js', import.meta.url)
 
 // Shots of about 5 s, a short hook first and an end card last
 function planShots(duration) {
@@ -43,8 +48,13 @@ const startMood = style => STYLE_MOOD[style] ?? 'bright'
 // planner picks. voice: the film has a voice-over (voice.mjs), which then
 // sets each shot's length; without one the picture sets the timing.
 // subtitles: the voice-over subtitles' look the person chose (data.mjs
-// SUBTITLE_STYLES), kept by the planner; none: the planner picks
-export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16', duration = 30, look = '', style = '', voice = false, subtitles = '' }) {
+// SUBTITLE_STYLES), kept by the planner; none: the planner picks.
+// promo: a product promo (software, a website or an app; 2D for now),
+// made from the product's repository (repo: a GitHub address or a folder,
+// read into repo/ by repo.mjs before the plan), its page (site, into site/
+// by site.mjs) and the person's pictures (images/), shown by
+// world/screens.js. It is what the film is about, beside how it is drawn
+export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16', duration = 30, look = '', style = '', voice = false, subtitles = '', promo = false, site = '', repo = '' }) {
   const root = path.resolve(dir)
   if (fs.existsSync(root) && fs.readdirSync(root).length) throw new Error(`${root} exists and is not empty`)
   if (!['2d', '3d', 'auto'].includes(track)) throw new Error('track must be 2d, 3d or auto')
@@ -52,8 +62,17 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
   if (style && track === '3d') throw new Error('a visual style is for 2D')
   if (style === 'scene' && look && !lookById(look)?.scene) throw new Error(`the look "${look}" has no cinematic scene colors`)
   if (subtitles && !Object.hasOwn(SUBTITLE_STYLES, subtitles)) throw new Error(`subtitles must be one of ${Object.keys(SUBTITLE_STYLES).join(', ')}`)
+  if (promo && track === '3d') throw new Error('a product promo is 2D for now')
+  if (promo && style) throw new Error('a product promo has no style to choose: its look follows the product')
+  if ((site || repo) && !promo) throw new Error('a product page or repository is read for a product promo')
+  // A GitHub address given as the page is the repository
+  if (promo && githubRepo(site) && !repo) [repo, site] = [site, '']
+  site = promo ? siteUrl(site) : null
+  // Checked now (a folder that isn't there, an address that isn't GitHub's)
+  repo = promo && repo ? (repoSource(repo), repo.trim()) : null
   // A 2D style chosen settles the track
-  const trackAuto = track === 'auto' && !style
+  // A product promo is drawn in 2D: Auto settles it
+  const trackAuto = track === 'auto' && !style && !promo
   if (track === 'auto') track = '2d'
   const lengthAuto = duration === 'auto'
   if (lengthAuto) duration = 30
@@ -61,7 +80,8 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
   if (!(duration >= 6 && duration <= 180)) throw new Error('duration must be 6–180 s or auto')
   // A look the person chose; none: the planner picks one
   if (look && !lookById(look)) throw new Error(`no look "${look}" (${LOOKS.map(l => l.id).join(', ')})`)
-  const size = aspect === '16:9' ? SIZES.landscape : SIZES.portrait
+  // A promo is wide: a product's screens don't read in a tall frame
+  const size = promo || aspect === '16:9' ? SIZES.landscape : SIZES.portrait
   title = title?.trim() || firstLine(idea) || path.basename(root)
   idea = idea.trim()
   const shots = planShots(duration)
@@ -69,8 +89,9 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
   const plan = shots.map((s, i) => ({ ...s, text: i === 0 ? firstLine(idea || title) : i === shots.length - 1 ? 'Follow for *more*' : '' }))
 
   fs.mkdirSync(root, { recursive: true })
-  if (track === '2d') writeWorld2d(root, look || null, size, style || DEFAULT_STYLE)
+  if (track === '2d') writeWorld2d(root, look || null, size, style || (promo ? PROMO_STYLE : DEFAULT_STYLE))
   else writeWorld3d(root, size)
+  if (promo) fs.copyFileSync(SCREENS, path.join(root, 'world', 'screens.js'))
   writeShots(root, track, plan, 'created from the idea')
   writePlan(root, title, plan, { idea })
   fs.writeFileSync(path.join(root, 'thumb.html'), starterCover(title))
@@ -91,6 +112,7 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
     ...(trackAuto ? { trackAuto: true } : {}),
     ...(style ? { style, styleChosen: true } : {}),
     ...(lengthAuto ? { lengthAuto: true } : {}),
+    ...(promo ? { promo: { site, repo } } : {}),
     // The voice-over: off for a new film unless the person turned it on;
     // then the plan writes each shot's line
     voice: { on: !!voice, ...(subtitles ? { subtitles, subtitlesChosen: true } : {}) }
@@ -121,6 +143,8 @@ export function summaries(dirs) {
       return [{
         root: p.root, title: p.title, description: p.config.description ?? '', lang: p.config.lang ?? null, slug: p.slug, track: p.track, size: p.size,
         style: p.track === '3d' ? '3d' : p.config.style ?? null,
+        // What it is about: a product promo, or an explainer
+        promo: !!p.config.promo,
         // It has a voice-over that plays (on, and lines to say)
         voice: voiceOn(p),
         duration: p.duration, shots: p.shots.length, poster, clip, changed: new Date(changed).toISOString()

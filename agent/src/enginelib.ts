@@ -56,15 +56,20 @@ export const memory = await load<{
   list: () => Memory[]
   add: (m: { text: string; by: 'ai'; track: string; from: string | null; replaces: string | null }) => Memory
 }>('memory.mjs')
-export interface Rule { id: string; track: 'all' | '2d' | '3d'; name: string | null; rule?: string; off?: boolean }
-export interface Tool { id: string; group: 'story' | 'science' | 'camera' | 'frame' | 'cut' | 'staging' | 'light' | 'explain' | 'mine'; tracks: ('2d' | '3d')[]; name: string; text: string; text3d?: string; off?: boolean }
+// kind: a rule for one part of the work only (a product promo's shots,
+// the cover, the sound pass); locked: it can't be switched off
+export interface Rule { id: string; track: 'all' | '2d' | '3d'; kind?: 'promo' | 'voice' | 'cover' | 'sound'; locked?: boolean; name: string | null; rule?: string; off?: boolean }
+export interface Tool { id: string; group: 'story' | 'science' | 'product' | 'camera' | 'frame' | 'cut' | 'staging' | 'light' | 'explain' | 'mine'; tracks: ('2d' | '3d')[]; name: string; text: string; text3d?: string; off?: boolean }
 export const rules = await load<{
   list: () => { damaged: string | null; fixed: Rule[]; taste: Rule[]; tools: Tool[] }
   asBuilt: (id: string) => boolean
-  checklist: (track: string, own?: string | null) => string
+  checklist: (track: string, own?: string | null, opts?: { promo?: boolean; voice?: boolean }) => string
 }>('rules.mjs')
 export const { AMBIENCE_NAMES, EFFECT_NAMES } = await load<{ AMBIENCE_NAMES: string[]; EFFECT_NAMES: string[] }>('sound.mjs')
 export const { STILLS } = await load<{ STILLS: readonly string[] }>('cache.mjs')
+// A product promo's pictures, with their sizes
+export interface PromoImage { file: string; width: number; height: number; from: 'person' | 'site'; live?: boolean; fields?: string[] }
+export const { promoImages } = await load<{ promoImages: (root: string) => PromoImage[] }>('images.mjs')
 export const { emit: emitLine, exit, parseFlags } = await load<{
   emit: (event: object) => void
   exit: (code: number) => void

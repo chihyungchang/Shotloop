@@ -26,6 +26,7 @@ export function setStyle(project, id) {
     throw new Error('3D is only possible for a project made with Auto, before its shots are built')
   }
   if (style.track === '2d' && project.track === '3d') throw new Error('a 3D project has no 2D style')
+  if (project.config.promo) throw new Error('a product promo has no style to choose: its look follows the product')
   updateConfig(project.root, cfg => ({ ...cfg, style: id, styleChosen: true }))
   return { style: id }
 }

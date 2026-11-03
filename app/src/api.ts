@@ -84,7 +84,8 @@ export interface Job {
   progress: Progress | null
   // A build's step, and each shot at its latest state: start, written
   // (not every CLI sends it), done
-  phase: 'world' | 'parts' | 'shots' | null
+  // A promo's plan: reading its product page (site), then planning
+  phase: 'world' | 'parts' | 'shots' | 'site' | 'plan' | null
   shots: Record<string, string>
   log: string[]
   logAt: number | null
@@ -276,13 +277,19 @@ export type RuleTrack = 'all' | '2d' | '3d'
 export interface Rule {
   id: string
   track: RuleTrack
+  // A rule for one part of the work only: a product promo's shots, a
+  // voiced film's, the cover, the sound pass
+  kind?: 'promo' | 'voice' | 'cover' | 'sound'
+  // A fixed rule that can't be switched off (it keeps a film true, lawful
+  // or renderable)
+  locked?: boolean
   name: string | null
   rule?: string
   builtIn?: boolean
   edited?: boolean
   off?: boolean
 }
-export interface RuleTool { id: string; group: 'story' | 'science' | 'camera' | 'frame' | 'cut' | 'staging' | 'light' | 'explain' | 'mine'; tracks: ('2d' | '3d')[]; name: string; text: string; builtIn: boolean; off: boolean; image: string | null }
+export interface RuleTool { id: string; group: 'story' | 'science' | 'product' | 'camera' | 'frame' | 'cut' | 'staging' | 'light' | 'explain' | 'mine'; tracks: ('2d' | '3d')[]; name: string; text: string; builtIn: boolean; off: boolean; image: string | null }
 // damaged: where a rules file that couldn't be read was set aside, while
 // the defaults stand in for it
 export interface Rules { damaged: string | null; fixed: Rule[]; taste: Rule[]; tools: RuleTool[] }
@@ -317,6 +324,11 @@ interface NewProject {
   voice?: boolean
   // The voice-over subtitles' look; '' lets the planner pick
   subtitles?: string
+  // A product promo (2D): its page or GitHub repository, and a local
+  // repository, read before the plan
+  promo?: boolean
+  site?: string
+  repo?: string
 }
 
 // A change to the music bed (media.rs MusicChange); none reads it
@@ -333,6 +345,10 @@ export const api = {
   openProject: (path: string) => invoke<Project>('open_project', { path }),
   status: (path: string) => invoke<Project>('project_status', { path }),
   createProject: (project: NewProject) => invoke<{ root: string }>('create_project', { project }),
+  // A promo's picture (PNG or JPEG bytes) into the project's images/; its
+  // place in the project back
+  addImage: (project: string, name: string, bytes: Uint8Array) =>
+    invoke<string>('add_image', bytes, { headers: { project: encodeURIComponent(project), name: encodeURIComponent(name) } }),
   listProjects: (paths: string[], examples = false) => invoke<ListResult>('list_projects', { paths, examples }),
   readText: (project: string, path: string) => invoke<string>('read_text', { project, path }),
   // What the AI's steps took in a project, oldest first (Usage page)

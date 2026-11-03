@@ -323,6 +323,10 @@ export const STYLES = [
 
 // A 2D project's style when nobody picked one
 export const DEFAULT_STYLE = 'infographic'
+// A product promo has no style to choose: it is drawn on the interface
+// page (its devices, an SVG stage) with its screenshot kit (screens.js);
+// its look follows the product's brand
+export const PROMO_STYLE = 'ui'
 
 export const styleById = id => STYLES.find(s => s.id === id) ?? null
 

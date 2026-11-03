@@ -4,15 +4,18 @@
 //
 // - FIXED: what makes a frame broken or a video untrue (nothing covered,
 //   no broken frames, honest, sourced). On unless the person switches one
-//   off; never edited or removed.
+//   off; never edited or removed. A locked one (\`locked\`: what keeps a
+//   film true, lawful or renderable) can't be switched off either.
 // - TASTE: the house taste, set by Oliver with a viewer who watches a lot
 //   of English short video (31 Oct 2026). Defaults: the person can reword
 //   or remove any of them, restore it, and add their own.
 // - TOOLS: the devices a plan picks from, each for the tracks it fits,
 //   any of them switched off or on by the person
 //   (`tracks`; a 2D device that can be staged in 3D says how in `text3d`).
+//   The product group is for a product promo's screenshots (screens.js).
 //   The built-in ones stay as they are (2D ones with an example still in
-//   tools/<id>.jpg); the person can add their own, with a picture.
+//   tools/<id>.jpg, 9:16; a product promo's 16:9, its frame); the person
+//   can add their own, with a picture.
 //
 // What the person changed lives in their rules folder:
 //
@@ -24,7 +27,12 @@
 //
 // A rule's `rule` is what the prompts say, its `check` what a review
 // judges on the stills (a rule without one is only said). Tracks: '2d',
-// '3d' or 'all'.
+// '3d' or 'all'. A rule with a `kind` is for one part of the work only:
+// 'promo' a product promo's shots (with the film's own), 'voice' a voiced
+// film's shots, 'cover' the cover, 'sound' the sound pass; one without is
+// for every film's shots.
+// Prompts carry only mechanics (formats, tools, the material); what makes
+// a film good is a rule here, where the person sees and sets it.
 
 import fs from 'node:fs'
 import os from 'node:os'
@@ -73,7 +81,7 @@ const FIXED = [
     check: 'From the shot\'s code: each caption holds still for the kit\'s readTime before it changes or leaves.'
   },
   {
-    id: 'honest', track: '2d', name: 'Honest while it moves',
+    id: 'honest', track: '2d', locked: true, name: 'Honest while it moves',
     rule: 'An animation never implies more than the source says; condensed lines keep the source\'s meaning (and quoted words exactly); any arithmetic is "≈" on screen and spelled out in the source line; illustrations are labelled as such. In science, the picture is a model and says so: a stretched scale says "not to scale", slowed or sped time says by how much ("slowed ≈1,000,000×"), an analogy is labelled as one, and the law it follows is named in the source line. A diagram may shrink distances or stretch an effect to be seen, but a law is computed in real units at real scale and only its result is mapped to the screen. Never apply a law to the squeezed drawing: put the Moon 2.5 Earth radii away instead of 60 and the inverse square makes the far tidal bulge a third of the near one, when in truth they are within about 5% of each other. Stretch the result by one stated factor (labelled), so what the picture compares stays true: equal stays equal, bigger stays bigger by the true ratio or is labelled as exaggerated.',
     check: 'Nothing on screen implies more than the source; arithmetic is "≈" and spelled out; illustrations, stretched scales and sped time are labelled. A law is computed at real scale and what the picture compares keeps its true ratio, or is labelled exaggerated.'
   },
@@ -83,9 +91,24 @@ const FIXED = [
     check: 'When the shot states a fact, its source line is there, under the picture, in the source\'s own name and language.'
   },
   {
-    id: 'code', track: '2d', name: 'Renders frame by frame',
+    id: 'code', track: '2d', locked: true, name: 'Renders frame by frame',
     rule: 'The shot\'s code follows the 2D code rules, so every frame draws the same whenever and in whatever order it is rendered.',
     check: 'From the shot\'s code: the 2D code rules.'
+  },
+  {
+    id: 'real-people', track: 'all', locked: true, name: 'No real names unasked',
+    rule: 'No real brand, company or person unless the idea (or, in a promo, the product itself) asks for them. A news story names only the companies, agencies and people its sources name, dates every event, and keeps "alleged" or "says" where its sources do.',
+    check: 'No real brand, company or person appears that the idea or the product doesn\'t ask for; a news story names only whom its sources name, dates its events and keeps "alleged" where they do.'
+  },
+  {
+    id: 'original', track: 'all', locked: true, name: 'Original designs',
+    rule: 'Characters, mascots and designs are original: never a copy or a near copy of a known character, mascot, logo or brand design, unless it is the product\'s own in a promo.',
+    check: 'No character, mascot or design copies a known one (the product\'s own aside, in a promo).'
+  },
+  {
+    id: 'promo-real', track: 'all', kind: 'promo', locked: true, name: 'Only what the product has',
+    rule: 'Screens come from the product\'s pictures and words from its page, quoted as it says them: never draw a feature, a number or a screen it doesn\'t have, and state a price only as the page does. A screen drawn for a beat the pictures don\'t cover stays plain and true to the real one.',
+    check: 'Every screen shown comes from the product\'s pictures (or is plainly true to them), and every claim from its page.'
   }
 ]
 
@@ -198,6 +221,123 @@ const TASTE = [
   {
     id: 'breathing-room', track: '3d', name: 'Let it breathe',
     rule: 'Cinema holds on a striking image: after a payoff hold the frame 0.5 to 1.5 s with nothing new so the point lands, and frame the subject with darkness and empty space.'
+  },
+  // A product promo's taste (kind: 'promo'): said and checked only for a
+  // promo of the person's software, website or app, in either frame
+  {
+    id: 'promo-story', track: 'all', kind: 'promo', name: 'The problem first, then the product',
+    rule: 'Tell the product\'s story from its makers\' own words (its repository and page): open on the problem the viewer knows, shown as a picture with a real number where the material has one (one shot is wrong, so 7 of 7 render again), then the same picture answered by the product (only 1 of 7 renders); then three to five selling points, each its own chapter; end on the one thing to remember. A promo, not a tutorial: never walk through steps, pages or results the material doesn\'t show.',
+    check: 'The film opens on a problem shown as a picture, answers it with the product in the same picture, and ends on one line to remember; no shot walks through a flow the material doesn\'t show.'
+  },
+  {
+    id: 'promo-explain', track: 'all', kind: 'promo', name: 'Explain with drawings, prove with screens',
+    rule: 'What the product does is drawn, in code, from its own pieces: a row of things changing state, a counter, steps lighting in turn, a request typed in, a before and after. The real screens come as proof, each in its own beat beside its headline. Show the product, not only what it makes.',
+    check: 'The mechanism is drawn as a diagram, not only shown on a screenshot; real screens appear as proof.'
+  },
+  {
+    id: 'promo-chapters', track: 'all', kind: 'promo', name: 'Numbered chapters, big headlines',
+    rule: 'Each beat is a chapter: a mono label over a rule ("01 — The problem", the product\'s name at the right), a big heavy headline of one or two lines rising line by line (the second, the turn, muted), and its picture: a screen beside the headline (headline left, screen right) or a diagram below it. A footer rule may carry a count.',
+    check: 'Each beat has its chapter label, a headline of at most two lines, and a clear place for its picture.'
+  },
+  {
+    id: 'promo-one-part', track: 'all', kind: 'promo', name: 'One part of the product, big',
+    rule: 'Each beat puts one part of the product forward, big enough to read at phone size: the text on it at least about 1/40 of the frame\'s height. A whole window may sit beside its headline; come close to the part a beat is about.',
+    check: 'The product part the beat is about is readable at phone size.'
+  },
+  {
+    id: 'promo-screens', track: 'all', kind: 'promo', name: 'Screens framed or running off, never floating cards',
+    rule: 'A real screen sits in its own column as a window (a hairline, a light shadow) beside its headline, or runs off the frame\'s edge when the camera is close. Never a small card floating in the middle with a heavy shadow; nothing tilted while it must be read.',
+    check: 'Screens sit framed beside their headline or run off the frame; no heavy-shadowed floating card; nothing read while tilted.'
+  },
+  {
+    id: 'promo-motion', track: 'all', kind: 'promo', name: 'Calm, exact motion',
+    rule: 'Things rise in short ease-outs (half a second at most), staggered 60 to 100 ms, with no bounce; a cut is a wipe (an ink panel crossing the frame in about 0.36 s) or the camera moving in; a screen that has landed keeps pushing in slowly (about 4% over its beat), so nothing sits frozen for more than a second. Never rush a transition.',
+    check: 'Rises are short and unbouncy; cuts are wipes or camera moves; no frame sits frozen for more than a second.'
+  },
+  {
+    id: 'promo-one-focus', track: 'all', kind: 'promo', name: 'One focus at a time, unmissable',
+    rule: 'Attention goes to one place at a time and can\'t be missed: the thing that matters is marked (a coloured outline, a chip, the accent) while the rest dims; a pointer, when one is needed, is large, moves on a smooth curve and clicks visibly.',
+    check: 'One clear focus at each moment.'
+  },
+  {
+    id: 'promo-brand', track: 'all', kind: 'promo', name: 'The product\'s own visual system',
+    rule: 'The film wears the product\'s system: its ground (paper or ink), its one accent, its fonts (the page\'s, from site/fonts.css), its corners and rules; one theme for the whole film. The end card is a field of the accent with the product\'s name huge, the line to remember and its address. Never generic neon, a rainbow gradient or a blurred grey copy of the app as a background.',
+    check: 'Ground, accent, fonts and corners are the product\'s own, one theme throughout; no generic neon or blurred grey background.'
+  },
+  {
+    id: 'promo-voice', track: 'all', kind: 'promo', name: 'A voice tells it',
+    rule: 'A promo is narrated: the voice tells the story in one short line a chapter, the picture shows it, the headline sums it up in a few words; each chapter starts when its line does, with a music bed under the voice.'
+  },
+  {
+    id: 'promo-words', track: 'all', kind: 'promo', name: 'Few words, never over busy screens',
+    rule: 'Headlines are a few words; labels and chips are short mono capitals; words sit on the ground beside or above the product, never over a busy screen.',
+    check: 'Words are short and sit on the ground, never over busy UI.'
+  },
+  {
+    id: 'promo-crisp', track: 'all', kind: 'promo', name: 'Always sharp',
+    rule: 'Every screen stays sharp: never enlarged past its own pixels. For a close-up use the high-resolution captures or the live parts, which stay sharp at any size.',
+    check: 'No screen looks soft or pixelated.'
+  },
+  {
+    id: 'promo-vary', track: 'all', kind: 'promo', name: 'Each chapter its own picture',
+    rule: 'Neighbouring chapters change their picture: a diagram, then a screen; the screen on the right, then a row below the headline. Never the same frame twice in a row.',
+    check: 'No two chapters in a row share the same layout.'
+  },
+  // Moved out of the prompts (3 Nov 2026), so the person sees and sets them
+  {
+    id: 'shot-count', track: 'all', name: 'A handful of shots, hook first',
+    rule: '4 to 8 shots, one idea each: the first is the hook (3 to 4 s), the last an end card (2 to 3 s).',
+    check: 'The film has 4 to 8 shots, a short hook first and a short end card last.'
+  },
+  {
+    id: 'length', track: 'all', name: 'No padding',
+    rule: 'When the length is left to the plan, the film is as long as its content needs at the reading pace of these rules, no padding: usually 20 to 45 s.'
+  },
+  {
+    id: 'type-natural', track: 'all', name: 'Type as it was drawn',
+    rule: 'Text is set in normal-width faces (2D: the kit\'s FONT and HEAD_FONT), never squeezed or stretched by transforms or condensed widths to fit; shorten or wrap it instead.',
+    check: 'No text is squeezed, stretched or condensed to fit.'
+  },
+  {
+    id: 'subject-fills', track: '3d', name: 'The subject fills the frame',
+    rule: 'The subject the shot is about fills the frame between the caption and the subtitle band, at least half the frame\'s width, and the thing the line talks about (the gap under the car, the fan) is plainly visible.',
+    check: 'The subject spans at least half the frame\'s width, and what the line talks about is plainly visible.'
+  },
+  {
+    id: 'lens', track: '3d', name: 'Lens and angle',
+    rule: 'A lens from 24 mm (places) to 100 mm (close-ups); position, aim and lens never all change at once. Vary the camera from the shots around it (closer, lower, a three-quarter view), never the same side view twice in a row.',
+    check: 'The camera differs from the shots next to it; never the same side view twice in a row.'
+  },
+  {
+    id: 'light', track: '3d', name: 'Light reads as light',
+    rule: 'One key light and a rim, the studio\'s reflections on metal and glass, glowing parts kept in check, backgrounds dim, bloom only on what is brighter than white.',
+    check: 'The subject is lit by a key and a rim; nothing glows flat white but a light source.'
+  },
+  {
+    id: 'cover-message', track: 'all', kind: 'cover', name: 'One message, read at thumbnail size',
+    rule: 'A headline that makes someone want to watch, from the hook or the payoff: about 4 to 12 words (Chinese or Japanese: 6 to 14 characters), at most one short supporting line or one big number. Headline 120 to 200 px, heavy, one or two words in the accent color, strong contrast (darken or blur a busy frame under it); one focal point, generous margins, nothing small.'
+  },
+  {
+    id: 'cover-fresh', track: 'all', kind: 'cover', name: 'A cover, not a frame',
+    rule: 'The cover is composed fresh in the video\'s style (its palette, type and a strong frame of it as a picture), never a copy of the first shot.'
+  },
+  {
+    id: 'sound-sparse', track: 'all', kind: 'sound', name: 'Few sounds, exactly placed',
+    rule: 'Only the beats that matter get a sound (a gear locking, a part landing, a crash zoom, a smash cut), at most one clear effect every 2 to 3 seconds; silence makes the next one count. With a voice-over the voice comes first: loud effects sit in the pauses between sentences, quiet ones may sit under a word.'
+  },
+  {
+    id: 'voice-roles', track: 'all', kind: 'voice', name: 'The voice explains, the screen sums up',
+    rule: 'With a voice-over, the voice explains, the picture shows and the screen sums up: a shot\'s on-screen text shrinks to the big number or a label of 1 to 4 words, never the sentence being spoken.',
+    check: 'With a voice-over, on-screen text is a number or a label of 1 to 4 words, never the spoken sentence.'
+  },
+  {
+    id: 'voice-lines', track: 'all', kind: 'voice', name: 'Short lines, said like talk',
+    rule: 'Each shot\'s spoken line is one or two short sentences, plain and conversational: about 8 to 25 words (Chinese or Japanese: 15 to 45 characters). The first line hooks in its first words; the last can be a short sign-off or nothing.'
+  },
+  {
+    id: 'voice-lands', track: 'all', kind: 'voice', name: 'The picture lands on the words',
+    rule: 'The picture moves with the voice: a number rolls in, an object appears or a chart turns as the voice says it, and nothing important appears after the last sentence ends.',
+    check: 'What the voice names appears as it is said; nothing important arrives after the shot\'s last sentence.'
   }
 ]
 
@@ -232,6 +372,20 @@ export const TOOLS = [
   { id: 'draws-its-graph', group: 'science', name: 'The thing draws its graph', text: 'the phenomenon traces its own curve beside it (a pendulum drawing a sine, a sample drawing its decay curve, a falling ball drawing its parabola), the axis labelled in real units.', tracks: ['2d'] },
   { id: 'conservation-ledger', group: 'science', name: 'Conservation ledger', text: 'the quantity that is kept (energy, charge, mass, momentum) as stacked bars that trade between their forms while the total never moves.', tracks: ['2d'] },
   { id: 'myth-mechanism', group: 'science', name: 'Myth, then mechanism', text: 'the common wrong picture first, stamped "wrong" in the color kept for it, then the real mechanism replacing it in the same layout.', tracks: ['2d', '3d'], text3d: 'the wrong version staged first, then the real one in the same set and camera, so the difference is all you see.' },
+  { id: 'chapter', group: 'product', name: 'Chapter', text: 'a mono label over a rule ("01 — The problem", the product\'s name at the right) opening each beat (chapter).', tracks: ['2d'] },
+  { id: 'rising-headline', group: 'product', name: 'Rising headline', text: 'one or two heavy lines rising out of their masks, the second muted for the turn of the sentence (headline).', tracks: ['2d'] },
+  { id: 'state-row', group: 'product', name: 'A row of states', text: 'many things in a row (shots, files, pages), each with a chip, a progress sweep or a dim; the same row before and after shows what the product changes (row).', tracks: ['2d'] },
+  { id: 'counter', group: 'product', name: 'Counter', text: 'a number in a footer over a rule that tells the result (7 / 7, then 1 / 7), red when it is the problem (counter).', tracks: ['2d'] },
+  { id: 'steps', group: 'product', name: 'Steps lighting', text: 'the product\'s steps as bordered chips lighting one after another in the accent (steps).', tracks: ['2d'] },
+  { id: 'request', group: 'product', name: 'A request typed', text: 'what a person asks the product for, typed into a dark bubble under their name (bubble).', tracks: ['2d'] },
+  { id: 'before-after', group: 'product', name: 'Before and after', text: 'two pictures in one box, a divider in the accent sweeping across to uncover the after (compare).', tracks: ['2d'] },
+  { id: 'screen-beside', group: 'product', name: 'Screen beside its headline', text: 'a real screen framed as a window in its own column beside the headline, rising in and then pushing in slowly (shot with frame: "window" and a box).', tracks: ['2d'] },
+  { id: 'dive', group: 'product', name: 'Dive to the action', text: 'the camera moves in to the part where the action is, the interface running off the frame, and settles there (shot and camera).', tracks: ['2d'] },
+  { id: 'cursor-action', group: 'product', name: 'Cursor action', text: 'a large pointer glides on a curve, presses and lets a soft ring go, while the camera moves in around the click (cursor with follow).', tracks: ['2d'] },
+  { id: 'type-in', group: 'product', name: 'Type it in', text: 'words typed into a field of the product key by key, a caret blinking (typing on a live part, or field over a picture).', tracks: ['2d'] },
+  { id: 'state-change', group: 'product', name: 'State change', text: 'the same screen before and after: what stays holds still, what changed blends in (shot with over).', tracks: ['2d'] },
+  { id: 'wipe-cut', group: 'product', name: 'Wipe cut', text: 'an ink panel crossing the frame in about 0.36 s, half at the end of one beat and half at the start of the next (wipe).', tracks: ['2d'] },
+  { id: 'logo-lockup', group: 'product', name: 'End card', text: 'a field of the accent: the product\'s name huge, the line to remember, its price or platform and address over a rule (endCard).', tracks: ['2d'] },
   { id: 'pull-back-reveal', group: 'camera', tracks: ['3d'], name: 'Pull-back reveal', text: 'start on a detail and pull or crane back until the whole situation is in view, so the wide is the punchline.' },
   { id: 'push-in', group: 'camera', tracks: ['3d'], name: 'Push-in on realisation', text: 'dolly slowly toward the subject while the key idea lands, so the viewer feels that this is the moment.' },
   { id: 'crane', group: 'camera', tracks: ['3d'], name: 'Crane up, crane down', text: 'rise above a situation to show its extent or end the film, sink into a place to begin; in a tall frame it replaces the pan.' },
@@ -316,7 +470,7 @@ export function list() {
   const still = id => path.join(STILLS, `${id}.jpg`)
   return {
     damaged: !fs.existsSync(FILE) && fs.existsSync(BAD) ? BAD : null,
-    fixed: FIXED.map(r => ({ ...r, off: saved.fixedOff.includes(r.id) })),
+    fixed: FIXED.map(r => ({ ...r, off: !r.locked && saved.fixedOff.includes(r.id) })),
     taste: [...builtIn, ...mine],
     tools: [
       ...TOOLS.map(t => ({ ...t, builtIn: true, off: saved.toolsOff.includes(t.id), image: fs.existsSync(still(t.id)) ? still(t.id) : null })),
@@ -368,6 +522,7 @@ export function remove(id) {
 
 // A fixed rule or a tool (built-in or the person's) switched off or on
 export function setOn(id, on) {
+  if (FIXED.some(r => r.id === id && r.locked)) throw new Error(`"${id}" is a locked rule; it can't be switched off`)
   const flip = ids => (on ? ids.filter(x => x !== id) : [...new Set([...ids, id])])
   save(s => {
     if (FIXED.some(r => r.id === id)) s.fixedOff = flip(s.fixedOff)
@@ -424,15 +579,19 @@ export function removeTool(id) {
 }
 
 const forTrack = track => r => r.track === 'all' || r.track === track
+// The rules of the kinds given ('' for every film's shots)
+export const ofKinds = kinds => r => kinds.includes(r.kind ?? '')
 
 // The checklist a review reports against: the fixed rules that are on,
 // then the person's taste as it stands, each with its id. A project's own
 // checklist (shotloop.json "checklist") takes the taste's place; the
-// fixed rules stay
-export function checklist(track, own = null) {
+// fixed rules stay. promo: a product promo, voice: a voiced film, whose
+// own rules join in
+export function checklist(track, own = null, { promo = false, voice = false } = {}) {
   const { fixed, taste } = list()
   const line = r => `- **${r.id}**${r.track === 'all' ? '' : ` (${r.track.toUpperCase()})`}: ${r.check}`
-  const on = taste.filter(r => !r.off && r.check && forTrack(track)(r)).map(r => ({ ...r, check: r.edited ? r.rule : r.check }))
+  const kinds = ['', ...(promo ? ['promo'] : []), ...(voice ? ['voice'] : [])]
+  const on = taste.filter(r => !r.off && r.check && forTrack(track)(r) && ofKinds(kinds)(r)).map(r => ({ ...r, check: r.edited ? r.rule : r.check }))
   const rest = own != null
     ? `This project's own checklist:\n${own.trim()}`
     : `The person's taste (as they set it):\n${on.length ? on.map(line).join('\n') : '(none)'}`
@@ -441,7 +600,7 @@ export function checklist(track, own = null) {
 The rules every shot must pass, checked on the stills at the start, middle and end of the shot. Report against each rule's id.
 
 Fixed rules:
-${fixed.filter(r => !r.off && forTrack(track)(r)).map(line).join('\n') || '(none)'}
+${fixed.filter(r => !r.off && forTrack(track)(r) && ofKinds(kinds)(r)).map(line).join('\n') || '(none)'}
 
 ${rest}
 `

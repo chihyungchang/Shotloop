@@ -30,7 +30,8 @@ export function Storyboard({ project, sb, edit, planning, chooseStyle }: {
         <h3>{t('plan.board')}</h3>
         <span className={`small ${Math.abs(total - target) > 0.5 ? 'warn-note' : 'muted'}`}>{t('plan.total', { n: sb.shots.length, s: total, target })}</span>
       </div>
-      {sb.style && (project.track === '2d' || project.trackAuto) && <StyleRow project={project} sb={sb} planning={planning} choose={chooseStyle} />}
+      {/* A product promo has its own page: no style to choose */}
+      {sb.style && !project.promo && (project.track === '2d' || project.trackAuto) && <StyleRow project={project} sb={sb} planning={planning} choose={chooseStyle} />}
       {project.track === '2d' && sb.style !== '3d' && <LookRow sb={sb} edit={edit} />}
       {/* The subtitles' look the AI picked, and why (changed in the studio) */}
       {project.voice?.on && !project.voice.subtitlesChosen && sb.subtitles && (

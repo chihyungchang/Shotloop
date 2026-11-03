@@ -200,6 +200,7 @@ pub fn run() {
             commands::projects::open_project,
             commands::projects::project_status,
             commands::projects::create_project,
+            commands::projects::add_image,
             commands::projects::list_projects,
             commands::projects::read_text,
             commands::projects::project_usage,

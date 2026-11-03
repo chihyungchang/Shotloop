@@ -53,6 +53,11 @@ pub struct NewProject {
     voice: Option<bool>,
     /// The voice-over subtitles' look; empty: the planner picks
     subtitles: Option<String>,
+    /// A product promo, and the page (or GitHub repository) and the local
+    /// repository it is made from
+    promo: Option<bool>,
+    site: Option<String>,
+    repo: Option<String>,
 }
 
 /// Creates a starter project from an idea (`shotloop new`)
@@ -65,10 +70,72 @@ pub async fn create_project(handle: AppHandle, project: NewProject) -> Result<Va
             .flag(p.voice == Some(true), "--voice-over")
             .opt("--look", given(p.look))
             .opt("--style", given(p.style))
-            .opt("--subtitles", given(p.subtitles));
+            .opt("--subtitles", given(p.subtitles))
+            .flag(p.promo == Some(true), "--promo")
+            .opt("--site", given(p.site))
+            .opt("--repo", given(p.repo));
         engine(&handle, args)
     })
     .await
+}
+
+/// A product promo's picture, uploaded or pasted on Home, saved into the
+/// project's images/ as `<n>-<name>.png|jpg`. The image's bytes are the
+/// request's body (no JSON round trip for a few megabytes); the project
+/// and the file's name come URL-encoded in its headers
+#[tauri::command]
+pub fn add_image(request: tauri::ipc::Request<'_>) -> Result<String, String> {
+    const MAX_MB: usize = 20;
+    let tauri::ipc::InvokeBody::Raw(bytes) = request.body() else {
+        return Err("an image is sent as its bytes".into());
+    };
+    let header = |key: &str| {
+        let value = request.headers().get(key).and_then(|v| v.to_str().ok()).ok_or(format!("missing {key}"))?;
+        percent_decode(value)
+    };
+    let (project, name) = (header("project")?, header("name")?);
+    if bytes.len() > MAX_MB << 20 {
+        return Err(format!("an image is at most {MAX_MB} MB"));
+    }
+    // What it is, from its first bytes rather than its name
+    let ext = if bytes.starts_with(b"\x89PNG") {
+        "png"
+    } else if bytes.starts_with(&[0xff, 0xd8]) {
+        "jpg"
+    } else {
+        return Err("an image is a PNG or JPEG".into());
+    };
+    let stem: String = Path::new(&name).file_stem().and_then(|s| s.to_str()).unwrap_or("").chars()
+        .map(|c| if c.is_ascii_alphanumeric() { c.to_ascii_lowercase() } else { '-' })
+        .collect::<String>().split('-').filter(|s| !s.is_empty()).take(6).collect::<Vec<_>>().join("-");
+    let dir = project_file(&project, "images/x")?.parent().ok_or("bad path")?.to_path_buf();
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let n = std::fs::read_dir(&dir).map_err(|e| e.to_string())?.count() + 1;
+    let rel = format!("images/{n:02}-{}.{ext}", if stem.is_empty() { "image" } else { &stem });
+    let file = project_file(&project, &rel)?;
+    if file.exists() {
+        return Err(format!("{rel} exists already"));
+    }
+    crate::files::write_atomic(&file, bytes, false).map_err(|e| e.to_string())?;
+    Ok(rel)
+}
+
+/// %XX escapes back to their bytes (encodeURIComponent's output)
+fn percent_decode(s: &str) -> Result<String, String> {
+    let b = s.as_bytes();
+    let mut out = Vec::with_capacity(b.len());
+    let mut i = 0;
+    while i < b.len() {
+        if b[i] == b'%' && i + 2 < b.len() {
+            let hex = std::str::from_utf8(&b[i + 1..i + 3]).map_err(|e| e.to_string())?;
+            out.push(u8::from_str_radix(hex, 16).map_err(|e| e.to_string())?);
+            i += 3;
+        } else {
+            out.push(b[i]);
+            i += 1;
+        }
+    }
+    String::from_utf8(out).map_err(|e| e.to_string())
 }
 
 /// Summaries for project cards; `examples` adds the repository's examples
@@ -231,4 +298,20 @@ pub async fn derive_storyboard(handle: AppHandle, path: String) -> Result<Value,
 #[tauri::command]
 pub async fn pick_map(handle: AppHandle, path: String, shot: String) -> Result<Value, String> {
     blocking(move || engine(&handle, Args::new(["pick", &path, "--shot", &shot]))).await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::percent_decode;
+
+    #[test]
+    fn decodes_what_encode_uri_component_wrote() {
+        // A project in a folder named in Chinese, a picture with a space
+        assert_eq!(percent_decode("%2FUsers%2Fme%2F%E8%A7%86%E9%A2%91%2Fpromo").unwrap(), "/Users/me/视频/promo");
+        assert_eq!(percent_decode("Screen%20Shot.png").unwrap(), "Screen Shot.png");
+        assert_eq!(percent_decode("plain").unwrap(), "plain");
+        // A cut-off escape at the end is kept as it is, not read past the end
+        assert_eq!(percent_decode("a%2").unwrap(), "a%2");
+        assert!(percent_decode("%ZZ").is_err());
+    }
 }

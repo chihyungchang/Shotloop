@@ -280,6 +280,25 @@ export interface StatusResult {
   // What the planner still decides: 2D or 3D, the length
   trackAuto: boolean
   lengthAuto: boolean
+  // A product promo: the page it is made from (read into site/ by
+  // `shotloop site`), null when it was made from pictures alone
+  promo: { site: string | null; repo: string | null } | null
+}
+
+// shotloop repo <project>: the repository read into repo/
+export interface RepoResult {
+  name: string
+  homepage: string
+  docs: number
+  pictures: number
+}
+
+// shotloop site <project>: the product page read into site/
+export interface SiteResult {
+  url: string
+  name: string
+  // The pictures captured (the hero, the logo, the page, the framed sections)
+  pictures: number
 }
 
 // ------------------------------------------------------------------ results
@@ -296,6 +315,9 @@ export interface ProjectSummary {
   size: Size
   // The visual style, '3d' for the 3D track
   style: string | null
+  // A product promo (an explainer otherwise): its card says so rather than
+  // the page it is drawn on
+  promo: boolean
   // A voice-over that plays
   voice: boolean
   duration: number
