@@ -31,7 +31,9 @@
 // - depth(...html) sets the depth layer for this frame (call it every
 //   frame), later parts over earlier ones: shot() and livePart() first,
 //   then field(), the words (chapter, headline…) and wipe() last, so a
-//   window the camera moves in on never covers the words.
+//   window the camera moves in on never covers the words. layout() gives
+//   each beat's boxes with room between words, picture and source line:
+//   place the pieces there rather than by hand.
 //   It returns the layer, so a live part's field can be filled after.
 // - kit.stage(svg) above it: cursor().
 //
@@ -309,8 +311,10 @@ function windowShot({ file, width, height, box, view = { x: 0.5, y: 0.5, zoom: 1
   const mb = blur((view.vx ?? 0) * ww * z, (view.vy ?? 0) * wh * z)
   const q = clamp(p)
   const settle = 1 - arrive(q * 1.4, 0)
-  // Its view: the box and a margin for the shadow, within the frame
-  const m = 28 * u
+  // Its view: the box and a margin for its shadow, within the frame; the
+  // margin closes as the camera moves in, so a window never grows past
+  // its box toward the words beside it
+  const m = 28 * u * clamp(1 - (z - 1) * 4)
   const view0 = { x: Math.max(box.x - m, 0), y: Math.max(box.y - m, 0) }
   const view1 = { x: Math.min(box.x + box.w + m, W), y: Math.min(box.y + box.h + m, H) }
   const a = to(wx, wy), b = to(wx + ww, wy + wh)
@@ -459,6 +463,49 @@ const rise = (t, at, d = 0.45) => 1 - (1 - clamp((t - at) / d)) ** 3
 const lin = (t, at, d) => clamp((t - at) / d)
 // The page's edge margin, and where a chapter's content starts
 const margin = () => kit().PAD ?? 56 * unit()
+
+// Where a beat's pieces go, with room between them (taste: promo-space):
+//   layout('side')  the words in a left column, the picture right of them
+//   layout('below') the words across the top, the picture under them
+// lines: the headline's lines. Gives back { words: { x, y, width, size },
+// picture: { x, y, w, h } (pass as a shot's box), source: { y } } in page
+// px: the words start under the chapter's rule, a gap of at least 5% of
+// the frame's height parts words from picture, and a band at the bottom
+// is kept for the source line. bleed: the picture runs off the right and
+// the bottom edges instead of stopping at the margin
+export function layout(kind = 'side', { lines = 2, size, bleed = false } = {}) {
+  const { W, H } = kit()
+  const u = unit(), m = margin()
+  const fs = size ?? Math.min(W, H) * (kind === 'side' ? 0.07 : 0.083)
+  const gap = Math.max(40 * u, H * 0.05)
+  const top = 104 * u
+  const sourceBand = 44 * u
+  const bottom = H - m * 0.6 - sourceBand
+  const textH = lines * fs * 1.06
+  if (kind === 'side') {
+    const width = W * 0.27
+    const x = m + width + gap
+    return {
+      words: { x: m, y: top + 46 * u, width, size: fs },
+      picture: { x, y: top, w: bleed ? W - x + 40 * u : W - m - x, h: bleed ? H - top + 40 * u : bottom - gap * 0.5 - top },
+      source: { y: H - m * 0.6 - sourceBand * 0.55 }
+    }
+  }
+  const y = top + textH + gap
+  return {
+    words: { x: m, y: top, width: W - 2 * m, size: fs },
+    picture: { x: m, y, w: bleed ? W - m + 40 * u : W - 2 * m, h: bleed ? H - y + 40 * u : bottom - gap * 0.5 - y },
+    source: { y: H - m * 0.6 - sourceBand * 0.55 }
+  }
+}
+
+// A source line in its own band at the bottom: small mono, muted
+export function source(t, { text, y, at = 0 }) {
+  const { W, H, C } = kit()
+  const u = unit(), m = margin()
+  return `<div style="position:absolute;left:${n(m)}px;top:${n(y ?? H - 40 * u)}px;width:${n(W - 2 * m)}px;font:400 ${n(12 * u)}px/1.3 ${MONO()};color:${C.muted};` +
+    `opacity:${n(rise(t, at, 0.4) * 0.85)};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(text)}</div>`
+}
 
 // A chapter's label over a rule: "01 — The problem" at the left, the
 // product's name at the right, both in mono capitals

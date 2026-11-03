@@ -39,6 +39,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readJson, safeId, writeJson } from './files.mjs'
+import { pageLayout } from './looks.mjs'
+import { SIZES } from './project.mjs'
 
 const RULES = process.env.SHOTLOOP_RULES ?? path.join(os.homedir(), '.shotloop', 'rules')
 const FILE = path.join(RULES, 'rules.json')
@@ -49,6 +51,14 @@ const IMAGE = /\.(jpe?g|png|webp)$/i
 const TRACKS = ['all', '2d', '3d']
 const MAX_IMAGE_MB = 8
 
+// The safe area of each frame, from the pages' own layout (looks.mjs), in
+// the page's CSS px: what a check measures a shot against
+const safeArea = size => {
+  const { w, h, pad, safeTop, safeRight, safeBottom } = pageLayout(size)
+  return `x ${pad}–${safeRight}, y ${safeTop}–${safeBottom} of ${w}×${h}`
+}
+const SAFE = `tall frames ${safeArea(SIZES.portrait)}, wide frames ${safeArea(SIZES.landscape)}`
+
 const FIXED = [
   {
     id: 'caption-zone', track: 'all', name: 'Nothing covered',
@@ -57,8 +67,8 @@ const FIXED = [
   },
   {
     id: 'safe-area', track: 'all', name: 'Inside the safe area',
-    rule: 'Text and the subject stay inside the safe area (2D: the kit\'s PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM): the bottom 20% and the right edge carry the platforms\' buttons. Backgrounds may fill the frame.',
-    check: 'Text and the subject stay inside x 40–620 and y 110–1024 of 720×1280 (2D: the kit\'s PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM); the bottom 20% and the right edge carry the platforms\' buttons. Backgrounds may fill the frame.'
+    rule: `Text and the subject stay inside the safe area (${SAFE}; 2D: the kit's PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM): in a tall frame the bottom 20% and the right edge carry the platforms' buttons. Backgrounds may fill the frame.`,
+    check: `Text and the subject stay inside the safe area (${SAFE}; 2D: the kit's PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM); in a tall frame the bottom 20% and the right edge carry the platforms' buttons. Backgrounds may fill the frame, and a screen may run off its edge.`
   },
   {
     id: 'clean', track: 'all', name: 'No broken frames',
@@ -238,6 +248,11 @@ const TASTE = [
     id: 'promo-chapters', track: 'all', kind: 'promo', name: 'Numbered chapters, big headlines',
     rule: 'Each beat is a chapter: a mono label over a rule ("01 — The problem", the product\'s name at the right), a big heavy headline of one or two lines rising line by line (the second, the turn, muted), and its picture: a screen beside the headline (headline left, screen right) or a diagram below it. A footer rule may carry a count.',
     check: 'Each beat has its chapter label, a headline of at most two lines, and a clear place for its picture.'
+  },
+  {
+    id: 'promo-space', track: 'all', kind: 'promo', name: 'Room between things',
+    rule: 'Words, pictures and the source line never touch: a gap of at least 5% of the frame\'s height between a headline and its picture, between a picture and the source line, and between pictures; the source line has its own band at the bottom. A screen the camera moves in on stays inside its own box. Place each beat\'s pieces in the boxes screens.js layout() gives rather than by hand.',
+    check: 'Nothing touches or overlaps: headlines, chips, screens and the source line each keep a clear gap from one another.'
   },
   {
     id: 'promo-one-part', track: 'all', kind: 'promo', name: 'One part of the product, big',

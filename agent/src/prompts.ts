@@ -181,7 +181,7 @@ How to plan:
 Write the file with write_file (it is the only file you may write), then end with one or two sentences for the person about the plan.`
 }
 
-const TYPE_RULES = `- Keep text inside the safe area: on a 720×1280 frame x 40–620 and y 110–1024 (the bottom 20% and the right edge carry the platforms' buttons; 2D: the kit's PAD, SAFE_RIGHT, SAFE_TOP and SAFE_BOTTOM).
+const TYPE_RULES = `- Keep text inside the safe area the rules give for this frame (2D: the kit's PAD, SAFE_RIGHT, SAFE_TOP and SAFE_BOTTOM).
 - Everything is a pure function of time: any frame renders on its own. Ease motion; nothing pops.
 - Comments in code are English and short.`
 
