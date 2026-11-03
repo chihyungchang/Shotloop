@@ -559,8 +559,8 @@ export function cursor(t, { path, clicks = [], p = 1, size }) {
 
 // ---- Explaining: drawn pieces in the product's own system ----
 //
-// A promo explains with drawn diagrams and proves with real screens (taste:
-// promo-explain): these pieces draw in the film's colours (kit.C: ground,
+// A promo shows the product itself and draws only what no screen of it
+// can show (taste: promo-explain): these pieces draw in the film's colours (kit.C: ground,
 // ink, muted, the one accent) and the product's own fonts once
 // site/fonts.css is loaded (--brand-head, --brand-mono), an editorial
 // system after oliverz.dev's product films: numbered chapters over a rule,

@@ -121,6 +121,11 @@ const FIXED = [
     check: 'Every screen shown comes from the product\'s pictures (or is plainly true to them), and every claim from its page.'
   },
   {
+    id: 'promo-on-screen', track: 'all', kind: 'promo', locked: true, name: 'True to the screen it\'s on',
+    rule: 'Whatever is drawn onto a product\'s screen (typed words, a caret, a highlight, its next state) sits exactly on the element it belongs to and looks as the product would draw it: its font, size and colour, typed words no bigger than the screen\'s own text in that field, nothing offset from its element or spilling past it. Two pictures blend from one state to the next only where they line up; otherwise the beat cuts between them.',
+    check: 'Everything drawn on a screen sits exactly on its element at the screen\'s own text size; no overlay is offset or oversized, no blend shows two misaligned pages.'
+  },
+  {
     id: 'promo-desktop', track: 'all', kind: 'promo', locked: true, name: 'Screens on a desktop',
     rule: 'Every screen of the product (a program, a website, an app) is shown in a window on a computer\'s desktop (screens.js desktop(): wallpaper, menu bar, Dock), never as a bare screenshot, a cut-out part or a window loose on the film\'s ground. A close-up is the desktop\'s camera moving in on the window; clicking, typing and dragging happen on the desktop.',
     check: 'Every product screen sits in a window on the desktop; none is a bare screenshot, a cut-out part or a loose window on the ground.'
@@ -245,19 +250,24 @@ const TASTE = [
     check: 'The film opens on a problem shown as a picture, answers it with the product in the same picture, and ends on one line to remember; no shot walks through a flow the material doesn\'t show.'
   },
   {
-    id: 'promo-explain', track: 'all', kind: 'promo', name: 'Explain with drawings, prove with screens',
-    rule: 'What the product does is drawn, in code, from its own pieces: a row of things changing state, a counter, steps lighting in turn, a request typed in, a before and after. The real screens come as proof, each in its own beat beside its headline. Show the product, not only what it makes.',
-    check: 'The mechanism is drawn as a diagram, not only shown on a screenshot; real screens appear as proof.'
+    id: 'promo-explain', track: 'all', kind: 'promo', name: 'The product shows it, not a drawing',
+    rule: 'Show what the product does with the product itself: its own screens on the desktop, clicked, typed into, changing state. A drawn diagram (a row of tiles, a counter, steps) is the last resort, for a mechanism no screen of the product shows, and then it sits beside or over the real screen, never fills a beat in place of one.',
+    check: 'The product\'s own screens carry each beat; a drawn diagram appears only where no screen could show it, and never instead of one.'
   },
   {
     id: 'promo-chapters', track: 'all', kind: 'promo', name: 'Numbered chapters, big headlines',
-    rule: 'Each beat is a chapter: a mono label over a rule ("01 — The problem", the product\'s name at the right), a big heavy headline of one or two lines rising line by line (the second, the turn, muted), and its picture: a screen beside the headline (headline left, screen right) or a diagram below it. A footer rule may carry a count.',
+    rule: 'Each beat is a chapter: a mono label over a rule ("01 — The problem", the product\'s name at the right), a big heavy headline of one or two lines rising line by line (the second, the turn, muted), and its picture: the desktop beside the headline (headline left, desktop right) or below it. A footer rule may carry a count.',
     check: 'Each beat has its chapter label, a headline of at most two lines, and a clear place for its picture.'
   },
   {
     id: 'promo-space', track: 'all', kind: 'promo', name: 'Room between things',
     rule: 'Words, pictures and the source line never touch: a gap of at least 5% of the frame\'s height between a headline and its picture, between a picture and the source line, and between pictures; the source line has its own band at the bottom. A screen the camera moves in on stays inside its own box. Place each beat\'s pieces in the boxes screens.js layout() gives rather than by hand, and whatever goes under a headline (steps, a bubble) at its words.under, never right against the headline\'s last line.',
-    check: 'Nothing touches or overlaps: headlines, chips, screens and the source line each keep a clear gap from one another.'
+    check: 'Nothing touches or overlaps: headlines, chips, screens and the source line each keep a clear gap from one another, stacked one under another as much as side by side.'
+  },
+  {
+    id: 'promo-fill', track: 'all', kind: 'promo', name: 'A full, balanced frame',
+    rule: 'Each beat\'s pieces fill the frame together, the product\'s screen the largest thing in it: no band of more than about a quarter of the frame left empty. Headlines keep one size from beat to beat (layout()\'s size), never shrunk to make room or blown up to fill it.',
+    check: 'No large empty band; the screen is the biggest thing; the headline is the same size as in the other beats.'
   },
   {
     id: 'promo-one-part', track: 'all', kind: 'promo', name: 'One part of the product, big',
