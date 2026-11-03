@@ -4,13 +4,13 @@
 import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type {
-  BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, SoundResult, PickedElement, PickMap, PreviewResult, ProgressEvent, ProjectSummary,
+  AiStep, BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, SoundResult, PickedElement, PickMap, PreviewResult, ProgressEvent, ProjectSummary,
   ShotStatus, StatusResult, Take, TimelineResult, UsageEvent, UsageWindow, VoiceResult
 } from '../../engine/shotloop/protocol'
 import type { Protocol } from './ai/presets'
 import { lang } from './i18n'
 
-export type { BrokenProject, ExportResult, FixRecord, Mode, PickedElement, PickMap, PreviewResult, ProjectSummary, Take, UsageWindow }
+export type { AiStep, BrokenProject, ExportResult, FixRecord, Mode, PickedElement, PickMap, PreviewResult, ProjectSummary, Take, UsageWindow }
 export type Project = StatusResult
 export type Shot = ShotStatus
 export type VoiceInfo = VoiceResult
@@ -328,6 +328,8 @@ export const api = {
   createProject: (project: NewProject) => invoke<{ root: string }>('create_project', { project }),
   listProjects: (paths: string[], examples = false) => invoke<ListResult>('list_projects', { paths, examples }),
   readText: (project: string, path: string) => invoke<string>('read_text', { project, path }),
+  // What the AI's steps took in a project, oldest first (Usage page)
+  projectUsage: (project: string) => invoke<AiStep[]>('project_usage', { project }),
   writeText: (project: string, path: string, content: string) => invoke<void>('write_text', { project, path, content }),
   enqueue: (spec: Spec) => invoke<number>('enqueue', { spec: SPOKEN.includes(spec.kind) ? { ...spec, lang: lang() } : spec }),
   machine: () => invoke<Machine>('machine'),

@@ -16,12 +16,13 @@ import type { Key } from '../i18n/en'
 import { formatDate, t } from '../i18n'
 
 
-export type Page = 'home' | 'projects' | 'library' | 'settings'
+export type Page = 'home' | 'projects' | 'library' | 'usage' | 'settings'
 
 const NAV: [Page, Key, Parameters<typeof Icon>[0]['name']][] = [
   ['home', 'nav.home', 'home'],
   ['projects', 'nav.projects', 'grid'],
   ['library', 'nav.library', 'cube'],
+  ['usage', 'nav.usage', 'chart'],
   ['settings', 'nav.settings', 'settings']
 ]
 

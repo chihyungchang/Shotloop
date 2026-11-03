@@ -723,6 +723,86 @@ export const es: Record<Key, string> = {
   'library.have': 'Descargado',
   'library.get': 'Descargar',
   'library.getting': 'Descargando…',
+
+  'nav.usage': 'Uso',
+
+  'usage.title': 'Uso de la IA',
+
+  'usage.note': 'Cada paso de la IA queda registrado en su proyecto: tokens, tiempo y, cuando la herramienta lo estima, el coste a precios de API (una suscripción no se cobra por token).',
+
+  'usage.empty': 'Aún no hay registros. Desde esta versión, cada paso de la IA queda registrado en su proyecto.',
+
+  'usage.tokens': 'Tokens',
+
+  'usage.cost': 'Coste (est.)',
+
+  'usage.time': 'Tiempo de IA',
+
+  'usage.project': 'Proyecto',
+
+  'usage.runs': 'Ejecuciones',
+
+  'usage.last': 'Última',
+
+  'usage.byStep': 'Por paso',
+
+  'usage.history': 'Cada ejecución',
+
+  'usage.open': 'Abrir el proyecto',
+
+  'usage.failed': 'Falló',
+
+  'usage.thinking': '{n} pensando',
+
+  'usage.col.step': 'Paso',
+
+  'usage.col.count': 'Veces',
+
+  'usage.col.avg': 'Tokens prom.',
+
+  'usage.col.avgOutput': 'Salida prom.',
+
+  'usage.col.avgTime': 'Tiempo prom.',
+
+  'usage.col.total': 'Parte',
+
+  'usage.col.model': 'Modelo',
+
+  'usage.col.input': 'Entrada',
+
+  'usage.col.cacheRead': 'Caché leída',
+
+  'usage.col.cacheWrite': 'Caché escrita',
+
+  'usage.col.output': 'Salida',
+
+  'usage.col.turns': 'Turnos',
+
+  'usage.step.plan': 'Plan',
+
+  'usage.step.revise': 'Revisión del plan',
+
+  'usage.step.world': 'Mundo visual',
+
+  'usage.step.layout': 'Diseño compartido',
+
+  'usage.step.part': 'Imagen compartida',
+
+  'usage.step.shot': 'Toma',
+
+  'usage.step.fix': 'Arreglo',
+
+  'usage.step.propose': 'Propuestas',
+
+  'usage.step.check': 'Revisión',
+
+  'usage.step.publish': 'Texto de publicación',
+
+  'usage.step.sound': 'Sonido',
+
+  'usage.step.cover': 'Portada',
+
+  'usage.step.build': 'Crear las tomas',
   'library.more': 'Cargar más',
   'library.emptyMine': 'Aún no has descargado nada. Busca modelos en Buscar.',
   'library.kind.models': 'Modelos',

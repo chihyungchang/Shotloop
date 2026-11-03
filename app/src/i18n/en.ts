@@ -724,6 +724,86 @@ export const en = {
   'library.have': 'Downloaded',
   'library.get': 'Download',
   'library.getting': 'Downloading…',
+
+  'nav.usage': 'Usage',
+
+  'usage.title': 'AI usage',
+
+  'usage.note': 'Every step the AI takes is recorded with its project: its tokens, time and, where the tool estimates it, cost at API prices (a subscription isn’t billed by token).',
+
+  'usage.empty': 'Nothing recorded yet. From this version on, every AI step is recorded with its project.',
+
+  'usage.tokens': 'Tokens',
+
+  'usage.cost': 'Cost (est.)',
+
+  'usage.time': 'AI time',
+
+  'usage.project': 'Project',
+
+  'usage.runs': 'Runs',
+
+  'usage.last': 'Last',
+
+  'usage.byStep': 'By step',
+
+  'usage.history': 'Each run',
+
+  'usage.open': 'Open the project',
+
+  'usage.failed': 'Failed',
+
+  'usage.thinking': '{n} thinking',
+
+  'usage.col.step': 'Step',
+
+  'usage.col.count': 'Count',
+
+  'usage.col.avg': 'Avg tokens',
+
+  'usage.col.avgOutput': 'Avg output',
+
+  'usage.col.avgTime': 'Avg time',
+
+  'usage.col.total': 'Share',
+
+  'usage.col.model': 'Model',
+
+  'usage.col.input': 'Input',
+
+  'usage.col.cacheRead': 'Cache read',
+
+  'usage.col.cacheWrite': 'Cache write',
+
+  'usage.col.output': 'Output',
+
+  'usage.col.turns': 'Turns',
+
+  'usage.step.plan': 'Plan',
+
+  'usage.step.revise': 'Plan revision',
+
+  'usage.step.world': 'Visual world',
+
+  'usage.step.layout': 'Shared layout',
+
+  'usage.step.part': 'Shared picture',
+
+  'usage.step.shot': 'Shot',
+
+  'usage.step.fix': 'Fix',
+
+  'usage.step.propose': 'Proposals',
+
+  'usage.step.check': 'Check',
+
+  'usage.step.publish': 'Publish copy',
+
+  'usage.step.sound': 'Sound',
+
+  'usage.step.cover': 'Cover',
+
+  'usage.step.build': 'Make the shots',
   'library.more': 'Load more',
   'library.emptyMine': 'Nothing downloaded yet. Find models under Find.',
   'library.kind.models': 'Models',

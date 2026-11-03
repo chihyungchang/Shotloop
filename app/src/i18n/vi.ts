@@ -723,6 +723,86 @@ export const vi: Record<Key, string> = {
   'library.have': 'Đã tải',
   'library.get': 'Tải về',
   'library.getting': 'Đang tải…',
+
+  'nav.usage': 'Mức dùng',
+
+  'usage.title': 'Mức dùng AI',
+
+  'usage.note': 'Mỗi bước AI chạy đều được ghi vào dự án: số token, thời gian và, khi công cụ ước tính, chi phí theo giá API (gói thuê bao không tính theo token).',
+
+  'usage.empty': 'Chưa có ghi nhận. Từ phiên bản này, mỗi bước của AI đều được ghi vào dự án.',
+
+  'usage.tokens': 'Token',
+
+  'usage.cost': 'Chi phí (ước tính)',
+
+  'usage.time': 'Thời gian AI',
+
+  'usage.project': 'Dự án',
+
+  'usage.runs': 'Số lần chạy',
+
+  'usage.last': 'Gần nhất',
+
+  'usage.byStep': 'Theo bước',
+
+  'usage.history': 'Từng lần chạy',
+
+  'usage.open': 'Mở dự án',
+
+  'usage.failed': 'Thất bại',
+
+  'usage.thinking': 'suy nghĩ {n}',
+
+  'usage.col.step': 'Bước',
+
+  'usage.col.count': 'Số lần',
+
+  'usage.col.avg': 'Token TB',
+
+  'usage.col.avgOutput': 'Đầu ra TB',
+
+  'usage.col.avgTime': 'Thời gian TB',
+
+  'usage.col.total': 'Tỷ lệ',
+
+  'usage.col.model': 'Mô hình',
+
+  'usage.col.input': 'Đầu vào',
+
+  'usage.col.cacheRead': 'Đọc cache',
+
+  'usage.col.cacheWrite': 'Ghi cache',
+
+  'usage.col.output': 'Đầu ra',
+
+  'usage.col.turns': 'Lượt',
+
+  'usage.step.plan': 'Kế hoạch',
+
+  'usage.step.revise': 'Sửa kế hoạch',
+
+  'usage.step.world': 'Phong cách hình',
+
+  'usage.step.layout': 'Bố cục chung',
+
+  'usage.step.part': 'Hình dùng chung',
+
+  'usage.step.shot': 'Cảnh',
+
+  'usage.step.fix': 'Sửa',
+
+  'usage.step.propose': 'Đề xuất',
+
+  'usage.step.check': 'Kiểm tra',
+
+  'usage.step.publish': 'Nội dung đăng',
+
+  'usage.step.sound': 'Âm thanh',
+
+  'usage.step.cover': 'Ảnh bìa',
+
+  'usage.step.build': 'Tạo các cảnh',
   'library.more': 'Tải thêm',
   'library.emptyMine': 'Chưa tải gì. Tìm mô hình ở mục Tìm.',
   'library.kind.models': 'Mô hình',

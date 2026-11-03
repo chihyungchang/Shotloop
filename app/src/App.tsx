@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, onCheckUpdate, onJob, onProjectChanged, onQueue, type Job, type Project } from './api'
 import { Home } from './components/Home'
 import { LibraryPage } from './components/LibraryPage'
+import { UsagePage } from './components/UsagePage'
 import { PlanPage } from './components/plan/PlanPage'
 import { Projects } from './components/Projects'
 import { SettingsPage, type Section } from './components/SettingsPage'
@@ -252,6 +253,7 @@ export default function App() {
         {page === 'home' && <Home open={open} openSettings={() => openSettings()} ensureFolder={ensureFolder} />}
         {page === 'projects' && <Projects open={open} openFolder={openPicked} />}
         {page === 'library' && <LibraryPage jobs={jobs} openSettings={() => openSettings('assets', 'library')} />}
+        {page === 'usage' && <UsagePage open={open} />}
       </main>
     </div>
   )

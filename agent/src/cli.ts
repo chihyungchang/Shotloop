@@ -19,6 +19,7 @@ import { emit } from './events.ts'
 import { MODELS } from './loop.ts'
 import { failure, spawnLines, type Run } from './spawn.ts'
 import { codeOf, loadSession, type ToolContext } from './tools.ts'
+import type { AiMeter } from '../../engine/shotloop/protocol.d.ts'
 
 export type CliId = 'claude' | 'codex' | 'gemini'
 
@@ -99,9 +100,11 @@ export interface CliOptions {
   ctx: ToolContext
   effort?: string
   maxTurns: number
+  // Filled with what the CLI reports the run used (Gemini reports nothing)
+  meter?: AiMeter
 }
 
-export async function runCli(cli: CliId, { model, system, prompt, ctx, effort, maxTurns }: CliOptions): Promise<string> {
+export async function runCli(cli: CliId, { model, system, prompt, ctx, effort, maxTurns, meter }: CliOptions): Promise<string> {
   const def = CLIS.find(c => c.id === cli)!
   const bin = findBin(def.bin)
   if (!bin) throw new Error(`${def.name} is not installed (${def.bin} not found)`)
@@ -155,6 +158,7 @@ export async function runCli(cli: CliId, { model, system, prompt, ctx, effort, m
         } else if (ev.type === 'result') {
           if (ev.is_error) failed = String(ev.result ?? ev.subtype ?? 'error')
           else result = ev.result ?? null
+          if (meter) claudeSpent(meter, ev)
         }
       })
       check(def.name, r, failed)
@@ -180,6 +184,14 @@ export async function runCli(cli: CliId, { model, system, prompt, ctx, effort, m
           if (typeof text === 'string' && text.trim()) emit({ type: 'text', text: (last = text.trim()) })
           const call = ev.msg?.invocation ?? ev.item
           if (call?.tool) toolCalled(String(call.tool), call.arguments)
+          // Each turn's tokens; its input counts the cached part too
+          if (meter && ev.type === 'turn.completed' && ev.usage) {
+            const cached = ev.usage.cached_input_tokens ?? 0
+            meter.input += (ev.usage.input_tokens ?? 0) - cached
+            meter.cacheRead += cached
+            meter.output += ev.usage.output_tokens ?? 0
+            meter.turns += 1
+          }
         } catch {
           // not an event line
         }
@@ -211,4 +223,19 @@ export async function runCli(cli: CliId, { model, system, prompt, ctx, effort, m
   } finally {
     fs.rmSync(work, { recursive: true, force: true })
   }
+}
+
+// Claude Code's result event: the whole run's tokens, its cost at API
+// prices, its turns, and the model that did the most of it
+function claudeSpent(m: AiMeter, ev: any) {
+  const u = ev.usage ?? {}
+  m.input += u.input_tokens ?? 0
+  m.output += u.output_tokens ?? 0
+  m.thinking += u.output_tokens_details?.thinking_tokens ?? 0
+  m.cacheRead += u.cache_read_input_tokens ?? 0
+  m.cacheWrite += u.cache_creation_input_tokens ?? 0
+  if (typeof ev.total_cost_usd === 'number') m.cost = (m.cost ?? 0) + ev.total_cost_usd
+  m.turns += ev.num_turns ?? 0
+  const models = Object.entries(ev.modelUsage ?? {}) as [string, { costUSD?: number }][]
+  m.model = models.sort((a, b) => (b[1].costUSD ?? 0) - (a[1].costUSD ?? 0))[0]?.[0] ?? m.model
 }

@@ -723,6 +723,86 @@ export const zhTW: Record<Key, string> = {
   'library.have': '已下載',
   'library.get': '下載',
   'library.getting': '下載中…',
+
+  'nav.usage': '用量',
+
+  'usage.title': 'AI 用量',
+
+  'usage.note': 'AI 每跑一步都會記在專案裡：用了多少 token、多長時間；工具提供估算時，還有按 API 價格算的費用（訂閱不按 token 計費）。',
+
+  'usage.empty': '還沒有紀錄。從這個版本起，AI 每跑一步都會記在專案裡。',
+
+  'usage.tokens': 'Token',
+
+  'usage.cost': '費用（估算）',
+
+  'usage.time': 'AI 用時',
+
+  'usage.project': '專案',
+
+  'usage.runs': '執行次數',
+
+  'usage.last': '最近',
+
+  'usage.byStep': '按步驟',
+
+  'usage.history': '每次執行',
+
+  'usage.open': '打開專案',
+
+  'usage.failed': '失敗',
+
+  'usage.thinking': '思考 {n}',
+
+  'usage.col.step': '步驟',
+
+  'usage.col.count': '次數',
+
+  'usage.col.avg': '平均 token',
+
+  'usage.col.avgOutput': '平均輸出',
+
+  'usage.col.avgTime': '平均用時',
+
+  'usage.col.total': '占比',
+
+  'usage.col.model': '模型',
+
+  'usage.col.input': '輸入',
+
+  'usage.col.cacheRead': '快取讀取',
+
+  'usage.col.cacheWrite': '快取寫入',
+
+  'usage.col.output': '輸出',
+
+  'usage.col.turns': '輪數',
+
+  'usage.step.plan': '策劃',
+
+  'usage.step.revise': '修訂策劃',
+
+  'usage.step.world': '畫面風格',
+
+  'usage.step.layout': '共用版面',
+
+  'usage.step.part': '共用畫面',
+
+  'usage.step.shot': '鏡頭',
+
+  'usage.step.fix': '修改',
+
+  'usage.step.propose': '改法建議',
+
+  'usage.step.check': '檢查',
+
+  'usage.step.publish': '發布文案',
+
+  'usage.step.sound': '聲音',
+
+  'usage.step.cover': '封面',
+
+  'usage.step.build': '生成鏡頭',
   'library.more': '載入更多',
   'library.emptyMine': '還沒有下載任何模型。到「搜尋」中尋找模型。',
   'library.kind.models': '模型',

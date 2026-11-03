@@ -723,6 +723,86 @@ export const id: Record<Key, string> = {
   'library.have': 'Sudah diunduh',
   'library.get': 'Unduh',
   'library.getting': 'Mengunduh…',
+
+  'nav.usage': 'Penggunaan',
+
+  'usage.title': 'Penggunaan AI',
+
+  'usage.note': 'Setiap langkah AI dicatat di proyeknya: token, waktu, dan bila alatnya memperkirakan, biaya dengan harga API (langganan tidak ditagih per token).',
+
+  'usage.empty': 'Belum ada catatan. Mulai versi ini, setiap langkah AI dicatat di proyeknya.',
+
+  'usage.tokens': 'Token',
+
+  'usage.cost': 'Biaya (perkiraan)',
+
+  'usage.time': 'Waktu AI',
+
+  'usage.project': 'Proyek',
+
+  'usage.runs': 'Jalankan',
+
+  'usage.last': 'Terakhir',
+
+  'usage.byStep': 'Per langkah',
+
+  'usage.history': 'Setiap jalankan',
+
+  'usage.open': 'Buka proyek',
+
+  'usage.failed': 'Gagal',
+
+  'usage.thinking': '{n} berpikir',
+
+  'usage.col.step': 'Langkah',
+
+  'usage.col.count': 'Kali',
+
+  'usage.col.avg': 'Rata-rata token',
+
+  'usage.col.avgOutput': 'Rata-rata keluaran',
+
+  'usage.col.avgTime': 'Rata-rata waktu',
+
+  'usage.col.total': 'Porsi',
+
+  'usage.col.model': 'Model',
+
+  'usage.col.input': 'Masukan',
+
+  'usage.col.cacheRead': 'Baca cache',
+
+  'usage.col.cacheWrite': 'Tulis cache',
+
+  'usage.col.output': 'Keluaran',
+
+  'usage.col.turns': 'Giliran',
+
+  'usage.step.plan': 'Rencana',
+
+  'usage.step.revise': 'Revisi rencana',
+
+  'usage.step.world': 'Dunia visual',
+
+  'usage.step.layout': 'Tata letak bersama',
+
+  'usage.step.part': 'Gambar bersama',
+
+  'usage.step.shot': 'Adegan',
+
+  'usage.step.fix': 'Perbaikan',
+
+  'usage.step.propose': 'Usulan',
+
+  'usage.step.check': 'Pemeriksaan',
+
+  'usage.step.publish': 'Teks unggahan',
+
+  'usage.step.sound': 'Suara',
+
+  'usage.step.cover': 'Sampul',
+
+  'usage.step.build': 'Buat adegan',
   'library.more': 'Muat lagi',
   'library.emptyMine': 'Belum ada yang diunduh. Cari model di Cari.',
   'library.kind.models': 'Model',

@@ -457,3 +457,36 @@ export interface MusicResult {
   gain: number
 }
 
+
+// ------------------------------------------------------------- AI usage
+
+// The tokens an AI run took, as its backend reports them: fresh input,
+// cache reads and writes apart; thinking is the part of the output spent
+// thinking (when told); cost an estimate at API prices (when the backend
+// gives one); empty for a backend that reports nothing
+export interface AiMeter {
+  input: number
+  output: number
+  thinking: number
+  cacheRead: number
+  cacheWrite: number
+  cost: number | null
+  turns: number
+  model: string | null
+}
+
+// One AI step of a task, as the agent records it with its project
+// (.shotloop/ai-usage.jsonl; agent/src/ledger.ts): the run (when the task
+// started), the task, the step (plan, revise, world, layout, part, shot,
+// fix, propose, check, publish, sound, cover; a shot's id, a picture's
+// name), how it ran, how long, and whether it finished
+export interface AiStep extends AiMeter {
+  run: string
+  task: string
+  at: string
+  step: { kind: string; shot?: string; name?: string }
+  backend: string
+  effort?: string
+  ms: number
+  ok: boolean
+}

@@ -723,6 +723,86 @@ export const ja: Record<Key, string> = {
   'library.have': 'ダウンロード済み',
   'library.get': 'ダウンロード',
   'library.getting': 'ダウンロード中…',
+
+  'nav.usage': '使用量',
+
+  'usage.title': 'AI の使用量',
+
+  'usage.note': 'AI の各ステップはプロジェクトに記録されます：トークン数、時間、ツールが見積もる場合は API 価格での費用（サブスクリプションはトークン課金ではありません）。',
+
+  'usage.empty': 'まだ記録がありません。このバージョンから、AI の各ステップがプロジェクトに記録されます。',
+
+  'usage.tokens': 'トークン',
+
+  'usage.cost': '費用（概算）',
+
+  'usage.time': 'AI の時間',
+
+  'usage.project': 'プロジェクト',
+
+  'usage.runs': '実行回数',
+
+  'usage.last': '最新',
+
+  'usage.byStep': 'ステップ別',
+
+  'usage.history': '実行ごと',
+
+  'usage.open': 'プロジェクトを開く',
+
+  'usage.failed': '失敗',
+
+  'usage.thinking': '思考 {n}',
+
+  'usage.col.step': 'ステップ',
+
+  'usage.col.count': '回数',
+
+  'usage.col.avg': '平均トークン',
+
+  'usage.col.avgOutput': '平均出力',
+
+  'usage.col.avgTime': '平均時間',
+
+  'usage.col.total': '割合',
+
+  'usage.col.model': 'モデル',
+
+  'usage.col.input': '入力',
+
+  'usage.col.cacheRead': 'キャッシュ読込',
+
+  'usage.col.cacheWrite': 'キャッシュ書込',
+
+  'usage.col.output': '出力',
+
+  'usage.col.turns': 'ターン',
+
+  'usage.step.plan': '企画',
+
+  'usage.step.revise': '企画の修正',
+
+  'usage.step.world': 'ビジュアル',
+
+  'usage.step.layout': '共通レイアウト',
+
+  'usage.step.part': '共通の絵',
+
+  'usage.step.shot': 'ショット',
+
+  'usage.step.fix': '修正',
+
+  'usage.step.propose': '修正案',
+
+  'usage.step.check': 'チェック',
+
+  'usage.step.publish': '投稿文',
+
+  'usage.step.sound': 'サウンド',
+
+  'usage.step.cover': 'カバー',
+
+  'usage.step.build': 'ショット作成',
   'library.more': 'さらに読み込む',
   'library.emptyMine': 'まだ何もダウンロードしていません。「検索」でモデルを探してください。',
   'library.kind.models': 'モデル',

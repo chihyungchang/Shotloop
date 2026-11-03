@@ -7,6 +7,7 @@
 import { reason } from './events.ts'
 import { runTool, TOOLS, type ToolContext, type ToolOutput } from './tools.ts'
 import { MAX_TURNS, runTurns } from './turns.ts'
+import type { AiMeter } from '../../engine/shotloop/protocol.d.ts'
 
 export interface LocalModel {
   url: string // base URL ending in /v1, e.g. http://localhost:11434/v1
@@ -88,13 +89,23 @@ async function callTool(ctx: ToolContext, call: ToolCall): Promise<ToolOutput> {
   return runTool(ctx, call.function.name, args)
 }
 
-export async function runLocal(m: LocalModel, system: string, prompt: string, ctx: ToolContext, maxTurns = MAX_TURNS): Promise<string> {
+// meter: filled with the tokens the server reports (when it does)
+export async function runLocal(m: LocalModel, system: string, prompt: string, ctx: ToolContext, maxTurns = MAX_TURNS, meter?: AiMeter): Promise<string> {
   const messages: Message[] = [
     { role: 'system', content: system },
     { role: 'user', content: prompt }
   ]
   return runTurns(maxTurns, async say => {
     const res = await post(m, '/chat/completions', { model: m.model, messages, tools, tool_choice: 'auto' })
+    if (meter) {
+      const u = res.usage as { prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: { cached_tokens?: number } } | undefined
+      const cached = u?.prompt_tokens_details?.cached_tokens ?? 0
+      meter.input += (u?.prompt_tokens ?? 0) - cached
+      meter.cacheRead += cached
+      meter.output += u?.completion_tokens ?? 0
+      meter.turns += 1
+      meter.model = m.model
+    }
     const msg = res.choices?.[0]?.message as { content: string | null; tool_calls?: ToolCall[] } | undefined
     if (!msg) throw new Error('the model returned no message')
     say(msg.content)

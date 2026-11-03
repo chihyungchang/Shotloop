@@ -140,6 +140,7 @@ async function shotTask(kind: ShotKind) {
     : `Review shot ${shot.id} against the checklist and report. Do not edit files.`
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent(kind === 'check' ? 'routine' : 'code', {
+    step: { kind, shot: shot.id },
     // A proposal and the fix of the way picked are quick (the thinking is
     // in the plan the person picked); a check judges every rule
     effort: kind === 'check' ? 'medium' : 'low',
@@ -200,6 +201,7 @@ async function planTask() {
   const system = planSystem(project.track, speaks) + remembered(project.track, false) + replyLanguage(values.lang)
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent('copy', {
+    step: { kind: 'plan' },
     effort: 'medium',
     system,
     prompt: `${ask}
@@ -231,6 +233,7 @@ ${trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 
   if (issues.length) {
     emit({ type: 'log', message: `plan breaks ${issues.length} reading rule(s); revising` })
     final = await runAgent('copy', {
+      step: { kind: 'revise' },
       effort: 'medium',
       system,
       prompt: revisePlanPrompt(issues, speaks, Number(sb.target) || (project.lengthAuto ? null : project.duration), fs.readFileSync(file, 'utf8')),
@@ -422,6 +425,7 @@ async function publishTask() {
     .map(f => `${f}:\n${read(path.join(project.root, f))}`)
     .join('\n\n')
   const summary = await runAgent('code', {
+    step: { kind: 'publish' },
     effort: 'high',
     system: publishSystem() + postLanguage(values.lang),
     prompt: `Write publish.json for "${project.title}" (${project.duration} s, ${project.track.toUpperCase()}).\n\n${docs}${credits(project)}`,
@@ -452,6 +456,7 @@ async function soundTask() {
   const ask = values.request?.trim() ? `The person asks: "${values.request.trim()}"\n\n` : ''
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent('code', {
+    step: { kind: 'sound' },
     effort: 'medium',
     system: soundSystem(project.track, !!project.voiced, SOUND_PARTS.filter(has)) + replyLanguage(values.lang),
     prompt: `${ask}Give ${head(project)} its ${SOUND_PARTS.filter(has).join(' and ')}.\n\nShots:\n${shots}${assetsBrief(project)}\n\ncopy.md:\n${read(path.join(project.root, 'copy.md'))}`,
@@ -484,6 +489,7 @@ async function coverTask() {
   }
   emit({ type: 'log', message: `agent: ${describe()}` })
   const summary = await runAgent('code', {
+    step: { kind: 'cover' },
     effort: template ? 'medium' : 'high',
     system: coverSystem(project.track) + remembered(project.track, false) + replyLanguage(values.lang),
     prompt: `${ask}${template}${values.template ? 'Fill the template for' : values.reference ? 'Recreate that design for' : 'Design the cover of'} ${head(project)}.\n\nShots:\n${shots}\n\n${docs}\n\n${page} now:\n${read(project.files.cover)}`,

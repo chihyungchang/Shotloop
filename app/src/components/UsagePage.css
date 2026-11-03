@@ -1,0 +1,33 @@
+/* The AI's usage: totals, the projects, a project's steps by kind and
+   each run's steps, as tables of figures with a bar for their share */
+.usage-page { padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.usage-page h1 { font-size: 22px; font-weight: 650; }
+.usage-page h2 { font-size: 17px; font-weight: 650; margin: 0; min-width: 0; }
+.usage-page h3 { font-size: 13px; font-weight: 600; color: var(--text-2); margin: 10px 0 0; }
+.usage-page > p { margin: 0; max-width: 720px; }
+.usage-empty { padding: 40px 0; }
+.usage-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.usage-totals > div { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: var(--r-lg); background: var(--surface-2); }
+.usage-totals span { font-size: 12px; color: var(--text-2); }
+.usage-totals strong { font-size: 20px; font-weight: 650; color: var(--text-strong); font-variant-numeric: tabular-nums; }
+.usage-totals small { font-size: 11.5px; color: var(--text-2); }
+.usage-table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; table-layout: auto; }
+.usage-table th { text-align: right; font-weight: 500; font-size: 11.5px; color: var(--text-2); padding: 6px 8px; border-bottom: 1px solid var(--border-soft); white-space: nowrap; }
+.usage-table td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--border-soft); white-space: nowrap; }
+.usage-table th:first-child, .usage-table td:first-child { text-align: left; max-width: 320px; }
+.usage-table td .tag { margin-left: 6px; }
+.usage-table tr.failed td { color: var(--text-2); }
+.usage-projects tbody tr { cursor: pointer; }
+.usage-projects tbody tr:hover td { background: var(--veil); }
+.usage-projects tbody tr.on td { background: var(--accent-soft); color: var(--text-strong); }
+.usage-project { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border-soft); min-width: 0; }
+.usage-scroll { overflow-x: auto; }
+.usage-run { border-radius: var(--r-lg); background: var(--surface); box-shadow: 0 0 0 1px var(--border-soft); }
+.usage-run summary { display: flex; align-items: center; gap: 12px; padding: 10px 12px; cursor: pointer; font-size: 13px; font-variant-numeric: tabular-nums; }
+.usage-run[open] summary { border-bottom: 1px solid var(--border-soft); }
+.usage-run .usage-table td, .usage-run .usage-table th { border-bottom-color: transparent; }
+/* A share: a bar in the column, its number over it */
+.usage-share { width: 30%; min-width: 140px; }
+.usage-bar { position: relative; display: block; height: 18px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.usage-bar i { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--accent) 35%, transparent); }
+.usage-bar b { position: relative; display: block; padding: 0 6px; font-weight: 500; font-size: 11.5px; line-height: 18px; text-align: right; color: var(--text-strong); }

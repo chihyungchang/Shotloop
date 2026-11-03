@@ -723,6 +723,86 @@ export const de: Record<Key, string> = {
   'library.have': 'Geladen',
   'library.get': 'Laden',
   'library.getting': 'Wird geladen…',
+
+  'nav.usage': 'Nutzung',
+
+  'usage.title': 'KI-Nutzung',
+
+  'usage.note': 'Jeder KI-Schritt wird beim Projekt erfasst: Tokens, Zeit und, wo das Tool es schätzt, Kosten zu API-Preisen (ein Abo wird nicht pro Token abgerechnet).',
+
+  'usage.empty': 'Noch nichts erfasst. Ab dieser Version wird jeder KI-Schritt beim Projekt erfasst.',
+
+  'usage.tokens': 'Tokens',
+
+  'usage.cost': 'Kosten (geschätzt)',
+
+  'usage.time': 'KI-Zeit',
+
+  'usage.project': 'Projekt',
+
+  'usage.runs': 'Läufe',
+
+  'usage.last': 'Zuletzt',
+
+  'usage.byStep': 'Nach Schritt',
+
+  'usage.history': 'Jeder Lauf',
+
+  'usage.open': 'Projekt öffnen',
+
+  'usage.failed': 'Fehlgeschlagen',
+
+  'usage.thinking': '{n} Denken',
+
+  'usage.col.step': 'Schritt',
+
+  'usage.col.count': 'Anzahl',
+
+  'usage.col.avg': 'Ø Tokens',
+
+  'usage.col.avgOutput': 'Ø Ausgabe',
+
+  'usage.col.avgTime': 'Ø Zeit',
+
+  'usage.col.total': 'Anteil',
+
+  'usage.col.model': 'Modell',
+
+  'usage.col.input': 'Eingabe',
+
+  'usage.col.cacheRead': 'Cache gelesen',
+
+  'usage.col.cacheWrite': 'Cache geschrieben',
+
+  'usage.col.output': 'Ausgabe',
+
+  'usage.col.turns': 'Runden',
+
+  'usage.step.plan': 'Plan',
+
+  'usage.step.revise': 'Plan überarbeiten',
+
+  'usage.step.world': 'Bildwelt',
+
+  'usage.step.layout': 'Gemeinsames Layout',
+
+  'usage.step.part': 'Gemeinsames Bild',
+
+  'usage.step.shot': 'Szene',
+
+  'usage.step.fix': 'Korrektur',
+
+  'usage.step.propose': 'Vorschläge',
+
+  'usage.step.check': 'Prüfung',
+
+  'usage.step.publish': 'Veröffentlichungstext',
+
+  'usage.step.sound': 'Ton',
+
+  'usage.step.cover': 'Cover',
+
+  'usage.step.build': 'Szenen erstellen',
   'library.more': 'Mehr laden',
   'library.emptyMine': 'Noch nichts geladen. Finde Modelle unter „Suchen“.',
   'library.kind.models': 'Modelle',

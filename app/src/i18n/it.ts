@@ -723,6 +723,86 @@ export const it: Record<Key, string> = {
   'library.have': 'Scaricato',
   'library.get': 'Scarica',
   'library.getting': 'Download in corso…',
+
+  'nav.usage': 'Uso',
+
+  'usage.title': 'Uso dell’IA',
+
+  'usage.note': 'Ogni passo dell’IA è registrato nel progetto: token, tempo e, quando lo strumento lo stima, il costo a prezzi API (un abbonamento non si paga a token).',
+
+  'usage.empty': 'Ancora nessun dato. Da questa versione ogni passo dell’IA è registrato nel progetto.',
+
+  'usage.tokens': 'Token',
+
+  'usage.cost': 'Costo (stima)',
+
+  'usage.time': 'Tempo IA',
+
+  'usage.project': 'Progetto',
+
+  'usage.runs': 'Esecuzioni',
+
+  'usage.last': 'Ultima',
+
+  'usage.byStep': 'Per passo',
+
+  'usage.history': 'Ogni esecuzione',
+
+  'usage.open': 'Apri il progetto',
+
+  'usage.failed': 'Fallito',
+
+  'usage.thinking': '{n} di ragionamento',
+
+  'usage.col.step': 'Passo',
+
+  'usage.col.count': 'Volte',
+
+  'usage.col.avg': 'Token medi',
+
+  'usage.col.avgOutput': 'Output medio',
+
+  'usage.col.avgTime': 'Tempo medio',
+
+  'usage.col.total': 'Quota',
+
+  'usage.col.model': 'Modello',
+
+  'usage.col.input': 'Input',
+
+  'usage.col.cacheRead': 'Cache letta',
+
+  'usage.col.cacheWrite': 'Cache scritta',
+
+  'usage.col.output': 'Output',
+
+  'usage.col.turns': 'Turni',
+
+  'usage.step.plan': 'Piano',
+
+  'usage.step.revise': 'Revisione del piano',
+
+  'usage.step.world': 'Mondo visivo',
+
+  'usage.step.layout': 'Layout condiviso',
+
+  'usage.step.part': 'Immagine condivisa',
+
+  'usage.step.shot': 'Inquadratura',
+
+  'usage.step.fix': 'Correzione',
+
+  'usage.step.propose': 'Proposte',
+
+  'usage.step.check': 'Controllo',
+
+  'usage.step.publish': 'Testo di pubblicazione',
+
+  'usage.step.sound': 'Suono',
+
+  'usage.step.cover': 'Copertina',
+
+  'usage.step.build': 'Crea le inquadrature',
   'library.more': 'Carica altri',
   'library.emptyMine': 'Ancora niente di scaricato. Trova modelli in Cerca.',
   'library.kind.models': 'Modelli',

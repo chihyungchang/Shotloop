@@ -723,6 +723,86 @@ export const fr: Record<Key, string> = {
   'library.have': 'Téléchargé',
   'library.get': 'Télécharger',
   'library.getting': 'Téléchargement…',
+
+  'nav.usage': 'Usage',
+
+  'usage.title': 'Usage de l’IA',
+
+  'usage.note': 'Chaque étape de l’IA est enregistrée avec son projet : jetons, temps et, quand l’outil l’estime, coût aux prix de l’API (un abonnement n’est pas facturé au jeton).',
+
+  'usage.empty': 'Rien d’enregistré pour l’instant. Désormais, chaque étape de l’IA est enregistrée avec son projet.',
+
+  'usage.tokens': 'Jetons',
+
+  'usage.cost': 'Coût (est.)',
+
+  'usage.time': 'Temps IA',
+
+  'usage.project': 'Projet',
+
+  'usage.runs': 'Exécutions',
+
+  'usage.last': 'Dernière',
+
+  'usage.byStep': 'Par étape',
+
+  'usage.history': 'Chaque exécution',
+
+  'usage.open': 'Ouvrir le projet',
+
+  'usage.failed': 'Échec',
+
+  'usage.thinking': '{n} de réflexion',
+
+  'usage.col.step': 'Étape',
+
+  'usage.col.count': 'Fois',
+
+  'usage.col.avg': 'Jetons moy.',
+
+  'usage.col.avgOutput': 'Sortie moy.',
+
+  'usage.col.avgTime': 'Temps moy.',
+
+  'usage.col.total': 'Part',
+
+  'usage.col.model': 'Modèle',
+
+  'usage.col.input': 'Entrée',
+
+  'usage.col.cacheRead': 'Cache lu',
+
+  'usage.col.cacheWrite': 'Cache écrit',
+
+  'usage.col.output': 'Sortie',
+
+  'usage.col.turns': 'Tours',
+
+  'usage.step.plan': 'Plan',
+
+  'usage.step.revise': 'Révision du plan',
+
+  'usage.step.world': 'Univers visuel',
+
+  'usage.step.layout': 'Mise en page commune',
+
+  'usage.step.part': 'Image commune',
+
+  'usage.step.shot': 'Plan vidéo',
+
+  'usage.step.fix': 'Correction',
+
+  'usage.step.propose': 'Propositions',
+
+  'usage.step.check': 'Vérification',
+
+  'usage.step.publish': 'Texte de publication',
+
+  'usage.step.sound': 'Son',
+
+  'usage.step.cover': 'Couverture',
+
+  'usage.step.build': 'Créer les plans',
   'library.more': 'Afficher plus',
   'library.emptyMine': 'Rien de téléchargé pour l’instant. Trouvez des modèles sous Rechercher.',
   'library.kind.models': 'Modèles',

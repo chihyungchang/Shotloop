@@ -723,6 +723,86 @@ export const ru: Record<Key, string> = {
   'library.have': 'Скачано',
   'library.get': 'Скачать',
   'library.getting': 'Скачивание…',
+
+  'nav.usage': 'Расход',
+
+  'usage.title': 'Расход ИИ',
+
+  'usage.note': 'Каждый шаг ИИ записывается в проект: токены, время и, если инструмент оценивает, стоимость по ценам API (подписка не тарифицируется по токенам).',
+
+  'usage.empty': 'Записей пока нет. С этой версии каждый шаг ИИ записывается в проект.',
+
+  'usage.tokens': 'Токены',
+
+  'usage.cost': 'Стоимость (оценка)',
+
+  'usage.time': 'Время ИИ',
+
+  'usage.project': 'Проект',
+
+  'usage.runs': 'Запуски',
+
+  'usage.last': 'Последний',
+
+  'usage.byStep': 'По шагам',
+
+  'usage.history': 'Каждый запуск',
+
+  'usage.open': 'Открыть проект',
+
+  'usage.failed': 'Ошибка',
+
+  'usage.thinking': 'размышления {n}',
+
+  'usage.col.step': 'Шаг',
+
+  'usage.col.count': 'Раз',
+
+  'usage.col.avg': 'Ср. токены',
+
+  'usage.col.avgOutput': 'Ср. вывод',
+
+  'usage.col.avgTime': 'Ср. время',
+
+  'usage.col.total': 'Доля',
+
+  'usage.col.model': 'Модель',
+
+  'usage.col.input': 'Ввод',
+
+  'usage.col.cacheRead': 'Чтение кэша',
+
+  'usage.col.cacheWrite': 'Запись кэша',
+
+  'usage.col.output': 'Вывод',
+
+  'usage.col.turns': 'Ходы',
+
+  'usage.step.plan': 'План',
+
+  'usage.step.revise': 'Правка плана',
+
+  'usage.step.world': 'Визуальный мир',
+
+  'usage.step.layout': 'Общая раскладка',
+
+  'usage.step.part': 'Общая картинка',
+
+  'usage.step.shot': 'Кадр',
+
+  'usage.step.fix': 'Исправление',
+
+  'usage.step.propose': 'Варианты',
+
+  'usage.step.check': 'Проверка',
+
+  'usage.step.publish': 'Текст публикации',
+
+  'usage.step.sound': 'Звук',
+
+  'usage.step.cover': 'Обложка',
+
+  'usage.step.build': 'Создание кадров',
   'library.more': 'Загрузить ещё',
   'library.emptyMine': 'Пока ничего не скачано. Найдите модели в разделе «Поиск».',
   'library.kind.models': 'Модели',

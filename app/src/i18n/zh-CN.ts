@@ -723,6 +723,86 @@ export const zhCN: Record<Key, string> = {
   'library.have': '已下载',
   'library.get': '下载',
   'library.getting': '下载中…',
+
+  'nav.usage': '用量',
+
+  'usage.title': 'AI 用量',
+
+  'usage.note': 'AI 每跑一步都会记在项目里：用了多少 token、多长时间；工具提供估算时，还有按 API 价格算的费用（订阅不按 token 计费）。',
+
+  'usage.empty': '还没有记录。从这个版本起，AI 每跑一步都会记在项目里。',
+
+  'usage.tokens': 'Token',
+
+  'usage.cost': '费用（估算）',
+
+  'usage.time': 'AI 用时',
+
+  'usage.project': '项目',
+
+  'usage.runs': '运行次数',
+
+  'usage.last': '最近',
+
+  'usage.byStep': '按步骤',
+
+  'usage.history': '每次运行',
+
+  'usage.open': '打开项目',
+
+  'usage.failed': '失败',
+
+  'usage.thinking': '思考 {n}',
+
+  'usage.col.step': '步骤',
+
+  'usage.col.count': '次数',
+
+  'usage.col.avg': '平均 token',
+
+  'usage.col.avgOutput': '平均输出',
+
+  'usage.col.avgTime': '平均用时',
+
+  'usage.col.total': '占比',
+
+  'usage.col.model': '模型',
+
+  'usage.col.input': '输入',
+
+  'usage.col.cacheRead': '缓存读取',
+
+  'usage.col.cacheWrite': '缓存写入',
+
+  'usage.col.output': '输出',
+
+  'usage.col.turns': '轮数',
+
+  'usage.step.plan': '策划',
+
+  'usage.step.revise': '修订策划',
+
+  'usage.step.world': '画面风格',
+
+  'usage.step.layout': '共用布局',
+
+  'usage.step.part': '共用画面',
+
+  'usage.step.shot': '镜头',
+
+  'usage.step.fix': '修改',
+
+  'usage.step.propose': '改法建议',
+
+  'usage.step.check': '检查',
+
+  'usage.step.publish': '发布文案',
+
+  'usage.step.sound': '声音',
+
+  'usage.step.cover': '封面',
+
+  'usage.step.build': '生成镜头',
   'library.more': '加载更多',
   'library.emptyMine': '还没有下载素材。到“在线搜索”里找找看。',
   'library.kind.models': '模型',

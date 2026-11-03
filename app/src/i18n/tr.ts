@@ -723,6 +723,86 @@ export const tr: Record<Key, string> = {
   'library.have': 'İndirildi',
   'library.get': 'İndir',
   'library.getting': 'İndiriliyor…',
+
+  'nav.usage': 'Kullanım',
+
+  'usage.title': 'Yapay zekâ kullanımı',
+
+  'usage.note': 'Yapay zekânın her adımı projesine kaydedilir: token, süre ve araç tahmin ediyorsa API fiyatlarıyla maliyet (abonelik token başına ücretlendirilmez).',
+
+  'usage.empty': 'Henüz kayıt yok. Bu sürümden itibaren her yapay zekâ adımı projesine kaydedilir.',
+
+  'usage.tokens': 'Token',
+
+  'usage.cost': 'Maliyet (tahmini)',
+
+  'usage.time': 'Yapay zekâ süresi',
+
+  'usage.project': 'Proje',
+
+  'usage.runs': 'Çalıştırma',
+
+  'usage.last': 'Son',
+
+  'usage.byStep': 'Adıma göre',
+
+  'usage.history': 'Her çalıştırma',
+
+  'usage.open': 'Projeyi aç',
+
+  'usage.failed': 'Başarısız',
+
+  'usage.thinking': '{n} düşünme',
+
+  'usage.col.step': 'Adım',
+
+  'usage.col.count': 'Sayı',
+
+  'usage.col.avg': 'Ort. token',
+
+  'usage.col.avgOutput': 'Ort. çıktı',
+
+  'usage.col.avgTime': 'Ort. süre',
+
+  'usage.col.total': 'Pay',
+
+  'usage.col.model': 'Model',
+
+  'usage.col.input': 'Girdi',
+
+  'usage.col.cacheRead': 'Önbellek okuma',
+
+  'usage.col.cacheWrite': 'Önbellek yazma',
+
+  'usage.col.output': 'Çıktı',
+
+  'usage.col.turns': 'Tur',
+
+  'usage.step.plan': 'Plan',
+
+  'usage.step.revise': 'Plan düzeltme',
+
+  'usage.step.world': 'Görsel dünya',
+
+  'usage.step.layout': 'Ortak yerleşim',
+
+  'usage.step.part': 'Ortak görsel',
+
+  'usage.step.shot': 'Çekim',
+
+  'usage.step.fix': 'Düzeltme',
+
+  'usage.step.propose': 'Öneriler',
+
+  'usage.step.check': 'Kontrol',
+
+  'usage.step.publish': 'Yayın metni',
+
+  'usage.step.sound': 'Ses',
+
+  'usage.step.cover': 'Kapak',
+
+  'usage.step.build': 'Çekimleri oluştur',
   'library.more': 'Daha fazla yükle',
   'library.emptyMine': 'Henüz bir şey indirilmedi. Bul bölümünde model arayın.',
   'library.kind.models': 'Modeller',

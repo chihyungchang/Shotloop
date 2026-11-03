@@ -723,6 +723,86 @@ export const ko: Record<Key, string> = {
   'library.have': '다운로드됨',
   'library.get': '다운로드',
   'library.getting': '다운로드 중…',
+
+  'nav.usage': '사용량',
+
+  'usage.title': 'AI 사용량',
+
+  'usage.note': 'AI가 실행한 모든 단계가 프로젝트에 기록됩니다: 토큰, 시간, 그리고 도구가 추정하면 API 가격 기준 비용(구독은 토큰 단위로 과금되지 않음).',
+
+  'usage.empty': '아직 기록이 없습니다. 이 버전부터 AI의 모든 단계가 프로젝트에 기록됩니다.',
+
+  'usage.tokens': '토큰',
+
+  'usage.cost': '비용(추정)',
+
+  'usage.time': 'AI 시간',
+
+  'usage.project': '프로젝트',
+
+  'usage.runs': '실행 횟수',
+
+  'usage.last': '최근',
+
+  'usage.byStep': '단계별',
+
+  'usage.history': '실행별',
+
+  'usage.open': '프로젝트 열기',
+
+  'usage.failed': '실패',
+
+  'usage.thinking': '생각 {n}',
+
+  'usage.col.step': '단계',
+
+  'usage.col.count': '횟수',
+
+  'usage.col.avg': '평균 토큰',
+
+  'usage.col.avgOutput': '평균 출력',
+
+  'usage.col.avgTime': '평균 시간',
+
+  'usage.col.total': '비중',
+
+  'usage.col.model': '모델',
+
+  'usage.col.input': '입력',
+
+  'usage.col.cacheRead': '캐시 읽기',
+
+  'usage.col.cacheWrite': '캐시 쓰기',
+
+  'usage.col.output': '출력',
+
+  'usage.col.turns': '턴',
+
+  'usage.step.plan': '기획',
+
+  'usage.step.revise': '기획 수정',
+
+  'usage.step.world': '비주얼',
+
+  'usage.step.layout': '공통 레이아웃',
+
+  'usage.step.part': '공통 그림',
+
+  'usage.step.shot': '샷',
+
+  'usage.step.fix': '수정',
+
+  'usage.step.propose': '수정안',
+
+  'usage.step.check': '검사',
+
+  'usage.step.publish': '게시 문구',
+
+  'usage.step.sound': '사운드',
+
+  'usage.step.cover': '커버',
+
+  'usage.step.build': '샷 만들기',
   'library.more': '더 불러오기',
   'library.emptyMine': '아직 다운로드한 항목이 없습니다. 찾기에서 모델을 찾아보세요.',
   'library.kind.models': '모델',
