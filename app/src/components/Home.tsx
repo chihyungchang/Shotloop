@@ -140,8 +140,9 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
     // A promo is narrated (its taste): the voice-over comes on with it
     setVoice(true)
     if (track === '3d') setTrack('2d')
-    // Its look follows the product: no style to choose
+    // Its look follows the product: no style or colours to choose
     setStyle('')
+    setLook('')
   }
   // A promo's product page and pictures; a picture pasted or dropped into
   // the idea makes the film a promo
@@ -224,7 +225,7 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
         track,
         aspect: frame,
         duration: length,
-        look: track === '3d' ? '' : look,
+        look: track === '3d' || promo ? '' : look,
         style: track === '3d' || promo ? '' : style,
         voice,
         subtitles: voice ? subtitles : '',
@@ -331,9 +332,11 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
               </button>
               {/* Subtitles come with the voice: picked once it is on */}
               <SubtitlePicker value={subtitles} onChange={setSubtitles} spaced={!UNSPACED.test(idea)} disabled={!voice} />
-              {track !== '3d' && <span className="bar-divider" aria-hidden />}
+              {/* A promo has neither: it is drawn in the product's own system,
+                  its colours and fonts read from the product */}
+              {track !== '3d' && !promo && <span className="bar-divider" aria-hidden />}
               {track !== '3d' && !promo && <StylePicker value={style} onChange={chooseStyle} />}
-              {track !== '3d' && <LookPicker value={look} onChange={setLook} style={style} />}
+              {track !== '3d' && !promo && <LookPicker value={look} onChange={setLook} style={style} />}
             </div>
             {ai && (
               // Just the model maker's mark: the tool and model are in the tooltip

@@ -75,6 +75,7 @@ test('a product promo is 2D for now and never drawn on a canvas page', () => {
   newProject(auto, { idea: 'x', promo: true, track: 'auto' })
   assert.equal(JSON.parse(fs.readFileSync(path.join(auto, 'shotloop.json'), 'utf8')).trackAuto, undefined)
   assert.throws(() => newProject(path.join(tmp(), 'b'), { idea: 'x', promo: true, style: 'infographic' }), /no style/)
+  assert.throws(() => newProject(path.join(tmp(), 'l'), { idea: 'x', promo: true, look: 'midnight' }), /brand/)
   assert.throws(() => newProject(path.join(tmp(), 'c'), { idea: 'x', site: 'raycast.com' }), /product promo/)
 })
 
@@ -117,4 +118,20 @@ test('a repository on this Mac is read: its words, and its screenshots but not i
   assert.doesNotMatch(brief, /badge/)
   assert.match(brief, /## CHANGELOG.md/)
   assert.deepEqual(promoImages(root).map(p => p.file), ['repo/pictures/01-app.png'])
+})
+
+test('a promo\'s screenshot kit is kept as the engine has it', async () => {
+  const { freshScreens } = await import('./starters.mjs')
+  const root = path.join(tmp(), 'k')
+  newProject(root, { idea: 'x', promo: true })
+  const file = path.join(root, 'world', 'screens.js')
+  const kit = fs.readFileSync(new URL('./screens.js', import.meta.url), 'utf8')
+  fs.writeFileSync(file, '// an older kit\n')
+  freshScreens(root)
+  assert.equal(fs.readFileSync(file, 'utf8'), kit)
+  // An explainer has none
+  const other = path.join(tmp(), 'e')
+  newProject(other, { idea: 'x' })
+  freshScreens(other)
+  assert.equal(fs.existsSync(path.join(other, 'world', 'screens.js')), false)
 })

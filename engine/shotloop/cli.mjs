@@ -80,7 +80,7 @@ import { deliverCopy } from './deliver.mjs'
 import { emit, progress, setJson } from './compose.mjs'
 import { downloadTicker } from './downloads.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
-import { freshWebglPage, isStarter, isStarterCover } from './starters.mjs'
+import { freshScreens, freshWebglPage, isStarter, isStarterCover } from './starters.mjs'
 import { assemble, exportFilm, filmPreview, renderCover, setCoverFrame } from './film.mjs'
 import { findShot, isProject, loadProject, updateConfig } from './project.mjs'
 import { musicInfo, setMusic, setStyle, setTitle } from './settings.mjs'
@@ -172,7 +172,10 @@ reportDownloads((done, total, info) => {
 const [cmd, ...args] = positionals
 
 // A WebGL film's kit is kept current before any command reads the film
-if (args[0] && isProject(args[0])) freshWebglPage(args[0])
+if (args[0] && isProject(args[0])) {
+  freshWebglPage(args[0])
+  freshScreens(args[0])
+}
 
 const result = value => {
   if (values.json) emit({ type: 'result', value })

@@ -32,7 +32,8 @@ export function Storyboard({ project, sb, edit, planning, chooseStyle }: {
       </div>
       {/* A product promo has its own page: no style to choose */}
       {sb.style && !project.promo && (project.track === '2d' || project.trackAuto) && <StyleRow project={project} sb={sb} planning={planning} choose={chooseStyle} />}
-      {project.track === '2d' && sb.style !== '3d' && <LookRow sb={sb} edit={edit} />}
+      {/* A promo's colours are the product's own: no look to pick */}
+      {project.track === '2d' && sb.style !== '3d' && !project.promo && <LookRow sb={sb} edit={edit} />}
       {/* The subtitles' look the AI picked, and why (changed in the studio) */}
       {project.voice?.on && !project.voice.subtitlesChosen && sb.subtitles && (
         <p className="small muted style-why">

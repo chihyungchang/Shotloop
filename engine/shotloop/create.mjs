@@ -11,13 +11,11 @@ import { editMode, entry, takes } from './cache.mjs'
 import { DEFAULT_STYLE, firstLine, lookById, LOOKS, PROMO_STYLE, round, STYLES, styleById, SUBTITLE_STYLES } from './data.mjs'
 import { isProject, loadProject, saveConfig, SIZES } from './project.mjs'
 import { writeBed } from './settings.mjs'
-import { starterCover, writePlan, writeShots, writeWorld2d, writeWorld3d } from './starters.mjs'
+import { freshScreens, starterCover, writePlan, writeShots, writeWorld2d, writeWorld3d } from './starters.mjs'
 import { voiceOn } from './cues.mjs'
 import { siteUrl } from './site.mjs'
 import { githubRepo, repoSource } from './repo.mjs'
 
-// A product promo's screenshot kit, copied into its world
-const SCREENS = new URL('screens.js', import.meta.url)
 
 // Shots of about 5 s, a short hook first and an end card last
 function planShots(duration) {
@@ -64,6 +62,7 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
   if (subtitles && !Object.hasOwn(SUBTITLE_STYLES, subtitles)) throw new Error(`subtitles must be one of ${Object.keys(SUBTITLE_STYLES).join(', ')}`)
   if (promo && track === '3d') throw new Error('a product promo is 2D for now')
   if (promo && style) throw new Error('a product promo has no style to choose: its look follows the product')
+  if (promo && look) throw new Error('a product promo has no colours to choose: they follow the product\'s brand')
   if ((site || repo) && !promo) throw new Error('a product page or repository is read for a product promo')
   // A GitHub address given as the page is the repository
   if (promo && githubRepo(site) && !repo) [repo, site] = [site, '']
@@ -91,7 +90,6 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
   fs.mkdirSync(root, { recursive: true })
   if (track === '2d') writeWorld2d(root, look || null, size, style || (promo ? PROMO_STYLE : DEFAULT_STYLE))
   else writeWorld3d(root, size)
-  if (promo) fs.copyFileSync(SCREENS, path.join(root, 'world', 'screens.js'))
   writeShots(root, track, plan, 'created from the idea')
   writePlan(root, title, plan, { idea })
   fs.writeFileSync(path.join(root, 'thumb.html'), starterCover(title))
@@ -118,6 +116,7 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
     voice: { on: !!voice, ...(subtitles ? { subtitles, subtitlesChosen: true } : {}) }
   })
   writeBed(root, startMood(track === '3d' ? '3d' : style), loadProject(root))
+  freshScreens(root)
   return { root, title, track, shots: shots.length }
 }
 

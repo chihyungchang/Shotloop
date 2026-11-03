@@ -1,7 +1,8 @@
 // world/screens.js: a product promo's shots: the product explained with
 // drawn pieces in its own visual system, and proved with its real screens.
-// Copied into a promo project's world (engine/shotloop/create.mjs); shots
-// import what they use:
+// It is the engine's (engine/shotloop/screens.js), kept current in every
+// promo's world before each command: never edit it here; a promo's own
+// pieces go in world/*.js modules beside it. Shots import what they use:
 //
 //   import { load, depth, chapter, headline, row, counter, steps, bubble, compare, wipe, endCard,
 //     shot, camera, follow, drift, cursor, typing, field, livePart, fill } from '../../world/screens.js'

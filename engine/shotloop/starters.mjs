@@ -112,6 +112,22 @@ export function freshWebglPage(root) {
   if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== page) writeAtomic(file, page)
 }
 
+// A product promo's screenshot kit (screens.js) is the engine's too: put in
+// its world, and brought up to this engine's before a command reads the
+// project, so an improved kit (a camera that moves in on the whole window)
+// reaches every promo; its shots render again, as for any world change
+const SCREENS = new URL('screens.js', import.meta.url)
+export function freshScreens(root) {
+  const cfg = readJson(path.join(root, 'shotloop.json'), null)
+  if (!cfg?.promo) return
+  const file = path.join(root, 'world', 'screens.js')
+  const kit = fs.readFileSync(SCREENS, 'utf8')
+  if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== kit) {
+    fs.mkdirSync(path.dirname(file), { recursive: true })
+    writeAtomic(file, kit)
+  }
+}
+
 // The 3D starter world: the WebGL kit's page, its type in the default look
 export function writeWorld3d(root, size) {
   fs.mkdirSync(path.join(root, 'world'), { recursive: true })
