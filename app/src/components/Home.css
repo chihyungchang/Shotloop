@@ -19,7 +19,7 @@
 @keyframes word-in { from { opacity: 0; transform: translateY(0.45em); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
 .hero-sub { text-align: center; margin: 12px 0 30px; font-size: 15px; font-weight: 400; color: var(--text-2); animation: fade-up 400ms var(--ease) 80ms both; }
 .composer { max-width: 820px; margin: 0 auto; animation: fade-up 350ms var(--ease) 100ms both; }
-.composer-card { position: relative; background: var(--surface); border: 1px solid var(--border-soft); border-radius: 22px; padding: 18px 16px 12px 20px;
+.composer-card { position: relative; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 22px; padding: 18px 16px 12px 20px;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 32px rgb(15 23 42 / 0.07); transition: box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease); }
 /* Focus: a teal-to-violet ring */
 .composer-card::after { content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 1.5px; pointer-events: none; opacity: 0;
