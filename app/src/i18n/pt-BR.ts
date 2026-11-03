@@ -730,7 +730,7 @@ export const ptBR: Record<Key, string> = {
 
   'usage.note': 'Cada passo da IA fica registrado no projeto: tokens, tempo e, quando a ferramenta estima, o custo a preços de API (assinatura não é cobrada por token).',
 
-  'usage.empty': 'Ainda não há registros. A partir desta versão, cada passo da IA fica registrado no projeto.',
+  'usage.empty': 'Ainda não há registros.',
 
   'usage.tokens': 'Tokens',
 

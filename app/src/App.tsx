@@ -14,7 +14,7 @@ import { LeaveDraftDialog, WorkspaceDialog } from './components/WorkspaceDialog'
 import { checkForUpdate } from './update'
 import { startTelemetry } from './telemetry'
 import { EDIT_MODE, isActive } from './model'
-import { pickProject, projectsFolder, remember, setProjectsFolder } from './recent'
+import { forget, pickProject, projectsFolder, remember, setProjectsFolder } from './recent'
 import { useTheme } from './theme/theme'
 import { t, useLanguage } from './i18n'
 import { ErrorText } from './components/ErrorDialog'
@@ -104,6 +104,9 @@ export default function App() {
       setProject(p)
     } catch (e) {
       setError(String(e))
+      // A recent project that isn't one any more (deleted, moved): off the list
+      const still = await api.listProjects([path]).catch(() => null)
+      if (still?.length === 0) forget(path)
     }
   }, [ensureFolder])
 

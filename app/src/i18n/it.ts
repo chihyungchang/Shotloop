@@ -730,7 +730,7 @@ export const it: Record<Key, string> = {
 
   'usage.note': 'Ogni passo dell’IA è registrato nel progetto: token, tempo e, quando lo strumento lo stima, il costo a prezzi API (un abbonamento non si paga a token).',
 
-  'usage.empty': 'Ancora nessun dato. Da questa versione ogni passo dell’IA è registrato nel progetto.',
+  'usage.empty': 'Ancora nessun dato.',
 
   'usage.tokens': 'Token',
 

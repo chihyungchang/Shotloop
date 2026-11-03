@@ -731,7 +731,7 @@ export const en = {
 
   'usage.note': 'Every step the AI takes is recorded with its project: its tokens, time and, where the tool estimates it, cost at API prices (a subscription isn’t billed by token).',
 
-  'usage.empty': 'Nothing recorded yet. From this version on, every AI step is recorded with its project.',
+  'usage.empty': 'Nothing recorded yet.',
 
   'usage.tokens': 'Tokens',
 

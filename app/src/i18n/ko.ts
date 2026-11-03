@@ -730,7 +730,7 @@ export const ko: Record<Key, string> = {
 
   'usage.note': 'AI가 실행한 모든 단계가 프로젝트에 기록됩니다: 토큰, 시간, 그리고 도구가 추정하면 API 가격 기준 비용(구독은 토큰 단위로 과금되지 않음).',
 
-  'usage.empty': '아직 기록이 없습니다. 이 버전부터 AI의 모든 단계가 프로젝트에 기록됩니다.',
+  'usage.empty': '아직 기록이 없습니다.',
 
   'usage.tokens': '토큰',
 

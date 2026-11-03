@@ -730,7 +730,7 @@ export const de: Record<Key, string> = {
 
   'usage.note': 'Jeder KI-Schritt wird beim Projekt erfasst: Tokens, Zeit und, wo das Tool es schätzt, Kosten zu API-Preisen (ein Abo wird nicht pro Token abgerechnet).',
 
-  'usage.empty': 'Noch nichts erfasst. Ab dieser Version wird jeder KI-Schritt beim Projekt erfasst.',
+  'usage.empty': 'Noch nichts erfasst.',
 
   'usage.tokens': 'Tokens',
 

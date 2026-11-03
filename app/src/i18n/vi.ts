@@ -730,7 +730,7 @@ export const vi: Record<Key, string> = {
 
   'usage.note': 'Mỗi bước AI chạy đều được ghi vào dự án: số token, thời gian và, khi công cụ ước tính, chi phí theo giá API (gói thuê bao không tính theo token).',
 
-  'usage.empty': 'Chưa có ghi nhận. Từ phiên bản này, mỗi bước của AI đều được ghi vào dự án.',
+  'usage.empty': 'Chưa có ghi nhận.',
 
   'usage.tokens': 'Token',
 

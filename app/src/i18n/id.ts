@@ -730,7 +730,7 @@ export const id: Record<Key, string> = {
 
   'usage.note': 'Setiap langkah AI dicatat di proyeknya: token, waktu, dan bila alatnya memperkirakan, biaya dengan harga API (langganan tidak ditagih per token).',
 
-  'usage.empty': 'Belum ada catatan. Mulai versi ini, setiap langkah AI dicatat di proyeknya.',
+  'usage.empty': 'Belum ada catatan.',
 
   'usage.tokens': 'Token',
 

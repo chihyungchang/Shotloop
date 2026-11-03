@@ -12,11 +12,22 @@ const FOLDER = 'shotloop.folder'
 
 export const readRecent = (): string[] => readJson(RECENT, [])
 
-export function remember(path: string) {
-  writeJson(RECENT, [path, ...readRecent().filter(p => p !== path)].slice(0, 12))
+// Who shows the list (the sidebar), told when it changes
+const watchers = new Set<() => void>()
+export function onRecentChange(f: () => void) {
+  watchers.add(f)
+  return () => watchers.delete(f)
+}
+function keepRecent(list: string[]) {
+  writeJson(RECENT, list)
+  watchers.forEach(f => f())
 }
 
-export const forget = (path: string) => writeJson(RECENT, readRecent().filter(p => p !== path))
+export function remember(path: string) {
+  keepRecent([path, ...readRecent().filter(p => p !== path)].slice(0, 12))
+}
+
+export const forget = (path: string) => keepRecent(readRecent().filter(p => p !== path))
 
 export const projectsFolder = (): string | null => readJson(FOLDER, null)
 export const setProjectsFolder = (dir: string) => writeJson(FOLDER, dir)
@@ -34,7 +45,7 @@ export async function listRecent(limit?: number) {
   const recent = readRecent()
   const list = await api.listProjects(recent)
   const keep = recent.filter(p => list.some(x => x.root === p && !x.example && !x.draft))
-  if (keep.length !== recent.length) writeJson(RECENT, keep)
+  if (keep.length !== recent.length) keepRecent(keep)
   return keep.slice(0, limit).flatMap(p => list.filter(x => x.root === p))
 }
 

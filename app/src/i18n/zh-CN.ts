@@ -730,7 +730,7 @@ export const zhCN: Record<Key, string> = {
 
   'usage.note': 'AI 每跑一步都会记在项目里：用了多少 token、多长时间；工具提供估算时，还有按 API 价格算的费用（订阅不按 token 计费）。',
 
-  'usage.empty': '还没有记录。从这个版本起，AI 每跑一步都会记在项目里。',
+  'usage.empty': '还没有记录。',
 
   'usage.tokens': 'Token',
 

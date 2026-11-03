@@ -730,7 +730,7 @@ export const tr: Record<Key, string> = {
 
   'usage.note': 'Yapay zekânın her adımı projesine kaydedilir: token, süre ve araç tahmin ediyorsa API fiyatlarıyla maliyet (abonelik token başına ücretlendirilmez).',
 
-  'usage.empty': 'Henüz kayıt yok. Bu sürümden itibaren her yapay zekâ adımı projesine kaydedilir.',
+  'usage.empty': 'Henüz kayıt yok.',
 
   'usage.tokens': 'Token',
 

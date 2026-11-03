@@ -730,7 +730,7 @@ export const zhTW: Record<Key, string> = {
 
   'usage.note': 'AI 每跑一步都會記在專案裡：用了多少 token、多長時間；工具提供估算時，還有按 API 價格算的費用（訂閱不按 token 計費）。',
 
-  'usage.empty': '還沒有紀錄。從這個版本起，AI 每跑一步都會記在專案裡。',
+  'usage.empty': '還沒有紀錄。',
 
   'usage.tokens': 'Token',
 

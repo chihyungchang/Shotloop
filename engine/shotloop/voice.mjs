@@ -143,6 +143,9 @@ async function speak(project, text, { lang, voice, speed = 1 }) {
     }
   })
   const samples = trim(out.samples, out.sampleRate)
+  // Speaking takes a while: a project deleted or moved meanwhile gets no
+  // folder made again for it
+  if (!fs.existsSync(path.join(project.root, 'shotloop.json'))) throw new Error(`the project at ${project.root} is gone`)
   // Written over any wav a cut-short run left without its .json
   writeAtomic(file, wav({ L: samples, rate: out.sampleRate }))
   const duration = samples.length / out.sampleRate

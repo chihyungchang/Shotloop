@@ -730,7 +730,7 @@ export const fr: Record<Key, string> = {
 
   'usage.note': 'Chaque étape de l’IA est enregistrée avec son projet : jetons, temps et, quand l’outil l’estime, coût aux prix de l’API (un abonnement n’est pas facturé au jeton).',
 
-  'usage.empty': 'Rien d’enregistré pour l’instant. Désormais, chaque étape de l’IA est enregistrée avec son projet.',
+  'usage.empty': 'Rien d’enregistré pour l’instant.',
 
   'usage.tokens': 'Jetons',
 

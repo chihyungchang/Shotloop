@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, REPO, type Job, type Usage, type UsageWindow } from '../api'
-import { baseName, listRecent, readRecent } from '../recent'
+import { baseName, listRecent, onRecentChange, readRecent } from '../recent'
 import { installUpdate, useUpdate } from '../update'
 import type { useTheme } from '../theme/theme'
 import { aiSummary, useDetected } from '../ai/backends'
@@ -44,6 +44,13 @@ export function Sidebar({ page, setPage, open, jobs, theme, openSettings }: {
     // The list can't be checked (the engine didn't answer): it stays as it
     // was kept, and opening a gone one says so
     listRecent().then(l => setRecent(l.map(p => p.root)), () => undefined)
+  }, [])
+  // A project opened, saved or found gone changes the list
+  useEffect(() => {
+    const stop = onRecentChange(() => setRecent(readRecent()))
+    return () => {
+      stop()
+    }
   }, [])
 
   return (
