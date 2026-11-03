@@ -133,6 +133,9 @@ export const tr: Record<Key, string> = {
   'setup.save': 'Ayarları kaydet',
   'setup.checkAgain': 'Yeniden denetle',
   'setup.engine': 'Motor: {path}',
+  'setup.browser': 'İşleme tarayıcısı',
+  'setup.noBrowser': 'Chromium tabanlı tarayıcı bulunamadı (Chrome, Edge, Brave, Arc…). İlk işleme bir tane indirir ya da şimdi indirin:',
+  'setup.getBrowser': 'İşleme tarayıcısını indir ({mb} MB)',
 
   'studio.back': 'Projelere dön',
   'studio.resizeAgent': 'Yapay zekâ çekim asistanı panelinin genişliğini ayarla',
@@ -630,8 +633,8 @@ export const tr: Record<Key, string> = {
   'subs.look.clean': 'Sade',
   'subs.look.none': 'Yok',
   'voiceDl.get': '{name} indir ({mb} MB)',
-  'voiceDl.retry': 'Yeniden indir ({mb} MB)',
-  'voiceDl.progress': '{done} / {total} MB',
+  'download.retry': 'Yeniden indir ({mb} MB)',
+  'download.progress': '{done} / {total} MB',
   'voiceDl.model': 'Ses modeli',
   'voiceDl.title': 'Seslendirme modelleri',
   'voiceDl.intro': 'Ses modelleri uygulamayla gelmez: her biri, bir video onun dillerinde ilk kez konuştuğunda (ya da burada önceden) indirilir ve sonra çevrimdışı çalışır.',
@@ -719,6 +722,7 @@ export const tr: Record<Key, string> = {
   'job.plan': 'Metni ve senaryo taslağını planla',
   'job.build': 'Çekimleri oluştur',
   'job.voiceModel': '{model} sesini indir',
+  'job.browser': 'İşleme tarayıcısını indir',
   'job.download': '{name} indir',
   'job.voiceFit': 'Replikleri seslendir ve çekimleri uydur',
 

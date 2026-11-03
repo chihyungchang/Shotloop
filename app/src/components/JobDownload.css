@@ -1,0 +1,4 @@
+/* A download run as a queue job: its button, or a bar with MB and time left */
+.job-dl { display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
+.job-dl .bar { width: 100%; }
+.job-dl > button { align-self: flex-start; }

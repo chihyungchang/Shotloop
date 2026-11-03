@@ -4,7 +4,7 @@ import http from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
 import { mock, test } from 'node:test'
-import { download } from '../src/fetch.mjs'
+import { download } from './fetch.mjs'
 
 // A local server answering every request with handle(req, res)
 async function serve(handle) {

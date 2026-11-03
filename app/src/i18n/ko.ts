@@ -133,6 +133,9 @@ export const ko: Record<Key, string> = {
   'setup.save': '설정 저장',
   'setup.checkAgain': '다시 확인',
   'setup.engine': '엔진: {path}',
+  'setup.browser': '렌더링 브라우저',
+  'setup.noBrowser': 'Chromium 기반 브라우저(Chrome, Edge, Brave, Arc…)를 찾지 못했습니다. 첫 렌더링 때 자동으로 내려받으며, 지금 받을 수도 있습니다:',
+  'setup.getBrowser': '렌더링 브라우저 내려받기({mb} MB)',
 
   'studio.back': '프로젝트로 돌아가기',
   'studio.resizeAgent': 'AI 샷 어시스턴트 패널 너비 조절',
@@ -630,8 +633,8 @@ export const ko: Record<Key, string> = {
   'subs.look.clean': '깔끔',
   'subs.look.none': '없음',
   'voiceDl.get': '{name} 다운로드({mb} MB)',
-  'voiceDl.retry': '다시 다운로드({mb} MB)',
-  'voiceDl.progress': '{done} / {total} MB',
+  'download.retry': '다시 다운로드({mb} MB)',
+  'download.progress': '{done} / {total} MB',
   'voiceDl.model': '음성 모델',
   'voiceDl.title': '내레이션 모델',
   'voiceDl.intro': '음성 모델은 앱과 함께 설치되지 않습니다. 해당 언어로 처음 내레이션할 때 자동으로 다운로드되며(여기서 미리 받을 수도 있음) 이후에는 오프라인으로 작동합니다.',
@@ -719,6 +722,7 @@ export const ko: Record<Key, string> = {
   'job.plan': '문안과 스토리보드 기획',
   'job.build': '샷 빌드',
   'job.voiceModel': '내레이션 모델 {model} 다운로드',
+  'job.browser': '렌더링 브라우저 내려받기',
   'job.download': '{name} 다운로드',
   'job.voiceFit': '내레이션 생성 및 길이 맞춤',
 

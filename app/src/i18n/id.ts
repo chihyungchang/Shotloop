@@ -133,6 +133,9 @@ export const id: Record<Key, string> = {
   'setup.save': 'Simpan pengaturan',
   'setup.checkAgain': 'Periksa lagi',
   'setup.engine': 'Mesin: {path}',
+  'setup.browser': 'Peramban render',
+  'setup.noBrowser': 'Tidak ada peramban Chromium (Chrome, Edge, Brave, Arc…). Render pertama akan mengunduhnya, atau unduh sekarang:',
+  'setup.getBrowser': 'Unduh peramban render ({mb} MB)',
 
   'studio.back': 'Kembali ke proyek',
   'studio.resizeAgent': 'Ubah lebar panel asisten AI adegan',
@@ -630,8 +633,8 @@ export const id: Record<Key, string> = {
   'subs.look.clean': 'Bersih',
   'subs.look.none': 'Tidak ada',
   'voiceDl.get': 'Unduh {name} ({mb} MB)',
-  'voiceDl.retry': 'Unduh lagi ({mb} MB)',
-  'voiceDl.progress': '{done} / {total} MB',
+  'download.retry': 'Unduh lagi ({mb} MB)',
+  'download.progress': '{done} / {total} MB',
   'voiceDl.model': 'Model suara',
   'voiceDl.title': 'Model sulih suara',
   'voiceDl.intro': 'Model suara tidak ikut terpasang bersama aplikasi: masing-masing diunduh saat video pertama kali berbicara dalam bahasanya (atau di sini, lebih awal), lalu bisa dipakai offline.',
@@ -719,6 +722,7 @@ export const id: Record<Key, string> = {
   'job.plan': 'Rencanakan teks dan storyboard',
   'job.build': 'Buat adegan',
   'job.voiceModel': 'Unduh suara {model}',
+  'job.browser': 'Unduh peramban render',
   'job.download': 'Unduh {name}',
   'job.voiceFit': 'Bacakan naskah dan sesuaikan shot',
 

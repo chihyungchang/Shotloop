@@ -134,6 +134,9 @@ export const en = {
   'setup.save': 'Save settings',
   'setup.checkAgain': 'Check again',
   'setup.engine': 'Engine: {path}',
+  'setup.browser': 'Render browser',
+  'setup.noBrowser': 'No Chromium browser found (Chrome, Edge, Brave, Arc…). The first render downloads one, or get it now:',
+  'setup.getBrowser': 'Download the render browser ({mb} MB)',
 
   'studio.back': 'Back to projects',
   'studio.resizeAgent': 'Resize the AI shot assistant panel',
@@ -631,8 +634,8 @@ export const en = {
   'subs.look.clean': 'Clean',
   'subs.look.none': 'None',
   'voiceDl.get': 'Download {name} ({mb} MB)',
-  'voiceDl.retry': 'Download again ({mb} MB)',
-  'voiceDl.progress': '{done} / {total} MB',
+  'download.retry': 'Download again ({mb} MB)',
+  'download.progress': '{done} / {total} MB',
   'voiceDl.model': 'Voice',
   'voiceDl.title': 'Voice-over models',
   'voiceDl.intro': 'The speech models aren’t installed with the app: each downloads the first time a film speaks its languages (or here, ahead of time) and then works offline.',
@@ -720,6 +723,7 @@ export const en = {
   'job.plan': 'Plan the copy and storyboard',
   'job.build': 'Build the shots',
   'job.voiceModel': 'Download voice {model}',
+  'job.browser': 'Download the render browser',
   'job.download': 'Download {name}',
   'job.voiceFit': 'Speak the lines',
 

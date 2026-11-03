@@ -141,7 +141,7 @@ Modelin araç çağırmayı desteklemesi, denetimler için de görüntü görebi
 ## Kurulum
 
 1. [En son sürümden](https://github.com/chihyungchang/Shotloop/releases/latest) `Shotloop_<version>_aarch64.dmg` dosyasını indirin, açın ve Shotloop'u Uygulamalar klasörüne sürükleyin.
-2. **Google Chrome** kurulu olsun (2D çekimler onunla işlenir).
+2. Çekimler Mac’inizdeki Chromium tabanlı bir tarayıcıda işlenir (Chrome, Edge, Brave, Arc…). Hiçbiri yoksa Shotloop ilk işlemede başsız bir tarayıcı indirir (yaklaşık 100 MB); Ayarlar → Bağımlılıklar’dan önceden de indirebilirsiniz.
 3. Yapay zekâyı Ayarlar → Modeller ve sağlayıcılar bölümünden seçin. Claude Code Mac'inizde zaten varsa sizin için seçilir.
 
 > **İlk açılış:** Shotloop henüz Apple tarafından onaylanmadı (notarize edilmedi), bu yüzden macOS geliştiriciyi doğrulayamadığını söyler. Bir kez **Sistem Ayarları → Gizlilik ve Güvenlik → Yine de Aç** yoluyla açın ya da Terminal'de `xattr -dr com.apple.quarantine /Applications/Shotloop.app` komutunu çalıştırın. Sonrasında normal açılır ve güncellemeler yeniden sormadan kurulur.

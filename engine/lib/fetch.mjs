@@ -1,6 +1,7 @@
-// Downloads with progress (models.mjs and cosyvoice.mjs fetch through
-// here): one file checked against its pinned SHA-256, and the size of a
-// folder being filled, for progress that has no byte count of its own
+// Downloads with progress (the speech models in voice/, the render
+// browser in browser.mjs): one file checked against its pinned SHA-256,
+// and the size of a folder being filled, for progress that has no byte
+// count of its own
 
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'

@@ -1,14 +1,10 @@
-import { useEffect, useRef } from 'react'
 import { api, type Job, type VoiceInfo } from '../api'
-import { useErrorLine, useEscape } from '../hooks'
-import { formatEta, isActive } from '../model'
+import { useEscape } from '../hooks'
 import { t } from '../i18n'
 import { Icon } from './Icon'
-import { ErrorText } from './ErrorDialog'
+import { JobDownload } from './JobDownload'
 
-// A speech model's download (a queue job, voiceModel): a button with its
-// size, then a bar with MB and the time left; onDone runs when it lands,
-// so whatever waited for the voice goes on
+// A speech model's download (a queue job, voiceModel)
 export function VoiceDownload({ model, project, jobs, onDone }: {
   model: { id: string; name: string; bytes: number; installed: boolean }
   // The project that asked for it, whose speaking jobs wait for it
@@ -16,39 +12,15 @@ export function VoiceDownload({ model, project, jobs, onDone }: {
   jobs: Job[]
   onDone?: () => void
 }) {
-  const job = jobs.filter(j => j.kind === 'voiceModel' && j.model === model.id).at(-1)
-  const busy = !!job && isActive(job)
-  const { error, guard } = useErrorLine()
-  // Once per download that finishes while shown
-  const seen = useRef(job?.state)
-  useEffect(() => {
-    if (seen.current !== job?.state && job?.state === 'done') onDone?.()
-    seen.current = job?.state
-  }, [job?.state, onDone])
-
-  // Downloaded (the model read before it landed may still say not)
-  if ((model.installed || job?.state === 'done') && !busy) return null
-  const mb = Math.round(model.bytes / 1e6)
-  const p = job?.progress
-  if (busy) {
-    return (
-      <div className="voice-dl">
-        <div className={`bar${p?.total ? '' : ' indeterminate'}`}><i style={p?.total ? { width: `${Math.max(3, (p.done / p.total) * 100)}%` } : undefined} /></div>
-        <span className="muted small">
-          {job?.state === 'queued' ? t('queue.waiting') : t('voiceDl.progress', { done: p?.done ?? 0, total: p?.total || mb })}
-          {p?.eta != null && p.done < p.total && ` · ${t('queue.etaLeft', { time: formatEta(p.eta) })}`}
-        </span>
-      </div>
-    )
-  }
-  const failure = error ?? (job?.state === 'failed' ? job.error : null)
   return (
-    <div className="voice-dl">
-      <button className="small" onClick={() => guard(api.enqueue({ kind: 'voiceModel', model: model.id, project }))}>
-        <Icon name="download" size={12} /> {t(job?.state === 'failed' ? 'voiceDl.retry' : 'voiceDl.get', { name: model.name, mb })}
-      </button>
-      <ErrorText error={failure} as="span" className="error small ellipsis" />
-    </div>
+    <JobDownload
+      job={jobs.filter(j => j.kind === 'voiceModel' && j.model === model.id).at(-1)}
+      installed={model.installed}
+      bytes={model.bytes}
+      label={t('voiceDl.get', { name: model.name, mb: Math.round(model.bytes / 1e6) })}
+      start={() => api.enqueue({ kind: 'voiceModel', model: model.id, project })}
+      onDone={onDone}
+    />
   )
 }
 

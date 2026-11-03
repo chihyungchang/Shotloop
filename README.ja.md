@@ -141,7 +141,7 @@ flowchart LR
 ## インストール
 
 1. [最新リリース](https://github.com/chihyungchang/Shotloop/releases/latest)から `Shotloop_<version>_aarch64.dmg` をダウンロードして開き、Shotloop を「アプリケーション」にドラッグします。
-2. **Google Chrome** をインストールしておいてください（2D ショットのレンダリングに使います）。
+2. ショットは Mac にある Chromium 系ブラウザ（Chrome、Edge、Brave、Arc…）でレンダリングします。見つからない場合は、初回のレンダリング時にヘッドレス版（約 100 MB）を自動でダウンロードします。設定 → 依存関係から先にダウンロードすることもできます。
 3. 「設定 → モデルとプロバイダ」で AI を選びます。Mac に Claude Code があれば自動で選ばれます。
 
 > **初回起動：** Shotloop はまだ Apple の公証を受けていないため、macOS は「開発元を検証できません」と表示します。**システム設定 → プライバシーとセキュリティ → このまま開く** から一度開くか、ターミナルで `xattr -dr com.apple.quarantine /Applications/Shotloop.app` を実行してください。以降は普通に開け、アップデートも確認なしでインストールされます。

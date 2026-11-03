@@ -141,7 +141,7 @@ Modelnya harus mendukung pemanggilan alat (tool calling), dan untuk pemeriksaan 
 ## Instalasi
 
 1. Unduh `Shotloop_<version>_aarch64.dmg` dari [rilis terbaru](https://github.com/chihyungchang/Shotloop/releases/latest), buka, lalu seret Shotloop ke Applications.
-2. Pastikan **Google Chrome** terpasang (adegan 2D dirender di dalamnya).
+2. Adegan dirender di peramban Chromium yang sudah ada di Mac (Chrome, Edge, Brave, Arc…). Jika tidak ada, Shotloop mengunduh peramban headless (sekitar 100 MB) saat render pertama, atau lebih awal di Pengaturan → Dependensi.
 3. Pilih AI di Pengaturan → Model dan penyedia. Claude Code otomatis dipilih jika sudah ada di Mac Anda.
 
 > **Pembukaan pertama:** Shotloop belum dinotarisasi oleh Apple, jadi macOS menyatakan tidak dapat memverifikasi pengembangnya. Buka sekali lewat **Pengaturan Sistem → Privasi & Keamanan → Tetap Buka**, atau jalankan `xattr -dr com.apple.quarantine /Applications/Shotloop.app` di Terminal. Setelah itu aplikasi terbuka seperti biasa, dan pembaruan terpasang tanpa bertanya lagi.

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
-import { api, type Doctor, type Settings } from '../api'
+import { api, type Doctor, type Job, type Settings } from '../api'
 import { t } from '../i18n'
 import { Icon } from './Icon'
 import { ErrorText } from './ErrorDialog'
+import { JobDownload } from './JobDownload'
 
 // First-run checks (docs/PRD.md §9, External): what is installed, how to
 // install what is missing, and where the tools are
-export function Setup({ settings, update }: { settings: Settings; update: (s: Partial<Settings>) => void }) {
+export function Setup({ settings, update, jobs }: { settings: Settings; update: (s: Partial<Settings>) => void; jobs: Job[] }) {
   const [doctor, setDoctor] = useState<Doctor | null>(null)
   const [doctorError, setDoctorError] = useState<string | null>(null)
 
@@ -17,16 +18,18 @@ export function Setup({ settings, update }: { settings: Settings; update: (s: Pa
   useEffect(check, [])
 
   // Node and ffmpeg ship inside the app: listed only when missing (a
-  // build from source without them). Chrome is the one thing to install
+  // build from source without them). The render browser is any Chromium
+  // browser on this Mac, or the headless shell downloaded here
   type Row = [string, string | null, string]
   const inApp = !!(doctor?.bundled?.node && doctor.bundled.ffmpeg)
   const rows: Row[] = doctor
     ? [
         ...(doctor.nodePath ? [] : [['Node.js', null, t('setup.nodeHint')] as Row]),
-        ['Chrome', doctor.chrome?.version ?? null, doctor.install.chrome],
         ...(doctor.ffmpeg ? [] : [['ffmpeg', null, doctor.install.ffmpeg] as Row])
       ]
     : []
+  const browser = doctor?.chrome
+  const shell = doctor?.shell
 
   return (
     <section className="settings-block setup">
@@ -39,6 +42,28 @@ export function Setup({ settings, update }: { settings: Settings; update: (s: Pa
       {doctor && (
         <table className="deps">
           <tbody>
+            <tr>
+              <td>
+                <span className={`dot ${browser ? 'ok' : 'bad'}`} /> {t('setup.browser')}
+              </td>
+              <td className={browser ? '' : 'muted'}>
+                {browser
+                  ? [browser.name, browser.version].filter(Boolean).join(' ')
+                  : <>
+                      {t('setup.noBrowser')}
+                      {shell && (
+                        <JobDownload
+                          job={jobs.filter(j => j.kind === 'browser').at(-1)}
+                          installed={shell.installed}
+                          bytes={shell.bytes}
+                          label={t('setup.getBrowser', { mb: Math.round(shell.bytes / 1e6) })}
+                          start={() => api.enqueue({ kind: 'browser' })}
+                          onDone={check}
+                        />
+                      )}
+                    </>}
+              </td>
+            </tr>
             {rows.map(([name, version, hint]) => (
               <tr key={name}>
                 <td>
@@ -56,7 +81,7 @@ export function Setup({ settings, update }: { settings: Settings; update: (s: Pa
       <details>
         <summary className="muted">{t('setup.toolPaths')}</summary>
         <label className="field">
-          <span>Chrome</span>
+          <span>{t('setup.browser')}</span>
           <input
             value={settings.chrome}
             placeholder="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"

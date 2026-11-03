@@ -133,6 +133,9 @@ export const zhTW: Record<Key, string> = {
   'setup.save': '儲存設定',
   'setup.checkAgain': '重新檢查',
   'setup.engine': '引擎：{path}',
+  'setup.browser': '渲染瀏覽器',
+  'setup.noBrowser': '找不到 Chromium 核心瀏覽器（Chrome、Edge、Brave、Arc…）。第一次渲染時會自動下載，也可以現在下載：',
+  'setup.getBrowser': '下載渲染瀏覽器（{mb} MB）',
 
   'studio.back': '返回專案',
   'studio.resizeAgent': '調整 AI 鏡頭助理面板寬度',
@@ -630,8 +633,8 @@ export const zhTW: Record<Key, string> = {
   'subs.look.clean': '簡潔',
   'subs.look.none': '無字幕',
   'voiceDl.get': '下載 {name}（{mb} MB）',
-  'voiceDl.retry': '重新下載（{mb} MB）',
-  'voiceDl.progress': '{done} / {total} MB',
+  'download.retry': '重新下載（{mb} MB）',
+  'download.progress': '{done} / {total} MB',
   'voiceDl.model': '聲音模型',
   'voiceDl.title': '配音模型',
   'voiceDl.intro': '配音用的語音模型不隨 app 一起安裝：第一次為某種語言配音時自動下載（也可以在這裡提前下載），之後可離線使用。',
@@ -719,6 +722,7 @@ export const zhTW: Record<Key, string> = {
   'job.plan': '規劃文案和分鏡',
   'job.build': '建構鏡頭',
   'job.voiceModel': '下載配音模型 {model}',
+  'job.browser': '下載渲染瀏覽器',
   'job.download': '下載 {name}',
   'job.voiceFit': '合成配音並對齊時長',
 

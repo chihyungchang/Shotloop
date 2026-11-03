@@ -133,6 +133,9 @@ export const de: Record<Key, string> = {
   'setup.save': 'Einstellungen sichern',
   'setup.checkAgain': 'Erneut prüfen',
   'setup.engine': 'Engine: {path}',
+  'setup.browser': 'Render-Browser',
+  'setup.noBrowser': 'Kein Chromium-Browser gefunden (Chrome, Edge, Brave, Arc…). Das erste Rendern lädt einen herunter, oder jetzt holen:',
+  'setup.getBrowser': 'Render-Browser herunterladen ({mb} MB)',
 
   'studio.back': 'Zurück zu den Projekten',
   'studio.resizeAgent': 'Breite des KI-Shot-Assistenten ändern',
@@ -630,8 +633,8 @@ export const de: Record<Key, string> = {
   'subs.look.clean': 'Schlicht',
   'subs.look.none': 'Keine',
   'voiceDl.get': '{name} laden ({mb} MB)',
-  'voiceDl.retry': 'Erneut laden ({mb} MB)',
-  'voiceDl.progress': '{done} / {total} MB',
+  'download.retry': 'Erneut laden ({mb} MB)',
+  'download.progress': '{done} / {total} MB',
   'voiceDl.model': 'Sprachmodell',
   'voiceDl.title': 'Sprachmodelle',
   'voiceDl.intro': 'Die Sprachmodelle sind nicht in der App enthalten: Jedes wird geladen, wenn ein Video zum ersten Mal in seinen Sprachen spricht (oder hier vorab), und funktioniert danach offline.',
@@ -719,6 +722,7 @@ export const de: Record<Key, string> = {
   'job.plan': 'Text und Storyboard planen',
   'job.build': 'Shots erstellen',
   'job.voiceModel': 'Stimme {model} laden',
+  'job.browser': 'Render-Browser herunterladen',
   'job.download': '{name} laden',
   'job.voiceFit': 'Sprechtext aufnehmen und Einstellungen anpassen',
 

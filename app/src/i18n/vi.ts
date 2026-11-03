@@ -133,6 +133,9 @@ export const vi: Record<Key, string> = {
   'setup.save': 'Lưu cài đặt',
   'setup.checkAgain': 'Kiểm tra lại',
   'setup.engine': 'Engine: {path}',
+  'setup.browser': 'Trình duyệt kết xuất',
+  'setup.noBrowser': 'Không tìm thấy trình duyệt Chromium (Chrome, Edge, Brave, Arc…). Lần kết xuất đầu tiên sẽ tự tải về, hoặc tải ngay:',
+  'setup.getBrowser': 'Tải trình duyệt kết xuất ({mb} MB)',
 
   'studio.back': 'Quay lại dự án',
   'studio.resizeAgent': 'Đổi độ rộng bảng trợ lý cảnh AI',
@@ -630,8 +633,8 @@ export const vi: Record<Key, string> = {
   'subs.look.clean': 'Gọn gàng',
   'subs.look.none': 'Không',
   'voiceDl.get': 'Tải {name} ({mb} MB)',
-  'voiceDl.retry': 'Tải lại ({mb} MB)',
-  'voiceDl.progress': '{done} / {total} MB',
+  'download.retry': 'Tải lại ({mb} MB)',
+  'download.progress': '{done} / {total} MB',
   'voiceDl.model': 'Mô hình giọng',
   'voiceDl.title': 'Mô hình lồng tiếng',
   'voiceDl.intro': 'Mô hình giọng nói không đi kèm ứng dụng: mỗi mô hình được tải khi video lần đầu dùng ngôn ngữ của nó (hoặc tải trước ở đây), sau đó dùng được ngoại tuyến.',
@@ -719,6 +722,7 @@ export const vi: Record<Key, string> = {
   'job.plan': 'Lên lời văn và kịch bản phân cảnh',
   'job.build': 'Dựng các cảnh',
   'job.voiceModel': 'Tải giọng {model}',
+  'job.browser': 'Tải trình duyệt kết xuất',
   'job.download': 'Tải {name}',
   'job.voiceFit': 'Đọc lời thoại và khớp thời lượng',
 

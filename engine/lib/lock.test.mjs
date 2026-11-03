@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { test } from 'node:test'
-import { tryLock } from '../src/lock.mjs'
+import { onceUnderLock, tryLock } from './lock.mjs'
 
 const lockFile = () => path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-lock-test-')), 'x.lock')
 const ago = (file, ms) => fs.utimesSync(file, new Date(Date.now() - ms), new Date(Date.now() - ms))
@@ -55,4 +55,28 @@ test('a lock untouched for long is taken over, though its pid lives (reused)', (
   const release = tryLock(lock)
   assert.ok(release)
   release()
+})
+
+test('work done under the lock is done once: a waiter takes the holder\'s', async () => {
+  const lock = lockFile()
+  let done = false
+  let made = 0
+  let waited = 0
+  const release = tryLock(lock)
+  // Another holder finishes while this one waits
+  setTimeout(() => {
+    done = true
+    release()
+  }, 100)
+  await onceUnderLock(lock, () => done, () => made++, () => waited++)
+  assert.equal(made, 0)
+  assert.ok(waited >= 1)
+  // Free and not done: made here, once
+  done = false
+  await onceUnderLock(lock, () => done, () => {
+    made++
+    done = true
+  })
+  assert.equal(made, 1)
+  assert.ok(!fs.existsSync(lock))
 })

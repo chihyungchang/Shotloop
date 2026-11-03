@@ -133,6 +133,9 @@ export const ptBR: Record<Key, string> = {
   'setup.save': 'Salvar configurações',
   'setup.checkAgain': 'Verificar de novo',
   'setup.engine': 'Motor: {path}',
+  'setup.browser': 'Navegador de renderização',
+  'setup.noBrowser': 'Nenhum navegador Chromium encontrado (Chrome, Edge, Brave, Arc…). A primeira renderização baixa um, ou baixe agora:',
+  'setup.getBrowser': 'Baixar o navegador de renderização ({mb} MB)',
 
   'studio.back': 'Voltar aos projetos',
   'studio.resizeAgent': 'Ajustar a largura do painel do assistente IA de planos',
@@ -630,8 +633,8 @@ export const ptBR: Record<Key, string> = {
   'subs.look.clean': 'Limpo',
   'subs.look.none': 'Nenhuma',
   'voiceDl.get': 'Baixar {name} ({mb} MB)',
-  'voiceDl.retry': 'Baixar de novo ({mb} MB)',
-  'voiceDl.progress': '{done} / {total} MB',
+  'download.retry': 'Baixar de novo ({mb} MB)',
+  'download.progress': '{done} / {total} MB',
   'voiceDl.model': 'Modelo de voz',
   'voiceDl.title': 'Modelos de narração',
   'voiceDl.intro': 'Os modelos de voz não vêm com o app: cada um é baixado na primeira vez que um vídeo fala seus idiomas (ou aqui, antes) e depois funciona offline.',
@@ -719,6 +722,7 @@ export const ptBR: Record<Key, string> = {
   'job.plan': 'Planejar texto e storyboard',
   'job.build': 'Gerar os planos',
   'job.voiceModel': 'Baixar voz {model}',
+  'job.browser': 'Baixar o navegador de renderização',
   'job.download': 'Baixar {name}',
   'job.voiceFit': 'Gravar as falas e ajustar as cenas',
 

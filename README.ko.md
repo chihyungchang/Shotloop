@@ -141,7 +141,7 @@ flowchart LR
 ## 설치
 
 1. [최신 릴리스](https://github.com/chihyungchang/Shotloop/releases/latest)에서 `Shotloop_<version>_aarch64.dmg`를 다운로드해 열고, Shotloop을 응용 프로그램 폴더로 끌어다 놓습니다.
-2. **Google Chrome**이 설치되어 있어야 합니다(2D 샷은 Chrome으로 렌더링합니다).
+2. 샷은 Mac에 이미 있는 Chromium 기반 브라우저(Chrome, Edge, Brave, Arc…)로 렌더링합니다. 없으면 첫 렌더링 때 헤드리스 브라우저(약 100MB)를 내려받으며, 설정 → 의존성에서 미리 받을 수도 있습니다.
 3. 설정 → 모델 및 제공업체에서 AI를 고릅니다. Mac에 Claude Code가 이미 있으면 자동으로 선택됩니다.
 
 > **처음 실행할 때:** Shotloop은 아직 Apple 공증을 받지 않아 macOS가 개발자를 확인할 수 없다고 표시합니다. **시스템 설정 → 개인정보 보호 및 보안 → 그래도 열기**에서 한 번 열거나, 터미널에서 `xattr -dr com.apple.quarantine /Applications/Shotloop.app`을 실행하세요. 그다음부터는 평소처럼 열리고, 업데이트도 다시 묻지 않고 설치됩니다.

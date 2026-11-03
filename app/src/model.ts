@@ -139,6 +139,8 @@ export function jobLabel(job: Job): string {
       return t('job.sound')
     case 'voiceModel':
       return t('job.voiceModel', { model: job.model ?? '' })
+    case 'browser':
+      return t('job.browser')
     case 'download':
       return t('job.download', { name: job.item?.name ?? '' })
     case 'voiceFit':

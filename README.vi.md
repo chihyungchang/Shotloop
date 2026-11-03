@@ -141,7 +141,7 @@ Mô hình cần hỗ trợ gọi công cụ (tool calling), và việc kiểm tr
 ## Cài đặt
 
 1. Tải `Shotloop_<version>_aarch64.dmg` từ [bản phát hành mới nhất](https://github.com/chihyungchang/Shotloop/releases/latest), mở ra và kéo Shotloop vào Applications.
-2. Cần cài **Google Chrome** (cảnh 2D được render bằng nó).
+2. Cảnh được render bằng trình duyệt Chromium có sẵn trên Mac (Chrome, Edge, Brave, Arc…). Nếu không có, Shotloop sẽ tải một trình duyệt headless (khoảng 100 MB) ở lần render đầu tiên, hoặc tải trước trong Cài đặt → Phụ thuộc.
 3. Chọn AI trong Cài đặt → Mô hình và nhà cung cấp. Nếu Mac đã có Claude Code, nó sẽ được chọn sẵn.
 
 > **Lần mở đầu tiên:** Shotloop chưa được Apple công chứng (notarize), nên macOS báo không thể xác minh nhà phát triển. Hãy mở một lần từ **Cài đặt hệ thống → Quyền riêng tư & Bảo mật → Vẫn mở**, hoặc chạy `xattr -dr com.apple.quarantine /Applications/Shotloop.app` trong Terminal. Sau đó ứng dụng mở bình thường và các bản cập nhật cài đặt mà không hỏi lại.

@@ -78,6 +78,9 @@ pub enum Spec {
         #[serde(default)]
         project: Option<String>,
     },
+    /// The headless shell renders use when this Mac has no Chromium
+    /// browser, downloaded ahead of the first render (Settings)
+    Browser,
     /// A search result fetched into the asset library (engine library
     /// get); `key`: Poly Pizza's, added from the settings when queued
     Download { item: Value, #[serde(default)] key: Option<String> },
@@ -102,6 +105,7 @@ impl Spec {
             Spec::Build { .. } => "build",
             Spec::Sound { .. } => "sound",
             Spec::VoiceModel { .. } => "voiceModel",
+            Spec::Browser => "browser",
             Spec::Download { .. } => "download",
             Spec::VoiceFit { .. } => "voiceFit",
             Spec::Preview { .. } => "preview",
@@ -112,7 +116,7 @@ impl Spec {
         match self {
             Spec::Render { .. } | Spec::Export { .. } => "render",
             Spec::VoiceModel { .. } | Spec::VoiceFit { .. } => "voice",
-            Spec::Download { .. } => "download",
+            Spec::Download { .. } | Spec::Browser => "download",
             Spec::Preview { .. } => "preview",
             _ => "agent",
         }
@@ -133,7 +137,7 @@ impl Spec {
             | Spec::Preview { project, .. }
             | Spec::VoiceFit { project } => project,
             Spec::VoiceModel { project, .. } => project.as_deref().unwrap_or(""),
-            Spec::Download { .. } => "",
+            Spec::Download { .. } | Spec::Browser => "",
         }
     }
 
@@ -153,6 +157,7 @@ impl Spec {
             Spec::Build { .. } => "Build the shots".into(),
             Spec::Sound { .. } => "Sound for the film".into(),
             Spec::VoiceModel { model, .. } => format!("Download voice {}", model),
+            Spec::Browser => "Download the render browser".into(),
             Spec::Download { item, .. } => format!("Download {}", item["name"].as_str().unwrap_or("an asset")),
             Spec::VoiceFit { .. } => "Speak the lines".into(),
             Spec::Preview { mode, .. } => format!("Preview the film {}", mode),
@@ -211,6 +216,7 @@ impl Spec {
                     .opt("--lang", lang.as_ref()),
             ),
             Spec::VoiceModel { model, .. } => (Script::Engine, Args::new(["voice-models", "--download", model])),
+            Spec::Browser => (Script::Engine, Args::new(["browser", "get"])),
             Spec::Download { item, key } => {
                 (Script::Engine, Args::new(["library", "get", "--item"]).arg(item.to_string()).opt("--key", key.as_ref()))
             }
@@ -230,6 +236,7 @@ impl Spec {
             ) => p1 == p2 && s1 == s2 && m1 == m2 && x1 == x2,
             // One download of a model at a time
             (Spec::VoiceModel { model: a, .. }, Spec::VoiceModel { model: b, .. }) => a == b,
+            (Spec::Browser, Spec::Browser) => true,
             (Spec::VoiceFit { project: a }, Spec::VoiceFit { project: b }) => a == b,
             (Spec::Download { item: a, .. }, Spec::Download { item: b, .. }) => a["id"] == b["id"],
             (Spec::Preview { project: p1, mode: m1 }, Spec::Preview { project: p2, mode: m2 }) => p1 == p2 && m1 == m2,
@@ -745,6 +752,10 @@ mod tests {
         assert!(!d.busy());
         let m = Job::new(2, spec(serde_json::json!({ "kind": "voiceModel", "model": "kokoro" })));
         assert_eq!(m.state, "queued");
+        // The render browser, asked for in the settings, doesn't wait either
+        let b = Job::new(4, spec(serde_json::json!({ "kind": "browser" })));
+        assert_eq!((b.state.as_str(), b.lane.as_str(), b.kind.as_str()), ("queued", "download", "browser"));
+        assert_eq!(b.spec.command().1, ["browser", "get"]);
         let r = Job::new(3, spec(serde_json::json!({ "kind": "render", "project": "/p", "shot": "s1", "mode": "draft", "stills": false })));
         assert_eq!(r.state, "queued");
         // What speaks waits for the speech model; a render doesn't

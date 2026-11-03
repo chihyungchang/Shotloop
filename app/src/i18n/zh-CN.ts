@@ -128,6 +128,9 @@ export const zhCN: Record<Key, string> = {
   'setup.save': '保存设置',
   'setup.checkAgain': '重新检查',
   'setup.engine': '引擎：{path}',
+  'setup.browser': '渲染浏览器',
+  'setup.noBrowser': '没有找到 Chromium 内核浏览器（Chrome、Edge、Brave、Arc…）。第一次渲染时会自动下载，也可以现在下载：',
+  'setup.getBrowser': '下载渲染浏览器（{mb} MB）',
 
   'studio.back': '返回项目',
   'studio.resizeAgent': '调整 AI 镜头助手面板宽度',
@@ -630,8 +633,8 @@ export const zhCN: Record<Key, string> = {
   'subs.look.clean': '简洁',
   'subs.look.none': '无字幕',
   'voiceDl.get': '下载 {name}（{mb} MB）',
-  'voiceDl.retry': '重新下载（{mb} MB）',
-  'voiceDl.progress': '{done} / {total} MB',
+  'download.retry': '重新下载（{mb} MB）',
+  'download.progress': '{done} / {total} MB',
   'voiceDl.model': '声音模型',
   'voiceDl.title': '配音模型',
   'voiceDl.intro': '配音用的语音模型不随 app 一起安装：第一次给某种语言配音时自动下载（也可以在这里提前下载），之后离线可用。',
@@ -719,6 +722,7 @@ export const zhCN: Record<Key, string> = {
   'job.plan': '策划文案和分镜',
   'job.build': '生成镜头',
   'job.voiceModel': '下载配音模型 {model}',
+  'job.browser': '下载渲染浏览器',
   'job.download': '下载 {name}',
   'job.voiceFit': '合成配音并对齐时长',
 

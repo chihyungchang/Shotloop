@@ -141,7 +141,7 @@ The model needs tool calling, and checks need one that can see images. The agent
 ## Install
 
 1. Download `Shotloop_<version>_aarch64.dmg` from the [latest release](https://github.com/chihyungchang/Shotloop/releases/latest), open it and drag Shotloop into Applications.
-2. Have **Google Chrome** installed (2D shots render in it).
+2. Shots render in a Chromium browser already on your Mac (Chrome, Edge, Brave, Arc…). Without one, Shotloop downloads a headless one (about 100 MB) the first time it renders, or ahead of time in Settings → Dependencies.
 3. Pick the AI in Settings → Models & providers. Claude Code is picked for you if it's already on your Mac.
 
 > **First launch:** Shotloop isn't notarized by Apple yet, so macOS says it can't verify the developer. Open it once from **System Settings → Privacy & Security → Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/Shotloop.app` in Terminal. After that it opens normally, and updates install without asking again.

@@ -13,8 +13,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { promisify } from 'node:util'
 import { fileURLToPath } from 'node:url'
-import { download, du } from './fetch.mjs'
-import { tryLock } from './lock.mjs'
+import { download, du } from '../../engine/lib/fetch.mjs'
+import { tryLock } from '../../engine/lib/lock.mjs'
 
 const PY = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'py')
 const SERVER = path.join(PY, 'cosyvoice_server.py')

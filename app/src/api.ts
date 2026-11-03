@@ -50,6 +50,8 @@ type Spec =
   // A speech model for the voice-over, downloaded with progress
   // project: the one that asked for it, whose speaking jobs wait for it
   | { kind: 'voiceModel'; model: string; project?: string }
+  // The headless shell renders use when this Mac has no Chromium browser
+  | { kind: 'browser' }
   // A search result fetched into the asset library, once approved
   | { kind: 'download'; item: LibraryItem }
   // Every line spoken and the shots fitted to them
@@ -138,9 +140,12 @@ export interface Doctor {
   nodePath: string | null
   root: string
   apiKey: boolean
-  chrome: Tool | null
+  // The browser renders use (any Chromium browser, or the downloaded shell)
+  chrome: (Tool & { name: string }) | null
+  // The headless shell on offer; null where none is built for this Mac
+  shell: { version: string; bytes: number; installed: boolean } | null
   ffmpeg: Tool | null
-  install: Record<'chrome' | 'ffmpeg', string>
+  install: Record<'ffmpeg', string>
   // Node and ffmpeg shipped inside the app
   bundled: { node: boolean; ffmpeg: boolean }
 }

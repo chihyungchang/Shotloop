@@ -133,6 +133,9 @@ export const ru: Record<Key, string> = {
   'setup.save': 'Сохранить настройки',
   'setup.checkAgain': 'Проверить снова',
   'setup.engine': 'Движок: {path}',
+  'setup.browser': 'Браузер для рендеринга',
+  'setup.noBrowser': 'Браузер на Chromium не найден (Chrome, Edge, Brave, Arc…). Первый рендер скачает его сам, или скачайте сейчас:',
+  'setup.getBrowser': 'Скачать браузер для рендеринга ({mb} МБ)',
 
   'studio.back': 'К проектам',
   'studio.resizeAgent': 'Изменить ширину панели ИИ-ассистента кадров',
@@ -630,8 +633,8 @@ export const ru: Record<Key, string> = {
   'subs.look.clean': 'Чистый',
   'subs.look.none': 'Нет',
   'voiceDl.get': 'Скачать {name} ({mb} МБ)',
-  'voiceDl.retry': 'Скачать снова ({mb} МБ)',
-  'voiceDl.progress': '{done} / {total} МБ',
+  'download.retry': 'Скачать снова ({mb} МБ)',
+  'download.progress': '{done} / {total} МБ',
   'voiceDl.model': 'Модель голоса',
   'voiceDl.title': 'Модели озвучки',
   'voiceDl.intro': 'Модели голоса не входят в приложение: каждая скачивается, когда видео впервые говорит на её языках (или здесь, заранее), и потом работает офлайн.',
@@ -719,6 +722,7 @@ export const ru: Record<Key, string> = {
   'job.plan': 'План текста и раскадровки',
   'job.build': 'Сборка кадров',
   'job.voiceModel': 'Загрузить голос {model}',
+  'job.browser': 'Скачать браузер для рендеринга',
   'job.download': 'Скачать {name}',
   'job.voiceFit': 'Озвучить реплики и подогнать кадры',
 

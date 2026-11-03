@@ -133,6 +133,9 @@ export const ja: Record<Key, string> = {
   'setup.save': '設定を保存',
   'setup.checkAgain': '再確認',
   'setup.engine': 'エンジン：{path}',
+  'setup.browser': 'レンダリング用ブラウザ',
+  'setup.noBrowser': 'Chromium 系ブラウザ（Chrome、Edge、Brave、Arc…）が見つかりません。初回のレンダリングで自動的にダウンロードされます。今すぐ入手することもできます：',
+  'setup.getBrowser': 'レンダリング用ブラウザをダウンロード（{mb} MB）',
 
   'studio.back': 'プロジェクトに戻る',
   'studio.resizeAgent': 'AI ショットアシスタントの幅を変更',
@@ -630,8 +633,8 @@ export const ja: Record<Key, string> = {
   'subs.look.clean': 'クリーン',
   'subs.look.none': 'なし',
   'voiceDl.get': '{name} をダウンロード（{mb} MB）',
-  'voiceDl.retry': 'もう一度ダウンロード（{mb} MB）',
-  'voiceDl.progress': '{done} / {total} MB',
+  'download.retry': 'もう一度ダウンロード（{mb} MB）',
+  'download.progress': '{done} / {total} MB',
   'voiceDl.model': '音声モデル',
   'voiceDl.title': 'ナレーションのモデル',
   'voiceDl.intro': '音声モデルはアプリに含まれていません。その言語で初めてナレーションするときに自動でダウンロードされ（ここで先にダウンロードもできます）、以後はオフラインで使えます。',
@@ -719,6 +722,7 @@ export const ja: Record<Key, string> = {
   'job.plan': 'コピーと絵コンテを企画',
   'job.build': 'ショットを制作',
   'job.voiceModel': 'ナレーションモデル {model} をダウンロード',
+  'job.browser': 'レンダリング用ブラウザをダウンロード',
   'job.download': '{name} をダウンロード',
   'job.voiceFit': 'ナレーションを生成して尺を合わせる',
 

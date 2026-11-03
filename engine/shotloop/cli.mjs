@@ -54,7 +54,9 @@
 //                     | checklist [--track 2d|3d]
 //                     the video rules: fixed, the person's taste (editable), the toolbox
 //   shotloop prune    <project>                          drop unused cache entries (shots and voice-over)
-//   shotloop doctor                                      Chrome, ffmpeg
+//   shotloop browser  [get]                              the browser renders use, and the headless shell
+//                     on offer; get downloads the shell (progress in MB)
+//   shotloop doctor                                      the render browser, ffmpeg
 //
 // --json prints one JSON event per line (start, progress, log, done,
 // error, result) for the app instead of human-readable output.
@@ -64,12 +66,13 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { CHROME } from '../lib/chrome.mjs'
+import { browserVersion, ensureShell, findBrowser, reportDownloads, shellOffer } from '../lib/browser.mjs'
 import { exit, parseFlags } from '../lib/jsonl.mjs'
 import { editMode, prune, status, worldKey } from './cache.mjs'
 import { readJson, writeJson } from './files.mjs'
 import { deliverCopy } from './deliver.mjs'
 import { emit, setJson } from './compose.mjs'
+import { downloadTicker } from './downloads.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
 import { freshWebglPage, isStarter, isStarterCover } from './starters.mjs'
 import { assemble, exportFilm, filmPreview, renderCover, setCoverFrame } from './film.mjs'
@@ -148,6 +151,13 @@ const OPTIONS = {
 
 const { values, positionals } = parseFlags(process.argv.slice(2), OPTIONS)
 setJson(!!values.json)
+// A render that finds no browser downloads the shell, shown as progress
+let shellTick = null
+reportDownloads((done, total, info) => {
+  if (!shellTick) emit({ type: 'log', message: 'downloading the render browser (once)' })
+  shellTick ??= downloadTicker('download', total, 'render browser')
+  shellTick(done, total, info)
+})
 const [cmd, ...args] = positionals
 
 // A WebGL film's kit is kept current before any command reads the film
@@ -200,13 +210,18 @@ function doctor() {
   }
   return {
     node: process.version,
-    chrome: fs.existsSync(CHROME) ? { path: CHROME, version: version(CHROME, ['--version']) } : null,
+    chrome: browserInfo().found,
+    shell: shellOffer(),
     ffmpeg: version('ffmpeg', ['-version']) ? { path: onPath('ffmpeg') ?? 'ffmpeg', version: version('ffmpeg', ['-version']) } : null,
-    install: {
-      chrome: 'Install Google Chrome, or set CHROME to a Chrome or headless shell binary',
-      ffmpeg: 'brew install ffmpeg'
-    }
+    install: { ffmpeg: 'brew install ffmpeg' }
   }
+}
+
+// The browser renders use ({ path, name, version }, null when there is
+// none or a path set by hand leads nowhere)
+function browserInfo() {
+  const b = findBrowser()
+  return { found: b && fs.existsSync(b.path) ? { path: b.path, name: b.name, version: browserVersion(b) } : null }
 }
 
 function projectStatus(project) {
@@ -491,6 +506,10 @@ try {
       result({ removed, voice: await pruneVoice(project) })
       break
     }
+    case 'browser':
+      if (args[0] === 'get') await ensureShell(downloadTicker('download', shellOffer()?.bytes ?? 0, 'render browser'))
+      result({ ...browserInfo(), shell: shellOffer() })
+      break
     case 'doctor':
       result(doctor())
       break

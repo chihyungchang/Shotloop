@@ -11,10 +11,7 @@ import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-
-export const CHROME =
-  process.env.CHROME ??
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+import { renderBrowser } from './browser.mjs'
 
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
@@ -36,11 +33,17 @@ export async function openPage({
   scale = 1,
   dark = false
 }) {
+  const browser = await renderBrowser()
+  // A path set by hand that leads nowhere: said, not a start timed out
+  if (!fs.existsSync(browser.path)) throw new Error(`the browser set in Settings is not there: ${browser.path}`)
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'cdp-'))
   const chrome = spawn(
-    CHROME,
+    browser.path,
     [
-      '--headless=new',
+      browser.shell ? '--headless' : '--headless=new',
+      // WebGL on the GPU: the headless shell otherwise draws it in
+      // software, about ten times slower for a 3D shot
+      ...(process.platform === 'darwin' ? ['--use-angle=metal'] : []),
       '--remote-debugging-port=0',
       `--user-data-dir=${profile}`,
       '--no-first-run',

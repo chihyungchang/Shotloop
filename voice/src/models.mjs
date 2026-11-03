@@ -8,9 +8,9 @@ import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { download, du } from './fetch.mjs'
+import { download, du } from '../../engine/lib/fetch.mjs'
 import * as cosyvoice from './cosyvoice.mjs'
-import { tryLock } from './lock.mjs'
+import { onceUnderLock } from '../../engine/lib/lock.mjs'
 
 export const VOICES_DIR = process.env.SHOTLOOP_VOICES ?? path.join(os.homedir(), '.shotloop', 'voices')
 
@@ -72,26 +72,14 @@ export async function ensureModel(id, onProgress = () => {}) {
   fs.mkdirSync(VOICES_DIR, { recursive: true })
   // One download per model: another process fetching it (the app's
   // download while a build needs the voice) is waited for, not repeated
-  const lock = path.join(VOICES_DIR, `.${id}.lock`)
-  let release
-  while (!(release = tryLock(lock))) {
-    const got = partial(id).reduce((n, d) => n + du(d), 0)
-    onProgress(Math.min(got, m.bytes - 1), m.bytes, { waiting: true })
-    await new Promise(r => setTimeout(r, 2000))
-    if (installed(id)) return dir
-  }
-  try {
-    // The other process may have finished just before we took the lock
-    if (installed(id)) return dir
+  await onceUnderLock(path.join(VOICES_DIR, `.${id}.lock`), () => installed(id), async () => {
     if (m.kind === 'cosyvoice') {
       await cosyvoice.install(dir, onProgress)
       markComplete(dir)
     } else {
       await fetchFiles(id, m, dir, onProgress)
     }
-  } finally {
-    release()
-  }
+  }, () => onProgress(Math.min(partial(id).reduce((n, d) => n + du(d), 0), m.bytes - 1), m.bytes, { waiting: true }))
   onProgress(m.bytes, m.bytes)
   return dir
 }

@@ -47,6 +47,13 @@ on first use, each under its own license:
   OpenRAIL-M License; voice/src/supertonic.mjs adapts its MIT-licensed
   Node.js example (https://github.com/supertone-inc/supertonic).
 
+Renders run in a Chromium browser already on the Mac. Where there is
+none, Chrome for Testing's headless shell
+(https://github.com/GoogleChromeLabs/chrome-for-testing) is downloaded
+on first use, not shipped with this distribution: Chromium, BSD 3-Clause
+License, with the third-party licenses listed in its own ABOUT and
+LICENSE.headless_shell files.
+
 Third-party material that projects may use is not part of this
 distribution: the CC0 asset packs listed in engine/assets/README.md
 (Kenney, Poly Haven, Quaternius) are downloaded, not committed, and keep

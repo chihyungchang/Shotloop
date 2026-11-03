@@ -133,6 +133,9 @@ export const fr: Record<Key, string> = {
   'setup.save': 'Enregistrer les réglages',
   'setup.checkAgain': 'Vérifier à nouveau',
   'setup.engine': 'Moteur : {path}',
+  'setup.browser': 'Navigateur de rendu',
+  'setup.noBrowser': 'Aucun navigateur Chromium trouvé (Chrome, Edge, Brave, Arc…). Le premier rendu en télécharge un, ou téléchargez-le maintenant :',
+  'setup.getBrowser': 'Télécharger le navigateur de rendu ({mb} Mo)',
 
   'studio.back': 'Retour aux projets',
   'studio.resizeAgent': 'Redimensionner le panneau de l’assistant IA des plans',
@@ -630,8 +633,8 @@ export const fr: Record<Key, string> = {
   'subs.look.clean': 'Épuré',
   'subs.look.none': 'Aucun',
   'voiceDl.get': 'Télécharger {name} ({mb} Mo)',
-  'voiceDl.retry': 'Télécharger à nouveau ({mb} Mo)',
-  'voiceDl.progress': '{done} / {total} Mo',
+  'download.retry': 'Télécharger à nouveau ({mb} Mo)',
+  'download.progress': '{done} / {total} Mo',
   'voiceDl.model': 'Modèle de voix',
   'voiceDl.title': 'Modèles de voix off',
   'voiceDl.intro': 'Les modèles de voix ne sont pas installés avec l’app : chacun se télécharge la première fois qu’une vidéo parle ses langues (ou ici, à l’avance), puis fonctionne hors ligne.',
@@ -719,6 +722,7 @@ export const fr: Record<Key, string> = {
   'job.plan': 'Planifier le texte et le storyboard',
   'job.build': 'Construire les plans',
   'job.voiceModel': 'Télécharger la voix {model}',
+  'job.browser': 'Télécharger le navigateur de rendu',
   'job.download': 'Télécharger {name}',
   'job.voiceFit': 'Enregistrer les répliques et caler les plans',
 

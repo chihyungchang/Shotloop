@@ -91,7 +91,7 @@ export function SettingsPage({ theme, language, jobs, back, start = 'ai', focus,
           {!settings && section !== 'about' && section !== 'memory' && section !== 'rules' && <p className="muted">{t('common.loading')}</p>}
           {settings && section === 'ai' && <AiSettings settings={settings} update={update} />}
           {settings && section === 'general' && <General settings={settings} savePref={savePref} theme={theme} language={language} />}
-          {settings && section === 'deps' && <><Setup settings={settings} update={update} /><VoiceModels jobs={jobs} /></>}
+          {settings && section === 'deps' && <><Setup settings={settings} update={update} jobs={jobs} /><VoiceModels jobs={jobs} /></>}
           {settings && section === 'assets' && <AssetSources settings={settings} update={update} />}
           {section === 'rules' && <RulesSettings focus={focus} />}
           {section === 'memory' && <MemorySettings />}

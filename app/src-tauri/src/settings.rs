@@ -31,7 +31,7 @@ pub struct Settings {
     pub local_url: String,
     pub local_model: String,
     pub local_key: String,
-    /// Chrome or headless shell binary, if not in /Applications
+    /// A Chromium browser or headless shell binary, over the one found
     pub chrome: String,
     /// A sound and a desktop notification when the queue runs dry
     pub notify_sound: bool,

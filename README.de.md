@@ -141,7 +141,7 @@ Das Modell braucht Tool-Calling, für Prüfungen eines, das Bilder sehen kann. D
 ## Installation
 
 1. Lade `Shotloop_<version>_aarch64.dmg` vom [neuesten Release](https://github.com/chihyungchang/Shotloop/releases/latest), öffne es und zieh Shotloop in „Programme“.
-2. Installiere **Google Chrome** (2D-Shots werden darin gerendert).
+2. Shots werden in einem Chromium-Browser gerendert, der schon auf dem Mac ist (Chrome, Edge, Brave, Arc…). Gibt es keinen, lädt Shotloop beim ersten Rendern einen Headless-Browser herunter (etwa 100 MB), oder vorab unter Einstellungen → Abhängigkeiten.
 3. Wähle die KI unter Einstellungen → Modelle und Anbieter. Ist Claude Code schon auf deinem Mac, wird es automatisch gewählt.
 
 > **Erster Start:** Shotloop ist noch nicht von Apple notarisiert, daher meldet macOS, dass der Entwickler nicht überprüft werden kann. Öffne die App einmal über **Systemeinstellungen → Datenschutz & Sicherheit → Dennoch öffnen** oder führe im Terminal `xattr -dr com.apple.quarantine /Applications/Shotloop.app` aus. Danach öffnet sie sich normal, und Updates installieren sich ohne erneute Nachfrage.

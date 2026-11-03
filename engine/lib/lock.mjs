@@ -1,6 +1,6 @@
 // A lock file between processes, holding its owner's pid: one process
-// downloads a model (models.mjs) or starts the Chinese voice's server
-// (cosyvoice.mjs) while the others wait. A lock its owner left behind is
+// downloads a speech model or the render browser, or starts the Chinese
+// voice's server (voice/src/cosyvoice.mjs), while the others wait. A lock its owner left behind is
 // taken over: the owner is dead, the file holds no pid (cut short), or
 // it hasn't been touched for STALE (the pid was reused by another
 // process). The owner touches it every BEAT while it holds it.
@@ -83,5 +83,23 @@ export function tryLock(lock) {
   return () => {
     clearInterval(beat)
     fs.rmSync(lock, { force: true })
+  }
+}
+
+// make() run by one process at a time, and not at all once done() holds:
+// while another process holds the lock, waiting() is called every two
+// seconds, and that process's work is taken as ours once done() says so
+export async function onceUnderLock(lock, done, make, waiting = () => {}) {
+  let release
+  while (!(release = tryLock(lock))) {
+    waiting()
+    await new Promise(r => setTimeout(r, 2000))
+    if (done()) return
+  }
+  try {
+    // The other process may have finished just before we took the lock
+    if (!done()) await make()
+  } finally {
+    release()
   }
 }

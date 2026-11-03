@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "description": "Shotloop's engine: the project format, the per-shot cache, 2D and 3D rendering, the film and its export (no dependencies)",
   "scripts": {
-    "test": "node --test \"shotloop/*.test.mjs\""
+    "test": "node --test \"shotloop/*.test.mjs\" \"lib/*.test.mjs\""
   },
   "engines": {
     "node": ">=22.18"

@@ -141,7 +141,7 @@ Le modèle doit gérer l’appel d’outils, et les vérifications demandent un 
 ## Installation
 
 1. Téléchargez `Shotloop_<version>_aarch64.dmg` depuis la [dernière version](https://github.com/chihyungchang/Shotloop/releases/latest), ouvrez-le et glissez Shotloop dans Applications.
-2. Installez **Google Chrome** (les plans 2D y sont rendus).
+2. Les plans sont rendus dans un navigateur Chromium déjà présent sur le Mac (Chrome, Edge, Brave, Arc…). Sans navigateur, Shotloop en télécharge un sans interface (environ 100 Mo) au premier rendu, ou à l’avance dans Réglages → Dépendances.
 3. Choisissez l’IA dans Réglages → Modèles et fournisseurs. Claude Code est sélectionné d’office s’il est déjà sur votre Mac.
 
 > **Premier lancement :** Shotloop n’est pas encore notarié par Apple, donc macOS indique qu’il ne peut pas vérifier le développeur. Ouvrez-le une fois via **Réglages Système → Confidentialité et sécurité → Ouvrir quand même**, ou lancez `xattr -dr com.apple.quarantine /Applications/Shotloop.app` dans le Terminal. Ensuite, il s’ouvre normalement et les mises à jour s’installent sans redemander.

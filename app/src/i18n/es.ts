@@ -133,6 +133,9 @@ export const es: Record<Key, string> = {
   'setup.save': 'Guardar ajustes',
   'setup.checkAgain': 'Volver a comprobar',
   'setup.engine': 'Motor: {path}',
+  'setup.browser': 'Navegador de renderizado',
+  'setup.noBrowser': 'No se encontró ningún navegador Chromium (Chrome, Edge, Brave, Arc…). El primer renderizado descarga uno, o descárgalo ahora:',
+  'setup.getBrowser': 'Descargar el navegador de renderizado ({mb} MB)',
 
   'studio.back': 'Volver a los proyectos',
   'studio.resizeAgent': 'Cambiar el ancho del panel del asistente IA de planos',
@@ -630,8 +633,8 @@ export const es: Record<Key, string> = {
   'subs.look.clean': 'Limpio',
   'subs.look.none': 'Ninguno',
   'voiceDl.get': 'Descargar {name} ({mb} MB)',
-  'voiceDl.retry': 'Descargar de nuevo ({mb} MB)',
-  'voiceDl.progress': '{done} / {total} MB',
+  'download.retry': 'Descargar de nuevo ({mb} MB)',
+  'download.progress': '{done} / {total} MB',
   'voiceDl.model': 'Modelo de voz',
   'voiceDl.title': 'Modelos de voz en off',
   'voiceDl.intro': 'Los modelos de voz no vienen con la app: cada uno se descarga la primera vez que un vídeo habla sus idiomas (o aquí, por adelantado) y luego funciona sin conexión.',
@@ -719,6 +722,7 @@ export const es: Record<Key, string> = {
   'job.plan': 'Planificar el texto y el storyboard',
   'job.build': 'Generar los planos',
   'job.voiceModel': 'Descargar voz {model}',
+  'job.browser': 'Descargar el navegador de renderizado',
   'job.download': 'Descargar {name}',
   'job.voiceFit': 'Grabar las frases y ajustar los planos',
 

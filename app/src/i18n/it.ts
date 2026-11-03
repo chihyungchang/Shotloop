@@ -133,6 +133,9 @@ export const it: Record<Key, string> = {
   'setup.save': 'Salva impostazioni',
   'setup.checkAgain': 'Verifica di nuovo',
   'setup.engine': 'Motore: {path}',
+  'setup.browser': 'Browser di rendering',
+  'setup.noBrowser': 'Nessun browser Chromium trovato (Chrome, Edge, Brave, Arc…). Il primo rendering ne scarica uno, oppure scaricalo ora:',
+  'setup.getBrowser': 'Scarica il browser di rendering ({mb} MB)',
 
   'studio.back': 'Torna ai progetti',
   'studio.resizeAgent': 'Ridimensiona il pannello dell’assistente IA delle inquadrature',
@@ -630,8 +633,8 @@ export const it: Record<Key, string> = {
   'subs.look.clean': 'Pulito',
   'subs.look.none': 'Nessuno',
   'voiceDl.get': 'Scarica {name} ({mb} MB)',
-  'voiceDl.retry': 'Scarica di nuovo ({mb} MB)',
-  'voiceDl.progress': '{done} / {total} MB',
+  'download.retry': 'Scarica di nuovo ({mb} MB)',
+  'download.progress': '{done} / {total} MB',
   'voiceDl.model': 'Modello vocale',
   'voiceDl.title': 'Modelli della voce narrante',
   'voiceDl.intro': 'I modelli vocali non sono inclusi nell’app: ognuno si scarica la prima volta che un video parla le sue lingue (o qui, in anticipo) e poi funziona offline.',
@@ -719,6 +722,7 @@ export const it: Record<Key, string> = {
   'job.plan': 'Pianifica testi e storyboard',
   'job.build': 'Genera le inquadrature',
   'job.voiceModel': 'Scarica la voce {model}',
+  'job.browser': 'Scarica il browser di rendering',
   'job.download': 'Scarica {name}',
   'job.voiceFit': 'Registrare le battute e adattare le inquadrature',
 

@@ -141,7 +141,7 @@ Il modello deve supportare le chiamate agli strumenti, e per le verifiche serve 
 ## Installazione
 
 1. Scarica `Shotloop_<version>_aarch64.dmg` dall’[ultima versione](https://github.com/chihyungchang/Shotloop/releases/latest), aprilo e trascina Shotloop in Applicazioni.
-2. Installa **Google Chrome** (le inquadrature 2D vengono renderizzate lì).
+2. Le inquadrature vengono renderizzate in un browser Chromium già presente sul Mac (Chrome, Edge, Brave, Arc…). Se non ce n’è uno, Shotloop ne scarica uno headless (circa 100 MB) al primo rendering, o in anticipo in Impostazioni → Dipendenze.
 3. Scegli l’IA in Impostazioni → Modelli e fornitori. Se Claude Code è già sul tuo Mac, viene scelto in automatico.
 
 > **Primo avvio:** Shotloop non è ancora notarizzato da Apple, quindi macOS dice di non poter verificare lo sviluppatore. Aprilo una volta da **Impostazioni di Sistema → Privacy e sicurezza → Apri comunque**, oppure esegui `xattr -dr com.apple.quarantine /Applications/Shotloop.app` nel Terminale. Dopo si apre normalmente, e gli aggiornamenti si installano senza chiedere di nuovo.

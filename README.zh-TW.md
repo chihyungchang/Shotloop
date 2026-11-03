@@ -141,7 +141,7 @@ flowchart LR
 ## 安裝
 
 1. 從[最新版本](https://github.com/chihyungchang/Shotloop/releases/latest)下載 `Shotloop_<version>_aarch64.dmg`，打開後把 Shotloop 拖進「應用程式」。
-2. 需要安裝 **Google Chrome**（2D 鏡頭用它渲染）。
+2. 鏡頭用 Mac 上已有的 Chromium 核心瀏覽器渲染（Chrome、Edge、Brave、Arc…）。如果一個都沒有，Shotloop 會在第一次渲染時自動下載一個無介面瀏覽器（約 100 MB），也可以先在 設定 → 相依項目 裡下載。
 3. 在「設定 → 模型與供應商」選擇 AI。如果 Mac 上已經有 Claude Code，會自動幫你選好。
 
 > **第一次開啟：** Shotloop 尚未經過 Apple 公證，macOS 會顯示無法驗證開發者。請從 **系統設定 → 隱私權與安全性 → 強制打開** 開啟一次，或在終端機執行 `xattr -dr com.apple.quarantine /Applications/Shotloop.app`。之後就能正常開啟，更新也不會再詢問。
