@@ -18,15 +18,17 @@ import { saveSubtitleResult } from './cache.mjs'
 import { emit, progress } from './compose.mjs'
 import { openShot } from './render2d.mjs'
 import { subtitleCss, subtitleCues, subtitleWindows } from './subtitles.mjs'
-import { timedLines, voiceLang, voiceOn } from './cues.mjs'
+import { subtitleStyle, timedLines, voiceLang, voiceOn } from './cues.mjs'
+import { SUBTITLE_STYLES } from './data.mjs'
+import { voiceLines } from './voice.mjs'
 
 const STEP = 0.1
 const MIN_OPACITY = 0.05
 
 // Runs in the shot's page: what the subtitle box covers right now
-const COVERED = `(text => {
+const COVERED = `(html => {
   const sub = document.getElementById('__sl_sub')
-  sub.textContent = text
+  sub.innerHTML = html
   const box = sub.getBoundingClientRect()
   const hits = (r) => r.width > 0 && r.height > 0 && Math.min(r.right, box.right) - Math.max(r.left, box.left) > 1
     && Math.min(r.bottom, box.bottom) - Math.max(r.top, box.top) > 1
@@ -67,18 +69,20 @@ const COVERED = `(text => {
 // shotloop.json: no speech is made. Shots are drawn in final quality, the
 // geometry the subtitles are laid out in
 export async function checkSubtitles(project, { shot: only } = {}) {
-  if (!voiceOn(project)) return { checked: 0, issues: [] }
-  const cues = subtitleCues(timedLines(project))
-  const shots = project.shots.filter(s => (!only || s.id === only) && subtitleWindows(s, cues).length)
+  const id = subtitleStyle(project)
+  const look = SUBTITLE_STYLES[id]
+  if (!voiceOn(project) || !look) return { checked: 0, issues: [] }
+  const cues = subtitleCues(await spokenLines(project), { lang: voiceLang(project), chunk: look.chunk })
+  const shots = project.shots.filter(s => (!only || s.id === only) && subtitleWindows(s, cues, look.words).length)
   const all = []
   for (const shot of shots) {
     const issues = []
-    const windows = subtitleWindows(shot, cues)
+    const windows = subtitleWindows(shot, cues, look.words)
     const s = await openShot(project, shot, 'final')
     try {
       await s.page.evaluate(`(() => {
         const style = document.createElement('style')
-        style.textContent = ${JSON.stringify(subtitleCss(project.size, voiceLang(project), '__sl_'))} + ' #__sl_band { visibility: hidden; z-index: -1; }'
+        style.textContent = ${JSON.stringify(subtitleCss(project.size, voiceLang(project), id, '__sl_'))} + ' #__sl_band { visibility: hidden; z-index: -1; }'
         document.head.appendChild(style)
         const band = document.createElement('div')
         band.id = '__sl_band'
@@ -94,7 +98,7 @@ export async function checkSubtitles(project, { shot: only } = {}) {
         let covered = []
         if (on) {
           await s.draw(t)
-          covered = await s.page.evaluate(`${COVERED}(${JSON.stringify(on.text)})`)
+          covered = await s.page.evaluate(`${COVERED}(${JSON.stringify(on.html)})`)
         }
         // Consecutive samples of the same thing become one range, which
         // ends a step after its last sample
@@ -118,6 +122,18 @@ export async function checkSubtitles(project, { shot: only } = {}) {
     all.push(...issues)
   }
   return { checked: shots.length, issues: all }
+}
+
+// The film's lines with their speech, so each word is timed as the film
+// burns it (by the voice's pauses); without the voice (no package, no
+// model) by their length, and said
+async function spokenLines(project) {
+  try {
+    return await voiceLines(project)
+  } catch (err) {
+    emit({ type: 'log', message: `subtitle check: words timed by their length (${err.message})` })
+    return timedLines(project)
+  }
 }
 
 // The issues as lines a person (or the agent) reads

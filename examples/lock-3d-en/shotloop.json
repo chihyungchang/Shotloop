@@ -87,7 +87,9 @@
   "publish": "publish.md",
   "voice": {
     "on": true,
-    "voice": "af_heart"
+    "voice": "af_heart",
+    "subtitles": "classic",
+    "subtitlesChosen": true
   },
   "lang": "en",
   "style": "3d",

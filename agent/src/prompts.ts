@@ -144,7 +144,9 @@ storyboard.json, exactly this shape (JSON, no comments):
   "lookWhy": "<2D: one short sentence for the person: the mood of this subject, and how this look carries it>",
   "lookTune": <2D, optional: { "accent": "#rrggbb", "accent2": "#rrggbb", "accent3": "#rrggbb", "bg": "<a CSS background: colors and gradients>" }, any of them, to shade the look for this subject; leave it out to take the look as it is>,
 ${voice ? `
-  "lang": "<the language the video speaks and writes, as a code: ${LANGUAGE_CODES.slice(0, -1).join(', ')} or ${LANGUAGE_CODES.at(-1)}>",` : ''}
+  "lang": "<the language the video speaks and writes, as a code: ${LANGUAGE_CODES.slice(0, -1).join(', ')} or ${LANGUAGE_CODES.at(-1)}>",
+  "subtitles": "<the id of the subtitle look you pick from the list in the request; leave it out when there is no list>",
+  "subtitlesWhy": "<one short sentence for the person: why this subtitle look fits the video>",` : ''}
   "copy": {
     "idea": "<the idea in one or two sentences>",
     "hook": "<the opening line: a question or a surprising fact, under 20 words>",

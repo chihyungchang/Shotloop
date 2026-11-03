@@ -8,7 +8,7 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { DEFAULT_LOOK, DEFAULT_STYLE, lookById, round, styleById } from './data.mjs'
+import { DEFAULT_LOOK, DEFAULT_STYLE, lookById, round, styleById, SUBTITLE_STYLES } from './data.mjs'
 import { writeJson } from './files.mjs'
 import { untouchedLook } from './looks.mjs'
 import { loadProject, SHOT_ID, updateConfig } from './project.mjs'
@@ -111,7 +111,9 @@ export function applyStoryboard(project) {
     ...(typeof sb.lang === 'string' && sb.lang.trim() ? { lang: sb.lang.trim() } : {}),
     ...(look ? { look } : {}), ...(styleId ? { style: styleId } : {}), ...(project.track === '3d' ? { style: '3d' } : {})
   }
-  updateConfig(project.root, cfg => ({ ...cfg, ...fields }))
+  // The subtitles' look the plan picked, while the person hasn't chosen one
+  const subtitles = Object.hasOwn(SUBTITLE_STYLES, sb.subtitles ?? '') && !project.config.voice?.subtitlesChosen ? sb.subtitles : null
+  updateConfig(project.root, cfg => ({ ...cfg, ...fields, ...(subtitles ? { voice: { on: false, ...cfg.voice, subtitles } } : {}) }))
   return { shots: shots.map(s => s.id), duration: film }
 }
 

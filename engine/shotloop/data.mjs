@@ -350,6 +350,107 @@ export const MOODS = {
 }
 export const MUSIC_MOODS = Object.keys(MOODS)
 
+// The voice-over subtitles' looks (subtitles.mjs burns them into the
+// film, the app plays each in a swatch); 'none' burns none. A look has:
+//   words  how the words come: 'line' a chunk at a time; 'follow' a chunk
+//          at a time, the word being said marked (classes past, on, next);
+//          'one' a word at a time, a quick one joined with the next;
+//          'single' strictly one word at a time
+//   spaced only for languages that space their words (spacesWords);
+//          elsewhere the default look burns instead
+//   chunk  the longest chunk on screen: [Latin letters, CJK characters]
+//   pop    the scales the word being said enters at, a frame each
+//   css    its rules under a root at font size s (CSS px); the face is
+//          the language's. Every look fits the subtitle band (cues.mjs
+//          SUBTITLE_BAND)
+//   use    when it fits, for the planner that picks one (agent briefs.ts)
+const px = x => `${Math.round(x)}px`
+const stroke = (s, w) => `-webkit-text-stroke: ${px(s * w)} #000; paint-order: stroke fill;`
+// A dark glow close around the letters: white words read on a light picture
+const halo = s => `text-shadow: 0 0 ${px(s * 0.08)} rgba(0, 0, 0, 0.85), 0 ${px(s * 0.04)} ${px(s * 0.25)} rgba(0, 0, 0, 0.7), 0 0 ${px(s * 0.6)} rgba(0, 0, 0, 0.35);`
+export const SUBTITLE_STYLES = {
+  // Heavy capitals, the word being said lit in lime
+  highlight: {
+    words: 'follow', chunk: [22, 9], pop: [0.9, 1.1],
+    use: 'punchy explainers, facts and lists, energetic hooks: the default for most short videos',
+    css: (r, s) => `${r} { font-size: ${px(s * 1.15)}; font-weight: 900; line-height: 1.12; text-transform: uppercase; color: #fff; ${stroke(s, 0.17)}
+      text-shadow: 0 ${px(s * 0.07)} ${px(s * 0.2)} rgba(0, 0, 0, 0.55); }
+      ${r} .on { color: #b8ff3c; scale: 1.05; }`
+  },
+  // The word being said on a violet block
+  pill: {
+    words: 'follow', chunk: [24, 10], pop: [0.9, 1.08],
+    use: 'friendly, upbeat tutorials and tips; lively without shouting',
+    css: (r, s) => `${r} { font-size: ${px(s * 1.05)}; font-weight: 800; line-height: 1.35; color: #fff; ${halo(s)} }
+      ${r} .w { border-radius: ${px(s * 0.18)}; }
+      ${r} .on { background: #7c5cff; box-shadow: 0 0 0 ${px(s * 0.1)} #7c5cff; text-shadow: none; }`
+  },
+  // One big word at a time, popping in
+  pop: {
+    words: 'one', chunk: [22, 9], pop: [0.6, 1.16],
+    use: 'fast, hype, motivational or dramatic lines; short punchy sentences',
+    css: (r, s) => `${r} { font-size: ${px(s * 1.75)}; font-weight: 900; line-height: 1.05; text-transform: uppercase; color: #fff; ${stroke(s, 0.2)}
+      text-shadow: 0 ${px(s * 0.1)} 0 rgba(0, 0, 0, 0.7); }`
+  },
+  // One word at a time on a tilted yellow sticker
+  sticker: {
+    words: 'one', chunk: [22, 9], pop: [0.7, 1.1],
+    use: 'playful, funny or meme-like videos; casual topics',
+    css: (r, s) => `${r} { font-size: ${px(s * 1.4)}; font-weight: 900; line-height: 1.1; text-transform: uppercase; color: #121212; }
+      ${r} .w { padding: ${px(s * 0.08)} ${px(s * 0.3)}; border-radius: ${px(s * 0.16)}; background: #ffe14d; rotate: -3deg;
+        box-shadow: 0 ${px(s * 0.1)} 0 rgba(0, 0, 0, 0.35); }`
+  },
+  // Strictly one word on screen at a time, big and clean: English and
+  // the other languages that space their words
+  word: {
+    words: 'single', spaced: true, chunk: [22, 9], pop: [0.82, 1.06],
+    use: 'only for a language that spaces its words (not Chinese or Japanese): rhythmic narration where every word lands on its own',
+    css: (r, s) => `${r} { font-size: ${px(s * 1.6)}; font-weight: 800; line-height: 1.05; letter-spacing: -0.01em; color: #fff; ${halo(s)} }`
+  },
+  // The words light up as they are said, the rest waiting dimmed
+  reveal: {
+    words: 'follow', chunk: [30, 12], pop: null,
+    use: 'storytelling, history, thoughtful essays; the voice leads at a calm pace',
+    css: (r, s) => `${r} { font-size: ${px(s)}; font-weight: 800; line-height: 1.28; color: #fff; ${halo(s)} }
+      ${r} .next { color: rgba(255, 255, 255, 0.5); }`
+  },
+  // The first look, kept: white words in a dark glass box, a chunk at a
+  // time; reads over any picture
+  classic: {
+    words: 'line', chunk: [42, 18], pop: null,
+    use: 'any subject: the plain, steady look that reads over any picture',
+    css: (r, s) => `${r} { font-size: ${px(s)}; font-weight: 700; line-height: 1.25; letter-spacing: 0.005em; color: #fff;
+      padding: ${px(s * 0.22)} ${px(s * 0.45)}; border-radius: ${px(s * 0.3)}; background: rgba(8, 10, 16, 0.62);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }`
+  },
+  // Plain words on a soft shadow, a chunk at a time: calm films
+  clean: {
+    words: 'line', chunk: [42, 18], pop: null,
+    use: 'calm, cinematic, serious or sensitive subjects (news, health, science documentary)',
+    css: (r, s) => `${r} { font-size: ${px(s * 0.95)}; font-weight: 600; line-height: 1.3; letter-spacing: 0.01em; color: #fff;
+      text-shadow: 0 1px ${px(s * 0.06)} rgba(0, 0, 0, 0.95), 0 0 ${px(s * 0.3)} rgba(0, 0, 0, 0.75), 0 0 ${px(s * 0.7)} rgba(0, 0, 0, 0.45); }`
+  },
+  none: null
+}
+export const DEFAULT_SUBTITLES = 'highlight'
+
+// The language puts spaces between its words (Chinese and Japanese don't;
+// Korean does)
+export const spacesWords = lang => !/^(zh|ja)\b/.test(lang)
+
+// A look's rules under root: a word is a box of its own (so the one being
+// said can grow, --pop its entrance, without moving the others)
+export const subtitleRules = (root, look, s) =>
+  `${root} .w { display: inline-block; transform: scale(var(--pop, 1)); }\n${look.css(root, s)}`
+
+// What a look draws, for the keys of what it makes (subtitle images, the
+// subtitle check): its rules at a set size and how it brings its words,
+// so an edit elsewhere in this file redraws nothing
+export const subtitleLookKey = id => {
+  const look = SUBTITLE_STYLES[id]
+  return look ? JSON.stringify([id, look.words, look.chunk, look.pop, look.spaced ?? false, subtitleRules('#k', look, 100)]) : id
+}
+
 // Poly Pizza's categories, in the order of its API's numbers (library.mjs)
 export const POLY_CATEGORIES = ['food', 'clutter', 'weapons', 'transport', 'furniture', 'objects', 'nature', 'animals', 'buildings', 'people', 'scenes', 'other']
 

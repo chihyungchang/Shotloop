@@ -9,7 +9,7 @@ import type { PickedElement } from '../../engine/shotloop/protocol.d.ts'
 import type { ProjectStatus, ShotStatus } from './engine.ts'
 import { reason, warn } from './events.ts'
 import { creditsPrompt } from './prompts.ts'
-import { LOOKS, STYLES } from './enginelib.ts'
+import { LOOKS, STYLES, SUBTITLE_STYLES } from './enginelib.ts'
 
 export const read = (f: string) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '(missing)')
 
@@ -139,6 +139,15 @@ export function stylesBrief(project: ProjectStatus) {
   if (project.track === '3d' || !open.length) return ''
   return `\n\nVisual styles (pick one for "style"; look at each candidate's reference stills with view_style before you decide):\n${open.map(s =>
     `- ${s.id} (${s.name.en}): use when ${s.when} Avoid when: ${s.avoid} Frames: ${s.frames} Reference: ${s.why}${s.looks.length ? ` Looks: ${s.looks.join(', ')}.` : ''}`).join('\n')}`
+}
+
+// The subtitles' looks a voiced plan picks from (data.mjs
+// SUBTITLE_STYLES); none when the person chose one, which the engine keeps
+const WORDS = { line: 'a chunk at a time', follow: 'a chunk at a time, the word being said lit', one: 'one word at a time', single: 'strictly one word at a time' }
+export function subtitlesBrief(project: ProjectStatus) {
+  if (!project.voice?.on || project.voice.subtitlesChosen) return ''
+  const looks = Object.entries(SUBTITLE_STYLES).flatMap(([id, l]) => (l ? [`- ${id} (${WORDS[l.words]}): ${l.use}`] : []))
+  return `\n\nSubtitle looks (pick one for "subtitles" by the video's pace and tone):\n${looks.join('\n')}`
 }
 
 // The looks a 2D plan picks from, or the one the person chose

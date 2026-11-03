@@ -21,8 +21,8 @@ import { wav } from './synth.mjs'
 import { cachedFile, MODES } from './cache.mjs'
 import { readJson, writeAtomic, writeJson } from './files.mjs'
 import { emit, ffmpeg, progress } from './compose.mjs'
-import { round } from './data.mjs'
-import { sentences, VOICE_HOLD, VOICE_LEAD, VOICE_TAIL, voiceLang, voiceOn } from './cues.mjs'
+import { round, SUBTITLE_STYLES } from './data.mjs'
+import { sentences, subtitleStyle, VOICE_HOLD, VOICE_LEAD, VOICE_TAIL, voiceLang, voiceOn } from './cues.mjs'
 import { loadProject, localPath, projectPath, updateConfig } from './project.mjs'
 import { isStarter } from './starters.mjs'
 import { STORYBOARD_FILE } from './storyboard.mjs'
@@ -316,7 +316,7 @@ function syncStoryboard(root, shots) {
 // Every sentence of the film on its timeline: { shot, text, at, end, file }
 // (film seconds). Lines not spoken yet are spoken now; a shot whose
 // cues are missing or don't match its sentences is laid out on the spot
-async function voiceLines(project) {
+export async function voiceLines(project) {
   const { lang, voice, cfg } = await voiceSetup(project)
   const out = []
   for (const shot of project.shots) {
@@ -518,7 +518,7 @@ export async function voiceInfo(project) {
     emit({ type: 'log', message: `voice-over unavailable: ${err.message}` })
   }
   return {
-    on: !!cfg.on, picture: !!cfg.picture, voice, speed: cfg.speed ?? 1, gain: cfg.gain ?? 1,
+    on: !!cfg.on, picture: !!cfg.picture, voice, speed: cfg.speed ?? 1, gain: cfg.gain ?? 1, subtitles: subtitleStyle(project),
     lang, available, voices, model, fitted,
     lines: project.shots.filter(s => s.say?.trim()).length
   }
@@ -578,9 +578,11 @@ export async function pruneVoice(project) {
   return removed
 }
 
-// Turns the voice-over on or off, or changes its voice, speed or volume
+// Turns the voice-over on or off, or changes its voice, speed, volume or
+// subtitles' look (data.mjs SUBTITLE_STYLES: the person's pick, which the
+// planner keeps)
 // picture: the picture leads, so the fit never changes a shot's length
-export function setVoice(project, { on, voice, speed, gain, picture } = {}) {
+export function setVoice(project, { on, voice, speed, gain, picture, subtitles } = {}) {
   const change = {}
   if (on != null) change.on = !!on
   if (picture != null) change.picture = !!picture
@@ -592,6 +594,11 @@ export function setVoice(project, { on, voice, speed, gain, picture } = {}) {
   if (gain != null) {
     change.gain = Number(gain)
     if (!(change.gain >= 0 && change.gain <= 2)) throw new Error('gain must be 0–2')
+  }
+  if (subtitles != null) {
+    if (!Object.hasOwn(SUBTITLE_STYLES, subtitles)) throw new Error(`subtitles must be one of ${Object.keys(SUBTITLE_STYLES).join(', ')}`)
+    change.subtitles = subtitles
+    change.subtitlesChosen = true
   }
   updateConfig(project.root, cfg => ({ ...cfg, voice: { on: false, ...cfg.voice, ...change } }))
   return loadProject(project.root)

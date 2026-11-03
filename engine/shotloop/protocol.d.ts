@@ -244,6 +244,10 @@ export interface VoiceSettings {
   voice?: string
   speed?: number
   gain?: number
+  // The subtitles' look (data.mjs SUBTITLE_STYLES; 'none': no subtitles),
+  // and whether the person chose it (the planner keeps it) or the plan did
+  subtitles?: string
+  subtitlesChosen?: boolean
 }
 
 // shotloop status <project>
@@ -368,6 +372,8 @@ export interface VoiceResult {
   voice: string | null
   speed: number
   gain: number
+  // The subtitles' look (data.mjs SUBTITLE_STYLES; 'none': no subtitles)
+  subtitles: string
   lang: string
   // A voice speaks the project's language
   available: boolean

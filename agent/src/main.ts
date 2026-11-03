@@ -27,7 +27,7 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { assetsBrief, credits, elementBrief, head, ideaOf, looksBrief, read, recurring, shotBrief, stylesBrief, trackBrief, worldFiles } from './briefs.ts'
+import { assetsBrief, credits, elementBrief, head, ideaOf, looksBrief, read, recurring, shotBrief, stylesBrief, subtitlesBrief, trackBrief, worldFiles } from './briefs.ts'
 import type { PickedElement } from '../../engine/shotloop/protocol.d.ts'
 import { engine, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
 import { lookFits, memory, parseFlags, rules, STILLS, type Memory } from './enginelib.ts'
@@ -206,7 +206,7 @@ async function planTask() {
 
 Idea: ${ideaOf(project)}
 Title: ${project.title}
-${trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 'auto (choose it from the content, 15 to 60 s, then make the shots add up to it)' : `${project.duration} s`}${stylesBrief(project)}${await looksBrief(project)}`,
+${trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 'auto (choose it from the content, 15 to 60 s, then make the shots add up to it)' : `${project.duration} s`}${stylesBrief(project)}${await looksBrief(project)}${subtitlesBrief(project)}`,
     ctx
   })
   // The page reads it: it has to be valid

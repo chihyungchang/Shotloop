@@ -10,6 +10,7 @@ import { AgentError } from '../../AgentError'
 import { Icon } from '../../Icon'
 import { VoiceDownload } from '../../VoiceDownload'
 import { ErrorText } from '../../ErrorDialog'
+import { SubtitleLooks } from '../../SubtitleLooks'
 
 // The sound's parts that keep their own state (the voice-over, the music
 // bed, the ambience and effects: the studio's sound lanes) and the export
@@ -33,7 +34,8 @@ export function useVoice(project: Project, refresh: () => void, stamp = 0) {
 }
 type VoiceState = ReturnType<typeof useVoice>
 
-// The voice-over: off or on, and which voice, with a sample to listen to.
+// The voice-over: off or on, which voice (with a sample to listen to) and
+// the subtitles' look.
 // Turning it on or a new voice speaks the lines and fits the shots to
 // them: a queue job (voiceFit), its progress shown beside the switch; off
 // and on again with nothing changed keeps the last fit (fitted). A
@@ -110,6 +112,12 @@ export function Voice({ project, jobs, refresh, state }: { project: Project; job
             </select>
             <Listen preview={sample} disabled={busy || missing} />
           </div>
+        </div>
+      )}
+      {info.on && info.available && (
+        <div className="xrow top">
+          <span className="xrow-label">{t('subs.look')}</span>
+          <SubtitleLooks value={info.subtitles} lang={info.lang} disabled={busy} pick={subtitles => change({ subtitles })} />
         </div>
       )}
       {(error || (info.on && info.available && !info.lines)) && (

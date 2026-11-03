@@ -116,6 +116,9 @@ export interface Storyboard {
   lookAi?: string
   lookWhy?: string
   lookChosen?: boolean
+  // The subtitles' look the plan picked (voiced plans), and why
+  subtitles?: string
+  subtitlesWhy?: string
   // The language spoken and written (a voiced plan names it)
   lang?: string
   copy: { idea?: string; hook: string; body: string; facts: { text: string; source: string }[] }
@@ -303,8 +306,10 @@ interface NewProject {
   look: string
   // 2D visual style id; '' lets the planner pick
   style: string
-  // The voice-over (on unless turned off)
+  // The voice-over (off unless turned on)
   voice?: boolean
+  // The voice-over subtitles' look; '' lets the planner pick
+  subtitles?: string
 }
 
 // A change to the music bed (media.rs MusicChange); none reads it
@@ -396,7 +401,7 @@ export const api = {
   setStyle: (path: string, style: string) => invoke<{ style: string }>('set_style', { path, style }),
   // The voice-over: read, or change (turning it on or a new voice fits the
   // shots to the lines again); sample: a WAV of the voice to listen to
-  voice: (path: string, change: { on?: boolean; voice?: string; gain?: number; sample?: boolean } = {}) =>
+  voice: (path: string, change: { on?: boolean; voice?: string; gain?: number; subtitles?: string; sample?: boolean } = {}) =>
     invoke<VoiceInfo>('voice', { path, ...change }),
   // The speech models, with what is on this Mac (Settings → Dependencies)
   voiceModels: () => invoke<{ dir: string; models: VoiceModel[] }>('voice_models'),

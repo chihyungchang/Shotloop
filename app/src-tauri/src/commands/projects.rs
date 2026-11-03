@@ -51,6 +51,8 @@ pub struct NewProject {
     style: Option<String>,
     /// The voice-over: off unless the person turned it on
     voice: Option<bool>,
+    /// The voice-over subtitles' look; empty: the planner picks
+    subtitles: Option<String>,
 }
 
 /// Creates a starter project from an idea (`shotloop new`)
@@ -62,7 +64,8 @@ pub async fn create_project(handle: AppHandle, project: NewProject) -> Result<Va
         let args = Args::new(["new", &p.dir, "--idea", &p.idea, "--title", &p.title, "--track", &p.track, "--aspect", &p.aspect, "--duration", &p.duration])
             .flag(p.voice == Some(true), "--voice-over")
             .opt("--look", given(p.look))
-            .opt("--style", given(p.style));
+            .opt("--style", given(p.style))
+            .opt("--subtitles", given(p.subtitles));
         engine(&handle, args)
     })
     .await

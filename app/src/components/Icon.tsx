@@ -45,6 +45,8 @@ const PATHS = {
   // The voice-over (a voice, not the music)
   mic: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7',
   micOff: 'M15 10.5V6a3 3 0 0 0-5.7-1.3M9 9v3a3 3 0 0 0 4.9 2.3M17.8 14A6.5 6.5 0 0 0 18.5 11M5.5 11a6.5 6.5 0 0 0 10.4 5.2M12 17.5V21M8.5 21h7M4 4l16 16',
+  chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
+  subtitles: 'M3 5h18v14H3zM6 13h5M13 13h5M6 16.5h9',
   more: 'M5 12h.01M12 12h.01M19 12h.01',
   // The AI's memory
   book: 'M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5zM5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3M9 7h6',

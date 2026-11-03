@@ -6,7 +6,9 @@
   "lang": "en",
   "voice": {
     "on": true,
-    "voice": "af_heart"
+    "voice": "af_heart",
+    "subtitles": "classic",
+    "subtitlesChosen": true
   },
   "track": "2d",
   "style": "scene",
