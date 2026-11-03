@@ -580,6 +580,8 @@ const paper = () => {
   if (stop && !/,\s*0\)$/.test(stop)) return stop
   return lightness(kit().C.text) > 0.5 ? '#0b0d12' : '#ffffff'
 }
+// Words set on the accent: near-black on a light accent, white on a dark one
+const onAccent = () => (lightness(kit().C.accent) > 0.5 ? '#0a0a0a' : '#ffffff')
 // How light a CSS colour is, 0 (black) to 1 (white), drawn to find out
 const lightness = color => {
   const g = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext('2d')
@@ -599,8 +601,10 @@ const margin = () => kit().PAD ?? 56 * unit()
 // Where a beat's pieces go, with room between them (taste: promo-space):
 //   layout('side')  the words in a left column, the picture right of them
 //   layout('below') the words across the top, the picture under them
-// lines: the headline's lines. Gives back { words: { x, y, width, size },
-// picture: { x, y, w, h } (pass as a shot's box), source: { y } } in page
+// lines: the headline's lines. Gives back { words: { x, y, width, size,
+// under }, picture: { x, y, w, h } (pass as a shot's box), source: { y } }
+// in page px (under: where steps or a bubble go below the headline, clear
+// of its last line)
 // px: the words start under the chapter's rule, a gap of at least 5% of
 // the frame's height parts words from picture, and a band at the bottom
 // is kept for the source line. bleed: the picture runs off the right and
@@ -614,18 +618,19 @@ export function layout(kind = 'side', { lines = 2, size, bleed = false } = {}) {
   const sourceBand = 44 * u
   const bottom = H - m * 0.6 - sourceBand
   const textH = lines * fs * 1.06
+  const under = y => y + textH + Math.max(36 * u, fs * 0.7)
   if (kind === 'side') {
     const width = W * 0.27
     const x = m + width + gap
     return {
-      words: { x: m, y: top + 46 * u, width, size: fs },
+      words: { x: m, y: top + 46 * u, width, size: fs, under: under(top + 46 * u) },
       picture: { x, y: top, w: bleed ? W - x + 40 * u : W - m - x, h: bleed ? H - top + 40 * u : bottom - gap * 0.5 - top },
       source: { y: H - m * 0.6 - sourceBand * 0.55 }
     }
   }
   const y = top + textH + gap
   return {
-    words: { x: m, y: top, width: W - 2 * m, size: fs },
+    words: { x: m, y: top, width: W - 2 * m, size: fs, under: under(top) },
     picture: { x: m, y, w: bleed ? W - m + 40 * u : W - 2 * m, h: bleed ? H - y + 40 * u : bottom - gap * 0.5 - y },
     source: { y: H - m * 0.6 - sourceBand * 0.55 }
   }
@@ -685,7 +690,7 @@ export function row(t, { tiles, box, at = 0, gap, state = () => ({}) }) {
     const outline = s.mark ? `${n(4 * u)}px solid ${s.kind === 'wrong' ? red : C.accent}` : `${n(RULE())}px solid ${C.text}`
     const chip = s.chip
       ? `<span style="position:absolute;left:50%;bottom:${n(-34 * u)}px;transform:translateX(-50%);white-space:nowrap;font:500 ${n(12 * u)}px/1 ${MONO()};letter-spacing:.06em;padding:${n(5 * u)}px ${n(8 * u)}px;` +
-        (s.kind === 'wrong' ? `background:${red};color:#fff` : s.kind === 'accent' ? `background:${C.accent};color:${C.text === '#ffffff' ? '#0a0a0a' : C.text}` : `border:1px solid ${C.muted};color:${C.muted}`) +
+        (s.kind === 'wrong' ? `background:${red};color:#fff` : s.kind === 'accent' ? `background:${C.accent};color:${onAccent()}` : `border:1px solid ${C.muted};color:${C.muted}`) +
         `;opacity:${n(s.chipIn ?? 1)}">${esc(s.chip)}</span>`
       : ''
     return `<div style="position:absolute;left:${n(box.x + i * (w + g))}px;top:${n(box.y)}px;width:${n(w)}px;height:${n(box.h)}px;outline:${outline};background:${C.text};` +
@@ -716,13 +721,13 @@ export function counter(t, { label, value, at = 0, tone = '' }) {
 export function steps(t, { items, x, y, at = 0, step = 0.5, across = false, width }) {
   const { C } = kit()
   const u = unit()
-  return `<div style="position:absolute;left:${n(x)}px;top:${n(y)}px;display:flex;flex-direction:${across ? 'row' : 'column'};gap:${n(10 * u)}px;${width ? `width:${n(width)}px;` : ''}">` +
+  return `<div style="position:absolute;left:${n(x)}px;top:${n(y)}px;display:flex;flex-direction:${across ? 'row' : 'column'};align-items:flex-start;gap:${n(16 * u)}px;${width ? `width:${n(width)}px;` : ''}">` +
     items.map((item, i) => {
       const q = rise(t, at + i * 0.08, 0.35)
       const lit = t >= at + 0.4 + i * step
-      return `<span style="display:flex;align-items:center;gap:${n(12 * u)}px;padding:${n(10 * u)}px ${n(14 * u)}px;border:${n(RULE())}px solid ${C.text};` +
-        `background:${lit ? C.accent : 'transparent'};opacity:${n(q)};transform:translateX(${n((1 - q) * -20 * u)}px);font:500 ${n(20 * u)}px/1 ${MONO()};letter-spacing:.04em;color:${C.text}">` +
-        `<b style="font-weight:500;font-size:${n(14 * u)}px;color:${lit ? C.text : C.muted}">${String(i + 1).padStart(2, '0')}</b>${esc(item)}</span>`
+      return `<span style="display:flex;align-items:center;gap:${n(12 * u)}px;padding:${n(12 * u)}px ${n(18 * u)}px;border:${n(RULE())}px solid ${C.text};` +
+        `background:${lit ? C.accent : 'transparent'};opacity:${n(q)};transform:translateX(${n((1 - q) * -20 * u)}px);font:500 ${n(20 * u)}px/1 ${MONO()};letter-spacing:.04em;color:${lit ? onAccent() : C.text}">` +
+        `<b style="font-weight:500;font-size:${n(14 * u)}px;color:${lit ? onAccent() : C.muted}">${String(i + 1).padStart(2, '0')}</b>${esc(item)}</span>`
     }).join('') + '</div>'
 }
 
@@ -774,7 +779,7 @@ export function wipe(t, { duration, color, half = 0.18, enter = true, leave = tr
 export function endCard(t, { name, line, meta = [], at = 0 }) {
   const { W, H, C } = kit()
   const u = unit(), m = margin()
-  const ink = C.text === '#ffffff' || C.text === '#fff' ? '#0a0a0a' : C.text
+  const ink = onAccent()
   const big = Math.min(W * 0.155, H * 0.28)
   const slide = (t - at) * 6 * u
   return `<div style="position:absolute;inset:0;width:${W}px;height:${H}px;background:${C.accent};color:${ink}">` +
