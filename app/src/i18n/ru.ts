@@ -893,6 +893,7 @@ export const ru: Record<Key, string> = {
   'rules.locked': 'Всегда включено: держит ролик правдивым, законным и отрисовываемым',
   'rules.showAll': 'Все',
   'rules.trackBoth': '2D и 3D',
+  'rules.everyFilm': 'Все видео, включая промо продукта',
   'rules.camera': 'Движения камеры',
   'rules.frame': 'Композиция',
   'rules.cut': 'Монтаж и переходы',

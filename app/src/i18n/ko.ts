@@ -893,6 +893,7 @@ export const ko: Record<Key, string> = {
   'rules.locked': '항상 켜짐: 영상을 사실대로, 합법적으로, 렌더링 가능하게 지킵니다',
   'rules.showAll': '전체',
   'rules.trackBoth': '2D와 3D',
+  'rules.everyFilm': '모든 영상 (제품 홍보 포함)',
   'rules.camera': '카메라 무빙',
   'rules.frame': '구도',
   'rules.cut': '편집과 전환',

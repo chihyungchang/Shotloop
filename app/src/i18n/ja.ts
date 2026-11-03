@@ -893,6 +893,7 @@ export const ja: Record<Key, string> = {
   'rules.locked': '常にオン：動画を事実どおり、合法、描画可能に保ちます',
   'rules.showAll': 'すべて',
   'rules.trackBoth': '2D と 3D',
+  'rules.everyFilm': 'すべての動画（製品プロモを含む）',
   'rules.camera': 'カメラワーク',
   'rules.frame': '構図',
   'rules.cut': '編集とトランジション',

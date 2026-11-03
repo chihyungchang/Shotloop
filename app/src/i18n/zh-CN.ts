@@ -893,6 +893,7 @@ export const zhCN: Record<Key, string> = {
   'rules.locked': '始终开启：它保证视频真实、合法或能正常渲染',
   'rules.showAll': '全部',
   'rules.trackBoth': '2D 和 3D',
+  'rules.everyFilm': '所有视频，包括产品宣传',
   'rules.camera': '运镜',
   'rules.frame': '构图',
   'rules.cut': '剪辑与转场',

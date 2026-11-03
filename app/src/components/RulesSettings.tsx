@@ -134,7 +134,7 @@ function ByTrack({ rules, row }: { rules: Rule[]; row: (r: Rule) => React.ReactN
         const mine = rules.filter(r => r.track === track)
         return mine.length > 0 && (
           <div key={track} className="rule-part">
-            <h5>{track === 'all' ? t('rules.trackBoth') : track.toUpperCase()}</h5>
+            <h5>{track === 'all' ? t('rules.everyFilm') : track.toUpperCase()}</h5>
             <div className="rule-list">{mine.map(row)}</div>
           </div>
         )

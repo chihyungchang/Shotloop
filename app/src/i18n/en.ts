@@ -894,6 +894,7 @@ export const en = {
   'rules.locked': 'Always on: it keeps the film true, lawful or renderable',
   'rules.showAll': 'All',
   'rules.trackBoth': '2D and 3D',
+  'rules.everyFilm': 'Every film, product promos included',
   'rules.camera': 'Camera moves',
   'rules.frame': 'Composition',
   'rules.cut': 'Editing and transitions',

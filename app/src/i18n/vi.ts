@@ -893,6 +893,7 @@ export const vi: Record<Key, string> = {
   'rules.locked': 'Luôn bật: giữ video trung thực, hợp pháp hoặc dựng được',
   'rules.showAll': 'Tất cả',
   'rules.trackBoth': '2D và 3D',
+  'rules.everyFilm': 'Mọi video, kể cả quảng bá sản phẩm',
   'rules.camera': 'Chuyển động máy',
   'rules.frame': 'Bố cục',
   'rules.cut': 'Dựng phim và chuyển cảnh',

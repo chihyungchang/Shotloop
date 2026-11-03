@@ -893,6 +893,7 @@ export const id: Record<Key, string> = {
   'rules.locked': 'Selalu aktif: menjaga video tetap jujur, sah, atau dapat dirender',
   'rules.showAll': 'Semua',
   'rules.trackBoth': '2D dan 3D',
+  'rules.everyFilm': 'Semua video, termasuk promo produk',
   'rules.camera': 'Gerakan kamera',
   'rules.frame': 'Komposisi',
   'rules.cut': 'Penyuntingan dan transisi',

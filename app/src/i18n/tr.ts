@@ -893,6 +893,7 @@ export const tr: Record<Key, string> = {
   'rules.locked': 'Her zaman açık: videoyu doğru, yasal ya da işlenebilir tutar',
   'rules.showAll': 'Tümü',
   'rules.trackBoth': '2D ve 3D',
+  'rules.everyFilm': 'Tüm videolar, ürün tanıtımları dahil',
   'rules.camera': 'Kamera hareketleri',
   'rules.frame': 'Kompozisyon',
   'rules.cut': 'Kurgu ve geçişler',

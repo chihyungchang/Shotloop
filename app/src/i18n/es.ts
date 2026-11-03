@@ -893,6 +893,7 @@ export const es: Record<Key, string> = {
   'rules.locked': 'Siempre activa: mantiene el vídeo veraz, legal o renderizable',
   'rules.showAll': 'Todo',
   'rules.trackBoth': '2D y 3D',
+  'rules.everyFilm': 'Todos los vídeos, promos de producto incluidas',
   'rules.camera': 'Movimientos de cámara',
   'rules.frame': 'Composición',
   'rules.cut': 'Montaje y transiciones',

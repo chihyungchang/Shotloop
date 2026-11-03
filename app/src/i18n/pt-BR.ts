@@ -893,6 +893,7 @@ export const ptBR: Record<Key, string> = {
   'rules.locked': 'Sempre ativa: mantém o vídeo verdadeiro, legal ou renderizável',
   'rules.showAll': 'Tudo',
   'rules.trackBoth': '2D e 3D',
+  'rules.everyFilm': 'Todos os vídeos, promos de produto incluídas',
   'rules.camera': 'Movimentos de câmera',
   'rules.frame': 'Composição',
   'rules.cut': 'Montagem e transições',

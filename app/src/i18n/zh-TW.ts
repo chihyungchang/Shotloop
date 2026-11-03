@@ -893,6 +893,7 @@ export const zhTW: Record<Key, string> = {
   'rules.locked': '始終開啟：它確保影片真實、合法或能正常算圖',
   'rules.showAll': '全部',
   'rules.trackBoth': '2D 和 3D',
+  'rules.everyFilm': '所有影片，包括產品宣傳',
   'rules.camera': '運鏡',
   'rules.frame': '構圖',
   'rules.cut': '剪輯與轉場',
