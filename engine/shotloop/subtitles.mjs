@@ -238,7 +238,7 @@ async function dressClip(project, shot, mode, clip, parts, images) {
   runs.push({ file: images.get(''), from: f })
   // By the clip's place in the project, so a copy of the project (an
   // example opened as a draft) finds it
-  const key = createHash('sha256').update(JSON.stringify([3, fps, path.relative(project.root, clip), runs.map(r => [path.relative(project.root, r.file), r.from])])).digest('hex').slice(0, 16)
+  const key = createHash('sha256').update(JSON.stringify([4, fps, path.relative(project.root, clip), runs.map(r => [path.relative(project.root, r.file), r.from])])).digest('hex').slice(0, 16)
   return cachedFile(path.join(project.state, 'voice', 'clips', `${shot.id}-${mode}-${key}.mp4`), async part => {
     // Each still starts half a frame early, so the clip's frame at its
     // start already shows it
@@ -246,7 +246,10 @@ async function dressClip(project, shot, mode, clip, parts, images) {
     const quote = file => `'${file.replace(/'/g, "'\\''")}'`
     const list = runs.map((r, i) => `file ${quote(r.file)}${runs[i + 1] ? `\nduration ${(start(runs[i + 1]) - start(r)).toFixed(6)}` : ''}`)
     const txt = `${part}.txt`
-    fs.writeFileSync(txt, `ffconcat version 1.0\n${list.join('\n')}\nfile ${quote(runs.at(-1).file)}\n`)
+    // The last still without a duration, and not listed twice: an entry
+    // after it gets no timestamp, and the overlay then holds the clip's
+    // last frame for seconds past its end
+    fs.writeFileSync(txt, `ffconcat version 1.0\n${list.join('\n')}\n`)
     try {
       await ffmpeg([
         '-i', clip, '-f', 'concat', '-safe', '0', '-i', txt,
