@@ -24,7 +24,7 @@ export const ko: Record<Key, string> = {
   'home.track.2d': '2D 설명 영상',
   'home.track.3d': '3D 설명 영상',
   'home.hint.2d': '제품 홍보, 과학 설명, 데이터 시각화, 슬라이드형 애니메이션에 적합합니다.',
-  'home.hint.3d': '제품 쇼케이스, 공간과 동선, 과정을 3D로 보여 주기에 적합합니다.',
+  'home.hint.3d': '제품 공개, 분해, 작동 원리 설명, 영화 같은 이야기에 적합합니다.',
   'home.chip.auto': '자동',
   'home.hint.auto': 'AI가 아이디어에 맞춰 2D 또는 3D와 표현 방식을 고릅니다.',
   'home.lengthAutoShort': '자동',

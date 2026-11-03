@@ -24,7 +24,7 @@ export const es: Record<Key, string> = {
   'home.track.2d': 'explicativo 2D',
   'home.track.3d': 'explicativo 3D',
   'home.hint.2d': 'Para promos de producto, divulgación científica, visualización de datos y animaciones tipo diapositiva.',
-  'home.hint.3d': 'Para mostrar productos, espacios y recorridos, y procesos en 3D.',
+  'home.hint.3d': 'Para presentaciones de producto, despieces, explicaciones de cómo funciona e historias cinematográficas.',
   'home.chip.auto': 'Auto',
   'home.hint.auto': 'La IA elige 2D o 3D, y cómo mostrarlo, a partir de tu idea.',
   'home.lengthAutoShort': 'Auto',

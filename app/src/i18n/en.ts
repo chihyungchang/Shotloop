@@ -25,7 +25,7 @@ export const en = {
   'home.track.2d': '2D explainer',
   'home.track.3d': '3D explainer',
   'home.hint.2d': 'For product promos, science explainers, data visualisation and slide-style animation.',
-  'home.hint.3d': 'For product showcases, spaces and journeys, and processes shown in 3D.',
+  'home.hint.3d': 'For product reveals, teardowns, how-it-works explainers and cinematic stories.',
   'home.chip.auto': 'Auto',
   'home.hint.auto': 'The AI picks 2D or 3D, and how to show it, from your idea.',
   'home.lengthAutoShort': 'Auto',

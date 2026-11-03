@@ -24,7 +24,7 @@ export const ptBR: Record<Key, string> = {
   'home.track.2d': 'explicativo 2D',
   'home.track.3d': 'explicativo 3D',
   'home.hint.2d': 'Para vídeos de produto, divulgação científica, visualização de dados e animações no estilo de slides.',
-  'home.hint.3d': 'Para vitrines de produto, espaços e trajetos, e processos mostrados em 3D.',
+  'home.hint.3d': 'Para revelações de produto, desmontagens, explicações de como funciona e histórias cinematográficas.',
   'home.chip.auto': 'Automático',
   'home.hint.auto': 'A IA escolhe 2D ou 3D, e como mostrar, a partir da sua ideia.',
   'home.lengthAutoShort': 'Auto',

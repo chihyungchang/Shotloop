@@ -24,7 +24,7 @@ export const ja: Record<Key, string> = {
   'home.track.2d': '2D 解説',
   'home.track.3d': '3D 解説',
   'home.hint.2d': '製品紹介、科学解説、データの可視化、スライド風アニメーションに。',
-  'home.hint.3d': '製品のショーケース、空間や道のり、3D で見せるプロセスに。',
+  'home.hint.3d': '製品のお披露目、分解、しくみの解説、映画のようなストーリーに。',
   'home.chip.auto': '自動',
   'home.hint.auto': 'アイデアから、AI が 2D か 3D か、どう見せるかを選びます。',
   'home.lengthAutoShort': '自動',

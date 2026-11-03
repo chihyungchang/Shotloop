@@ -24,7 +24,7 @@ export const id: Record<Key, string> = {
   'home.track.2d': 'video penjelasan 2D',
   'home.track.3d': 'video penjelasan 3D',
   'home.hint.2d': 'Untuk promo produk, penjelasan sains, visualisasi data, dan animasi bergaya slide.',
-  'home.hint.3d': 'Untuk pameran produk, ruang dan perjalanan, serta proses yang ditampilkan dalam 3D.',
+  'home.hint.3d': 'Untuk peluncuran produk, bongkar komponen, penjelasan cara kerja, dan cerita bernuansa sinematik.',
   'home.chip.auto': 'Otomatis',
   'home.hint.auto': 'AI memilih 2D atau 3D, dan cara menampilkannya, dari ide Anda.',
   'home.lengthAutoShort': 'Otomatis',

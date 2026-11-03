@@ -24,7 +24,7 @@ export const vi: Record<Key, string> = {
   'home.track.2d': 'video giải thích 2D',
   'home.track.3d': 'video giải thích 3D',
   'home.hint.2d': 'Cho video quảng bá sản phẩm, giải thích khoa học, trực quan hóa dữ liệu và hoạt hình kiểu slide.',
-  'home.hint.3d': 'Cho giới thiệu sản phẩm, không gian và hành trình, và các quy trình thể hiện bằng 3D.',
+  'home.hint.3d': 'Cho ra mắt sản phẩm, tháo rời cấu tạo, giải thích cách hoạt động và câu chuyện mang chất điện ảnh.',
   'home.chip.auto': 'Tự động',
   'home.hint.auto': 'AI chọn 2D hay 3D, và cách thể hiện, dựa trên ý tưởng của bạn.',
   'home.lengthAutoShort': 'Tự động',

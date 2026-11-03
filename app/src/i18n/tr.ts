@@ -24,7 +24,7 @@ export const tr: Record<Key, string> = {
   'home.track.2d': '2D anlatım videosu',
   'home.track.3d': '3D anlatım videosu',
   'home.hint.2d': 'Ürün tanıtımları, bilim anlatımları, veri görselleştirme ve sunum tarzı animasyonlar için.',
-  'home.hint.3d': 'Ürün tanıtımları, mekânlar ve rotalar, 3D gösterilen süreçler için.',
+  'home.hint.3d': 'Ürün tanıtımları, parça parça sökümler, işleyiş anlatımları ve sinematik hikâyeler için.',
   'home.chip.auto': 'Otomatik',
   'home.hint.auto': 'Yapay zekâ fikrinize göre 2D ya da 3D’yi ve nasıl gösterileceğini seçer.',
   'home.lengthAutoShort': 'Otomatik',

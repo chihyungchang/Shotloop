@@ -24,7 +24,7 @@ export const zhTW: Record<Key, string> = {
   'home.track.2d': '2D 解說',
   'home.track.3d': '3D 解說',
   'home.hint.2d': '適合產品宣傳、科普影片、資料視覺化、簡報式動畫等。',
-  'home.hint.3d': '適合產品展示、空間與路線導覽、3D 流程示範等。',
+  'home.hint.3d': '適合產品亮相、結構拆解、原理演示、電影感敘事等。',
   'home.chip.auto': '自動',
   'home.hint.auto': 'AI 會依你的想法選擇 2D 或 3D，以及畫面怎麼呈現。',
   'home.lengthAutoShort': '自動',

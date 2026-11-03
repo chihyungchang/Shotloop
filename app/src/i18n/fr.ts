@@ -24,7 +24,7 @@ export const fr: Record<Key, string> = {
   'home.track.2d': 'vidéo explicative 2D',
   'home.track.3d': 'vidéo explicative 3D',
   'home.hint.2d': 'Pour les promos produit, la vulgarisation scientifique, la visualisation de données et l’animation façon diapos.',
-  'home.hint.3d': 'Pour présenter des produits, des espaces et des parcours, et des processus montrés en 3D.',
+  'home.hint.3d': 'Pour les lancements produit, les vues éclatées, le fonctionnement des choses et les récits cinématographiques.',
   'home.chip.auto': 'Auto',
   'home.hint.auto': 'L’IA choisit la 2D ou la 3D, et la façon de montrer votre idée.',
   'home.lengthAutoShort': 'Auto',

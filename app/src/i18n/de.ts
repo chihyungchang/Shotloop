@@ -24,7 +24,7 @@ export const de: Record<Key, string> = {
   'home.track.2d': '2D-Erklärvideo',
   'home.track.3d': '3D-Erklärvideo',
   'home.hint.2d': 'Für Produktvideos, Wissenschaft erklärt, Datenvisualisierung und Animation im Folienstil.',
-  'home.hint.3d': 'Für Produktpräsentationen, Räume und Reisen sowie Abläufe in 3D.',
+  'home.hint.3d': 'Für Produktauftritte, Zerlegungen, Funktionserklärungen und filmische Geschichten.',
   'home.chip.auto': 'Auto',
   'home.hint.auto': 'Die KI wählt anhand deiner Idee 2D oder 3D und wie sie gezeigt wird.',
   'home.lengthAutoShort': 'Auto',

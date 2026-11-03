@@ -24,7 +24,7 @@ export const zhCN: Record<Key, string> = {
   'home.track.2d': '2D 讲解',
   'home.track.3d': '3D 讲解',
   'home.hint.2d': '适合产品宣传、科普视频、数据可视化、PPT 动画等。',
-  'home.hint.3d': '适合产品展示、空间与路线讲解、3D流程演示等。',
+  'home.hint.3d': '适合产品亮相、结构拆解、原理演示、电影感叙事等。',
   'home.chip.auto': '自动',
   'home.hint.auto': 'AI 会根据你的想法选择 2D 或 3D，以及画面怎么呈现。',
   'home.lengthAutoShort': '自动',
