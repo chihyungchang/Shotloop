@@ -85,8 +85,11 @@
   --bg: #e9e9eb;
   --surface: #fcfcfc;
   --surface-2: #efeff0;
-  /* A card raised off a surface (the idea box on Home's card) */
+  /* A card raised off a surface (the idea box on Home's card), and the
+     fills of the controls on it */
   --surface-raised: #ffffff;
+  --raised-2: #efeff0;
+  --raised-hover: #e6e6e8;
   --surface-hover: #e6e6e8;
   --veil: rgb(20 22 26 / 0.07);
   --border: #dedfe1;
@@ -122,7 +125,9 @@
   --bg: #151517;
   --surface: #1f2022;
   --surface-2: #29292c;
-  --surface-raised: #252629;
+  --surface-raised: #2c2d31;
+  --raised-2: #36373c;
+  --raised-hover: #3e3f44;
   --surface-hover: #313134;
   --veil: rgb(255 255 255 / 0.07);
   --border: #37383c;
