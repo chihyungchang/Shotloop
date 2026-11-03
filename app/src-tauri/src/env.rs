@@ -125,15 +125,19 @@ fn shell_node() -> Option<PathBuf> {
     text.lines().map(str::trim).rev().find(|l| l.starts_with('/')).map(PathBuf::from)
 }
 
-fn copy_dir(from: &Path, to: &Path) -> std::io::Result<()> {
+/// `keep`: files already at `to` stay as they are
+fn copy_dir(from: &Path, to: &Path, keep: bool) -> std::io::Result<()> {
     std::fs::create_dir_all(to)?;
     for entry in std::fs::read_dir(from)? {
         let entry = entry?;
         let dest = to.join(entry.file_name());
         if entry.file_type()?.is_dir() {
-            copy_dir(&entry.path(), &dest)?;
-        } else {
-            std::fs::copy(entry.path(), dest)?;
+            copy_dir(&entry.path(), &dest, keep)?;
+        } else if !(keep && dest.exists()) {
+            // Under a temporary name: a copy cut short must not pass for a kept file
+            let part = to.join(format!(".{}.part", entry.file_name().to_string_lossy()));
+            std::fs::copy(entry.path(), &part)?;
+            std::fs::rename(part, dest)?;
         }
     }
     Ok(())
@@ -169,7 +173,9 @@ fn example_hash(dir: &Path) -> Option<u64> {
 /// writes its render cache into it, and the app bundle is read-only.
 /// The folder follows the bundle: new examples are added, ones the bundle
 /// changed (any file but the render cache) are copied again, and ones it
-/// no longer has go. An unchanged example keeps the renders made in it.
+/// no longer has go. An unchanged example keeps the renders made in it and
+/// gains the bundle's: a newer engine renders the same files under new
+/// keys, and without them the example would show no frames until rendered.
 pub fn seed_examples(bundled: &Path, dest: &Path) {
     let Ok(entries) = std::fs::read_dir(bundled) else { return };
     let config = |dir: &Path| example_hash(dir);
@@ -181,10 +187,16 @@ pub fn seed_examples(bundled: &Path, dest: &Path) {
         kept.insert(entry.file_name());
         let to = dest.join(entry.file_name());
         if to.exists() && config(&entry.path()) == config(&to) {
+            let cache = entry.path().join(".shotloop");
+            if cache.is_dir() {
+                if let Err(e) = copy_dir(&cache, &to.join(".shotloop"), true) {
+                    eprintln!("shotloop: could not update the renders of example {}: {e}", entry.path().display());
+                }
+            }
             continue;
         }
         let _ = std::fs::remove_dir_all(&to);
-        if let Err(e) = copy_dir(&entry.path(), &to) {
+        if let Err(e) = copy_dir(&entry.path(), &to, false) {
             eprintln!("shotloop: could not copy example {}: {e}", entry.path().display());
             let _ = std::fs::remove_dir_all(&to);
         }
