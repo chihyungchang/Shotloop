@@ -2,6 +2,7 @@ import { fileUrl, type Job, type Project, type Storyboard } from '../../api'
 import { useTick } from '../../hooks'
 import { t } from '../../i18n'
 import { agentNow, buildStepList, buildSteps, EDIT_MODE, formatSeconds, isActive, isWide, planSteps, type Step } from '../../model'
+import { AgentAvatar } from '../AgentAvatar'
 import { Icon } from '../Icon'
 import { ShotSketch } from './ShotSketch'
 import { shotHue } from './Storyboard'
@@ -49,7 +50,7 @@ export function BuildView({ project, plan, job, download, toStudio, back }: {
   return (
     <div className="build">
       <div className="build-head">
-        <span className="agent-avatar large">{running ? <span className="spinner" /> : <Icon name="check" size={20} />}</span>
+        <AgentAvatar large busy={running} />
         <div className="build-words">
           <strong>{t(running ? 'plan.building' : job?.state === 'failed' ? 'plan.buildFailed' : 'plan.built')}</strong>
           <p className="muted small">
@@ -111,7 +112,7 @@ export function PlanWait({ project, job, reading }: { project: Project; job: Job
   return (
     <div className="plan-wait">
       <div className="wait-card">
-        <span className="agent-avatar large">{job ? <span className="spinner" /> : <Icon name="spark" size={22} />}</span>
+        <AgentAvatar large busy={!!job} />
         <div className="wait-words">
           <strong>{t(reading ? 'plan.reading' : job ? 'plan.writing' : 'plan.none')}</strong>
           {!reading && <p className="muted small">{t('plan.writingNote')}</p>}

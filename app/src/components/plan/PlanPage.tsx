@@ -4,6 +4,7 @@ import { useAutosave } from '../../hooks'
 import { t } from '../../i18n'
 import { aspectOf, isActive, planSteps } from '../../model'
 import { styleName } from '../../styles'
+import { AgentAvatar } from '../AgentAvatar'
 import { AgentError } from '../AgentError'
 import { Icon } from '../Icon'
 import { Title } from '../studio/Studio'
@@ -268,7 +269,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
               {planning && (
                 <div className="plan-overlay" role="status">
                   <div className="plan-overlay-card">
-                    <span className="agent-avatar large"><span className="spinner" /></span>
+                    <AgentAvatar large busy />
                     <strong>{t('plan.revising')}</strong>
                     <p className="muted small">{t('plan.revisingNote')}</p>
                     {planJob!.state === 'running' ? <StepList steps={planSteps(planJob!)} /> : <PlanActivity job={planJob!} />}

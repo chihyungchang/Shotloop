@@ -107,3 +107,14 @@
 .sk-gap { height: 9px; }
 
 }
+
+/* The AI at work (AgentAvatar): its maker's mark on a disc, or a soft
+   aurora disc in the logo's colours when no AI is set up */
+.agent-avatar { position: relative; width: 30px; height: 30px; flex: none; border-radius: 50%; display: grid; place-items: center; color: #fff;
+  background: radial-gradient(circle at 30% 25%, #a7f3d0, transparent 55%), linear-gradient(135deg, #2dd4bf, #38bdf8 50%, #8b5cf6);
+  box-shadow: 0 2px 8px color-mix(in srgb, #38bdf8 35%, transparent), inset 0 0 0 1px rgb(255 255 255 / 0.25); }
+.agent-avatar.brand { display: flex; align-items: center; justify-content: center; background: var(--surface-2); color: var(--text-strong); box-shadow: inset 0 0 0 1px var(--border-soft); }
+.agent-avatar.large { width: 52px; height: 52px; }
+/* Working: a ring turns around the mark */
+.agent-avatar.busy::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--accent); border-right-color: transparent; border-bottom-color: transparent; animation: spin 0.9s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .agent-avatar.busy::after { animation-duration: 2.4s; } }
