@@ -251,8 +251,8 @@ const TASTE = [
   },
   {
     id: 'promo-explain', track: 'all', kind: 'promo', name: 'The product shows it, not a drawing',
-    rule: 'Show what the product does with the product itself: its own screens on the desktop, clicked, typed into, changing state. A drawn diagram (a row of tiles, a counter, steps) is the last resort, for a mechanism no screen of the product shows, and then it sits beside or over the real screen, never fills a beat in place of one.',
-    check: 'The product\'s own screens carry each beat; a drawn diagram appears only where no screen could show it, and never instead of one.'
+    rule: 'Whatever the product does is shown on the product itself: its own screens on the desktop, clicked, typed into, changing state (its answer, its features, its results). A drawing (a row of tiles, a counter, steps) may stand only for what lies outside the product, such as the problem or the old way before it, and never fills a beat that is about the product.',
+    check: 'Every beat about what the product does shows its own screens; drawings appear only for the problem or the old way, outside the product.'
   },
   {
     id: 'promo-chapters', track: 'all', kind: 'promo', name: 'Numbered chapters, big headlines',
