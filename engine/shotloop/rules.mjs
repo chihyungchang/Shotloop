@@ -71,12 +71,12 @@ const FIXED = [
     check: `Text and the subject stay inside the safe area (${SAFE}; 2D: the kit's PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM); in a tall frame the bottom 20% and the right edge carry the platforms' buttons. Backgrounds may fill the frame, and a screen may run off its edge.`
   },
   {
-    id: 'clean', track: 'all', name: 'No broken frames',
+    id: 'clean', track: 'all', locked: true, name: 'No broken frames',
     rule: 'Every frame is clean: nothing clipped, flickering or cut off by the frame or the camera, in a lit 3D scene nothing blown out but a light source, no text spilling out of its box or wrapping where it shouldn\'t, no blank or half-drawn frame, no placeholder left over.',
     check: 'No clipping through geometry, no subject under the floor, no z-fighting or flicker, nothing cut off by the camera\'s clip range or the frame edge. 3D: nothing blown to flat white but a light source (the stills\' exposure check stripes such areas). No text overflowing or wrapping badly, no blank, half-drawn or placeholder frame.'
   },
   {
-    id: 'readable', track: 'all', name: 'Readable',
+    id: 'readable', track: 'all', locked: true, name: 'Readable',
     rule: 'The subject is big enough to read and inside the frame; text is large enough and stands out from its ground.',
     check: 'The subject is at least ~3% of the frame height and inside the frame, at the start, middle and end. Something tiny or at the edge of the frame does not read; text is legible against what is behind it.'
   },
