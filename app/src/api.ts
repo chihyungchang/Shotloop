@@ -313,6 +313,9 @@ type MusicChange = { preset?: string; shuffle?: boolean; file?: string; none?: b
 // Agent jobs (and an export's copy) reply in the UI language
 const SPOKEN: Spec['kind'][] = ['propose', 'fix', 'check', 'plan', 'build', 'sound', 'publish', 'cover', 'export']
 
+// The project's home: its code, releases and issues
+export const REPO = 'https://github.com/chihyungchang/Shotloop'
+
 export const api = {
   doctor: () => invoke<Doctor>('doctor'),
   openProject: (path: string) => invoke<Project>('open_project', { path }),

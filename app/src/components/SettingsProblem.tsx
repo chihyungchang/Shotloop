@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { t } from '../i18n'
 import { settingsFromDefaults, useSettings } from '../settings'
+import { ErrorText } from './ErrorDialog'
 
 // The settings file could not be read (the shell set it aside as
 // settings.json.bad): what happened, and the way on with the defaults.
@@ -24,7 +25,7 @@ export function SettingsProblem() {
   return (
     <div className="error banner floating settings-problem" role="alert">
       <span>{t('settings.unreadable', { error })}</span>
-      {failed && <span className="small">{failed}</span>}
+      <ErrorText error={failed} as="span" className="small" />
       <button className="small" onClick={reset} disabled={busy}>{busy && <span className="spinner small" />} {t('settings.useDefaults')}</button>
     </div>
   )

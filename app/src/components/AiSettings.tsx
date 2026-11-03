@@ -7,6 +7,7 @@ import { useErrorLine } from '../hooks'
 import { t } from '../i18n'
 import type { Key } from '../i18n/en'
 import { Icon } from './Icon'
+import { ErrorText } from './ErrorDialog'
 
 const MODES: { id: Provider; title: Key }[] = [
   { id: 'cli', title: 'ai.cli' },
@@ -105,7 +106,7 @@ export function AiSettings({ settings, update }: { settings: Settings; update: U
           <button key={m.id} role="tab" aria-selected={mode === m.id} className={mode === m.id ? 'on' : ''} onClick={() => chooseMode(m.id)}>{t(m.title)}</button>
         ))}
       </div>
-      {link.error && <p className="error small">{link.error}</p>}
+      <ErrorText error={link.error} className="error small" />
       {mode === 'cli' && <CliPane settings={settings} update={update} detected={detected} probes={probes} openLink={openLink} />}
       {mode === 'api' && <ApiPane settings={settings} update={update} preset={preset} choosePreset={choosePreset} probes={probes} openLink={openLink} />}
       {mode === 'local' && <LocalPane settings={settings} update={update} detected={detected} probes={probes} />}

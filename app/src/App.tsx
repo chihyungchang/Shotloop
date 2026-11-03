@@ -16,6 +16,7 @@ import { isActive } from './model'
 import { pickProject, projectsFolder, remember, setProjectsFolder } from './recent'
 import { useTheme } from './theme/theme'
 import { t, useLanguage } from './i18n'
+import { ErrorText } from './components/ErrorDialog'
 
 // Two layouts, as in open-design: the workspace (sidebar + Home, All
 // projects, Settings) and the Studio, one project full-window.
@@ -230,7 +231,7 @@ export default function App() {
     return (
       <>
         {dialogs}
-        {error && <p className="error banner floating" onClick={() => setError(null)}>{error}</p>}
+        {error && <div onClick={() => setError(null)}><ErrorText error={error} className="error banner floating" /></div>}
         <Studio key={language.lang} project={project} jobs={jobs} refresh={refresh} close={close} theme={theme} openSettings={() => openSettings()} openPlan={openPlan}
           openRule={id => openSettings('rules', 'home', id)}
           save={project.draft ? () => saveDraft(false) : undefined} saving={saving} />
@@ -244,7 +245,7 @@ export default function App() {
       <Sidebar page={page} setPage={setPage} open={open} jobs={jobs} theme={theme} openSettings={openSettings} />
       <TelemetryNotice />
       <main className="workspace-main">
-        {error && <p className="error banner">{error}</p>}
+        <ErrorText error={error} className="error banner" />
         {copying && <p className="banner copying"><span className="spinner small" /> {t('example.copying')}</p>}
         {page === 'home' && <Home open={open} openSettings={() => openSettings()} ensureFolder={ensureFolder} />}
         {page === 'projects' && <Projects open={open} openFolder={openPicked} />}

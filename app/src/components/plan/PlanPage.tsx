@@ -10,6 +10,7 @@ import { Title } from '../studio/Studio'
 import { CopyEditor } from './CopyEditor'
 import { BuildView, PlanActivity, PlanWait, StepList } from './Progress'
 import { Storyboard } from './Storyboard'
+import { ErrorText } from '../ErrorDialog'
 
 const FILE = 'storyboard.json'
 
@@ -174,7 +175,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
           <li><span>3</span>{t('plan.step.edit')}</li>
         </ol>
         <div className="spacer" />
-        {autosave.status.state === 'failed' && <span className="small error ellipsis" title={autosave.status.error}>{t('common.notSaved', { error: autosave.status.error })}</span>}
+        <ErrorText error={autosave.status.state === 'failed' && t('common.notSaved', { error: autosave.status.error })} as="span" className="small error ellipsis" />
         {phase === 'plan' && (
           <>
             <button className="ghost" onClick={skip} disabled={!sb || planning}>{t('plan.skip')}</button>
@@ -202,7 +203,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
       )}
 
       {error
-        ? <div className="plan-error error-box">{error}</div>
+        ? <ErrorText error={error} as="div" className="plan-error error-box" />
         : (
           <AgentError job={failed} openSettings={openSettings} className="plan-error error-box">
             <button className="small" onClick={() => (phase === 'plan' ? revise('') : make())}>{t('plan.retry')}</button>

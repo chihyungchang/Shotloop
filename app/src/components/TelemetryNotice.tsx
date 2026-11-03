@@ -4,6 +4,7 @@ import { useErrorLine } from '../hooks'
 import { t } from '../i18n'
 import { patchSettings, useSettings } from '../settings'
 import { privacyUrl } from '../telemetry'
+import { ErrorText } from './ErrorDialog'
 
 // The first-launch notice about the anonymous usage counts (src/telemetry.ts):
 // what they are for in one line, the full privacy notice one click away
@@ -25,7 +26,7 @@ export function TelemetryNotice() {
     <div className="dialog telemetry-notice" role="dialog" aria-label={t('telemetry.ask')}>
       <strong>{t('telemetry.ask')}</strong>
       <p className="hint">{t('telemetry.short')} <button className="link" onClick={() => guard(api.openUrl(privacyUrl()))}>{t('telemetry.details')}</button></p>
-      {error && <p className="small error">{error}</p>}
+      <ErrorText error={error} className="small error" />
       <div className="dialog-actions">
         <button className="ghost" onClick={() => answer(true)} disabled={busy}>{t('telemetry.turnOff')}</button>
         <button className="primary" onClick={() => answer(false)} disabled={busy}>{t('telemetry.ok')}</button>

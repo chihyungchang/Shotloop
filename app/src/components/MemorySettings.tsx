@@ -3,6 +3,7 @@ import { api, type Memory } from '../api'
 import { lang, t } from '../i18n'
 import { useErrorLine } from '../hooks'
 import { Icon } from './Icon'
+import { ErrorText } from './ErrorDialog'
 
 // Settings → Memory: what every AI task reads. The person's own notes,
 // which they write here, and the lessons the AI kept while building; any
@@ -36,7 +37,7 @@ export function MemorySettings() {
     <section className="settings-block">
       <h3>{t('settings.memory')}</h3>
       <p className="hint">{t('memory.intro')}</p>
-      {error && <p className="error small">{error}</p>}
+      <ErrorText error={error} className="error small" />
       <div className="memory-add">
         <textarea rows={2} value={draft} placeholder={t('memory.placeholder')} onChange={e => setDraft(e.target.value)} />
         <button className="primary" onClick={add} disabled={!draft.trim() || adding}>

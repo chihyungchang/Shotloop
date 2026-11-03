@@ -5,6 +5,7 @@ import { agentNow, buildStepList, buildSteps, EDIT_MODE, formatSeconds, isActive
 import { Icon } from '../Icon'
 import { ShotSketch } from './ShotSketch'
 import { shotHue } from './Storyboard'
+import { ErrorText } from '../ErrorDialog'
 
 // The plan has 2D pictures that recur (drawn once before the shots), as
 // the agent reads them (agent/src/briefs.ts recurring)
@@ -60,7 +61,7 @@ export function BuildView({ project, plan, job, toStudio, back }: { project: Pro
       </div>
       {running && job!.state === 'queued' && <p className="muted small">{t('queue.waiting')}</p>}
       {running && job!.state === 'running' && <StepList steps={buildStepList(job!, project.shots, project.look ?? null, hasParts(project, plan))} row />}
-      {job?.state === 'failed' && job.error && <pre className="error-box small">{job.error}</pre>}
+      <ErrorText error={job?.state === 'failed' && job.error} as="div" className="error-box small" />
       <div className={`build-grid${wide ? ' wide' : ''}`}>
         {view.map(v => (
           <figure key={v.s.id} className={`build-shot${v.still ? ' ready' : ''}${v.stale ? ' stale' : ''}${v.action ? ' active' : ''}`}>

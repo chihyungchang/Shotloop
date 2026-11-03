@@ -4,6 +4,7 @@ import { useErrorLine, useEscape } from '../../hooks'
 import { t } from '../../i18n'
 import type { Key } from '../../i18n/en'
 import { Icon } from '../Icon'
+import { ErrorText } from '../ErrorDialog'
 
 // The lane each part fills, for its colour
 const LANE: Record<SoundPart, string> = { effects: 'effects', ambience: 'ambience', narration: 'voice' }
@@ -67,7 +68,7 @@ export function SoundDialog({ project, sound, ambienceName, close }: {
             {IDEAS.map(k => <button key={k} className="sound-ask-idea" onClick={() => idea(k)}><Icon name="plus" size={10} /> {t(k)}</button>)}
           </div>
         </div>
-        {error && <p className="small error">{error}</p>}
+        <ErrorText error={error} className="small error" />
         <div className="dialog-actions sound-ask-foot">
           <span className="small muted">{t('soundAsk.background')}</span>
           <button className="ghost" onClick={close}>{t('common.cancel')}</button>

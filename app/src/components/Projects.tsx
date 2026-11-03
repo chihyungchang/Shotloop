@@ -6,6 +6,7 @@ import { baseName, forget, listRecent } from '../recent'
 import { examplesFor, styleName } from '../styles'
 import { Icon } from './Icon'
 import { formatDate, t } from '../i18n'
+import { ErrorText } from './ErrorDialog'
 
 // All projects: the recently opened ones and the examples, as cards
 // with a poster still (open-design's project grid)
@@ -67,7 +68,7 @@ export function Projects({ open, openFolder }: { open: (path: string) => void; o
       {items?.length === 0 && !error && (
         <p className="empty">{t(tab === 'recent' ? 'projects.emptyRecent' : 'projects.emptyExamples')}</p>
       )}
-      {error && <p className="small warn-note">{error}</p>}
+      <ErrorText error={error} className="small warn-note" />
       <div className="card-grid">
         {items?.map(p => (
           <div key={p.root} className="project-item">

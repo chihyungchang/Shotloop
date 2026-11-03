@@ -4,6 +4,7 @@ import { useErrorLine } from '../hooks'
 import { formatEta, isActive } from '../model'
 import { t } from '../i18n'
 import { Icon } from './Icon'
+import { ErrorText } from './ErrorDialog'
 
 // A speech model's download (a queue job, voiceModel): a button with its
 // size, then a bar with MB and the time left; onDone runs when it lands,
@@ -45,7 +46,7 @@ export function VoiceDownload({ model, project, jobs, onDone }: {
       <button className="small" onClick={() => guard(api.enqueue({ kind: 'voiceModel', model: model.id, project }))}>
         <Icon name="download" size={12} /> {t(job?.state === 'failed' ? 'voiceDl.retry' : 'voiceDl.get', { name: model.name, mb })}
       </button>
-      {failure && <span className="error small ellipsis" title={failure}>{failure}</span>}
+      <ErrorText error={failure} as="span" className="error small ellipsis" />
     </div>
   )
 }

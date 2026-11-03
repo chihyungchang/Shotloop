@@ -151,6 +151,22 @@ export function useAudioPreview(fetchFile: () => Promise<string | null | undefin
 
 // An error line for a component's actions: `guard` runs one and shows
 // its failure there (the queue's enqueue, a rename, a removal)
+// Copies text to the clipboard: copied is true for a moment after, or
+// 'failed' when the clipboard refused (the text stays there to select)
+export function useCopy() {
+  const [copied, setCopied] = useState<boolean | 'failed'>(false)
+  const copy = useCallback(async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+    } catch {
+      setCopied('failed')
+    }
+    setTimeout(() => setCopied(false), 1500)
+  }, [])
+  return { copied, copy }
+}
+
 export function useErrorLine() {
   const [error, setError] = useState<string | null>(null)
   const guard = useCallback(async <T,>(p: Promise<T>): Promise<T | undefined> => {

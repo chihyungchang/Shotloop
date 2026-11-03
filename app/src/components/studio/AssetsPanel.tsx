@@ -5,6 +5,7 @@ import { t } from '../../i18n'
 import { formatSeconds } from '../../model'
 import { Icon } from '../Icon'
 import { PlayButton } from '../PlayButton'
+import { ErrorText } from '../ErrorDialog'
 
 // A project's models (3D) and sounds: the ones it uses (copied into
 // assets/), and the library's, to add. Once added, the AI assistant can
@@ -50,7 +51,7 @@ export function AssetsPanel({ project, refresh }: { project: Project; refresh: (
 
   return (
     <div className="assets-panel">
-      {error && <div className="error-box small">{error}</div>}
+      <ErrorText error={error} as="div" className="error-box small" />
       {kinds.map(kind => {
         const mine = of(used, kind)
         const sound = kind === 'sound'

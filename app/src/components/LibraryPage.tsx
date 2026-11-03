@@ -8,6 +8,7 @@ import type { Key } from '../i18n/en'
 import { formatMB, formatNumber, formatSeconds, isActive } from '../model'
 import { Icon } from './Icon'
 import { PlayButton } from './PlayButton'
+import { ErrorText } from './ErrorDialog'
 
 type Tab = 'search' | 'mine'
 type Source = LibraryItem['source']
@@ -104,7 +105,7 @@ export function LibraryPage({ jobs, openSettings }: { jobs: Job[]; openSettings:
         ))}
       </div>
       <p className="hint">{t('library.intro')}</p>
-      {error && <div className="error-box small">{error}</div>}
+      <ErrorText error={error} as="div" className="error-box small" />
       {tab === 'search'
         ? <Search key={kind} kind={kind} have={new Set(all?.map(a => a.id))} jobs={jobs} openSettings={openSettings} />
         : <Mine key={kind} kind={kind} assets={mine} reload={reload} />}
@@ -215,7 +216,7 @@ function Search({ kind, have, jobs, openSettings }: { kind: AssetKind; have: Set
             </div>
           </div>
         )
-        : error && <div className="error-box small">{error}</div>}
+        : <ErrorText error={error} as="div" className="error-box small" />}
       {source === 'polypizza' && !query.trim() && !needsKey && (
         <div className="suggest">
           <span className="small muted">{t('library.browse')}</span>
@@ -284,7 +285,7 @@ function Mine({ kind, assets, reload }: { kind: AssetKind; assets: Asset[] | nul
     </div>
   )
   if (!assets) return kind === 'sound' ? <SoundSkeleton /> : <AssetSkeleton />
-  if (!assets.length) return <>{bar}{error && <div className="error-box small">{error}</div>}<p className="empty">{t(kind === 'sound' ? 'library.emptyMineSounds' : 'library.emptyMine')}</p></>
+  if (!assets.length) return <>{bar}<ErrorText error={error} as="div" className="error-box small" /><p className="empty">{t(kind === 'sound' ? 'library.emptyMineSounds' : 'library.emptyMine')}</p></>
   const actions = (a: Asset) => (
     <span className="row">
       <button className="icon-button" title={t('studio.revealFinder')} onClick={() => guard(api.reveal(a.file))}><Icon name="folder" size={14} /></button>
@@ -294,7 +295,7 @@ function Mine({ kind, assets, reload }: { kind: AssetKind; assets: Asset[] | nul
   if (kind === 'sound') return (
     <>
     {bar}
-    {error && <div className="error-box small">{error}</div>}
+    <ErrorText error={error} as="div" className="error-box small" />
     <div className="audio-list">
       {assets.map(a => (
         <SoundRow key={a.id} name={a.name} author={a.author} duration={a.duration} license={a.license} file={async () => a.file} onError={setError}>
@@ -307,7 +308,7 @@ function Mine({ kind, assets, reload }: { kind: AssetKind; assets: Asset[] | nul
   return (
     <>
     {bar}
-    {error && <div className="error-box small">{error}</div>}
+    <ErrorText error={error} as="div" className="error-box small" />
     <div className="asset-grid">
       {assets.map(a => (
         <div key={a.id} className="asset-card">

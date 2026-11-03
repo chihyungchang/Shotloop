@@ -12,6 +12,7 @@ import { rename } from '../Studio'
 import { COVER_SIZE, CoverEditor, coverSource, useCover } from './CoverEditor'
 import { CopySummary, Publish, SoundSummary, usePublishCopy } from './parts'
 import { readExportPrefs, readExportTo, saveExportPrefs, saveExportTo, type Parts } from './prefs'
+import { ErrorText } from '../../ErrorDialog'
 
 const ASPECTS: { id: string; label: Key; note: Key }[] = [
   { id: '9:16', label: 'export.portrait', note: 'export.portraitFor' },
@@ -154,7 +155,7 @@ export function ExportDialog({ project, jobs, refresh, openSettings, close, open
           )}
 
         <div className="xd-foot">
-          {error && <span className="small error ellipsis" title={error}>{error}</span>}
+          <ErrorText error={error} as="span" className="small error ellipsis" />
           {view === 'setup' && (
             <>
               <div className="meta">
@@ -331,9 +332,9 @@ function Run({ project, jobs, started, exportJob, renders, batch, openSettings }
           <button className="small" onClick={() => guard(api.openPath(folder))}>{t('xd.openFolder')}</button>
         </div>
       )}
-      {delivery.error && <pre className="error-box small">{t('xd.copyNotDelivered', { error: delivery.error })}</pre>}
-      {error && <pre className="error-box small">{error}</pre>}
-      {failed && <pre className="error-box small">{exportJob!.error}</pre>}
+      <ErrorText error={delivery.error && t('xd.copyNotDelivered', { error: delivery.error })} as="div" className="error-box small" />
+      <ErrorText error={error} as="div" className="error-box small" />
+      <ErrorText error={failed && exportJob!.error} as="div" className="error-box small" />
       {video && (
         <section className="xrun">
           <div className="xrun-head">

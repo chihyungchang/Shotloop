@@ -2,13 +2,14 @@ import { open as pick } from '@tauri-apps/plugin-dialog'
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { MUSIC_MOODS } from '../../../../../engine/shotloop/data.mjs'
 import { api, type Job, type MusicInfo, type Project, type SoundChange, type SoundInfo, type VoiceInfo } from '../../../api'
-import { useAudioPreview, useAutosave, useErrorLine } from '../../../hooks'
+import { useAudioPreview, useAutosave, useCopy, useErrorLine } from '../../../hooks'
 import { activityLine, isActive } from '../../../model'
 import { t } from '../../../i18n'
 import type { Key } from '../../../i18n/en'
 import { AgentError } from '../../AgentError'
 import { Icon } from '../../Icon'
 import { VoiceDownload } from '../../VoiceDownload'
+import { ErrorText } from '../../ErrorDialog'
 
 // The sound's parts that keep their own state (the voice-over, the music
 // bed, the ambience and effects: the studio's sound lanes) and the export
@@ -183,7 +184,7 @@ export function Music({ state }: { state: MusicState }) {
           )}
         </div>
       </div>
-      {error && <p className="xrow-note error">{error}</p>}
+      <ErrorText error={error} className="xrow-note error" />
     </>
   )
 }
@@ -359,7 +360,7 @@ export function CopySummary({ project, jobs, edit, openSettings }: { project: Pr
           )
           : <p className="small muted">{t('export.publishNote')}</p>}
       <AgentError job={job} openSettings={openSettings} />
-      {error && <div className="error-box small">{error}</div>}
+      <ErrorText error={error} as="div" className="error-box small" />
       <div className="chips">
         {posts && <button className="small" onClick={edit} disabled={busy}><Icon name="edit" size={12} /> {t('xd.editCopy')}</button>}
         {!posts && (
@@ -404,8 +405,8 @@ export function Publish({ project, jobs, openSettings, bare }: { project: Projec
       </div>
       {!posts && !busy && <p className="hint">{t('export.publishNote')}</p>}
       <AgentError job={job} openSettings={openSettings} />
-      {error && <div className="error-box small">{error}</div>}
-      {autosave.status.state === 'failed' && <div className="error-box small">{t('common.notSaved', { error: autosave.status.error })}</div>}
+      <ErrorText error={error} as="div" className="error-box small" />
+      <ErrorText error={autosave.status.state === 'failed' && t('common.notSaved', { error: autosave.status.error })} as="div" className="error-box small" />
       {posts && post && (
         <div className="publish-form">
           <div className="subtabs" role="tablist">
@@ -427,22 +428,12 @@ export function Publish({ project, jobs, openSettings, bare }: { project: Projec
 }
 
 function Field({ label, value, rows = 1, onChange, copyOnly }: { label: string; value: string; rows?: number; onChange?: (v: string) => void; copyOnly?: boolean }) {
-  const [copied, setCopied] = useState<boolean | 'failed'>(false)
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(value)
-      setCopied(true)
-    } catch {
-      // The clipboard refused (no permission): the button says so, the text is there to select
-      setCopied('failed')
-    }
-    setTimeout(() => setCopied(false), 1500)
-  }
+  const { copied, copy } = useCopy()
   return (
     <div className="pub-field">
       <div className="row between">
         <span className="small muted">{label}</span>
-        <button className="small ghost" onClick={copy}>
+        <button className="small ghost" onClick={() => copy(value)}>
           <Icon name={copied === true ? 'check' : 'copy'} size={12} /> {t(copied === true ? 'export.copied' : copied === 'failed' ? 'export.copyFailed' : 'export.copy')}
         </button>
       </div>
