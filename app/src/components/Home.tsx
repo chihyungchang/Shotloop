@@ -3,7 +3,7 @@ import { useCallback, useEffect, useImperativeHandle, useRef, useState, type Com
 import { firstLine } from '../../../engine/shotloop/data.mjs'
 import { api, fileUrl, isBroken, type ListEntry, type ProjectSummary } from '../api'
 import { aspectOf, formatSeconds, isWide } from '../model'
-import { BrandIcon, hasBrand } from '../ai/BrandIcon'
+import { ModelMark } from '../ai/BrandIcon'
 import { aiSummary, useDetected } from '../ai/backends'
 import { baseName, listRecent, projectsFolder, setProjectsFolder } from '../recent'
 import { useSettings } from '../settings'
@@ -30,6 +30,7 @@ const NEXT_TRACK: Record<Track, Track> = { auto: '2d', '2d': '3d', '3d': 'auto' 
 // in seconds is typed in (the engine takes 6–180 s)
 const LENGTHS = ['auto', '15', '30', '45', '60']
 const CUSTOM = 'custom'
+const lengthLabel = (l: string) => l === 'auto' ? t('home.lengthAutoShort') : t('unit.s', { n: l })
 const MIN_LENGTH = 6, MAX_LENGTH = 180
 
 const slugify = (s: string) =>
@@ -237,13 +238,19 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
                 ))}
               </div>
               {/* Length as one chip with a menu: four buttons would wrap the row.
-                  "Custom" opens a box for any length in seconds */}
+                  "Custom" opens a box for any length in seconds. The menu lies
+                  invisibly over its label: a native select is as wide as its
+                  longest option */}
               <label className="chip-select" title={t('home.aria.length')}>
-                <Icon name="clock" size={13} />
-                <select value={custom ? CUSTOM : length} onChange={e => setLength(e.target.value === CUSTOM ? '20' : e.target.value)} aria-label={t('home.aria.length')}>
-                  {LENGTHS.map(l => <option key={l} value={l}>{l === 'auto' ? t('home.lengthAutoShort') : t('unit.s', { n: l })}</option>)}
-                  <option value={CUSTOM}>{t('home.lengthCustom')}</option>
-                </select>
+                <span className="chip-menu">
+                  <Icon name="clock" size={13} />
+                  {custom ? t('home.lengthCustom') : lengthLabel(length)}
+                  <Icon name="chevron" size={11} />
+                  <select value={custom ? CUSTOM : length} onChange={e => setLength(e.target.value === CUSTOM ? '20' : e.target.value)} aria-label={t('home.aria.length')}>
+                    {LENGTHS.map(l => <option key={l} value={l}>{lengthLabel(l)}</option>)}
+                    <option value={CUSTOM}>{t('home.lengthCustom')}</option>
+                  </select>
+                </span>
                 {custom && (
                   <span className="length-input">
                     <input type="number" min={MIN_LENGTH} max={MAX_LENGTH} step={1} value={length} onChange={e => setLength(e.target.value)} onBlur={clampLength}
@@ -262,9 +269,9 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
               {track !== '3d' && <LookPicker value={look} onChange={setLook} style={style} />}
             </div>
             {ai && (
-              // Just the AI's mark: its name and model are in the tooltip
+              // Just the model maker's mark: the tool and model are in the tooltip
               <button className="model-chip icon-only" onClick={openSettings} title={`${model} · ${t('ai.change')}`} aria-label={model}>
-                {hasBrand(ai.brand) ? <BrandIcon id={ai.brand} size={16} /> : <Icon name={ai.mode === 'local' ? 'cpu' : 'spark'} size={15} />}
+                <ModelMark ai={ai} />
                 {!ai.ready && <span className="dot warn" />}
               </button>
             )}

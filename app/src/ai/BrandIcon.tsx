@@ -1,6 +1,7 @@
 // Brand marks of the AI tools and providers (LobeHub Icons, MIT), inlined
 // so the one-colour marks take the text colour in light and dark
 
+import { Icon } from '../components/Icon'
 import i_claude_color from '@lobehub/icons-static-svg/icons/claude-color.svg?raw'
 import i_claudecode_color from '@lobehub/icons-static-svg/icons/claudecode-color.svg?raw'
 import i_codex_color from '@lobehub/icons-static-svg/icons/codex-color.svg?raw'
@@ -53,4 +54,10 @@ export function BrandIcon({ id, size = 16 }: { id: string; size?: number }) {
   if (!svg) return null
   // The marks are sized 1em: the wrapper's font size sets them
   return <span className='brand-icon' style={{ fontSize: size }} aria-hidden dangerouslySetInnerHTML={{ __html: svg }} />
+}
+
+// The mark of the model in use (aiSummary's `mark`), or a plain glyph when
+// its maker isn't known
+export function ModelMark({ ai, size = 16 }: { ai: { mark: string; mode: string }; size?: number }) {
+  return hasBrand(ai.mark) ? <BrandIcon id={ai.mark} size={size} /> : <Icon name={ai.mode === 'local' ? 'cpu' : 'spark'} size={size - 1} />
 }

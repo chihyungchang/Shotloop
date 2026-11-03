@@ -48,7 +48,7 @@ textarea.autotext { resize: none; overflow: hidden; line-height: 1.5; min-height
 .plan-ask { margin-top: auto; display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: var(--r-lg); background: var(--surface-2); }
 .plan-ask textarea { border: 0; background: transparent; resize: none; min-height: 44px; }
 .plan-ask textarea:focus-visible { outline: none; }
-.plan-ask .send { width: 32px; height: 32px; min-height: 32px; border-radius: 12px; }
+.plan-ask .send { width: 32px; height: 32px; min-height: 32px; }
 /* The timeline: one bar per shot, its width its duration */
 .timeline { display: flex; gap: 3px; height: 26px; }
 .timeline i { display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 18px; overflow: hidden; border-radius: 6px; font: 600 11px var(--font-sans); font-style: normal; color: #0b1220; opacity: 0.9; }

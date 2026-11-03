@@ -56,10 +56,10 @@
 .chip.static { border: 1px solid var(--border); background: var(--surface-2); cursor: default; font-size: 11.5px; padding: 3px 9px; }
 .aspect-glyph { display: inline-block; border: 1.5px solid currentColor; border-radius: 2px; }
 .aspect-glyph.a916 { width: 7px; height: 12px; } .aspect-glyph.a169 { width: 12px; height: 7px; }
-.send { width: 36px; height: 36px; min-height: 36px; border-radius: 14px; padding: 0; justify-content: center; background: var(--send-bg); color: var(--send-fg); border: 0; flex: none; }
+.send { width: 36px; height: 36px; min-height: 36px; border-radius: 50%; padding: 0; justify-content: center; background: var(--send-bg); color: var(--send-fg); border: 0; flex: none; }
 .send:hover:not(:disabled) { background: color-mix(in srgb, var(--send-bg) 88%, var(--send-fg)); }
 .send:disabled { opacity: 0.35; }
-.composer .send { width: 40px; height: 40px; min-height: 40px; border-radius: 50%; padding: 0; justify-content: center; border: 0; flex: none; color: #fff;
+.composer .send { width: 40px; height: 40px; min-height: 40px; color: #fff;
   background: linear-gradient(135deg, #14b8a6, #3b82f6 60%, #8b5cf6); box-shadow: 0 6px 18px rgb(59 130 246 / 0.28); transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur) var(--ease), opacity var(--dur) var(--ease); }
 .composer .send:hover:not(:disabled) { background: linear-gradient(135deg, #14b8a6, #3b82f6 60%, #8b5cf6); transform: translateY(-1px); box-shadow: 0 10px 24px rgb(59 130 246 / 0.36); }
 .composer .send:disabled { opacity: 0.3; box-shadow: none; }
@@ -88,9 +88,10 @@
 .workdir:hover:not(:disabled) { background: var(--veil); color: var(--text); }
 .chip .icon { margin-right: 2px; }
 /* The composer's length: one chip with a native menu */
-.chip-select { position: relative; display: inline-flex; align-items: center; gap: 4px; padding: 0 4px 0 10px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--text-2); }
-.chip-select select { border: 0; background-color: transparent; min-height: 32px; width: auto; padding: 0 22px 0 0; font-size: 12px; font-weight: 600; color: var(--text); background-position: right 4px center; cursor: pointer; }
-.chip-select select:focus-visible { outline: none; }
+.chip-select { position: relative; display: inline-flex; align-items: center; gap: 4px; border-radius: var(--r-pill); background: var(--surface-2); color: var(--text-2); }
+.chip-menu { position: relative; display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 10px; font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; cursor: pointer; }
+.chip-menu .icon { color: var(--text-2); }
+.chip-menu select { position: absolute; inset: 0; width: 100%; min-height: 0; height: 100%; padding: 0; border: 0; opacity: 0; cursor: pointer; }
 /* A typed length beside the menu: seconds, no spinner */
 .length-input { display: inline-flex; align-items: center; gap: 3px; padding-right: 8px; font-size: 12px; font-weight: 600; color: var(--text-2); }
 .length-input input { width: 38px; min-height: 24px; padding: 0 4px; border: 0; border-radius: var(--r-sm); background: var(--surface); font: inherit; color: var(--text); text-align: right; -moz-appearance: textfield; }
