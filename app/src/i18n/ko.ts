@@ -120,6 +120,7 @@ export const ko: Record<Key, string> = {
   'update.busy': '작업이 실행 중입니다. 작업이 끝나면 업데이트를 설치하세요.',
   'home.examples': '예제로 시작하기',
   'gallery.all': '전체',
+  'gallery.none': '이 종류의 예시는 아직 없습니다.',
   'gallery.pickStyle': '이 스타일 사용',
   'gallery.voice': '내레이션',
   'gallery.voiceHint': '내레이션과 자막 포함',

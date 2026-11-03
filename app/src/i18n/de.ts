@@ -120,6 +120,7 @@ export const de: Record<Key, string> = {
   'update.busy': 'Es laufen Aufträge: Installiere das Update, wenn sie fertig sind.',
   'home.examples': 'Mit einem Beispiel beginnen',
   'gallery.all': 'Alle',
+  'gallery.none': 'Für diese Art gibt es noch keine Beispiele.',
   'gallery.pickStyle': 'Diesen Stil verwenden',
   'gallery.voice': 'Sprecher',
   'gallery.voiceHint': 'Mit Sprecher und Untertiteln',

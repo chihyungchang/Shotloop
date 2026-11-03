@@ -115,6 +115,7 @@ export const zhCN: Record<Key, string> = {
   'update.busy': '还有任务在运行，完成后再安装更新。',
   'home.examples': '从示例开始',
   'gallery.all': '全部',
+  'gallery.none': '这一类还没有示例。',
   'gallery.pickStyle': '用这个画面方式',
   'gallery.voice': '配音',
   'gallery.voiceHint': '有配音和字幕',

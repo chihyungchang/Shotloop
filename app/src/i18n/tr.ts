@@ -120,6 +120,7 @@ export const tr: Record<Key, string> = {
   'update.busy': 'Çalışan işler var: bitince güncellemeyi yükleyin.',
   'home.examples': 'Bir örnekle başlayın',
   'gallery.all': 'Tümü',
+  'gallery.none': 'Bu türde henüz örnek yok.',
   'gallery.pickStyle': 'Bu stili kullan',
   'gallery.voice': 'Seslendirme',
   'gallery.voiceHint': 'Seslendirme ve altyazılı',

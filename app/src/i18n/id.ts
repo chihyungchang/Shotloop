@@ -120,6 +120,7 @@ export const id: Record<Key, string> = {
   'update.busy': 'Ada tugas yang berjalan: pasang pembaruan setelah selesai.',
   'home.examples': 'Mulai dari contoh',
   'gallery.all': 'Semua',
+  'gallery.none': 'Belum ada contoh jenis ini.',
   'gallery.pickStyle': 'Pakai gaya ini',
   'gallery.voice': 'Sulih suara',
   'gallery.voiceHint': 'Dengan sulih suara dan subtitel',

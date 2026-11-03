@@ -120,6 +120,7 @@ export const ptBR: Record<Key, string> = {
   'update.busy': 'Há tarefas rodando: instale a atualização quando terminarem.',
   'home.examples': 'Comece por um exemplo',
   'gallery.all': 'Todos',
+  'gallery.none': 'Ainda não há exemplos deste tipo.',
   'gallery.pickStyle': 'Usar este estilo',
   'gallery.voice': 'Narração',
   'gallery.voiceHint': 'Com narração e legendas',

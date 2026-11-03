@@ -120,6 +120,7 @@ export const vi: Record<Key, string> = {
   'update.busy': 'Đang có tác vụ chạy: hãy cài bản cập nhật khi chúng xong.',
   'home.examples': 'Bắt đầu từ một ví dụ',
   'gallery.all': 'Tất cả',
+  'gallery.none': 'Chưa có ví dụ nào thuộc loại này.',
   'gallery.pickStyle': 'Dùng phong cách này',
   'gallery.voice': 'Lồng tiếng',
   'gallery.voiceHint': 'Có lồng tiếng và phụ đề',

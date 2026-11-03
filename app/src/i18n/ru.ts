@@ -120,6 +120,7 @@ export const ru: Record<Key, string> = {
   'update.busy': 'Идут задачи: установите обновление, когда они завершатся.',
   'home.examples': 'Начать с примера',
   'gallery.all': 'Все',
+  'gallery.none': 'Примеров такого типа пока нет.',
   'gallery.pickStyle': 'Выбрать этот стиль',
   'gallery.voice': 'Озвучка',
   'gallery.voiceHint': 'С озвучкой и субтитрами',

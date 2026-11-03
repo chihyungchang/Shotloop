@@ -120,6 +120,7 @@ export const ja: Record<Key, string> = {
   'update.busy': 'ジョブを実行中です。終わってからアップデートをインストールしてください。',
   'home.examples': 'サンプルから始める',
   'gallery.all': 'すべて',
+  'gallery.none': 'この種類の例はまだありません。',
   'gallery.pickStyle': 'このスタイルを使う',
   'gallery.voice': 'ナレーション',
   'gallery.voiceHint': 'ナレーションと字幕付き',

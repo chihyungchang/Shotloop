@@ -121,6 +121,7 @@ export const en = {
   'update.busy': 'Jobs are running: install the update when they finish.',
   'home.examples': 'Start from an example',
   'gallery.all': 'All',
+  'gallery.none': 'No examples of this kind yet.',
   'gallery.pickStyle': 'Use this style',
   'gallery.voice': 'Voice-over',
   'gallery.voiceHint': 'Has a voice-over with subtitles',

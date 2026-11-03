@@ -120,6 +120,7 @@ export const fr: Record<Key, string> = {
   'update.busy': 'Des tâches sont en cours : installez la mise à jour quand elles seront terminées.',
   'home.examples': 'Partir d’un exemple',
   'gallery.all': 'Tous',
+  'gallery.none': 'Pas encore d\'exemple de ce type.',
   'gallery.pickStyle': 'Utiliser ce style',
   'gallery.voice': 'Voix off',
   'gallery.voiceHint': 'Avec voix off et sous-titres',

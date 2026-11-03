@@ -120,6 +120,7 @@ export const zhTW: Record<Key, string> = {
   'update.busy': '還有工作在執行，完成後再安裝更新。',
   'home.examples': '從範例開始',
   'gallery.all': '全部',
+  'gallery.none': '這一類還沒有範例。',
   'gallery.pickStyle': '使用這個風格',
   'gallery.voice': '配音',
   'gallery.voiceHint': '有配音和字幕',
