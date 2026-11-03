@@ -280,6 +280,12 @@ async function pool<T>(items: T[], n: number, f: (item: T) => Promise<void>) {
 // "auto" by the machine), 1–5
 const PARALLEL = Math.min(5, Math.max(1, Number(process.env.SHOTLOOP_PARALLEL) || 3))
 
+// How hard a shot's agent thinks: Settings → General, low unless chosen.
+// Measured on 3 shots: low takes ~1.3 min a shot, medium ~4 (it fixes the
+// framing from its stills more often), high ~6 for little more
+const SHOT_EFFORTS = ['low', 'medium', 'high'] as const
+const SHOT_EFFORT = SHOT_EFFORTS.find(e => e === process.env.SHOTLOOP_SHOT_EFFORT) ?? 'low'
+
 // What a build has done so far, across its phases
 interface Build {
   copy: string
@@ -478,7 +484,8 @@ async function buildShots(project: ProjectStatus, b: Build) {
     const ctx = context(project.root, [`shots/${shot.id}/`])
     try {
       const summary = await runAgent('code', {
-        effort: 'medium',
+        step: { kind: 'shot', shot: shot.id },
+        effort: SHOT_EFFORT,
         system: buildShotSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
         prompt: `Build shot ${shot.id} of ${head(project)} from its plan.\n\ncopy.md:\n${b.copy}\n\n${world}\n\n${shotBrief(project, shot)}`,
         ctx,

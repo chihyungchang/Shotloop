@@ -169,6 +169,8 @@ export interface Settings {
   smithsonianKey: string
   // Shots the AI builds at once, 1–5; 0 picks by the machine
   parallel: number
+  // How hard the AI thinks building each shot; '' for the default (low)
+  shotEffort: '' | 'low' | 'medium' | 'high'
   // Anonymous usage counts (src/telemetry.ts): on unless turned off, sent once
   // the first-launch notice was shown
   telemetryOff: boolean
