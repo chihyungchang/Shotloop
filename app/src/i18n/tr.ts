@@ -706,6 +706,7 @@ export const tr: Record<Key, string> = {
   'plan.openNow': 'Düzenleyiciyi şimdi aç',
   'plan.openStudio': 'Düzenleyiciyi aç',
   'plan.link': 'Metin ve senaryo taslağı',
+  'build.waitParts': 'Ortak görseller bekleniyor',
   'job.plan': 'Metni ve senaryo taslağını planla',
   'job.build': 'Çekimleri oluştur',
   'job.voiceModel': '{model} sesini indir',

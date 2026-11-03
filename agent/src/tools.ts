@@ -45,6 +45,9 @@ export interface ToolContext {
   checks: { shot: string; results: CheckResult[]; summary: string }[]
   // The ways to make a change the AI offers, for the person to pick from
   options: ShotOption[]
+  // A shot written only as a test sheet (the recurring pictures' proof):
+  // not the shot, so its writes aren't told as the shot's progress
+  sheet?: string
 }
 
 export interface ShotOption { title: string; plan: string }
@@ -333,7 +336,7 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
       ctx.touched.add(rel)
       emit({ type: 'tool', name, summary: rel, path: rel })
       const shot = codeOf(rel)
-      if (shot) emit({ type: 'shot', id: shot, state: 'written' })
+      if (shot && shot !== ctx.sheet) emit({ type: 'shot', id: shot, state: 'written' })
       return `${rel} saved`
     }
     case 'render_stills': {

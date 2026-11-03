@@ -706,6 +706,7 @@ export const id: Record<Key, string> = {
   'plan.openNow': 'Buka editor sekarang',
   'plan.openStudio': 'Buka editor',
   'plan.link': 'Teks & storyboard',
+  'build.waitParts': 'Menunggu gambar bersama',
   'job.plan': 'Rencanakan teks dan storyboard',
   'job.build': 'Buat adegan',
   'job.voiceModel': 'Unduh suara {model}',

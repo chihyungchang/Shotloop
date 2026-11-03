@@ -162,10 +162,23 @@ ${LOOKS.map(l => `- ${l.id}: ${l.about}; mood: ${l.mood}${l.scene ? '' : ' (not 
 
 // The world's text files (not folders such as __pycache__, not media, not
 // data such as the map's countries: too long to read, never edited)
-export function worldFiles(project: ProjectStatus) {
+// The world's files for an agent's request. docs: only the notes at the
+// top of each (what its helpers are and take: what a shot's author needs,
+// as the world is asked to write them), the code left for read_file: the
+// files are sent again on every turn, and a 3D world's run to tens of KB
+export function worldFiles(project: ProjectStatus, { docs = false } = {}) {
   const worldDir = path.join(project.root, 'world')
   if (!fs.existsSync(worldDir)) return ''
   return fs.readdirSync(worldDir, { withFileTypes: true })
     .filter(e => e.isFile() && /\.(py|js|mjs|html|css|json|md|txt|svg)$/i.test(e.name) && !/\.data\./.test(e.name))
-    .map(e => `world/${e.name}:\n${read(path.join(worldDir, e.name))}`).join('\n\n')
+    .map(e => `world/${e.name}:\n${docs ? notesOf(e.name, read(path.join(worldDir, e.name))) : read(path.join(worldDir, e.name))}`).join('\n\n')
+}
+
+// A file's notes: its leading comment (HTML, block or line comments); a
+// small file without one is itself, a big one is named for read_file
+const SMALL = 3000
+function notesOf(name: string, text: string) {
+  const top = text.match(/^\s*(?:<!doctype[^>]*>\s*)?(<!--[\s\S]*?-->|(?:\s*(?:\/\/.*|\/\*[\s\S]*?\*\/)\n)+)/i)?.[1].trim()
+  if (top) return `${top}\n(the code: read_file world/${name})`
+  return text.length <= SMALL ? text : `(no notes at its top; read_file world/${name} for its code)`
 }

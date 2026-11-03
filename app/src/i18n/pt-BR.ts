@@ -706,6 +706,7 @@ export const ptBR: Record<Key, string> = {
   'plan.openNow': 'Abrir o editor agora',
   'plan.openStudio': 'Abrir o editor',
   'plan.link': 'Texto e storyboard',
+  'build.waitParts': 'Aguardando as imagens compartilhadas',
   'job.plan': 'Planejar texto e storyboard',
   'job.build': 'Gerar os planos',
   'job.voiceModel': 'Baixar voz {model}',

@@ -706,6 +706,7 @@ export const ko: Record<Key, string> = {
   'plan.openNow': '지금 편집기 열기',
   'plan.openStudio': '편집기 열기',
   'plan.link': '문안 및 스토리보드',
+  'build.waitParts': '공통 그림을 기다리는 중',
   'job.plan': '문안과 스토리보드 기획',
   'job.build': '샷 빌드',
   'job.voiceModel': '내레이션 모델 {model} 다운로드',

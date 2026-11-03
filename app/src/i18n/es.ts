@@ -706,6 +706,7 @@ export const es: Record<Key, string> = {
   'plan.openNow': 'Abrir el editor ya',
   'plan.openStudio': 'Abrir el editor',
   'plan.link': 'Texto y storyboard',
+  'build.waitParts': 'Esperando las imágenes compartidas',
   'job.plan': 'Planificar el texto y el storyboard',
   'job.build': 'Generar los planos',
   'job.voiceModel': 'Descargar voz {model}',

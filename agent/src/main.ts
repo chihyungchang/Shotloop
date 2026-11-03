@@ -32,8 +32,9 @@ import type { PickedElement } from '../../engine/shotloop/protocol.d.ts'
 import { engine, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
 import { lookFits, memory, parseFlags, rules, STILLS, type Memory } from './enginelib.ts'
 import { emit, exit, reason, setJson, warn } from './events.ts'
+import { openLedger } from './ledger.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
-import { buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, memoryPrompt, planSystem, proposeSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, SOUND_PARTS, soundSystem, TEMPLATE_RULES, type SoundPart } from './prompts.ts'
+import { buildLayoutSystem, buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, memoryPrompt, planSystem, proposeSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, SOUND_PARTS, soundSystem, TEMPLATE_RULES, type SoundPart } from './prompts.ts'
 import { lintPlan, lintVoice } from './principles.ts'
 import { newContext, SET_AMBIENCE, SET_LINES, writeAtomic, type ToolContext } from './tools.ts'
 
@@ -310,8 +311,8 @@ async function buildTask() {
 
   const look = project.track === '2d' && /shotloop-look: /.test(read(path.join(project.root, 'world', 'page.html')))
   if (!look) project = await buildWorld(project, b)
-  const lead = await buildParts(project, b)
-  await buildShots(project, b, lead)
+  await buildParts(project, b)
+  await buildShots(project, b)
   if (!b.done.length) throw new Error(b.failed[0] ?? 'no shot was built')
   await renderStale(b)
 
@@ -319,55 +320,160 @@ async function buildTask() {
   return { task: 'build', summary, touched: [...b.touched].sort(), failed: [...new Set(b.failed.map(f => f.split(':')[0]))] }
 }
 
-// One visual system for the whole film; returns the project as it now is
+// A shot's folder lent as a test sheet (the world's or a picture's
+// proof): its code is kept aside in .shotloop/sheets and put back when
+// the work is done, and the shot is built later with the others. A run
+// stopped meanwhile (cancelled, the app quit) can't put it back: the
+// next task does (restoreSheets)
+const sheetsDir = (root: string) => path.join(root, '.shotloop', 'sheets')
+async function onSheet<T>(sheet: ShotStatus, work: () => Promise<T>): Promise<T> {
+  const kept = path.join(sheetsDir(dir), `${sheet.id}.js`)
+  if (fs.existsSync(sheet.code)) {
+    fs.mkdirSync(path.dirname(kept), { recursive: true })
+    writeAtomic(kept, fs.readFileSync(sheet.code, 'utf8'))
+  }
+  try {
+    return await work()
+  } finally {
+    if (fs.existsSync(kept)) {
+      writeAtomic(sheet.code, fs.readFileSync(kept, 'utf8'))
+      fs.rmSync(kept)
+    }
+  }
+}
+
+// Shots a stopped run left as test sheets get their own code back
+function restoreSheets(root: string) {
+  const kept = sheetsDir(root)
+  if (!fs.existsSync(kept)) return
+  for (const f of fs.readdirSync(kept).filter(f => f.endsWith('.js'))) {
+    const code = path.join(root, 'shots', f.slice(0, -3), 'shot.js')
+    if (fs.existsSync(path.dirname(code))) writeAtomic(code, fs.readFileSync(path.join(kept, f), 'utf8'))
+    fs.rmSync(path.join(kept, f))
+  }
+}
+
+// One visual system for the whole film, proved on a test sheet in the
+// first shot; returns the project as it now is
 async function buildWorld(project: ProjectStatus, b: Build) {
   emit({ type: 'phase', phase: 'world' })
-  const ctx = context(project.root, ['world/'])
-  await runAgent('code', {
-    effort: 'high',
+  const sheet = project.shots[0]
+  const ctx = { ...context(project.root, ['world/', `shots/${sheet.id}/`]), sheet: sheet.id }
+  await onSheet(sheet, () => runAgent('code', {
+    step: { kind: 'world' },
+    effort: 'medium',
     system: buildWorldSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
-    prompt: `Design the world of ${head(project)} from its plan.\n\ncopy.md:\n${b.copy}\n\n${worldFiles(project)}\n\n${project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')}`,
+    prompt: `Design the world of ${head(project)} from its plan, and prove it on a test sheet in shot ${sheet.id}.\n\ncopy.md:\n${b.copy}\n\n${worldFiles(project)}\n\n${project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')}`,
     ctx
-  })
+  }))
   collect(b, project, ctx)
   return status(dir)
 }
 
-// 2D: the recurring pictures drawn once (world/parts.js), built into the
-// first shot that shows them as their proof; returns that shot, or
-// nothing when there are none or they failed (then every shot draws its own)
-async function buildParts(project: ProjectStatus, b: Build): Promise<ShotStatus | undefined> {
+// The recurring pictures (2D), drawn once before any shot, so every shot
+// shows them the same: each in its own file (world/parts/part-N.js), by
+// its own agent, PARALLEL at a time, then gathered in world/parts.js (each
+// file's documentation and its exports), which the shots import. The
+// agents don't see each other's code: with two pictures or more, a shared
+// layout (world/parts/layout.js) is written first, where every picture
+// sits and the anchors they share, so pictures the plan relates (one
+// inside another, at its place and scale) line up. An agent proves its
+// picture on a test sheet, a shot's folder no other agent holds; the
+// shot's code is put back after, and it is built with the others
+async function buildParts(project: ProjectStatus, b: Build) {
   const parts = project.track === '2d' ? recurring(project) : []
-  const first = Math.min(...parts.flatMap(r => r.shots).filter(n => n >= 1 && n <= project.shots.length))
-  const lead = Number.isFinite(first) ? project.shots[first - 1] : undefined
-  if (!lead) return undefined
+  if (!parts.length) return
   emit({ type: 'phase', phase: 'parts' })
-  emit({ type: 'shot', id: lead.id, state: 'start' })
-  const ctx = context(project.root, ['world/parts.js', `shots/${lead.id}/`])
-  let built = false
-  try {
-    const summary = await runAgent('code', {
-      effort: 'high',
-      system: buildPartsSystem(!!project.voiced) + remembered('2d', true) + replyLanguage(values.lang),
-      prompt: `Draw the recurring pictures of ${head(project)} in world/parts.js, then build shot ${lead.id} with them.\n\nRecurring pictures:\n${parts.map(r => `- ${r.name} (shots ${r.shots.join(', ')}): ${r.design}`).join('\n')}\n\ncopy.md:\n${b.copy}\n\n${worldFiles(project)}\n\n${shotBrief(project, lead)}`,
-      ctx
-    })
-    b.done.push(`${lead.id}: ${summary}`)
-    built = true
-  } catch (err) {
-    warn(`the recurring pictures failed (${reason(err)}); every shot draws its own`)
-  }
-  collect(b, project, ctx)
-  if (!built) return undefined
-  emit({ type: 'shot', id: lead.id, state: 'done' })
-  return lead
+  const file = (i: number) => `world/parts/part-${i + 1}.js`
+  const layout = parts.length > 1 ? await writeLayout(project, b, parts) : null
+  // The sheets free to take, the shots that show a picture first
+  const free = [...new Set([...parts.flatMap(r => r.shots).map(n => project.shots[n - 1]), ...project.shots].filter(Boolean))]
+  const drawn: number[] = []
+  await pool(parts.map((r, i) => ({ r, i })), Math.min(PARALLEL, free.length), async ({ r, i }) => {
+    const sheet = free.shift()!
+    const users = r.shots.map(n => project.shots[n - 1]).filter(Boolean)
+    const others = parts.filter(o => o !== r)
+    const ctx = { ...context(project.root, [file(i), `shots/${sheet.id}/`]), sheet: sheet.id }
+    try {
+      const summary = await onSheet(sheet, () => runAgent('code', {
+        step: { kind: 'part', name: r.name },
+        effort: 'medium',
+        system: buildPartsSystem(!!project.voiced) + remembered('2d', true) + replyLanguage(values.lang),
+        prompt: `Draw the recurring picture "${r.name}" of ${head(project)} in ${file(i)}, and prove it on a test sheet in shot ${sheet.id} (import it there from '../../${file(i)}').\n\nIts design (shots ${r.shots.join(', ')}): ${r.design}${others.length ? `\n\nThe film's other recurring pictures, drawn by other agents at the same time in their own files (never draw them):\n${others.map(o => `- ${o.name} (shots ${o.shots.join(', ')}): ${o.design}`).join('\n')}` : ''}${layout ? `\n\nThe shared layout, ${layout} (import it in your file from './layout.js'): your picture's default place and size, and every anchor it shares with the others, come from it, exactly, so the pictures line up:\n${read(path.join(project.root, layout))}` : ''}\n\nWhat the shots that show it need of it:\n${users.map(s => `### ${s.id}\n${read(s.notes)}`).join('\n\n')}\n\n${worldFiles(project, { docs: true })}`,
+        ctx
+      }))
+      if (fs.existsSync(path.join(project.root, file(i)))) drawn.push(i)
+      b.done.push(`${file(i)}: ${summary}`)
+    } catch (err) {
+      warn(`the recurring picture "${r.name}" failed (${reason(err)}); its shots draw it themselves`)
+    } finally {
+      free.push(sheet)
+    }
+    collect(b, project, ctx)
+  })
+  // None drawn: the last build's pictures stay, for the shots that use them
+  if (!drawn.length) return
+  const keep = [...(layout ? [{ name: 'the shared layout', file: layout }] : []), ...drawn.sort((x, y) => x - y).map(i => ({ name: parts[i].name, file: file(i) }))]
+  const folder = path.join(project.root, 'world', 'parts')
+  for (const f of fs.readdirSync(folder)) if (!keep.some(k => k.file === `world/parts/${f}`)) fs.rmSync(path.join(folder, f), { recursive: true, force: true })
+  writePartsIndex(project, keep)
 }
 
-// Every other shot, PARALLEL at a time, on the finished world
-async function buildShots(project: ProjectStatus, b: Build, lead: ShotStatus | undefined) {
+// The recurring pictures' shared layout, before they are drawn: plain
+// constants, quick to write (low effort, no render). Its file, or null
+// when it couldn't be written (each picture then follows its design alone)
+async function writeLayout(project: ProjectStatus, b: Build, parts: ReturnType<typeof recurring>) {
+  const rel = 'world/parts/layout.js'
+  // An earlier build's layout is for an earlier plan: never taken for this one's
+  fs.rmSync(path.join(project.root, rel), { force: true })
+  const ctx = context(project.root, [rel])
+  try {
+    await runAgent('code', {
+      step: { kind: 'layout' },
+      effort: 'low',
+      system: buildLayoutSystem() + replyLanguage(values.lang),
+      prompt: `The recurring pictures of ${head(project)}:\n${parts.map(r => `- ${r.name} (shots ${r.shots.join(', ')}): ${r.design}`).join('\n')}\n\n${worldFiles(project, { docs: true })}`,
+      ctx
+    })
+  } catch (err) {
+    warn(`the recurring pictures' layout failed (${reason(err)}); each follows its design alone`)
+  }
+  collect(b, project, ctx)
+  return fs.existsSync(path.join(project.root, rel)) ? rel : null
+}
+
+// world/parts.js: every drawn picture's documentation (its file's leading
+// comment) and its exports, by name, for the shots to import from one
+// place. Pictures drawn apart may export the same name (a helper): the
+// first file's is kept, and said (an ambiguous name would break every
+// shot importing it)
+function writePartsIndex(project: ProjectStatus, drawn: { name: string; file: string }[]) {
+  const docs = (text: string) => text.match(/^(?:\s*(?:\/\/.*|\/\*[\s\S]*?\*\/)\n)+/)?.[0].trim() ?? ''
+  const taken = new Set<string>()
+  const blocks = drawn.map(d => {
+    const text = read(path.join(project.root, d.file))
+    const from = `./${d.file.replace(/^world\//, '')}`
+    const names = exportNames(text)
+    const mine = names.filter(n => !taken.has(n))
+    for (const n of names.filter(n => taken.has(n))) warn(`${d.file} exports ${n}, as an earlier picture does: the earlier one is kept`)
+    mine.forEach(n => taken.add(n))
+    return `// ${d.name}: ${d.file}\n${docs(text)}\n${mine.length ? `export { ${mine.join(', ')} } from '${from}'` : ''}`
+  })
+  writeAtomic(path.join(project.root, 'world', 'parts.js'), `// world/parts.js · the film's recurring pictures, one file each; import them from here\n\n${blocks.join('\n\n')}\n`)
+}
+
+// The names an ES module exports (declarations and export lists)
+function exportNames(text: string) {
+  const declared = [...text.matchAll(/^export\s+(?:async\s+)?(?:function\*?|const|let|var|class)\s+([A-Za-z_$][\w$]*)/gm)].map(m => m[1])
+  const listed = [...text.matchAll(/^export\s*\{([^}]*)\}(?!\s*from)/gm)].flatMap(m => m[1].split(',').map(x => x.trim().split(/\s+as\s+/).pop()!).filter(Boolean))
+  return [...new Set([...declared, ...listed])]
+}
+
+// Every shot, PARALLEL at a time, on the finished world
+async function buildShots(project: ProjectStatus, b: Build) {
   emit({ type: 'phase', phase: 'shots' })
-  const world = worldFiles(project)
-  await pool(project.shots.filter(s => s.id !== lead?.id), PARALLEL, async shot => {
+  const world = worldFiles(project, { docs: true })
+  await pool(project.shots, PARALLEL, async shot => {
     emit({ type: 'shot', id: shot.id, state: 'start' })
     const ctx = context(project.root, [`shots/${shot.id}/`])
     try {
@@ -519,6 +625,9 @@ try {
       await exit(1)
     }
     preflight()
+    // Every AI step of this task is recorded with the project (ledger.ts)
+    openLedger(dir, task)
+    restoreSheets(dir)
     value = task === 'publish' ? await publishTask() : task === 'cover' ? await coverTask() : task === 'plan' ? await planTask() : task === 'build' ? await buildTask() : task === 'sound' ? await soundTask() : await shotTask(task as ShotKind)
   }
   emit({ type: 'result', value })

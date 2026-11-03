@@ -21,7 +21,8 @@ const SHOT = '09-end-card-source'
 type Block = Record<string, unknown>
 
 // One scripted assistant turn per request; records what the client sent
-function mockApi(turns: Block[][]) {
+// A turn: the blocks, or what makes them when the request comes
+function mockApi(turns: (Block[] | (() => Block[]))[]) {
   const requests: any[] = []
   const server = http.createServer((req, res) => {
     let body = ''
@@ -29,7 +30,8 @@ function mockApi(turns: Block[][]) {
     req.on('end', () => {
       const parsed = JSON.parse(body)
       requests.push(parsed)
-      const content = turns[requests.length - 1] ?? [{ type: 'text', text: 'done' }]
+      const turn = turns[requests.length - 1]
+      const content = (typeof turn === 'function' ? turn() : turn) ?? [{ type: 'text', text: 'done' }]
       res.setHeader('content-type', 'application/json')
       res.end(JSON.stringify({
         id: `msg_${requests.length}`,
@@ -174,37 +176,96 @@ test('propose: looks, offers ways to make the change, edits nothing', async () =
   }
 })
 
-test('build: phases and shots told as events, in order', async () => {
+test('build: phases and shots told as events, in order; the parts\' test sheet is put back', async () => {
   const project = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-agent-'))
   fs.cpSync(EXAMPLE, project, { recursive: true, filter: src => !/\.shotloop|\/out(\/|$)/.test(src) })
-  // Two shots, the first with a recurring picture (the parts phase)
+  // One shot, with a recurring picture (the parts phase): its folder is the parts' test sheet
   const cfgFile = path.join(project, 'shotloop.json')
   const cfg = JSON.parse(fs.readFileSync(cfgFile, 'utf8'))
-  cfg.shots = cfg.shots.filter((s: { id: string }) => s.id === '01-password-field-dots' || s.id === SHOT)
+  cfg.shots = cfg.shots.filter((s: { id: string }) => s.id === SHOT)
   fs.writeFileSync(cfgFile, JSON.stringify(cfg, null, 2))
   fs.writeFileSync(path.join(project, 'storyboard.json'), JSON.stringify({ shots: [], recurring: [{ name: 'field', design: 'a password field', shots: [1] }] }))
   const code = `shots/${SHOT}/shot.js`
+  const original = fs.readFileSync(path.join(project, code), 'utf8')
+  // A run stopped while the shot was an earlier test sheet: its code kept aside
+  fs.mkdirSync(path.join(project, '.shotloop', 'sheets'), { recursive: true })
+  fs.writeFileSync(path.join(project, '.shotloop', 'sheets', `${SHOT}.js`), original)
+  fs.writeFileSync(path.join(project, code), '// a sheet a stopped run left\n')
+  // What the shot's agent finds when it starts: the shot's own code, not the sheet
+  let seen = ''
 
   const api = await mockApi([
     [{ type: 'text', text: 'World ready.' }],
+    [use('p0', 'write_file', { path: 'world/parts/part-1.js', content: '// field(kit, { x, y }): the password field\nexport const field = () => \'\'\n' })],
+    [use('p1', 'write_file', { path: code, content: '// a test sheet of the parts\nexport default function render() {}\n' })],
     [{ type: 'text', text: 'Parts drawn.' }],
-    [use('w1', 'write_file', { path: code, content: fs.readFileSync(path.join(project, code), 'utf8') })],
+    () => {
+      seen = fs.readFileSync(path.join(project, code), 'utf8')
+      return [use('w1', 'write_file', { path: code, content: original })]
+    },
     [{ type: 'text', text: 'Shot built.' }]
   ])
   try {
     const { code: exit, events } = await runAgent(['build', project], api.url)
     assert.equal(exit, 0, JSON.stringify(events.filter(e => e.type === 'error')))
     const steps = events.filter(e => e.type === 'phase' || e.type === 'shot').map(e => (e.type === 'phase' ? e.phase : `${e.id} ${e.state}`))
-    assert.deepEqual(steps, [
-      'world',
-      'parts', '01-password-field-dots start', '01-password-field-dots done',
-      'shots', `${SHOT} start`, `${SHOT} written`, `${SHOT} done`
-    ])
+    // The sheet's write is not the shot's progress; every shot is built in the shots phase
+    assert.deepEqual(steps, ['world', 'parts', 'shots', `${SHOT} start`, `${SHOT} written`, `${SHOT} done`])
+    assert.equal(seen, original)
+    // The picture's file gathered in world/parts.js, its documentation first
+    const index = fs.readFileSync(path.join(project, 'world', 'parts.js'), 'utf8')
+    assert.match(index, /field\(kit, \{ x, y \}\): the password field\nexport \{ field \} from '\.\/parts\/part-1\.js'/)
     // The old log lines are gone
     assert.ok(!events.some(e => e.type === 'log' && /^(phase |shot_start|shot_done)/.test(e.message)))
     const result = events.find(e => e.type === 'result').value
     assert.deepEqual(result.failed, [])
-    assert.deepEqual(result.touched, [code])
+    assert.deepEqual(result.touched, [code, 'world/parts/part-1.js'].sort())
+    // Each step recorded with the project: what it was, its tokens, its time
+    const spent = fs.readFileSync(path.join(project, '.shotloop', 'ai-usage.jsonl'), 'utf8').trim().split('\n').map(l => JSON.parse(l))
+    assert.deepEqual(spent.map(e => [e.task, e.step.kind]), [['build', 'world'], ['build', 'part'], ['build', 'shot']])
+    assert.equal(spent[2].step.shot, SHOT)
+    assert.ok(spent.every(e => e.ok && e.backend === 'api:anthropic' && e.input >= 1 && e.output >= 1 && e.turns >= 1 && e.ms >= 0))
+    assert.equal(new Set(spent.map(e => e.run)).size, 1)
+  } finally {
+    api.close()
+    fs.rmSync(project, { recursive: true, force: true })
+  }
+})
+
+test('build: two recurring pictures share a layout written first, which each picture is drawn with', async () => {
+  const project = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-agent-'))
+  fs.cpSync(EXAMPLE, project, { recursive: true, filter: src => !/\.shotloop|\/out(\/|$)/.test(src) })
+  const cfgFile = path.join(project, 'shotloop.json')
+  const cfg = JSON.parse(fs.readFileSync(cfgFile, 'utf8'))
+  cfg.shots = cfg.shots.filter((s: { id: string }) => s.id === SHOT)
+  fs.writeFileSync(cfgFile, JSON.stringify(cfg, null, 2))
+  fs.writeFileSync(path.join(project, 'storyboard.json'), JSON.stringify({ shots: [], recurring: [
+    { name: 'car', design: 'a sports car, side view', shots: [1] },
+    { name: 'tank', design: 'a tank in the car\'s back seat, same place and scale', shots: [1] }
+  ] }))
+  // One shot, so one sheet: the pictures are drawn one after the other, in order
+  const api = await mockApi([
+    [{ type: 'text', text: 'World ready.' }],
+    [use('l1', 'write_file', { path: 'world/parts/layout.js', content: '// backSeat: where the tank sits in the car\nexport const backSeat = { x: 300, y: 600, w: 120, h: 60 }\n' })],
+    [{ type: 'text', text: 'Layout set.' }],
+    // The car also exports the layout's name: the layout's is kept
+    [use('c1', 'write_file', { path: 'world/parts/part-1.js', content: '// car(kit): the car\nexport const car = () => \'\'\nexport const backSeat = 0\n' })],
+    [{ type: 'text', text: 'Car drawn.' }],
+    [use('t1', 'write_file', { path: 'world/parts/part-2.js', content: '// tank(kit): the tank\nexport const tank = () => \'\'\n' })],
+    [{ type: 'text', text: 'Tank drawn.' }],
+    [{ type: 'text', text: 'Shot built.' }]
+  ])
+  try {
+    const { code: exit, events } = await runAgent(['build', project], api.url)
+    assert.equal(exit, 0, JSON.stringify(events.filter(e => e.type === 'error')))
+    // Both pictures' agents were given the layout
+    const asked = (n: number) => JSON.stringify(api.requests[n].messages[0])
+    assert.match(asked(3), /backSeat: where the tank sits/)
+    assert.match(asked(5), /backSeat: where the tank sits/)
+    assert.doesNotMatch(asked(1), /backSeat/)
+    const index = fs.readFileSync(path.join(project, 'world', 'parts.js'), 'utf8')
+    assert.deepEqual([...index.matchAll(/export \{ (.*) \} from '(.*)'/g)].map(m => [m[1], m[2]]), [['backSeat', './parts/layout.js'], ['car', './parts/part-1.js'], ['tank', './parts/part-2.js']])
+    assert.ok(events.some(e => e.type === 'log' && /part-1\.js exports backSeat/.test(e.message)))
   } finally {
     api.close()
     fs.rmSync(project, { recursive: true, force: true })

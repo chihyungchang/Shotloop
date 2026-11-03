@@ -706,6 +706,7 @@ export const zhCN: Record<Key, string> = {
   'plan.openNow': '先进入编辑',
   'plan.openStudio': '进入编辑',
   'plan.link': '文案与分镜',
+  'build.waitParts': '等共用画面画好',
   'job.plan': '策划文案和分镜',
   'job.build': '生成镜头',
   'job.voiceModel': '下载配音模型 {model}',

@@ -44,7 +44,8 @@ export function BuildView({ project, plan, job, download, toStudio, back }: {
     const state = action ? t(action === 'stills' ? 'build.rendering' : 'build.writing')
       : current ? null
       : written ? t(still ? 'build.updating' : 'build.written')
-      : running ? t('build.waiting') : null
+      // Every shot waits for the recurring pictures, drawn once first
+      : running ? t(steps.phase === 'parts' ? 'build.waitParts' : 'build.waiting') : null
     return { s, i, current, still, stale: !current && !!still, action, written, state, text: plan?.shots[i]?.text || s.title || s.id }
   })
   return (

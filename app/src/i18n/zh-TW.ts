@@ -706,6 +706,7 @@ export const zhTW: Record<Key, string> = {
   'plan.openNow': '現在打開編輯器',
   'plan.openStudio': '打開編輯器',
   'plan.link': '文案與分鏡',
+  'build.waitParts': '等共用畫面畫好',
   'job.plan': '規劃文案和分鏡',
   'job.build': '建構鏡頭',
   'job.voiceModel': '下載配音模型 {model}',

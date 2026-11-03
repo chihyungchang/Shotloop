@@ -707,6 +707,7 @@ export const en = {
   'plan.openNow': 'Open the editor now',
   'plan.openStudio': 'Open the editor',
   'plan.link': 'Copy & storyboard',
+  'build.waitParts': 'Waiting for the shared pictures',
   'job.plan': 'Plan the copy and storyboard',
   'job.build': 'Build the shots',
   'job.voiceModel': 'Download voice {model}',

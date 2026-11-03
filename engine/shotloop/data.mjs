@@ -313,7 +313,7 @@ export const STYLES = [
     track: '3d',
     name: { en: '3D' },
     when: 'The idea needs real geometry, light or a camera moving through space: an object taken apart layer by layer, a room or a building, a mechanism seen from changing angles.',
-    avoid: 'Numbers, charts and anything flat.',
+    avoid: 'Numbers, charts and anything flat; a principle told with forces, pressure or flows (its arrows, labels and cutaways read more clearly flat, as a blueprint or an infographic).',
     frames: 'A WebGL (three.js) world: real metres, studio light that metal and glass reflect, soft shadows and ambient occlusion, one motivated camera move per shot, type above it.',
     example: 'watch-3d-en',
     why: 'Mechanical watch: the watch turns in a dark studio, its parts fly apart into an exploded view, then the mainspring, gear train, escapement and balance wheel each take a shot, lit and moving by their real ratios.',

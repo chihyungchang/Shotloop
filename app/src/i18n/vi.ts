@@ -706,6 +706,7 @@ export const vi: Record<Key, string> = {
   'plan.openNow': 'Mở trình chỉnh sửa ngay',
   'plan.openStudio': 'Mở trình chỉnh sửa',
   'plan.link': 'Lời văn & phân cảnh',
+  'build.waitParts': 'Chờ vẽ xong hình dùng chung',
   'job.plan': 'Lên lời văn và kịch bản phân cảnh',
   'job.build': 'Dựng các cảnh',
   'job.voiceModel': 'Tải giọng {model}',

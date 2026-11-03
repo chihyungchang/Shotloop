@@ -706,6 +706,7 @@ export const ru: Record<Key, string> = {
   'plan.openNow': 'Открыть редактор сейчас',
   'plan.openStudio': 'Открыть редактор',
   'plan.link': 'Текст и раскадровка',
+  'build.waitParts': 'Ждёт общие картинки',
   'job.plan': 'План текста и раскадровки',
   'job.build': 'Сборка кадров',
   'job.voiceModel': 'Загрузить голос {model}',

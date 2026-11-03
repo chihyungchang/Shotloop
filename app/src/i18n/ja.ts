@@ -706,6 +706,7 @@ export const ja: Record<Key, string> = {
   'plan.openNow': '今すぐエディタを開く',
   'plan.openStudio': 'エディタを開く',
   'plan.link': 'コピーと絵コンテ',
+  'build.waitParts': '共通の絵を待っています',
   'job.plan': 'コピーと絵コンテを企画',
   'job.build': 'ショットを制作',
   'job.voiceModel': 'ナレーションモデル {model} をダウンロード',
