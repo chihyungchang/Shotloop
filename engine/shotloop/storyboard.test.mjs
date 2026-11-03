@@ -34,4 +34,7 @@ test('a plan applied again keeps the starter shots\' ids; a title in another scr
   assert.notEqual(third[0], first[0])
   assert.deepEqual(third.slice(1), first.slice(1))
   assert.ok(third.every(id => !/shot/.test(id)), third.join(' '))
+  // A title that leads with its chapter number doesn't number the id twice
+  fs.writeFileSync(path.join(dir, 'shots', third[0], 'shot.js'), 'export default function render() {}\n')
+  assert.equal(plan(['01 — The problem', 'Ten thrusters', '后座的气罐'])[0], '01-the-problem')
 })

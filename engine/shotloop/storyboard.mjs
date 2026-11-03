@@ -15,7 +15,9 @@ import { loadProject, SHOT_ID, updateConfig } from './project.mjs'
 import { isStarter, unbuilt, writePlan, writeShots, writeWorld2d, writeWorld3d } from './starters.mjs'
 
 export const STORYBOARD_FILE = 'storyboard.json'
-const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 4).join('-')
+// A title's own words: a number it leads with ("01 — The problem", a
+// chapter's) is left out, as the id carries the place already
+const slug = s => s.replace(/^\s*\d+\s*[—–\-.:)]*\s*/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').split('-').slice(0, 4).join('-')
 
 function readStoryboard(project) {
   const file = path.join(project.root, STORYBOARD_FILE)
