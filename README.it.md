@@ -3,7 +3,7 @@
   Shotloop
 </h1>
 
-<p align="center"><b>Brevi video esplicativi fatti con il codice, un’inquadratura alla volta.</b><br/>
+<p align="center"><b>Brevi video con l’IA. Correggi un’inquadratura, non tutto il film.</b><br/>
 Un’idea diventa testi, uno storyboard e un video fatto di inquadrature. Ogni inquadratura ha il suo ciclo: l’IA la scrive, Shotloop la renderizza, tu la controlli e l’IA la corregge. Una correzione renderizza di nuovo solo quell’inquadratura, non l’intero video.</p>
 
 <p align="center">

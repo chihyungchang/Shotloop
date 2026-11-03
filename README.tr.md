@@ -3,7 +3,7 @@
   Shotloop
 </h1>
 
-<p align="center"><b>Kodla kısa anlatım videoları yapın, her seferinde bir çekim.</b><br/>
+<p align="center"><b>Yapay zekâyla kısa videolar. Tüm filmi değil, tek bir çekimi düzeltin.</b><br/>
 Bir fikir metne, senaryo taslağına ve çekimlerden oluşan bir filme dönüşür. Her çekimin kendi döngüsü vardır: yapay zekâ yazar, Shotloop işler, siz incelersiniz, yapay zekâ düzeltir. Bir düzeltme tüm filmi değil, yalnızca o çekimi yeniden işler.</p>
 
 <p align="center">

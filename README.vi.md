@@ -3,7 +3,7 @@
   Shotloop
 </h1>
 
-<p align="center"><b>Làm video giải thích ngắn bằng code, từng cảnh một.</b><br/>
+<p align="center"><b>Video ngắn với AI. Sửa một cảnh, không phải cả bộ phim.</b><br/>
 Một ý tưởng trở thành lời văn, phân cảnh và một video gồm nhiều cảnh. Mỗi cảnh có vòng lặp riêng: AI viết, Shotloop render, bạn xem lại và AI sửa. Sửa một cảnh chỉ render lại cảnh đó, không phải cả video.</p>
 
 <p align="center">

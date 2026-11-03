@@ -3,7 +3,7 @@
   Shotloop
 </h1>
 
-<p align="center"><b>Kurze Erklärvideos aus Code, Shot für Shot.</b><br/>
+<p align="center"><b>Kurze Videos mit KI. Einen Shot korrigieren, nicht den ganzen Film.</b><br/>
 Aus einer Idee werden Text, Storyboard und ein Film aus Shots. Jeder Shot hat seine eigene Schleife: Die KI schreibt ihn, Shotloop rendert ihn, du prüfst ihn, die KI korrigiert ihn. Eine Korrektur rendert nur diesen Shot neu, nicht den ganzen Film.</p>
 
 <p align="center">

@@ -3,7 +3,7 @@
   Shotloop
 </h1>
 
-<p align="center"><b>Buat video penjelasan singkat dari kode, satu adegan demi satu adegan.</b><br/>
+<p align="center"><b>Video pendek dengan AI. Perbaiki satu adegan, bukan seluruh film.</b><br/>
 Sebuah ide menjadi teks, storyboard, lalu film yang tersusun dari adegan. Setiap adegan punya loop sendiri: AI menulisnya, Shotloop merendernya, Anda meninjaunya, dan AI memperbaikinya. Perbaikan hanya merender ulang adegan itu, bukan seluruh film.</p>
 
 <p align="center">

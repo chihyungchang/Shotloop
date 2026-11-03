@@ -3,7 +3,7 @@
   Shotloop
 </h1>
 
-<p align="center"><b>Make short explainer videos from code, one shot at a time.</b><br/>
+<p align="center"><b>Short videos with AI. Fix one shot, not the whole film.</b><br/>
 An idea becomes copy, a storyboard and a film made of shots. Each shot has its own loop: the AI writes it, Shotloop renders it, you review it and the AI fixes it. A fix re-renders that shot only, not the whole film.</p>
 
 <p align="center">

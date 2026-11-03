@@ -3,7 +3,7 @@
   Shotloop
 </h1>
 
-<p align="center"><b>Vídeos explicativos curtos feitos com código, uma cena por vez.</b><br/>
+<p align="center"><b>Vídeos curtos com IA. Corrija uma cena, não o filme inteiro.</b><br/>
 Uma ideia vira texto, storyboard e um filme feito de cenas. Cada cena tem o seu próprio ciclo: a IA escreve, o Shotloop renderiza, você revisa e a IA corrige. Uma correção renderiza de novo só aquela cena, não o filme inteiro.</p>
 
 <p align="center">

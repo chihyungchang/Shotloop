@@ -3,7 +3,7 @@
   Shotloop
 </h1>
 
-<p align="center"><b>Des vidéos explicatives courtes faites avec du code, un plan à la fois.</b><br/>
+<p align="center"><b>Des vidéos courtes avec l’IA. Corrigez un plan, pas tout le film.</b><br/>
 Une idée devient un texte, un storyboard et un film composé de plans. Chaque plan a sa propre boucle : l’IA l’écrit, Shotloop en fait le rendu, vous le relisez et l’IA le corrige. Une correction ne refait le rendu que de ce plan, pas du film entier.</p>
 
 <p align="center">
