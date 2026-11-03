@@ -9,6 +9,7 @@ import { Ambience, Effects, Level, Music, useMusic, useSound, useVoice, Voice } 
 import { useMix } from './mix'
 import { SoundDialog } from './SoundDialog'
 import type { Follow } from './VideoPlayer'
+import { ErrorText } from '../ErrorDialog'
 
 type Lane = 'voice' | 'music' | 'ambience' | 'effects'
 const LANES: { id: Lane; label: Key }[] = [
@@ -223,7 +224,7 @@ export function AudioTimeline({ project, jobs, refresh, selected, onSelect, onFo
           </button>
         </div>
       </div>
-      {error && <p className="small error audio-error">{error}</p>}
+      <ErrorText error={error} className="small error audio-error" />
       {LANES.map(l => (
         <div key={l.id} className={`audio-lane lane-${l.id}${open === l.id ? ' on' : ''}`}>
           {/* The track's head: its name (its settings, in a layer beside it) and its volume */}

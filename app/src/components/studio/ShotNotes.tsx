@@ -5,6 +5,7 @@ import { formatDate, t } from '../../i18n'
 import { readStored, writeStored } from '../../storage'
 import { Icon } from '../Icon'
 import { RuleRef } from '../RuleRef'
+import { ErrorText } from '../ErrorDialog'
 
 const OPEN = 'shotloop.notes.open'
 
@@ -53,7 +54,7 @@ export function ShotNotes({ project, shot, editPlan, openRule, busy }: { project
           <div className="notes-col">
             <span className="section-label">{t('notes.must')}</span>
             <p className="small">{must || <span className="muted">{t('notes.empty')}</span>}</p>
-            {error && <p className="small error">{error}</p>}
+            <ErrorText error={error} className="small error" />
             {project.voiced && (
               <>
                 <span className="section-label notes-voice-label">

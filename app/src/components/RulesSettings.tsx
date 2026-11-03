@@ -7,6 +7,7 @@ import { useErrorLine } from '../hooks'
 import { ruleAbout, ruleName, toolAbout3d, toolStill } from '../rules'
 import { Icon } from './Icon'
 import { forgetRules } from './RuleRef'
+import { ErrorText } from './ErrorDialog'
 
 // Settings → Rules: what every video follows (engine/shotloop/rules.mjs),
 // one part at a time (the taste, the toolbox, the fixed rules) and for 2D,
@@ -54,7 +55,7 @@ export function RulesSettings({ focus }: { focus?: string }) {
     <section className="settings-block rules-settings">
       <h3>{t('settings.rules')}</h3>
       <p className="hint">{t('rules.intro')}</p>
-      {error && <p className="error small">{error}</p>}
+      <ErrorText error={error} className="error small" />
       {rules?.damaged && <p className="error small">{t('rules.damaged', { file: rules.damaged })}</p>}
       <div className="rules-bar">
         <div className="seg-control" role="tablist">

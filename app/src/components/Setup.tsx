@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api, type Doctor, type Settings } from '../api'
 import { t } from '../i18n'
 import { Icon } from './Icon'
+import { ErrorText } from './ErrorDialog'
 
 // First-run checks (docs/PRD.md §9, External): what is installed, how to
 // install what is missing, and where the tools are
@@ -33,7 +34,7 @@ export function Setup({ settings, update }: { settings: Settings; update: (s: Pa
         <h3>{t('setup.deps')}</h3>
         <button className="ghost small" onClick={check}>{t('setup.checkAgain')}</button>
       </div>
-      {doctorError && <p className="error">{doctorError}</p>}
+      <ErrorText error={doctorError} className="error" />
       {!doctor && !doctorError && <p className="muted">{t('setup.checking')}</p>}
       {doctor && (
         <table className="deps">

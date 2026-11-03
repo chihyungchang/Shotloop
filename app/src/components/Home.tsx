@@ -14,6 +14,7 @@ import { StylePicker } from './StylePicker'
 import { examplesFor, lookFits, styleName } from '../styles'
 import type { Key } from '../i18n/en'
 import { t, tSplit } from '../i18n'
+import { ErrorText } from './ErrorDialog'
 
 type Track = 'auto' | '2d' | '3d'
 type Aspect = '9:16' | '16:9'
@@ -61,7 +62,7 @@ export function Home({ open, openSettings, ensureFolder }: { open: Open; openSet
   return (
     <div className="home">
       <Composer ref={composer} open={open} openSettings={openSettings} ensureFolder={ensureFolder} />
-      {error && <p className="error">{error}</p>}
+      <ErrorText error={error} className="error" />
       {mine === null || examples === null
         ? <RowsSkeleton />
         : mine.length > 0 && (
@@ -287,7 +288,7 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
           <span className="muted small">{t(TRACKS[track].hint)}</span>
         </div>
       </div>
-      {error && <p className="error">{error}</p>}
+      <ErrorText error={error} className="error" />
     </>
   )
 }

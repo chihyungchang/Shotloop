@@ -16,6 +16,7 @@ import { Setup } from './Setup'
 import { ThemeToggle } from './ThemeToggle'
 import { VoiceDownload } from './VoiceDownload'
 import licenses from '../licenses.json'
+import { ErrorText } from './ErrorDialog'
 
 export type Section = 'ai' | 'rules' | 'memory' | 'assets' | 'general' | 'deps' | 'about'
 
@@ -77,7 +78,7 @@ export function SettingsPage({ theme, language, jobs, back, start = 'ai', focus,
       </nav>
       <main className="settings-card">
         <div className="settings-body">
-          {error && <p className="error banner">{error}</p>}
+          <ErrorText error={error} className="error banner" />
           {settings && (section === 'ai' || section === 'deps' || section === 'assets') && (
             <div className="settings-savebar">
               <span className="muted small">{dirty ? t('settings.unsaved') : ''}</span>
@@ -141,7 +142,7 @@ function General({ settings, savePref, theme, language }: {
         {toggle('notifySound', 'settings.sound')}
         {toggle('notifyDesktop', 'settings.desktop')}
         <button className="link try" onClick={() => guard(api.testAlert())}><Icon name="play" size={11} /> {t('activity.try')}</button>
-        {error && <p className="error small">{error}</p>}
+        <ErrorText error={error} className="error small" />
       </section>
       <section className="settings-block">
         <h3>{t('telemetry.title')}</h3>
@@ -154,7 +155,7 @@ function General({ settings, savePref, theme, language }: {
           </div>
         </div>
         <button className="link try" onClick={() => privacy.guard(api.openUrl(privacyUrl()))}>{t('telemetry.privacy')} →</button>
-        {privacy.error && <p className="error small">{privacy.error}</p>}
+        <ErrorText error={privacy.error} className="error small" />
       </section>
     </>
   )
@@ -201,7 +202,7 @@ function AboutSection() {
   useEffect(() => {
     guard(api.about()).then(a => a && setAbout(a))
   }, [guard])
-  if (error && !about) return <p className="error">{error}</p>
+  if (error && !about) return <ErrorText error={error} className="error" />
   if (!about) return <p className="muted">{t('common.loading')}</p>
   const rows: [Key, string][] = [
     ['about.version', about.version],
@@ -223,7 +224,7 @@ function AboutSection() {
           <button className="small" onClick={() => guard(api.reveal(about.data!))}>{t('studio.finder')}</button>
         </div>
       )}
-      {error && <p className="error small">{error}</p>}
+      <ErrorText error={error} className="error small" />
       <ThirdParty />
     </section>
   )
@@ -245,7 +246,7 @@ function ThirdParty() {
     <div className="oss">
       <h4>{t('oss.title')}</h4>
       <p className="hint">{t('oss.intro')}</p>
-      {error && <p className="error small">{error}</p>}
+      <ErrorText error={error} className="error small" />
       {licenses.groups.map(g => (
         <details key={g.id} className="oss-group" open={g.id === 'programs' || g.id === 'libraries' || g.id === 'models' || g.id === 'chineseVoice'}>
           <summary><strong>{t(GROUPS[g.id]?.title ?? 'oss.npm')}</strong> <span className="muted">{g.items.length}</span></summary>
@@ -274,7 +275,7 @@ function VoiceModels({ jobs }: { jobs: Job[] }) {
     guard(api.voiceModels()).then(l => l && setList(l))
   }, [guard])
   useEffect(load, [load])
-  if (error && !list) return <p className="error small">{error}</p>
+  if (error && !list) return <ErrorText error={error} className="error small" />
   if (!list) return null
   return (
     <section className="settings-block">
@@ -296,7 +297,7 @@ function VoiceModels({ jobs }: { jobs: Job[] }) {
         <div><strong>{t('voiceDl.folder')}</strong><p className="hint">{list.dir}</p></div>
         <button className="small" onClick={() => guard(api.reveal(list.dir))}>{t('studio.finder')}</button>
       </div>
-      {error && <p className="error small">{error}</p>}
+      <ErrorText error={error} className="error small" />
     </section>
   )
 }
@@ -312,7 +313,7 @@ function AssetSources({ settings, update }: { settings: Settings; update: (s: Pa
     <section className="settings-block">
       <h3>{t('settings.assets')}</h3>
       <p className="hint">{t('assets.intro')}</p>
-      {error && <p className="error small">{error}</p>}
+      <ErrorText error={error} className="error small" />
       {rows.map(r => (
         <label key={r.key} className="field">
           <span className="row between">
@@ -345,7 +346,7 @@ function UpdateRow({ version }: { version: string }) {
         <strong>{t('update.title')}</strong>
         <p className="hint">{status}</p>
         {u.kind === 'available' && u.notes && <p className="hint update-notes">{u.notes}</p>}
-        {u.kind === 'failed' && <p className="hint error">{u.error}</p>}
+        <ErrorText error={u.kind === 'failed' && u.error} className="hint error" />
       </div>
       {u.kind === 'available'
         ? <button className="primary small" onClick={installUpdate}>{t('update.installNow')}</button>

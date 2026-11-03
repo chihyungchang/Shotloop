@@ -5,6 +5,7 @@ import { t } from '../i18n'
 import { isActive, jobLabel } from '../model'
 import { patchSettings } from '../settings'
 import { Icon } from './Icon'
+import { ErrorText } from './ErrorDialog'
 
 // The sidebar's bell: a quiet ring and a count while jobs run; it opens
 // the running and queued jobs, and the completion alerts switch
@@ -52,7 +53,7 @@ export function ActivityBell({ jobs, settings }: { jobs: Job[]; settings: Settin
             <input type="checkbox" className="switch" checked={alerts} onChange={e => guard(patchSettings({ notifySound: e.target.checked, notifyDesktop: e.target.checked }))} />
           </label>
           <button className="link try" onClick={() => guard(api.testAlert())}><Icon name="play" size={11} /> {t('activity.try')}</button>
-          {error && <p className="small error">{error}</p>}
+          <ErrorText error={error} className="small error" />
         </div>
       )}
     </div>

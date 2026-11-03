@@ -19,6 +19,7 @@ import { Stage } from './Stage'
 import type { Follow } from './VideoPlayer'
 import { t } from '../../i18n'
 import { readStored, writeStored } from '../../storage'
+import { ErrorText } from '../ErrorDialog'
 
 type Drawer = 'queue' | 'assets' | null
 
@@ -179,7 +180,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
             </button>
           </span>
         )}
-        {filmError && <span className="small error ellipsis" title={filmError}>{filmError}</span>}
+        <ErrorText error={filmError} as="span" className="small error ellipsis" />
         <button className="ghost" onClick={openFilm} disabled={wantFilm || joining}>
           {wantFilm || joining ? <span className="spinner small" /> : <Icon name="play" size={14} />} {t(wantFilm ? 'film.rendering' : joining ? 'film.joining' : 'film.watch')}
         </button>

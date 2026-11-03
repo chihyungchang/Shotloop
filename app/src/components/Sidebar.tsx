@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api, type Job, type Usage, type UsageWindow } from '../api'
+import { api, REPO, type Job, type Usage, type UsageWindow } from '../api'
 import { baseName, listRecent, readRecent } from '../recent'
 import { installUpdate, useUpdate } from '../update'
 import type { useTheme } from '../theme/theme'
@@ -15,7 +15,6 @@ import { ThemeToggle } from './ThemeToggle'
 import type { Key } from '../i18n/en'
 import { formatDate, t } from '../i18n'
 
-const REPO = 'https://github.com/chihyungchang/Shotloop'
 
 export type Page = 'home' | 'projects' | 'library' | 'settings'
 

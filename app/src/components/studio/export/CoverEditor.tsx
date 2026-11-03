@@ -6,6 +6,7 @@ import { activityLine, isActive, sizeText } from '../../../model'
 import { readStored, writeStored } from '../../../storage'
 import { AgentError } from '../../AgentError'
 import { Icon } from '../../Icon'
+import { ErrorText } from '../../ErrorDialog'
 
 // The cover is a 9:16 frame at this size, whatever the film's aspect
 export const COVER_SIZE = { width: 1080, height: 1920 }
@@ -211,7 +212,7 @@ export function CoverEditor({ project, cover, openSettings }: { project: Project
               </div>
             )
             : <button className="small ghost" onClick={() => setNaming(project.title)} disabled={busy}>{t('cover.saveTemplate')}</button>}
-          {(error ?? cover.error) && <span className="small error">{error ?? cover.error}</span>}
+          <ErrorText error={error ?? cover.error} as="span" className="small error" />
         </div>
       </div>
     </div>

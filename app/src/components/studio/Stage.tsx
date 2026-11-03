@@ -8,6 +8,7 @@ import { framePoint, Highlight, lookup, type Pick, type PickerState } from './Pi
 import { VideoPlayer, type Follow } from './VideoPlayer'
 import { Icon } from '../Icon'
 import { formatDate, t } from '../../i18n'
+import { ErrorText } from '../ErrorDialog'
 
 type Tab = 'preview' | 'stills' | 'code'
 
@@ -155,9 +156,9 @@ export function Stage({ project, shot, view, mode, refresh, picker, follow }: {
           const next = pickedAt(e)
           setHover(h => (h && next && h.still === next.still && JSON.stringify(h.element.box) === JSON.stringify(next.element.box) ? h : next))
         }} onMouseLeave={() => setHover(null)}>
-        {error && <pre className="stage-error">{error}</pre>}
+        <ErrorText error={error} as="div" className="stage-error" />
         {view.state === 'failed' && shot.error && tab !== 'code' && (
-          <pre className="stage-error">{t('stage.failed', { mode: t(`mode.${shot.error.mode}`), message: shot.error.message })}</pre>
+          <ErrorText error={t('stage.failed', { mode: t(`mode.${shot.error.mode}`), message: shot.error.message })} as="div" className="stage-error" />
         )}
         {tab === 'preview' && (clip
           ? <VideoPlayer key={clip} src={fileUrl(clip, version)} className="shot" style={clipBox ?? undefined} follow={follow} />
@@ -280,7 +281,7 @@ function Editor({ project, file, version, onSaved }: { project: Project; file: s
     }
   }
   // Not read: nothing to edit. A failed save keeps the edits on screen
-  if (error && text == null) return <p className="error">{error}</p>
+  if (error && text == null) return <ErrorText error={error} className="error" />
   if (text == null) return <CodeSkeleton />
   const saveKey = (e: KeyEvent<HTMLTextAreaElement>) => {
     if (e.key === 's' && (e.metaKey || e.ctrlKey)) {
@@ -301,7 +302,7 @@ function Editor({ project, file, version, onSaved }: { project: Project; file: s
         </div>
       )}
       <div className="editor-bar">
-        {error ? <span className="error small ellipsis" title={error}>{error}</span> : <span className="muted small">{file}</span>}
+        {error ? <ErrorText error={error} as="span" className="error small ellipsis" /> : <span className="muted small">{file}</span>}
         {notes && !editing
           ? <button className="small" onClick={() => setEditing(true)}><Icon name="edit" size={13} /> {t('editor.edit')}</button>
           : <div className="editor-actions">

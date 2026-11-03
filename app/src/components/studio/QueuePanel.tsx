@@ -4,6 +4,7 @@ import { agentNow, buildProgress, formatEta, formatMB, formatSeconds, isActive, 
 import { baseName } from '../../recent'
 import { Icon } from '../Icon'
 import { formatDate, t } from '../../i18n'
+import { ErrorText } from '../ErrorDialog'
 
 // The queue (docs/PRD.md §7.7): the downloads waiting for the person's
 // approval first, then renders one shot at a time with agent work
@@ -28,7 +29,7 @@ export function QueuePanel({ project, jobs }: { project: Project; jobs: Job[] })
           </div>
         )
         : !asking.length && <p className="muted small">{t('queue.idle')}</p>}
-      {error && <pre className="error-box small">{error}</pre>}
+      <ErrorText error={error} as="div" className="error-box small" />
       {asking.length > 0 && (
         <section className="approvals">
           <h3>{t('queue.approvals', { n: asking.length })}</h3>
@@ -129,7 +130,7 @@ function JobRow({ job, project, cancel }: { job: Job; project: Project; cancel?:
           {eta != null && <span>{t('queue.etaLeft', { time: formatEta(eta) })}</span>}
         </div>
       )}
-      {job.state === 'failed' && <pre className="error-box small">{job.error}</pre>}
+      <ErrorText error={job.state === 'failed' && job.error} as="div" className="error-box small" />
     </div>
   )
 }

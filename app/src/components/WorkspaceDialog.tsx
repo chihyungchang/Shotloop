@@ -5,6 +5,7 @@ import { useEscape } from '../hooks'
 import { t } from '../i18n'
 import { tildePath } from '../recent'
 import { Icon } from './Icon'
+import { ErrorText } from './ErrorDialog'
 
 // The first time a project needs a home: a folder of the person's choice,
 // or, if they skip it, ~/Documents/Shotloop. Either way it is remembered.
@@ -27,7 +28,7 @@ export function WorkspaceDialog({ done }: { done: (dir: string) => void }) {
         <strong>{t('workspace.title')}</strong>
         <p className="muted small">{t('workspace.note')}</p>
         {fallback && <code className="small workspace-path">{tildePath(fallback)}</code>}
-        {error && <p className="small error">{error}</p>}
+        <ErrorText error={error} className="small error" />
         <div className="dialog-actions">
           <button className="ghost" onClick={useDefault} disabled={!fallback}>{t('workspace.default')}</button>
           <button className="primary" onClick={choose}>{t('workspace.choose')}</button>
