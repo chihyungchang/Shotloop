@@ -169,6 +169,7 @@ export const ja: Record<Key, string> = {
   'stage.download': 'ダウンロード中（MB）',
   'stage.voice': 'ナレーション生成',
   'stage.subtitles': '字幕の重なりチェック',
+  'stage.subtitleImages': '字幕を描画',
   'editor.save': '保存 · ⌘S',
   'editor.edit': '編集',
   'editor.cancel': 'キャンセル',
@@ -399,6 +400,15 @@ export const ja: Record<Key, string> = {
   'settings.parallelMore': '増やす',
   'settings.parallelReset': '自動に戻す（{n}）',
   'settings.parallelMachine': 'この Mac：{cores} コア、メモリ {memory} GB。自動では {n} 件を同時に作成します。',
+  'settings.effort': 'ショットの思考量',
+  'settings.effortNote': 'AI が各ショットを書くときにどれだけ考えるか。高いほど静止画を見て直しますが、時間と AI の使用量が増えます。',
+  'settings.effortLabel': '強さ',
+  'settings.effort.low': '低',
+  'settings.effort.medium': '中',
+  'settings.effort.high': '高',
+  'settings.effort.lowHint': '1 ショット約 1〜2 分（既定）',
+  'settings.effort.mediumHint': '1 ショット約 4 分。構図をよく直す',
+  'settings.effort.highHint': '1 ショット約 6 分。中とあまり変わらない',
   'settings.alertsNote': 'キューが空になったとき：中のレンダリング、チェック、書き出しがすべて終わったとき。',
   'settings.sound': '完了サウンド',
   'settings.desktop': 'デスクトップ通知',
@@ -457,6 +467,7 @@ export const ja: Record<Key, string> = {
 
   'film.title': '全編',
   'film.watch': '全編を見る',
+  'film.needsBuild': 'AI はまだショットを作っていません。先に作成してください',
   'film.rendering': '変更をレンダリング中…',
   'film.joining': '動画をまとめています…',
   'film.note': '音楽付きの全編',
@@ -589,14 +600,44 @@ export const ja: Record<Key, string> = {
   'voice.on': 'オン',
   'voice.voice': '声',
   'voice.fitting': 'ナレーションを生成中…',
+  'voice.starting': '音声モデルを起動中（初回は1〜2分）',
+  'plan.voiceAsk': 'この動画のナレーションは {name} が読みます。先に {mb} MB のダウンロードが必要です（初回のみ）。',
+  'plan.voiceDownload': 'ダウンロードして作成',
+  'plan.voiceOff': 'ナレーションなしで作成',
+  'build.waitVoice': '音声モデルをダウンロード中：{done} / {total} MB。完了するとショットの作成が始まります。',
+  'studio.starters': '{n} 個のショットはまだ仮のカードです。AI はまだ描いていません。',
+  'studio.startersBuilding': 'AI がショットを作成中です。できたものから表示されます。',
+  'studio.startersWaiting': '音声モデルをダウンロード中。完了後、AI がショットを作成します。',
+  'studio.startersWatch': '進行状況を見る',
+  'studio.startersMake': 'AI にショットを作らせる',
+  'shot.starter': '仮',
+  'shot.starterHint': 'AI はまだこのショットを描いていません',
   'voice.unavailable': 'この言語を話す声はまだありません。',
   'voice.noLines': 'ナレーション原稿がまだありません。もう一度プランを作るか、プランで各ショットのセリフを書いてください。',
+  'subs.look': '字幕',
+  'subs.sample': '字幕が声についていく',
+  'subs.autoName': '字幕を自動で',
+  'subs.autoAbout': 'AI が動画のテンポと雰囲気に合う字幕を選びます',
+  'subs.spacedOnly': '英語など単語をスペースで区切る言語専用です。中国語・日本語の動画では標準の字幕になります',
+  'subs.needsVoice': '字幕はナレーションと一緒です。ナレーションをオンにすると選べます',
+  'subs.look.highlight': 'ハイライト',
+  'subs.look.pill': 'ピル',
+  'subs.look.pop': 'ワードポップ',
+  'subs.look.sticker': 'ステッカー',
+  'subs.look.word': 'ワンワード',
+  'subs.look.reveal': 'リビール',
+  'subs.look.classic': 'クラシック',
+  'subs.look.clean': 'クリーン',
+  'subs.look.none': 'なし',
   'voiceDl.get': '{name} をダウンロード（{mb} MB）',
   'voiceDl.retry': 'もう一度ダウンロード（{mb} MB）',
   'voiceDl.progress': '{done} / {total} MB',
   'voiceDl.model': '音声モデル',
   'voiceDl.title': 'ナレーションのモデル',
   'voiceDl.intro': '音声モデルはアプリに含まれていません。その言語で初めてナレーションするときに自動でダウンロードされ（ここで先にダウンロードもできます）、以後はオフラインで使えます。',
+  'voiceDl.needTitle': '先にナレーションの音声モデルを',
+  'voiceDl.needNote': 'この動画はナレーション付きで、{name}（{mb} MB）が読み上げます。ダウンロードは一度だけで、以後はオフラインで使えます。完了すると再生が始まります。',
+  'voiceDl.watchSilent': 'ナレーションなしで再生',
   'voiceDl.installed': 'ダウンロード済み',
   'voiceDl.folder': '保存場所',
   'plan.say': 'ナレーション',
@@ -608,7 +649,8 @@ export const ja: Record<Key, string> = {
   'plan.step.plan': '企画',
   'plan.step.build': '制作',
   'plan.step.edit': '編集',
-  'plan.skip': 'エディタへ進む',
+  'plan.remake': 'ショットを作り直す',
+  'plan.toEditor': '編集へ進む',
   'plan.make': '動画をつくる',
   'plan.retry': 'やり直す',
   'plan.writing': 'コピーと絵コンテを作成中…',
@@ -664,6 +706,7 @@ export const ja: Record<Key, string> = {
   'build.rendering': '静止画をレンダリング中',
   'build.written': 'コード作成済み',
   'build.waiting': '次の予定',
+  'build.waitParts': '共通の絵を待っています',
   'build.readyCount': '{total} ショット中 {done} 件完成',
   'build.took': '所要 {time}',
   'build.shotDoing': 'ショット {n}：{what}',
@@ -680,6 +723,86 @@ export const ja: Record<Key, string> = {
   'job.voiceFit': 'ナレーションを生成して尺を合わせる',
 
   'nav.library': 'アセットライブラリ',
+
+  'nav.usage': '使用量',
+
+  'usage.title': 'AI の使用量',
+
+  'usage.note': 'AI の各ステップはプロジェクトに記録されます：トークン数、時間、ツールが見積もる場合は API 価格での費用（サブスクリプションはトークン課金ではありません）。',
+
+  'usage.empty': 'まだ記録がありません。',
+
+  'usage.tokens': 'トークン',
+
+  'usage.cost': '費用（概算）',
+
+  'usage.time': 'AI の時間',
+
+  'usage.project': 'プロジェクト',
+
+  'usage.runs': '実行回数',
+
+  'usage.last': '最新',
+
+  'usage.byStep': 'ステップ別',
+
+  'usage.history': '実行ごと',
+
+  'usage.open': 'プロジェクトを開く',
+
+  'usage.failed': '失敗',
+
+  'usage.thinking': '思考 {n}',
+
+  'usage.col.step': 'ステップ',
+
+  'usage.col.count': '回数',
+
+  'usage.col.avg': '平均トークン',
+
+  'usage.col.avgOutput': '平均出力',
+
+  'usage.col.avgTime': '平均時間',
+
+  'usage.col.total': '割合',
+
+  'usage.col.model': 'モデル',
+
+  'usage.col.input': '入力',
+
+  'usage.col.cacheRead': 'キャッシュ読込',
+
+  'usage.col.cacheWrite': 'キャッシュ書込',
+
+  'usage.col.output': '出力',
+
+  'usage.col.turns': 'ターン',
+
+  'usage.step.plan': '企画',
+
+  'usage.step.revise': '企画の修正',
+
+  'usage.step.world': 'ビジュアル',
+
+  'usage.step.layout': '共通レイアウト',
+
+  'usage.step.part': '共通の絵',
+
+  'usage.step.shot': 'ショット',
+
+  'usage.step.fix': '修正',
+
+  'usage.step.propose': '修正案',
+
+  'usage.step.check': 'チェック',
+
+  'usage.step.publish': '投稿文',
+
+  'usage.step.sound': 'サウンド',
+
+  'usage.step.cover': 'カバー',
+
+  'usage.step.build': 'ショット作成',
   'library.title': 'アセットライブラリ',
   'library.search': '検索',
   'library.mine': 'この Mac',

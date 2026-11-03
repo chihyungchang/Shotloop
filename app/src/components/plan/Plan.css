@@ -113,13 +113,10 @@ textarea.autotext { resize: none; overflow: hidden; line-height: 1.5; min-height
 .steps.row { justify-content: flex-start; width: auto; }
 .step-detail { display: flex; align-items: center; gap: 7px; margin: 0; padding-left: 30px; color: var(--text-2); }
 .step-detail .pulse { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: job-pulse 1.4s ease-in-out infinite; }
-.agent-avatar.large { width: 52px; height: 52px; animation: breathe 2.4s ease-in-out infinite; }
-@keyframes breathe { 50% { transform: scale(1.06); box-shadow: 0 6px 22px color-mix(in srgb, #38bdf8 45%, transparent), inset 0 0 0 1px rgb(255 255 255 / 0.25); } }
 /* The build: progress, the AI's last steps, each shot as it lands */
 .build { margin: 0 12px 12px; padding: 20px 22px; border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--shadow-sm), 0 0 0 1px var(--border-soft); overflow: auto; display: flex; flex-direction: column; gap: 16px; }
 .build-head { display: flex; align-items: center; gap: 14px; }
 .build-head strong { font-size: 16px; color: var(--text-strong); }
-.build-head .agent-avatar.large { animation: none; }
 .build-words { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .build-words p { margin: 0; font-variant-numeric: tabular-nums; }
 .build-bar { display: flex; gap: 3px; height: 8px; }

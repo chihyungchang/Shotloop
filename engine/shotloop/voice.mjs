@@ -21,8 +21,8 @@ import { wav } from './synth.mjs'
 import { cachedFile, MODES } from './cache.mjs'
 import { readJson, writeAtomic, writeJson } from './files.mjs'
 import { emit, ffmpeg, progress } from './compose.mjs'
-import { round } from './data.mjs'
-import { sentences, VOICE_HOLD, VOICE_LEAD, VOICE_TAIL, voiceLang, voiceOn } from './cues.mjs'
+import { round, SUBTITLE_STYLES } from './data.mjs'
+import { sentences, subtitleStyle, VOICE_HOLD, VOICE_LEAD, VOICE_TAIL, voiceLang, voiceOn } from './cues.mjs'
 import { loadProject, localPath, projectPath, updateConfig } from './project.mjs'
 import { isStarter } from './starters.mjs'
 import { STORYBOARD_FILE } from './storyboard.mjs'
@@ -143,6 +143,9 @@ async function speak(project, text, { lang, voice, speed = 1 }) {
     }
   })
   const samples = trim(out.samples, out.sampleRate)
+  // Speaking takes a while: a project deleted or moved meanwhile gets no
+  // folder made again for it
+  if (!fs.existsSync(path.join(project.root, 'shotloop.json'))) throw new Error(`the project at ${project.root} is gone`)
   // Written over any wav a cut-short run left without its .json
   writeAtomic(file, wav({ L: samples, rate: out.sampleRate }))
   const duration = samples.length / out.sampleRate
@@ -150,10 +153,14 @@ async function speak(project, text, { lang, voice, speed = 1 }) {
   return { file, duration }
 }
 
-// A shot's line spoken at a speed: its sentences and their length
-async function speakShot(project, shot, opts) {
+// A shot's line spoken at a speed: its sentences and their length;
+// said: called as each sentence is ready
+async function speakShot(project, shot, { said, ...opts }) {
   const parts = []
-  for (const text of sentences(shot.say)) parts.push({ text, ...(await speak(project, text, opts)) })
+  for (const text of sentences(shot.say)) {
+    parts.push({ text, ...(await speak(project, text, opts)) })
+    said?.()
+  }
   const speech = parts.reduce((t, p) => t + p.duration, 0) + GAP * Math.max(0, parts.length - 1)
   return { parts, speech }
 }
@@ -185,14 +192,18 @@ export async function fitVoice(project) {
   const { v, lang, voice, cfg } = await voiceSetup(project)
   const base = cfg.speed ?? 1
   const picture = !!cfg.picture
-  const spoken = project.shots.filter(s => s.say?.trim())
-  const tick = progress({ stage: 'voice' }, spoken.length)
+  // Counted by sentence: a slow voice (CosyVoice on the CPU) takes
+  // seconds a sentence, and the first waits for the model to load
+  const total = project.shots.reduce((n, s) => n + sentences(s.say).length, 0)
+  const tick = progress({ stage: 'voice' }, total)
   tick(0)
+  let said = 0
+  let upTo = 0
+  const sentenceSaid = () => tick(Math.min(total, ++said))
   const changes = []
   const overruns = []
   const crossings = []
   const unspoken = []
-  let n = 0
   // Where the last line ended, in film seconds (the picture leading)
   let prevEnd = -Infinity
   // What the fit sets, per shot: its length and its line's timing (a shot
@@ -208,7 +219,7 @@ export async function fitVoice(project) {
       unspoken.push({ shot: shot.id, words })
       emit({ type: 'log', message: `${shot.id}: the voice can't say ${words.join(', ')}; respell them as they sound` })
     }
-    let { parts, speech } = await speakShot(project, shot, { lang, voice, speed: base })
+    let { parts, speech } = await speakShot(project, shot, { lang, voice, speed: base, said: sentenceSaid })
     const fits = sp => LEAD + sp + TAIL <= duration + 1e-6
     let duration = shot.duration
     let speed = base
@@ -240,7 +251,9 @@ export async function fitVoice(project) {
     }
     if (duration !== shot.duration) changes.push({ shot: shot.id, from: shot.duration, to: duration })
     fitted.set(shot.id, { say: shot.say, fit: { duration, cues: cuesOf(parts, start), ...(speed !== base ? { sayFast: speed } : {}), ...(start !== LEAD ? { sayAt: start } : {}) } })
-    tick(++n)
+    // A line placed over the picture is spoken without counting: caught up here
+    said = Math.max(said, (upTo += sentences(shot.say).length))
+    tick(said)
   }
   // Into shotloop.json as it is now: speaking took a while, and a shot
   // whose line changed meanwhile keeps what it has (the next fit times it)
@@ -316,7 +329,7 @@ function syncStoryboard(root, shots) {
 // Every sentence of the film on its timeline: { shot, text, at, end, file }
 // (film seconds). Lines not spoken yet are spoken now; a shot whose
 // cues are missing or don't match its sentences is laid out on the spot
-async function voiceLines(project) {
+export async function voiceLines(project) {
   const { lang, voice, cfg } = await voiceSetup(project)
   const out = []
   for (const shot of project.shots) {
@@ -518,7 +531,7 @@ export async function voiceInfo(project) {
     emit({ type: 'log', message: `voice-over unavailable: ${err.message}` })
   }
   return {
-    on: !!cfg.on, picture: !!cfg.picture, voice, speed: cfg.speed ?? 1, gain: cfg.gain ?? 1,
+    on: !!cfg.on, picture: !!cfg.picture, voice, speed: cfg.speed ?? 1, gain: cfg.gain ?? 1, subtitles: subtitleStyle(project),
     lang, available, voices, model, fitted,
     lines: project.shots.filter(s => s.say?.trim()).length
   }
@@ -578,9 +591,11 @@ export async function pruneVoice(project) {
   return removed
 }
 
-// Turns the voice-over on or off, or changes its voice, speed or volume
+// Turns the voice-over on or off, or changes its voice, speed, volume or
+// subtitles' look (data.mjs SUBTITLE_STYLES: the person's pick, which the
+// planner keeps)
 // picture: the picture leads, so the fit never changes a shot's length
-export function setVoice(project, { on, voice, speed, gain, picture } = {}) {
+export function setVoice(project, { on, voice, speed, gain, picture, subtitles } = {}) {
   const change = {}
   if (on != null) change.on = !!on
   if (picture != null) change.picture = !!picture
@@ -592,6 +607,11 @@ export function setVoice(project, { on, voice, speed, gain, picture } = {}) {
   if (gain != null) {
     change.gain = Number(gain)
     if (!(change.gain >= 0 && change.gain <= 2)) throw new Error('gain must be 0–2')
+  }
+  if (subtitles != null) {
+    if (!Object.hasOwn(SUBTITLE_STYLES, subtitles)) throw new Error(`subtitles must be one of ${Object.keys(SUBTITLE_STYLES).join(', ')}`)
+    change.subtitles = subtitles
+    change.subtitlesChosen = true
   }
   updateConfig(project.root, cfg => ({ ...cfg, voice: { on: false, ...cfg.voice, ...change } }))
   return loadProject(project.root)

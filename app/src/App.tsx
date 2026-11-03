@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, onCheckUpdate, onJob, onProjectChanged, onQueue, type Job, type Project } from './api'
 import { Home } from './components/Home'
 import { LibraryPage } from './components/LibraryPage'
+import { UsagePage } from './components/UsagePage'
 import { PlanPage } from './components/plan/PlanPage'
 import { Projects } from './components/Projects'
 import { SettingsPage, type Section } from './components/SettingsPage'
@@ -12,8 +13,8 @@ import { TelemetryNotice } from './components/TelemetryNotice'
 import { LeaveDraftDialog, WorkspaceDialog } from './components/WorkspaceDialog'
 import { checkForUpdate } from './update'
 import { startTelemetry } from './telemetry'
-import { isActive } from './model'
-import { pickProject, projectsFolder, remember, setProjectsFolder } from './recent'
+import { EDIT_MODE, isActive } from './model'
+import { forget, pickProject, projectsFolder, remember, setProjectsFolder } from './recent'
 import { useTheme } from './theme/theme'
 import { t, useLanguage } from './i18n'
 import { ErrorText } from './components/ErrorDialog'
@@ -103,6 +104,9 @@ export default function App() {
       setProject(p)
     } catch (e) {
       setError(String(e))
+      // A recent project that isn't one any more (deleted, moved): off the list
+      const still = await api.listProjects([path]).catch(() => null)
+      if (still?.length === 0) forget(path)
     }
   }, [ensureFolder])
 
@@ -212,6 +216,8 @@ export default function App() {
     }
   }, [refresh])
 
+  useRenderAfterBuild(jobs, setError)
+
   // The menu bar menu speaks the UI's language
   const active = jobs.filter(isActive).length
   useEffect(() => {
@@ -250,7 +256,32 @@ export default function App() {
         {page === 'home' && <Home open={open} openSettings={() => openSettings()} ensureFolder={ensureFolder} />}
         {page === 'projects' && <Projects open={open} openFolder={openPicked} />}
         {page === 'library' && <LibraryPage jobs={jobs} openSettings={() => openSettings('assets', 'library')} />}
+        {page === 'usage' && <UsagePage open={open} />}
       </main>
     </div>
   )
+}
+
+// A build renders only its shots' stills: when one finishes, every shot
+// of its film not rendered yet is queued (the render lane, several at
+// once), so the film is ready to watch by the time the shots are looked
+// at. Once per build that ends while the app runs: builds already done
+// when the queue is first read are left alone
+function useRenderAfterBuild(jobs: Job[], onError: (e: string) => void) {
+  const seen = useRef<Set<number> | null>(null)
+  useEffect(() => {
+    const done = jobs.filter(j => j.kind === 'build' && j.state === 'done')
+    if (!seen.current) {
+      if (jobs.length) seen.current = new Set(done.map(j => j.id))
+      return
+    }
+    for (const j of done) {
+      if (seen.current.has(j.id)) continue
+      seen.current.add(j.id)
+      api.status(j.project)
+        .then(p => Promise.all(p.shots.filter(s => s[EDIT_MODE].state !== 'cached')
+          .map(s => api.enqueue({ kind: 'render', project: p.root, shot: s.id, mode: EDIT_MODE, stills: false }))))
+        .catch(e => onError(String(e)))
+    }
+  }, [jobs, onError])
 }

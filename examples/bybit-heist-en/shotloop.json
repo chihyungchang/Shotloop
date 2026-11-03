@@ -97,6 +97,8 @@
   "styleChosen": true,
   "voice": {
     "on": true,
-    "voice": "af_heart"
+    "voice": "af_heart",
+    "subtitles": "classic",
+    "subtitlesChosen": true
   }
 }

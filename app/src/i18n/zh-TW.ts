@@ -169,6 +169,7 @@ export const zhTW: Record<Key, string> = {
   'stage.download': '下載中（MB）',
   'stage.voice': '合成配音',
   'stage.subtitles': '字幕遮擋檢查',
+  'stage.subtitleImages': '繪製字幕',
   'editor.save': '儲存 · ⌘S',
   'editor.edit': '編輯',
   'editor.cancel': '取消',
@@ -399,6 +400,15 @@ export const zhTW: Record<Key, string> = {
   'settings.parallelMore': '增加',
   'settings.parallelReset': '恢復自動（{n}）',
   'settings.parallelMachine': '這台 Mac：{cores} 核心、{memory} GB 記憶體。自動模式會同時建構 {n} 個。',
+  'settings.effort': '寫鏡頭的推理強度',
+  'settings.effortNote': 'AI 寫每個鏡頭時想得多深。越高越會照靜幀把問題改掉，但更慢，也更費 AI 額度。',
+  'settings.effortLabel': '強度',
+  'settings.effort.low': '低',
+  'settings.effort.medium': '中',
+  'settings.effort.high': '高',
+  'settings.effort.lowHint': '每個鏡頭約 1–2 分鐘（預設）',
+  'settings.effort.mediumHint': '每個鏡頭約 4 分鐘，更常把構圖改好',
+  'settings.effort.highHint': '每個鏡頭約 6 分鐘，比「中」好得不多',
   'settings.alertsNote': '佇列清空時：其中的渲染、檢查和匯出全部完成。',
   'settings.sound': '完成提示音',
   'settings.desktop': '桌面通知',
@@ -457,6 +467,7 @@ export const zhTW: Record<Key, string> = {
 
   'film.title': '完整影片',
   'film.watch': '觀看全片',
+  'film.needsBuild': 'AI 還沒有生成鏡頭，請先生成',
   'film.rendering': '正在渲染變更…',
   'film.joining': '正在合成整部影片…',
   'film.note': '含配樂的完整影片',
@@ -589,14 +600,44 @@ export const zhTW: Record<Key, string> = {
   'voice.on': '開',
   'voice.voice': '聲音',
   'voice.fitting': '正在合成配音…',
+  'voice.starting': '首次啟動語音模型需要一兩分鐘',
+  'plan.voiceAsk': '這部片用 {name} 配音，需要先下載 {mb} MB（只需一次）。',
+  'plan.voiceDownload': '下載並生成',
+  'plan.voiceOff': '不要配音，直接生成',
+  'build.waitVoice': '正在下載配音模型：{done} / {total} MB。下完自動開始生成鏡頭。',
+  'studio.starters': '{n} 個鏡頭還是佔位卡：AI 還沒有畫它們。',
+  'studio.startersBuilding': 'AI 正在生成鏡頭，畫好的會陸續出現在這裡。',
+  'studio.startersWaiting': '正在下載配音模型，下完後 AI 自動開始生成鏡頭。',
+  'studio.startersWatch': '查看進度',
+  'studio.startersMake': '讓 AI 生成鏡頭',
+  'shot.starter': '佔位',
+  'shot.starterHint': 'AI 還沒有畫這個鏡頭',
   'voice.unavailable': '還沒有能說這種語言的聲音。',
   'voice.noLines': '還沒有配音稿：重新規劃，或在規劃裡為每個鏡頭寫一句配音。',
+  'subs.look': '字幕',
+  'subs.sample': '字幕跟著聲音走',
+  'subs.autoName': 'AI 選字幕',
+  'subs.autoAbout': 'AI 依影片的節奏和語氣選字幕樣式',
+  'subs.spacedOnly': '僅適用於英語等以空格分詞的語言；中文、日語影片會改用預設樣式',
+  'subs.needsVoice': '字幕跟隨配音：開啟配音後才能選字幕',
+  'subs.look.highlight': '跟讀高亮',
+  'subs.look.pill': '色塊跟讀',
+  'subs.look.pop': '單詞跳出',
+  'subs.look.sticker': '貼紙',
+  'subs.look.word': '一詞一屏',
+  'subs.look.reveal': '漸顯',
+  'subs.look.classic': '經典',
+  'subs.look.clean': '簡潔',
+  'subs.look.none': '無字幕',
   'voiceDl.get': '下載 {name}（{mb} MB）',
   'voiceDl.retry': '重新下載（{mb} MB）',
   'voiceDl.progress': '{done} / {total} MB',
   'voiceDl.model': '聲音模型',
   'voiceDl.title': '配音模型',
   'voiceDl.intro': '配音用的語音模型不隨 app 一起安裝：第一次為某種語言配音時自動下載（也可以在這裡提前下載），之後可離線使用。',
+  'voiceDl.needTitle': '先下載配音模型',
+  'voiceDl.needNote': '這部片有配音，要用 {name}（{mb} MB）朗讀。只需下載一次，之後離線可用；下載完會自動開始播放。',
+  'voiceDl.watchSilent': '先不帶配音播放',
   'voiceDl.installed': '已下載',
   'voiceDl.folder': '存放位置',
   'plan.say': '配音',
@@ -608,7 +649,8 @@ export const zhTW: Record<Key, string> = {
   'plan.step.plan': '規劃',
   'plan.step.build': '建構',
   'plan.step.edit': '編輯',
-  'plan.skip': '略過，直接編輯',
+  'plan.remake': '重新生成鏡頭',
+  'plan.toEditor': '進入編輯',
   'plan.make': '製作影片',
   'plan.retry': '再試一次',
   'plan.writing': '正在撰寫文案和分鏡…',
@@ -664,6 +706,7 @@ export const zhTW: Record<Key, string> = {
   'build.rendering': '正在渲染靜態影格',
   'build.written': '程式碼已寫好',
   'build.waiting': '下一個',
+  'build.waitParts': '等共用畫面畫好',
   'build.readyCount': '已完成 {done}/{total} 個鏡頭',
   'build.took': '耗時 {time}',
   'build.shotDoing': '鏡頭 {n}：{what}',
@@ -680,6 +723,86 @@ export const zhTW: Record<Key, string> = {
   'job.voiceFit': '合成配音並對齊時長',
 
   'nav.library': '素材庫',
+
+  'nav.usage': '用量',
+
+  'usage.title': 'AI 用量',
+
+  'usage.note': 'AI 每跑一步都會記在專案裡：用了多少 token、多長時間；工具提供估算時，還有按 API 價格算的費用（訂閱不按 token 計費）。',
+
+  'usage.empty': '還沒有紀錄。',
+
+  'usage.tokens': 'Token',
+
+  'usage.cost': '費用（估算）',
+
+  'usage.time': 'AI 用時',
+
+  'usage.project': '專案',
+
+  'usage.runs': '執行次數',
+
+  'usage.last': '最近',
+
+  'usage.byStep': '按步驟',
+
+  'usage.history': '每次執行',
+
+  'usage.open': '打開專案',
+
+  'usage.failed': '失敗',
+
+  'usage.thinking': '思考 {n}',
+
+  'usage.col.step': '步驟',
+
+  'usage.col.count': '次數',
+
+  'usage.col.avg': '平均 token',
+
+  'usage.col.avgOutput': '平均輸出',
+
+  'usage.col.avgTime': '平均用時',
+
+  'usage.col.total': '占比',
+
+  'usage.col.model': '模型',
+
+  'usage.col.input': '輸入',
+
+  'usage.col.cacheRead': '快取讀取',
+
+  'usage.col.cacheWrite': '快取寫入',
+
+  'usage.col.output': '輸出',
+
+  'usage.col.turns': '輪數',
+
+  'usage.step.plan': '策劃',
+
+  'usage.step.revise': '修訂策劃',
+
+  'usage.step.world': '畫面風格',
+
+  'usage.step.layout': '共用版面',
+
+  'usage.step.part': '共用畫面',
+
+  'usage.step.shot': '鏡頭',
+
+  'usage.step.fix': '修改',
+
+  'usage.step.propose': '改法建議',
+
+  'usage.step.check': '檢查',
+
+  'usage.step.publish': '發布文案',
+
+  'usage.step.sound': '聲音',
+
+  'usage.step.cover': '封面',
+
+  'usage.step.build': '生成鏡頭',
   'library.title': '素材庫',
   'library.search': '搜尋',
   'library.mine': '在這台 Mac 上',

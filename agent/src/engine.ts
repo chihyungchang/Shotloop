@@ -42,7 +42,7 @@ export interface ProjectStatus {
   lengthAuto?: boolean
   // The language spoken and written; the voice-over (engine/shotloop/voice.mjs)
   lang?: string | null
-  voice?: { on: boolean; voice?: string; speed?: number; gain?: number } | null
+  voice?: { on: boolean; voice?: string; speed?: number; gain?: number; subtitles?: string; subtitlesChosen?: boolean } | null
   // The voice-over plays: on, with lines (engine/shotloop/cues.mjs voiceOn)
   voiced?: boolean
 }

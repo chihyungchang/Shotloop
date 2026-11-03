@@ -11,7 +11,7 @@
 //   shotloop deliver-copy <project> --to <export folder> [--name] [--lang]   the publish copy, written later
 //   shotloop cover    <project> [--frame <shot>@<seconds> | --none] [--preview]
 //                     (--frame/--none: set the background frame first; --preview: to .shotloop/cover.png)
-//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>] [--voice-over]
+//   shotloop new      <project dir> --idea "…" [--title] [--track 2d|3d|auto] [--aspect 9:16|16:9] [--duration 30|auto] [--look <id>] [--style <2D style id>] [--voice-over] [--subtitles <look>]
 //   shotloop list     <project dir>… [--examples]           summaries for project cards
 //   shotloop fork     <project> --to <folder>               copy a project (an example) to change it
 //   shotloop move     <project> --to <folder>               move a project (a draft being saved)
@@ -25,10 +25,11 @@
 //                     get --item '<search result>' | preview --item '<a sound>' | list [<project>] | remove <id>
 //                     use <project> <id> | unuse <project> <id> | import <file.glb|sound> [--title]
 //                     the asset library: 3D models and sounds
-//   shotloop voice    <project> [--on|--off] [--voice <id>] [--speed 0.8–1.25] [--gain 0–2] [--fit]
+//   shotloop voice    <project> [--on|--off] [--voice <id>] [--speed 0.8–1.25] [--gain 0–2] [--subtitles <look>] [--fit]
 //                     [--lines '{"<shot>": "…"}'] [--picture]
 //                     the voice-over: settings, the voices for the project's language,
 //                     --lines: what each shot says; --picture: the picture leads (no shot changes length)
+//                     --subtitles: their look (highlight, pill, pop, sticker, word, reveal, classic, clean, none)
 //                     --no-fit: change the settings only (the app fits as a queue job, with progress)
 //                     --fit: speak every line and fit the shots to them (a new voice or speed fits too)
 //                     --sample: a WAV of the voice saying the first line, to choose by ear
@@ -70,7 +71,7 @@ import { readJson, writeJson } from './files.mjs'
 import { deliverCopy } from './deliver.mjs'
 import { emit, setJson } from './compose.mjs'
 import { newProject, projectsIn, summaries } from './create.mjs'
-import { freshWebglPage, isStarterCover } from './starters.mjs'
+import { freshWebglPage, isStarter, isStarterCover } from './starters.mjs'
 import { assemble, exportFilm, filmPreview, renderCover, setCoverFrame } from './film.mjs'
 import { findShot, isProject, loadProject } from './project.mjs'
 import { musicInfo, setMusic, setStyle, setTitle } from './settings.mjs'
@@ -110,6 +111,7 @@ const OPTIONS = {
     'no-fit': { type: 'boolean' },
     lines: { type: 'string' },
     picture: { type: 'boolean' },
+    subtitles: { type: 'string' },
     sample: { type: 'boolean' },
     download: { type: 'string' },
     'voice-over': { type: 'boolean' },
@@ -236,6 +238,8 @@ function projectStatus(project) {
       cues: voiceCues(project, s),
       code: s.code,
       notes: s.notes,
+      // Still the card a new shot starts as: nothing drawn for it yet
+      starter: !fs.existsSync(s.code) || isStarter(s.code),
       ...status(project, s)
     }))
   }
@@ -365,8 +369,8 @@ try {
     }
     case 'voice': {
       let project = loadProject(args[0])
-      const change = values.on || values.off || values.voice || values.speed != null || values.gain != null || values.picture
-      if (change) project = setVoice(project, { on: values.on ? true : values.off ? false : null, voice: values.voice, speed: values.speed, gain: values.gain, picture: values.picture || null })
+      const change = values.on || values.off || values.voice || values.speed != null || values.gain != null || values.picture || values.subtitles
+      if (change) project = setVoice(project, { on: values.on ? true : values.off ? false : null, voice: values.voice, speed: values.speed, gain: values.gain, picture: values.picture || null, subtitles: values.subtitles })
       if (values.lines) project = setLines(project, JSON.parse(values.lines))
       // A new voice or speed speaks every line again, so the shots are fitted
       // to it (as when asked); a project without lines keeps its timing
@@ -439,7 +443,8 @@ try {
         duration: values.duration === 'auto' ? 'auto' : Number(values.duration ?? 30),
         look: values.look ?? '',
         style: values.style ?? '',
-        voice: !!values['voice-over']
+        voice: !!values['voice-over'],
+        subtitles: values.subtitles ?? ''
       }))
       break
     case 'list':

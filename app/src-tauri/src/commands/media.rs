@@ -104,8 +104,8 @@ pub async fn sound_timeline(handle: AppHandle, path: String) -> Result<Value, St
 
 /// The voice-over: read it (with the voices of the project's language), or
 /// turn it on or off and pick the voice (each speaks the lines again and
-/// fits the shots to them), or set its volume; sample: a WAV of the voice
-/// to listen to
+/// fits the shots to them), or set its volume or the subtitles' look;
+/// sample: a WAV of the voice to listen to
 #[tauri::command]
 pub async fn voice(
     handle: AppHandle,
@@ -113,6 +113,7 @@ pub async fn voice(
     on: Option<bool>,
     voice: Option<String>,
     gain: Option<f64>,
+    subtitles: Option<String>,
     sample: Option<bool>,
 ) -> Result<Value, String> {
     blocking(move || {
@@ -121,6 +122,7 @@ pub async fn voice(
             .flag(on == Some(false), "--off")
             .opt("--voice", voice)
             .opt("--gain", gain)
+            .opt("--subtitles", subtitles)
             .flag(sample == Some(true), "--sample")
             // Speaking every line again is a queue job the app shows (voiceFit)
             .arg("--no-fit");

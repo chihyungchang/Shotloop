@@ -169,6 +169,7 @@ export const id: Record<Key, string> = {
   'stage.download': 'Mengunduh (MB)',
   'stage.voice': 'Membacakan naskah',
   'stage.subtitles': 'Pemeriksaan subtitel',
+  'stage.subtitleImages': 'Menggambar subtitel',
   'editor.save': 'Simpan · ⌘S',
   'editor.edit': 'Ubah',
   'editor.cancel': 'Batal',
@@ -399,6 +400,15 @@ export const id: Record<Key, string> = {
   'settings.parallelMore': 'Lebih banyak',
   'settings.parallelReset': 'Kembali ke otomatis ({n})',
   'settings.parallelMachine': 'Mac ini: {cores} inti, memori {memory} GB. Otomatis membuat {n} sekaligus.',
+  'settings.effort': 'Daya pikir per adegan',
+  'settings.effortNote': 'Seberapa dalam AI berpikir saat menulis tiap adegan. Makin tinggi makin sering memperbaiki dari gambar diam, tapi lebih lama dan lebih boros AI.',
+  'settings.effortLabel': 'Tingkat',
+  'settings.effort.low': 'Rendah',
+  'settings.effort.medium': 'Sedang',
+  'settings.effort.high': 'Tinggi',
+  'settings.effort.lowHint': 'Sekitar 1–2 menit per adegan (bawaan)',
+  'settings.effort.mediumHint': 'Sekitar 4 menit per adegan; lebih sering membetulkan komposisi',
+  'settings.effort.highHint': 'Sekitar 6 menit per adegan; sedikit lebih baik dari sedang',
   'settings.alertsNote': 'Saat antrean kosong: setiap render, pemeriksaan, dan ekspor di dalamnya telah selesai.',
   'settings.sound': 'Suara selesai',
   'settings.desktop': 'Notifikasi desktop',
@@ -457,6 +467,7 @@ export const id: Record<Key, string> = {
 
   'film.title': 'Seluruh film',
   'film.watch': 'Tonton filmnya',
+  'film.needsBuild': 'AI belum membuat adegan: buat dulu',
   'film.rendering': 'Merender perubahan…',
   'film.joining': 'Menggabungkan video…',
   'film.note': 'Seluruh film dengan musik',
@@ -589,14 +600,44 @@ export const id: Record<Key, string> = {
   'voice.on': 'Nyala',
   'voice.voice': 'Suara',
   'voice.fitting': 'Membacakan naskah…',
+  'voice.starting': 'memulai suara (satu-dua menit pertama kali)',
+  'plan.voiceAsk': 'Sulih suara video ini dibacakan {name}: perlu mengunduh {mb} MB dulu (sekali saja).',
+  'plan.voiceDownload': 'Unduh dan buat',
+  'plan.voiceOff': 'Buat tanpa sulih suara',
+  'build.waitVoice': 'Mengunduh model suara: {done} / {total} MB. Adegan dibuat begitu selesai.',
+  'studio.starters': '{n} adegan masih kartu sementara: AI belum menggambarnya.',
+  'studio.startersBuilding': 'AI sedang membuat adegan; yang selesai muncul di sini.',
+  'studio.startersWaiting': 'Mengunduh model suara; lalu AI membuat adegan.',
+  'studio.startersWatch': 'Lihat progres',
+  'studio.startersMake': 'Buat adegan',
+  'shot.starter': 'Sementara',
+  'shot.starterHint': 'AI belum menggambar adegan ini',
   'voice.unavailable': 'Belum ada suara untuk bahasa video ini.',
   'voice.noLines': 'Belum ada naskah: rencanakan ulang video atau tulis kalimat tiap shot di rencana.',
+  'subs.look': 'Subtitel',
+  'subs.sample': 'Kata mengikuti suara',
+  'subs.autoName': 'Subtitel otomatis',
+  'subs.autoAbout': 'AI memilih subtitel sesuai tempo dan nada video',
+  'subs.spacedOnly': 'Hanya untuk bahasa yang memisahkan kata dengan spasi seperti bahasa Inggris; video berbahasa Mandarin atau Jepang memakai gaya bawaan',
+  'subs.needsVoice': 'Subtitel ikut sulih suara: nyalakan untuk memilihnya',
+  'subs.look.highlight': 'Sorotan',
+  'subs.look.pill': 'Pil',
+  'subs.look.pop': 'Kata per kata',
+  'subs.look.sticker': 'Stiker',
+  'subs.look.word': 'Satu kata',
+  'subs.look.reveal': 'Muncul',
+  'subs.look.classic': 'Klasik',
+  'subs.look.clean': 'Bersih',
+  'subs.look.none': 'Tidak ada',
   'voiceDl.get': 'Unduh {name} ({mb} MB)',
   'voiceDl.retry': 'Unduh lagi ({mb} MB)',
   'voiceDl.progress': '{done} / {total} MB',
   'voiceDl.model': 'Model suara',
   'voiceDl.title': 'Model sulih suara',
   'voiceDl.intro': 'Model suara tidak ikut terpasang bersama aplikasi: masing-masing diunduh saat video pertama kali berbicara dalam bahasanya (atau di sini, lebih awal), lalu bisa dipakai offline.',
+  'voiceDl.needTitle': 'Unduh suaranya dulu',
+  'voiceDl.needNote': 'Video ini punya sulih suara yang dibacakan {name} ({mb} MB). Cukup diunduh sekali lalu bisa offline; video diputar setelah selesai.',
+  'voiceDl.watchSilent': 'Tonton tanpa suara',
   'voiceDl.installed': 'Sudah diunduh',
   'voiceDl.folder': 'Lokasi penyimpanan',
   'plan.say': 'Sulih suara',
@@ -608,7 +649,8 @@ export const id: Record<Key, string> = {
   'plan.step.plan': 'Rencana',
   'plan.step.build': 'Buat',
   'plan.step.edit': 'Edit',
-  'plan.skip': 'Langsung ke editor',
+  'plan.remake': 'Buat ulang adegan',
+  'plan.toEditor': 'Ke editor',
   'plan.make': 'Buat videonya',
   'plan.retry': 'Coba lagi',
   'plan.writing': 'Menulis teks dan storyboard…',
@@ -664,6 +706,7 @@ export const id: Record<Key, string> = {
   'build.rendering': 'Merender gambar diam',
   'build.written': 'Kode ditulis',
   'build.waiting': 'Berikutnya',
+  'build.waitParts': 'Menunggu gambar bersama',
   'build.readyCount': '{done} dari {total} adegan siap',
   'build.took': 'butuh {time}',
   'build.shotDoing': 'adegan {n}: {what}',
@@ -680,6 +723,86 @@ export const id: Record<Key, string> = {
   'job.voiceFit': 'Bacakan naskah dan sesuaikan shot',
 
   'nav.library': 'Pustaka aset',
+
+  'nav.usage': 'Penggunaan',
+
+  'usage.title': 'Penggunaan AI',
+
+  'usage.note': 'Setiap langkah AI dicatat di proyeknya: token, waktu, dan bila alatnya memperkirakan, biaya dengan harga API (langganan tidak ditagih per token).',
+
+  'usage.empty': 'Belum ada catatan.',
+
+  'usage.tokens': 'Token',
+
+  'usage.cost': 'Biaya (perkiraan)',
+
+  'usage.time': 'Waktu AI',
+
+  'usage.project': 'Proyek',
+
+  'usage.runs': 'Jalankan',
+
+  'usage.last': 'Terakhir',
+
+  'usage.byStep': 'Per langkah',
+
+  'usage.history': 'Setiap jalankan',
+
+  'usage.open': 'Buka proyek',
+
+  'usage.failed': 'Gagal',
+
+  'usage.thinking': '{n} berpikir',
+
+  'usage.col.step': 'Langkah',
+
+  'usage.col.count': 'Kali',
+
+  'usage.col.avg': 'Rata-rata token',
+
+  'usage.col.avgOutput': 'Rata-rata keluaran',
+
+  'usage.col.avgTime': 'Rata-rata waktu',
+
+  'usage.col.total': 'Porsi',
+
+  'usage.col.model': 'Model',
+
+  'usage.col.input': 'Masukan',
+
+  'usage.col.cacheRead': 'Baca cache',
+
+  'usage.col.cacheWrite': 'Tulis cache',
+
+  'usage.col.output': 'Keluaran',
+
+  'usage.col.turns': 'Giliran',
+
+  'usage.step.plan': 'Rencana',
+
+  'usage.step.revise': 'Revisi rencana',
+
+  'usage.step.world': 'Dunia visual',
+
+  'usage.step.layout': 'Tata letak bersama',
+
+  'usage.step.part': 'Gambar bersama',
+
+  'usage.step.shot': 'Adegan',
+
+  'usage.step.fix': 'Perbaikan',
+
+  'usage.step.propose': 'Usulan',
+
+  'usage.step.check': 'Pemeriksaan',
+
+  'usage.step.publish': 'Teks unggahan',
+
+  'usage.step.sound': 'Suara',
+
+  'usage.step.cover': 'Sampul',
+
+  'usage.step.build': 'Buat adegan',
   'library.title': 'Pustaka aset',
   'library.search': 'Cari',
   'library.mine': 'Di Mac ini',

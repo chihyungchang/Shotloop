@@ -15,7 +15,9 @@ import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { timedLines, voiceCues, voiceLang } from './cues.mjs'
+import { subtitleStyle, timedLines, voiceCues, voiceLang } from './cues.mjs'
+import { subtitleLookKey } from './data.mjs'
+import { pageLayout } from './looks.mjs'
 import { readJson, writeJson } from './files.mjs'
 import { localPath, projectPath } from './project.mjs'
 import { cutTimes } from './score.mjs'
@@ -124,14 +126,16 @@ const shotState = (project, shot) => path.join(project.state, 'shots', shot.id)
 const entryDir = (project, shot, mode, key) => path.join(shotState(project, shot), `${mode}-${key}`)
 
 // A shot's last subtitle check (check.mjs), kept with the shot and valid
-// while its frames, the subtitle layer and the language are unchanged:
-// the app marks the shot until its code (or the voice) changes. Null when
-// not checked since
+// while its frames, the subtitle layer, its look and the language are
+// unchanged: the app marks the shot until its code (or the voice)
+// changes. Null when not checked since
 const subtitleFile = (project, shot) => path.join(shotState(project, shot), 'subtitles.json')
 // The lines spoken during the shot count too: another shot's line may run
 // over the cut into it
 const subtitleKey = (project, shot, finalKey) =>
-  digest(h => h.update(JSON.stringify([finalKey, engineCode('subtitles.mjs', 'cues.mjs', 'check.mjs'), voiceLang(project),
+  digest(h => h.update(JSON.stringify([finalKey, engineCode('subtitles.mjs', 'cues.mjs', 'check.mjs', 'words.mjs'), voiceLang(project), subtitleLookKey(subtitleStyle(project)), pageLayout(project.size).safeRight,
+    // The voice and its speed time the words (each line's speech)
+    project.config.voice?.voice ?? null, project.config.voice?.speed ?? 1,
     timedLines(project).filter(l => l.shot !== shot.id && l.at < shot.start + shot.duration && l.end > shot.start).map(l => [l.text, l.at - shot.start, l.end - shot.start])])))
 
 export function subtitleResult(project, shot, finalKey = shotKey(project, shot, 'final')) {

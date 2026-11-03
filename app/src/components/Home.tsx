@@ -11,6 +11,7 @@ import { Icon } from './Icon'
 import { ExampleGallery } from './ExampleGallery'
 import { LookPicker } from './LookPicker'
 import { StylePicker } from './StylePicker'
+import { SubtitlePicker } from './SubtitleLooks'
 import { examplesFor, lookFits, styleName } from '../styles'
 import type { Key } from '../i18n/en'
 import { t, tSplit } from '../i18n'
@@ -29,6 +30,8 @@ const TRACKS: Record<Track, { word: Key; chip: Key; hint: Key; idea: Key; icon: 
 const NEXT_TRACK: Record<Track, Track> = { auto: '2d', '2d': '3d', '3d': 'auto' }
 // 'auto': the planner sets the length from the content; any other length
 // in seconds is typed in (the engine takes 6–180 s)
+// An idea written in Chinese or Japanese: no spaces between its words
+const UNSPACED = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u
 const LENGTHS = ['auto', '15', '30', '45', '60']
 const CUSTOM = 'custom'
 const lengthLabel = (l: string) => l === 'auto' ? t('home.lengthAutoShort') : t('unit.s', { n: l })
@@ -102,6 +105,8 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
   // The voice-over: off for a new film unless turned on here (then the
   // picture is timed to it)
   const [voice, setVoice] = useState(false)
+  // The voice-over subtitles' look, or '' for the AI to pick one
+  const [subtitles, setSubtitles] = useState('')
   // A typed length, kept within what the engine takes once it is left
   const custom = !LENGTHS.includes(length)
   const clampLength = () => {
@@ -186,7 +191,8 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
         duration: length,
         look: track === '3d' ? '' : look,
         style: track === '3d' ? '' : style,
-        voice
+        voice,
+        subtitles: voice ? subtitles : ''
       })
       // A new project starts on its planning page: copy and storyboard first
       open(r.root, true)
@@ -265,6 +271,8 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
                 title={`${t('home.voice')} · ${t(voice ? 'home.voiceOnHint' : 'home.voiceOffHint')}`} aria-label={t('home.voice')}>
                 <Icon name={voice ? 'mic' : 'micOff'} size={14} />
               </button>
+              {/* Subtitles come with the voice: picked once it is on */}
+              <SubtitlePicker value={subtitles} onChange={setSubtitles} spaced={!UNSPACED.test(idea)} disabled={!voice} />
               {track !== '3d' && <span className="bar-divider" aria-hidden />}
               {track !== '3d' && <StylePicker value={style} onChange={chooseStyle} />}
               {track !== '3d' && <LookPicker value={look} onChange={setLook} style={style} />}

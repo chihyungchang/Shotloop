@@ -169,6 +169,7 @@ export const es: Record<Key, string> = {
   'stage.download': 'Descargando (MB)',
   'stage.voice': 'Grabando frases',
   'stage.subtitles': 'Revisión de subtítulos',
+  'stage.subtitleImages': 'Dibujando subtítulos',
   'editor.save': 'Guardar · ⌘S',
   'editor.edit': 'Editar',
   'editor.cancel': 'Cancelar',
@@ -399,6 +400,15 @@ export const es: Record<Key, string> = {
   'settings.parallelMore': 'Más',
   'settings.parallelReset': 'Volver a auto ({n})',
   'settings.parallelMachine': 'Este Mac: {cores} núcleos, {memory} GB de memoria. En auto genera {n} a la vez.',
+  'settings.effort': 'Razonamiento por toma',
+  'settings.effortNote': 'Cuánto piensa la IA al escribir cada toma. Más alto corrige más a partir de los fotogramas, pero tarda más y gasta más IA.',
+  'settings.effortLabel': 'Nivel',
+  'settings.effort.low': 'Bajo',
+  'settings.effort.medium': 'Medio',
+  'settings.effort.high': 'Alto',
+  'settings.effort.lowHint': 'Unos 1–2 min por toma (predeterminado)',
+  'settings.effort.mediumHint': 'Unos 4 min por toma; corrige más el encuadre',
+  'settings.effort.highHint': 'Unos 6 min por toma; poco mejor que medio',
   'settings.alertsNote': 'Cuando la cola se vacía: todos sus renderizados, comprobaciones y exportaciones han terminado.',
   'settings.sound': 'Sonido al terminar',
   'settings.desktop': 'Notificación en el escritorio',
@@ -457,6 +467,7 @@ export const es: Record<Key, string> = {
 
   'film.title': 'Película completa',
   'film.watch': 'Ver la película',
+  'film.needsBuild': 'La IA aún no ha creado las tomas: créalas primero',
   'film.rendering': 'Renderizando cambios…',
   'film.joining': 'Montando el vídeo…',
   'film.note': 'La película completa con música',
@@ -589,14 +600,44 @@ export const es: Record<Key, string> = {
   'voice.on': 'Sí',
   'voice.voice': 'Voz',
   'voice.fitting': 'Grabando las frases…',
+  'voice.starting': 'iniciando la voz (uno o dos minutos la primera vez)',
+  'plan.voiceAsk': 'La voz en off de este video la lee {name}: primero hay que descargar {mb} MB (una sola vez).',
+  'plan.voiceDownload': 'Descargar y crear',
+  'plan.voiceOff': 'Crearlo sin voz en off',
+  'build.waitVoice': 'Descargando el modelo de voz: {done} / {total} MB. Las tomas se crean en cuanto termine.',
+  'studio.starters': '{n} tomas siguen siendo tarjetas provisionales: la IA aún no las ha dibujado.',
+  'studio.startersBuilding': 'La IA está creando las tomas; aparecen aquí según terminan.',
+  'studio.startersWaiting': 'Descargando el modelo de voz; después la IA crea las tomas.',
+  'studio.startersWatch': 'Ver progreso',
+  'studio.startersMake': 'Crear las tomas',
+  'shot.starter': 'Provisional',
+  'shot.starterHint': 'La IA aún no ha dibujado esta toma',
   'voice.unavailable': 'Aún no hay una voz para el idioma de este vídeo.',
   'voice.noLines': 'Aún no hay frases: vuelve a planificar el vídeo o escribe la frase de cada plano en el plan.',
+  'subs.look': 'Subtítulos',
+  'subs.sample': 'Las palabras siguen la voz',
+  'subs.autoName': 'Subtítulos automáticos',
+  'subs.autoAbout': 'La IA elige los subtítulos según el ritmo y el tono del video',
+  'subs.spacedOnly': 'Solo para idiomas que separan las palabras con espacios, como el inglés; los videos en chino o japonés usan el estilo por defecto',
+  'subs.needsVoice': 'Los subtítulos van con la voz en off: actívala para elegirlos',
+  'subs.look.highlight': 'Resaltado',
+  'subs.look.pill': 'Píldora',
+  'subs.look.pop': 'Palabra a palabra',
+  'subs.look.sticker': 'Pegatina',
+  'subs.look.word': 'Una palabra',
+  'subs.look.reveal': 'Revelado',
+  'subs.look.classic': 'Clásico',
+  'subs.look.clean': 'Limpio',
+  'subs.look.none': 'Ninguno',
   'voiceDl.get': 'Descargar {name} ({mb} MB)',
   'voiceDl.retry': 'Descargar de nuevo ({mb} MB)',
   'voiceDl.progress': '{done} / {total} MB',
   'voiceDl.model': 'Modelo de voz',
   'voiceDl.title': 'Modelos de voz en off',
   'voiceDl.intro': 'Los modelos de voz no vienen con la app: cada uno se descarga la primera vez que un vídeo habla sus idiomas (o aquí, por adelantado) y luego funciona sin conexión.',
+  'voiceDl.needTitle': 'Primero descarga la voz',
+  'voiceDl.needNote': 'Este video tiene voz en off, leída por {name} ({mb} MB). Se descarga una vez y luego funciona sin conexión; el video se reproduce al terminar.',
+  'voiceDl.watchSilent': 'Ver sin la voz',
   'voiceDl.installed': 'Descargado',
   'voiceDl.folder': 'Dónde se guardan',
   'plan.say': 'Voz en off',
@@ -608,7 +649,8 @@ export const es: Record<Key, string> = {
   'plan.step.plan': 'Planificar',
   'plan.step.build': 'Generar',
   'plan.step.edit': 'Editar',
-  'plan.skip': 'Ir al editor',
+  'plan.remake': 'Crear las tomas de nuevo',
+  'plan.toEditor': 'Ir al editor',
   'plan.make': 'Crear el vídeo',
   'plan.retry': 'Reintentar',
   'plan.writing': 'Escribiendo el texto y el storyboard…',
@@ -664,6 +706,7 @@ export const es: Record<Key, string> = {
   'build.rendering': 'Renderizando fotogramas',
   'build.written': 'Código escrito',
   'build.waiting': 'A continuación',
+  'build.waitParts': 'Esperando las imágenes compartidas',
   'build.readyCount': '{done} de {total} planos listos',
   'build.took': 'tardó {time}',
   'build.shotDoing': 'plano {n}: {what}',
@@ -680,6 +723,86 @@ export const es: Record<Key, string> = {
   'job.voiceFit': 'Grabar las frases y ajustar los planos',
 
   'nav.library': 'Biblioteca de recursos',
+
+  'nav.usage': 'Uso',
+
+  'usage.title': 'Uso de la IA',
+
+  'usage.note': 'Cada paso de la IA queda registrado en su proyecto: tokens, tiempo y, cuando la herramienta lo estima, el coste a precios de API (una suscripción no se cobra por token).',
+
+  'usage.empty': 'Aún no hay registros.',
+
+  'usage.tokens': 'Tokens',
+
+  'usage.cost': 'Coste (est.)',
+
+  'usage.time': 'Tiempo de IA',
+
+  'usage.project': 'Proyecto',
+
+  'usage.runs': 'Ejecuciones',
+
+  'usage.last': 'Última',
+
+  'usage.byStep': 'Por paso',
+
+  'usage.history': 'Cada ejecución',
+
+  'usage.open': 'Abrir el proyecto',
+
+  'usage.failed': 'Falló',
+
+  'usage.thinking': '{n} pensando',
+
+  'usage.col.step': 'Paso',
+
+  'usage.col.count': 'Veces',
+
+  'usage.col.avg': 'Tokens prom.',
+
+  'usage.col.avgOutput': 'Salida prom.',
+
+  'usage.col.avgTime': 'Tiempo prom.',
+
+  'usage.col.total': 'Parte',
+
+  'usage.col.model': 'Modelo',
+
+  'usage.col.input': 'Entrada',
+
+  'usage.col.cacheRead': 'Caché leída',
+
+  'usage.col.cacheWrite': 'Caché escrita',
+
+  'usage.col.output': 'Salida',
+
+  'usage.col.turns': 'Turnos',
+
+  'usage.step.plan': 'Plan',
+
+  'usage.step.revise': 'Revisión del plan',
+
+  'usage.step.world': 'Mundo visual',
+
+  'usage.step.layout': 'Diseño compartido',
+
+  'usage.step.part': 'Imagen compartida',
+
+  'usage.step.shot': 'Toma',
+
+  'usage.step.fix': 'Arreglo',
+
+  'usage.step.propose': 'Propuestas',
+
+  'usage.step.check': 'Revisión',
+
+  'usage.step.publish': 'Texto de publicación',
+
+  'usage.step.sound': 'Sonido',
+
+  'usage.step.cover': 'Portada',
+
+  'usage.step.build': 'Crear las tomas',
   'library.title': 'Biblioteca de recursos',
   'library.search': 'Buscar',
   'library.mine': 'En este Mac',

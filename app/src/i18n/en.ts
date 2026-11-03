@@ -170,6 +170,7 @@ export const en = {
   'stage.download': 'Downloading (MB)',
   'stage.voice': 'Speaking lines',
   'stage.subtitles': 'Subtitle check',
+  'stage.subtitleImages': 'Drawing subtitles',
   'editor.save': 'Save · ⌘S',
   'editor.edit': 'Edit',
   'editor.cancel': 'Cancel',
@@ -400,6 +401,15 @@ export const en = {
   'settings.parallelMore': 'More',
   'settings.parallelReset': 'Back to auto ({n})',
   'settings.parallelMachine': 'This Mac: {cores} cores, {memory} GB memory. Auto builds {n} at once.',
+  'settings.effort': 'Shot thinking',
+  'settings.effortNote': 'How hard the AI thinks writing each shot. Higher fixes more from what the stills show, and takes longer and uses more of your AI.',
+  'settings.effortLabel': 'Effort',
+  'settings.effort.low': 'Low',
+  'settings.effort.medium': 'Medium',
+  'settings.effort.high': 'High',
+  'settings.effort.lowHint': 'About 1–2 min a shot (default)',
+  'settings.effort.mediumHint': 'About 4 min a shot; more often fixes framing',
+  'settings.effort.highHint': 'About 6 min a shot; little better than medium',
   'settings.alertsNote': 'When the queue runs dry: every render, check and export in it has finished.',
   'settings.sound': 'Completion sound',
   'settings.desktop': 'Desktop notification',
@@ -458,6 +468,7 @@ export const en = {
 
   'film.title': 'Whole film',
   'film.watch': 'Watch the film',
+  'film.needsBuild': 'The AI hasn’t made the shots yet: make them first',
   'film.rendering': 'Rendering changes…',
   'film.joining': 'Putting the film together…',
   'film.note': 'The whole film with music',
@@ -590,14 +601,44 @@ export const en = {
   'voice.on': 'On',
   'voice.voice': 'Voice',
   'voice.fitting': 'Speaking the lines…',
+  'voice.starting': 'starting the voice (a minute or two the first time)',
+  'plan.voiceAsk': 'This film’s voice-over is read by {name}: a {mb} MB download first (once).',
+  'plan.voiceDownload': 'Download and make',
+  'plan.voiceOff': 'Make it without a voice-over',
+  'build.waitVoice': 'Downloading the voice model: {done} / {total} MB. The shots are made as soon as it lands.',
+  'studio.starters': '{n} shots are still placeholder cards: the AI hasn’t drawn them.',
+  'studio.startersBuilding': 'The AI is making the shots; they appear here as they land.',
+  'studio.startersWaiting': 'Downloading the voice model; the AI makes the shots after it.',
+  'studio.startersWatch': 'See progress',
+  'studio.startersMake': 'Make the shots',
+  'shot.starter': 'Placeholder',
+  'shot.starterHint': 'The AI hasn’t drawn this shot yet',
   'voice.unavailable': 'No voice speaks this film’s language yet.',
   'voice.noLines': 'No spoken lines yet: plan the film again, or write each shot’s line in the plan.',
+  'subs.look': 'Subtitles',
+  'subs.sample': 'Words follow the voice',
+  'subs.autoName': 'Auto subtitles',
+  'subs.autoAbout': 'The AI picks a subtitle look for the video’s pace and tone',
+  'subs.spacedOnly': 'Only for languages that put spaces between words, such as English; Chinese and Japanese videos use the default look',
+  'subs.needsVoice': 'Subtitles come with the voice-over: turn it on to pick them',
+  'subs.look.highlight': 'Highlight',
+  'subs.look.pill': 'Pill',
+  'subs.look.pop': 'Word pop',
+  'subs.look.sticker': 'Sticker',
+  'subs.look.word': 'One word',
+  'subs.look.reveal': 'Reveal',
+  'subs.look.classic': 'Classic',
+  'subs.look.clean': 'Clean',
+  'subs.look.none': 'None',
   'voiceDl.get': 'Download {name} ({mb} MB)',
   'voiceDl.retry': 'Download again ({mb} MB)',
   'voiceDl.progress': '{done} / {total} MB',
   'voiceDl.model': 'Voice',
   'voiceDl.title': 'Voice-over models',
   'voiceDl.intro': 'The speech models aren’t installed with the app: each downloads the first time a film speaks its languages (or here, ahead of time) and then works offline.',
+  'voiceDl.needTitle': 'Download the voice first',
+  'voiceDl.needNote': 'This film has a voice-over, read by {name} ({mb} MB). It downloads once, then works offline; the film plays when it lands.',
+  'voiceDl.watchSilent': 'Watch without the voice',
   'voiceDl.installed': 'Downloaded',
   'voiceDl.folder': 'Where they are kept',
   'plan.say': 'Voice-over',
@@ -609,7 +650,8 @@ export const en = {
   'plan.step.plan': 'Plan',
   'plan.step.build': 'Build',
   'plan.step.edit': 'Edit',
-  'plan.skip': 'Skip to the editor',
+  'plan.remake': 'Make the shots again',
+  'plan.toEditor': 'Go to the editor',
   'plan.make': 'Make the video',
   'plan.retry': 'Try again',
   'plan.writing': 'Writing the copy and storyboard…',
@@ -665,6 +707,7 @@ export const en = {
   'build.rendering': 'Rendering stills',
   'build.written': 'Code written',
   'build.waiting': 'Up next',
+  'build.waitParts': 'Waiting for the shared pictures',
   'build.readyCount': '{done} of {total} shots ready',
   'build.took': 'took {time}',
   'build.shotDoing': 'shot {n}: {what}',
@@ -681,6 +724,86 @@ export const en = {
   'job.voiceFit': 'Speak the lines',
 
   'nav.library': 'Asset library',
+
+  'nav.usage': 'Usage',
+
+  'usage.title': 'AI usage',
+
+  'usage.note': 'Every step the AI takes is recorded with its project: its tokens, time and, where the tool estimates it, cost at API prices (a subscription isn’t billed by token).',
+
+  'usage.empty': 'Nothing recorded yet.',
+
+  'usage.tokens': 'Tokens',
+
+  'usage.cost': 'Cost (est.)',
+
+  'usage.time': 'AI time',
+
+  'usage.project': 'Project',
+
+  'usage.runs': 'Runs',
+
+  'usage.last': 'Last',
+
+  'usage.byStep': 'By step',
+
+  'usage.history': 'Each run',
+
+  'usage.open': 'Open the project',
+
+  'usage.failed': 'Failed',
+
+  'usage.thinking': '{n} thinking',
+
+  'usage.col.step': 'Step',
+
+  'usage.col.count': 'Count',
+
+  'usage.col.avg': 'Avg tokens',
+
+  'usage.col.avgOutput': 'Avg output',
+
+  'usage.col.avgTime': 'Avg time',
+
+  'usage.col.total': 'Share',
+
+  'usage.col.model': 'Model',
+
+  'usage.col.input': 'Input',
+
+  'usage.col.cacheRead': 'Cache read',
+
+  'usage.col.cacheWrite': 'Cache write',
+
+  'usage.col.output': 'Output',
+
+  'usage.col.turns': 'Turns',
+
+  'usage.step.plan': 'Plan',
+
+  'usage.step.revise': 'Plan revision',
+
+  'usage.step.world': 'Visual world',
+
+  'usage.step.layout': 'Shared layout',
+
+  'usage.step.part': 'Shared picture',
+
+  'usage.step.shot': 'Shot',
+
+  'usage.step.fix': 'Fix',
+
+  'usage.step.propose': 'Proposals',
+
+  'usage.step.check': 'Check',
+
+  'usage.step.publish': 'Publish copy',
+
+  'usage.step.sound': 'Sound',
+
+  'usage.step.cover': 'Cover',
+
+  'usage.step.build': 'Make the shots',
   'library.title': 'Asset library',
   'library.search': 'Find',
   'library.mine': 'On this Mac',

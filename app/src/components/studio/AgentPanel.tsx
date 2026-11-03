@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { api, type FixRecord, type Job, type PickedElement, type Project, type Shot } from '../../api'
-import { ModelMark } from '../../ai/BrandIcon'
-import { aiSummary, useDetected } from '../../ai/backends'
 import { useErrorLine } from '../../hooks'
 import { isActive } from '../../model'
-import { useSettings } from '../../settings'
+import { AgentAvatar } from '../AgentAvatar'
 import { AgentError } from '../AgentError'
 import { Icon } from '../Icon'
 import { RuleRef } from '../RuleRef'
@@ -35,9 +33,6 @@ export function AgentPanel({ project, shot, jobs, openSettings, openRule, picker
   const mine = jobs.filter(j => j.project === project.root && j.shot === shot.id && j.lane === 'agent')
   const active = mine.find(isActive) ?? null
   const { error, guard } = useErrorLine()
-  const { settings } = useSettings()
-  const detected = useDetected()
-  const ai = settings && aiSummary(settings, detected)
   // Failures are not in the shot's fix records: show the latest one here
   const lastDone = shot.fixes.at(-1)?.at ? Date.parse(shot.fixes.at(-1)!.at) : 0
   const failed = mine.filter(j => j.state === 'failed' && (j.finishedAt ?? 0) > lastDone).at(-1) ?? null
@@ -67,7 +62,7 @@ export function AgentPanel({ project, shot, jobs, openSettings, openRule, picker
     <aside className="agent">
       <div className="agent-head">
         {/* The model at work, by its maker's mark */}
-        <span className={`agent-avatar${ai ? ' brand' : ''}`} aria-hidden>{ai ? <ModelMark ai={ai} /> : <Icon name="spark" size={15} />}</span>
+        <AgentAvatar />
         <div className="agent-name">
           <strong>{t('agent.title')}</strong>
           <span className="muted small ellipsis">{t('agent.subtitle', { shot: shot.id })}</span>

@@ -136,6 +136,7 @@ function General({ settings, savePref, theme, language }: {
         </div>
       </section>
       <Parallel settings={settings} savePref={savePref} />
+      <ShotEffort settings={settings} savePref={savePref} />
       <section className="settings-block">
         <h3>{t('settings.alerts')}</h3>
         <p className="hint">{t('settings.alertsNote')}</p>
@@ -192,6 +193,30 @@ function Parallel({ settings, savePref }: { settings: Settings; savePref: SavePr
         </div>
       </div>
       {m && <p className="hint">{t('settings.parallelMachine', { cores: m.cores, memory: m.memoryGb, n: m.autoParallel })}</p>}
+    </section>
+  )
+}
+
+// How hard the AI thinks building each shot: low (the default, quick)
+// to high (slower and costlier, for a little more)
+const EFFORTS = ['low', 'medium', 'high'] as const
+function ShotEffort({ settings, savePref }: { settings: Settings; savePref: SavePref }) {
+  const value = settings.shotEffort || 'low'
+  return (
+    <section className="settings-block">
+      <h3>{t('settings.effort')}</h3>
+      <p className="hint">{t('settings.effortNote')}</p>
+      <div className="pref-row">
+        <span>{t('settings.effortLabel')}</span>
+        <div className="seg" role="radiogroup" aria-label={t('settings.effortLabel')}>
+          {EFFORTS.map(e => (
+            <button key={e} role="radio" aria-checked={value === e} className={value === e ? 'on' : ''}
+              title={t(`settings.effort.${e}Hint` as Key)} onClick={() => value !== e && savePref({ shotEffort: e === 'low' ? '' : e })}>
+              {t(`settings.effort.${e}` as Key)}
+            </button>
+          ))}
+        </div>
+      </div>
     </section>
   )
 }

@@ -228,6 +228,8 @@ export interface ShotStatus {
   cues: { text: string; at: number; end: number }[]
   code: string
   notes: string
+  // Still the card a new shot starts as: the AI hasn't drawn it yet
+  starter: boolean
   draft: CacheEntry
   final: CacheEntry
   takes: Take[]
@@ -244,6 +246,10 @@ export interface VoiceSettings {
   voice?: string
   speed?: number
   gain?: number
+  // The subtitles' look (data.mjs SUBTITLE_STYLES; 'none': no subtitles),
+  // and whether the person chose it (the planner keeps it) or the plan did
+  subtitles?: string
+  subtitlesChosen?: boolean
 }
 
 // shotloop status <project>
@@ -368,6 +374,8 @@ export interface VoiceResult {
   voice: string | null
   speed: number
   gain: number
+  // The subtitles' look (data.mjs SUBTITLE_STYLES; 'none': no subtitles)
+  subtitles: string
   lang: string
   // A voice speaks the project's language
   available: boolean
@@ -449,3 +457,36 @@ export interface MusicResult {
   gain: number
 }
 
+
+// ------------------------------------------------------------- AI usage
+
+// The tokens an AI run took, as its backend reports them: fresh input,
+// cache reads and writes apart; thinking is the part of the output spent
+// thinking (when told); cost an estimate at API prices (when the backend
+// gives one); empty for a backend that reports nothing
+export interface AiMeter {
+  input: number
+  output: number
+  thinking: number
+  cacheRead: number
+  cacheWrite: number
+  cost: number | null
+  turns: number
+  model: string | null
+}
+
+// One AI step of a task, as the agent records it with its project
+// (.shotloop/ai-usage.jsonl; agent/src/ledger.ts): the run (when the task
+// started), the task, the step (plan, revise, world, layout, part, shot,
+// fix, propose, check, publish, sound, cover; a shot's id, a picture's
+// name), how it ran, how long, and whether it finished
+export interface AiStep extends AiMeter {
+  run: string
+  task: string
+  at: string
+  step: { kind: string; shot?: string; name?: string }
+  backend: string
+  effort?: string
+  ms: number
+  ok: boolean
+}

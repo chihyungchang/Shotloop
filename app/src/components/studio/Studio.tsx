@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
-import { api, type Job, type PreviewResult, type Project } from '../../api'
+import { api, type Job, type PreviewResult, type Project, type VoiceInfo } from '../../api'
 import { useDismiss, useErrorLine } from '../../hooks'
 import { aspectOf, EDIT_MODE, formatSeconds, isActive, shotView } from '../../model'
 import type { useTheme } from '../../theme/theme'
@@ -20,6 +20,7 @@ import type { Follow } from './VideoPlayer'
 import { t } from '../../i18n'
 import { readStored, writeStored } from '../../storage'
 import { ErrorText } from '../ErrorDialog'
+import { VoiceModelDialog } from '../VoiceDownload'
 
 type Drawer = 'queue' | 'assets' | null
 
@@ -39,7 +40,7 @@ const clampWidth = (w: number) => Math.round(Math.min(AGENT_MAX, Math.max(AGENT_
 export function Studio({ project, jobs, refresh, close, theme, openSettings, openRule, openPlan, save, saving }: {
   project: Project
   jobs: Job[]
-  refresh: () => void
+  refresh: () => Promise<void>
   close: () => void
   theme: ReturnType<typeof useTheme>
   openSettings: () => void
@@ -145,17 +146,58 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
   // No shot has a clip yet (just built): the film is rendered for the first time
   const fresh = waiting.length > 0 && project.shots.every(s => s[mode].state === 'missing')
   const openFilm = () => (waiting.length ? setAsk(true) : playNow())
+  // A voiced film needs its voice model on this Mac: asked for first, so
+  // the film doesn't play (or fail) without its voice
+  const [needVoice, setNeedVoice] = useState<NonNullable<VoiceInfo['model']> | null>(null)
+  const unbuilt = project.shots.every(s => s.starter)
+  const watchFilm = async () => {
+    if (project.voiced) {
+      const v = await guard(api.voice(project.root))
+      if (v?.model && !v.model.installed) return setNeedVoice(v.model)
+    }
+    openFilm()
+  }
+  // The model landed: the lines are spoken and the shots fitted to them
+  // when they weren't yet (a queue job), then the film as usual, with the
+  // shots read again
+  const [fitId, setFitId] = useState<number | null>(null)
+  const fitJob = fitId != null ? jobs.find(j => j.id === fitId) : undefined
+  const [watchAfter, setWatchAfter] = useState(false)
+  const voiceLanded = async () => {
+    setNeedVoice(null)
+    const v = await guard(api.voice(project.root))
+    if (v && v.on && v.lines && !v.fitted) {
+      const id = await guard(api.enqueue({ kind: 'voiceFit', project: project.root }))
+      if (id != null) return setFitId(id)
+    }
+    await refresh()
+    setWatchAfter(true)
+  }
+  useEffect(() => {
+    if (!fitJob || isActive(fitJob)) return
+    setFitId(null)
+    if (fitJob.state !== 'done') return setFilmError(fitJob.error ?? t('film.failed'))
+    refresh().then(() => setWatchAfter(true))
+  }, [fitJob?.state])
+  useEffect(() => {
+    if (!watchAfter) return
+    setWatchAfter(false)
+    openFilm()
+  }, [watchAfter])
   const failed = pending.some(s => views.get(s.id)!.state === 'failed')
+  // Every shot rendered: a shot queued or rendering is not (it leaves
+  // the out-of-date list as soon as it is queued), so the film waits
+  const unrendered = project.shots.filter(s => views.get(s.id)!.state !== 'cached').length
   useEffect(() => {
     if (!wantFilm) return
-    if (!pending.length) {
+    if (!unrendered) {
       setWantFilm(false)
       playNow()
     } else if (failed && !active.length) {
       setWantFilm(false)
       setFilmError(t('film.failed'))
     }
-  }, [wantFilm, pending.length, failed, active.length])
+  }, [wantFilm, unrendered, failed, active.length])
 
   return (
     <div className={`studio${drawer ? ' with-drawer' : ''}`}
@@ -171,6 +213,7 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
           </span>
         </div>
         <button className="ghost plan-link" onClick={openPlan}><Icon name="edit" size={14} /> {t('plan.link')}</button>
+        <StarterNote project={project} jobs={jobs} openPlan={openPlan} />
         <div className="spacer" />
         {save && (
           <span className="draft-save">
@@ -181,8 +224,10 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
           </span>
         )}
         <ErrorText error={filmError} as="span" className="small error ellipsis" />
-        <button className="ghost" onClick={openFilm} disabled={wantFilm || joining}>
-          {wantFilm || joining ? <span className="spinner small" /> : <Icon name="play" size={14} />} {t(wantFilm ? 'film.rendering' : joining ? 'film.joining' : 'film.watch')}
+        {/* No shot drawn yet: nothing to watch but placeholder cards */}
+        <button className="ghost" onClick={watchFilm} disabled={wantFilm || joining || !!fitJob || unbuilt}
+          title={unbuilt ? t('film.needsBuild') : undefined}>
+          {wantFilm || joining || fitJob ? <span className="spinner small" /> : <Icon name="play" size={14} />} {t(fitJob ? 'voice.fitting' : wantFilm ? 'film.rendering' : joining ? 'film.joining' : 'film.watch')}
         </button>
         {joining && (
           <button className="icon-button" onClick={() => guard(api.cancel(previewJob!.id))} title={t('queue.stop')} aria-label={t('queue.stop')}>
@@ -235,6 +280,13 @@ export function Studio({ project, jobs, refresh, close, theme, openSettings, ope
             ...(fresh ? [] : [{ label: t('changes.watchNow'), onClick: playNow, disabled: waiting.some(s => s[mode].state === 'missing'), hint: t('changes.needFirst') }]),
             { label: t(fresh ? 'changes.renderWatch' : 'changes.updateWatch'), onClick: updateThenPlay, primary: true }
           ]} />
+      )}
+      {needVoice && (
+        <VoiceModelDialog model={needVoice} project={project.root} jobs={jobs} onDone={voiceLanded} close={() => setNeedVoice(null)}
+          silent={() => {
+            setNeedVoice(null)
+            openFilm()
+          }} />
       )}
       {film && <FilmPreview project={project} file={film.file} close={() => setFilm(null)} />}
       {exportOpen && <ExportDialog project={project} jobs={jobs} refresh={refresh} openSettings={openSettings} close={() => setExportOpen(false)}
@@ -345,5 +397,30 @@ function AgentResizer({ keep }: { keep: (w: number | null) => void }) {
   return (
     <div className="agent-resize" role="separator" aria-orientation="vertical" aria-label={t('studio.resizeAgent')} tabIndex={0}
       onPointerDown={drag} onKeyDown={step} onDoubleClick={() => keep(null)} />
+  )
+}
+
+// Shots still the cards a new project starts with: the AI hasn't drawn
+// them (a plan applied without a build). Said in the header, with the
+// build to start; while one is queued or running, what it is doing
+function StarterNote({ project, jobs, openPlan }: { project: Project; jobs: Job[]; openPlan: () => void }) {
+  const { error, guard } = useErrorLine()
+  const n = project.shots.filter(s => s.starter).length
+  if (!n) return null
+  const mine = jobs.filter(j => j.project === project.root && isActive(j))
+  const building = mine.some(j => j.kind === 'build')
+  const fetching = mine.some(j => j.kind === 'voiceModel')
+  const build = async () => {
+    if ((await guard(api.enqueue({ kind: 'build', project: project.root }))) != null) openPlan()
+  }
+  return (
+    <span className="starter-note" role="status">
+      <Icon name="info" size={13} />
+      <span className="ellipsis">{building ? t(fetching ? 'studio.startersWaiting' : 'studio.startersBuilding') : t('studio.starters', { n })}</span>
+      {building
+        ? <button className="small ghost" onClick={openPlan}>{t('studio.startersWatch')}</button>
+        : <button className="small primary" onClick={build}><Icon name="spark" size={12} /> {t('studio.startersMake')}</button>}
+      <ErrorText error={error} as="span" className="small error ellipsis" />
+    </span>
   )
 }

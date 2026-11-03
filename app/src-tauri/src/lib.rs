@@ -198,6 +198,7 @@ pub fn run() {
             commands::projects::create_project,
             commands::projects::list_projects,
             commands::projects::read_text,
+            commands::projects::project_usage,
             commands::projects::write_text,
             commands::projects::trash_project,
             commands::projects::initial_project,

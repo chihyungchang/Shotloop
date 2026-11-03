@@ -4,13 +4,13 @@
 import { convertFileSrc, invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import type {
-  BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, SoundResult, PickedElement, PickMap, PreviewResult, ProgressEvent, ProjectSummary,
+  AiStep, BrokenProject, ExportResult, FixRecord, ListResult, Mode, MusicResult, SoundResult, PickedElement, PickMap, PreviewResult, ProgressEvent, ProjectSummary,
   ShotStatus, StatusResult, Take, TimelineResult, UsageEvent, UsageWindow, VoiceResult
 } from '../../engine/shotloop/protocol'
 import type { Protocol } from './ai/presets'
 import { lang } from './i18n'
 
-export type { BrokenProject, ExportResult, FixRecord, Mode, PickedElement, PickMap, PreviewResult, ProjectSummary, Take, UsageWindow }
+export type { AiStep, BrokenProject, ExportResult, FixRecord, Mode, PickedElement, PickMap, PreviewResult, ProjectSummary, Take, UsageWindow }
 export type Project = StatusResult
 export type Shot = ShotStatus
 export type VoiceInfo = VoiceResult
@@ -116,6 +116,9 @@ export interface Storyboard {
   lookAi?: string
   lookWhy?: string
   lookChosen?: boolean
+  // The subtitles' look the plan picked (voiced plans), and why
+  subtitles?: string
+  subtitlesWhy?: string
   // The language spoken and written (a voiced plan names it)
   lang?: string
   copy: { idea?: string; hook: string; body: string; facts: { text: string; source: string }[] }
@@ -166,6 +169,8 @@ export interface Settings {
   smithsonianKey: string
   // Shots the AI builds at once, 1–5; 0 picks by the machine
   parallel: number
+  // How hard the AI thinks building each shot; '' for the default (low)
+  shotEffort: '' | 'low' | 'medium' | 'high'
   // Anonymous usage counts (src/telemetry.ts): on unless turned off, sent once
   // the first-launch notice was shown
   telemetryOff: boolean
@@ -303,8 +308,10 @@ interface NewProject {
   look: string
   // 2D visual style id; '' lets the planner pick
   style: string
-  // The voice-over (on unless turned off)
+  // The voice-over (off unless turned on)
   voice?: boolean
+  // The voice-over subtitles' look; '' lets the planner pick
+  subtitles?: string
 }
 
 // A change to the music bed (media.rs MusicChange); none reads it
@@ -323,6 +330,8 @@ export const api = {
   createProject: (project: NewProject) => invoke<{ root: string }>('create_project', { project }),
   listProjects: (paths: string[], examples = false) => invoke<ListResult>('list_projects', { paths, examples }),
   readText: (project: string, path: string) => invoke<string>('read_text', { project, path }),
+  // What the AI's steps took in a project, oldest first (Usage page)
+  projectUsage: (project: string) => invoke<AiStep[]>('project_usage', { project }),
   writeText: (project: string, path: string, content: string) => invoke<void>('write_text', { project, path, content }),
   enqueue: (spec: Spec) => invoke<number>('enqueue', { spec: SPOKEN.includes(spec.kind) ? { ...spec, lang: lang() } : spec }),
   machine: () => invoke<Machine>('machine'),
@@ -396,7 +405,7 @@ export const api = {
   setStyle: (path: string, style: string) => invoke<{ style: string }>('set_style', { path, style }),
   // The voice-over: read, or change (turning it on or a new voice fits the
   // shots to the lines again); sample: a WAV of the voice to listen to
-  voice: (path: string, change: { on?: boolean; voice?: string; gain?: number; sample?: boolean } = {}) =>
+  voice: (path: string, change: { on?: boolean; voice?: string; gain?: number; subtitles?: string; sample?: boolean } = {}) =>
     invoke<VoiceInfo>('voice', { path, ...change }),
   // The speech models, with what is on this Mac (Settings → Dependencies)
   voiceModels: () => invoke<{ dir: string; models: VoiceModel[] }>('voice_models'),

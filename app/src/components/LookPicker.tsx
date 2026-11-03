@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type RefObject } from 'react'
+import { useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { useDismiss } from '../hooks'
 import { t } from '../i18n'
 import { LOOKS, lookAbout, lookName, lookPreview } from '../looks'
@@ -62,13 +62,14 @@ export function LookPicker({ value, onChange, style = '' }: { value: string; onC
   )
 }
 
-// One choice in a grid: its picture, a check when chosen, the name small
-// under it. Auto (the AI picks) shows the choices it picks from, under an
-// aurora with the AI's spark
-export function Tile({ on, name, image, mosaic, title, disabled, onClick }: {
+// One choice in a grid: its picture (an image, or pic: one drawn live), a
+// check when chosen, the name small under it. Auto (the AI picks) shows
+// the choices it picks from, under an aurora with the AI's spark
+export function Tile({ on, name, image, pic, mosaic, title, disabled, onClick }: {
   on: boolean
   name: string
   image?: string | null
+  pic?: ReactNode
   mosaic?: (string | null)[]
   title?: string
   disabled?: boolean
@@ -85,7 +86,7 @@ export function Tile({ on, name, image, mosaic, title, disabled, onClick }: {
               <span className="tile-ai"><Icon name="spark" size={14} /> {t('tile.ai')}</span>
             </span>
           )
-          : image ? <img src={image} alt="" /> : null}
+          : pic ?? (image ? <img src={image} alt="" /> : null)}
         {on && <span className="tile-check"><Icon name="check" size={11} /></span>}
       </span>
       <span className="tile-name">{name}</span>

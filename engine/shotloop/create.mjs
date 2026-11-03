@@ -8,7 +8,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { editMode, entry, takes } from './cache.mjs'
-import { DEFAULT_STYLE, firstLine, lookById, LOOKS, round, STYLES, styleById } from './data.mjs'
+import { DEFAULT_STYLE, firstLine, lookById, LOOKS, round, STYLES, styleById, SUBTITLE_STYLES } from './data.mjs'
 import { isProject, loadProject, saveConfig, SIZES } from './project.mjs'
 import { writeBed } from './settings.mjs'
 import { starterCover, writePlan, writeShots, writeWorld2d, writeWorld3d } from './starters.mjs'
@@ -41,14 +41,17 @@ const startMood = style => STYLE_MOOD[style] ?? 'bright'
 // content, the starter shots fill 30 s until then. style: a 2D visual
 // style the person chose (styles.mjs), kept by the planner; none: the
 // planner picks. voice: the film has a voice-over (voice.mjs), which then
-// sets each shot's length; without one the picture sets the timing
-export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16', duration = 30, look = '', style = '', voice = false }) {
+// sets each shot's length; without one the picture sets the timing.
+// subtitles: the voice-over subtitles' look the person chose (data.mjs
+// SUBTITLE_STYLES), kept by the planner; none: the planner picks
+export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16', duration = 30, look = '', style = '', voice = false, subtitles = '' }) {
   const root = path.resolve(dir)
   if (fs.existsSync(root) && fs.readdirSync(root).length) throw new Error(`${root} exists and is not empty`)
   if (!['2d', '3d', 'auto'].includes(track)) throw new Error('track must be 2d, 3d or auto')
   if (style && styleById(style)?.track !== '2d') throw new Error(`style must be a 2D style (${STYLES.filter(s => s.track === '2d').map(s => s.id).join(', ')})`)
   if (style && track === '3d') throw new Error('a visual style is for 2D')
   if (style === 'scene' && look && !lookById(look)?.scene) throw new Error(`the look "${look}" has no cinematic scene colors`)
+  if (subtitles && !Object.hasOwn(SUBTITLE_STYLES, subtitles)) throw new Error(`subtitles must be one of ${Object.keys(SUBTITLE_STYLES).join(', ')}`)
   // A 2D style chosen settles the track
   const trackAuto = track === 'auto' && !style
   if (track === 'auto') track = '2d'
@@ -90,7 +93,7 @@ export function newProject(dir, { title, idea = '', track = '2d', aspect = '9:16
     ...(lengthAuto ? { lengthAuto: true } : {}),
     // The voice-over: off for a new film unless the person turned it on;
     // then the plan writes each shot's line
-    voice: { on: !!voice }
+    voice: { on: !!voice, ...(subtitles ? { subtitles, subtitlesChosen: true } : {}) }
   })
   writeBed(root, startMood(track === '3d' ? '3d' : style), loadProject(root))
   return { root, title, track, shots: shots.length }

@@ -42,6 +42,7 @@ export function Filmstrip({ project, views, mode, selected, onSelect }: {
                   : <ShotSketch look={project.look} text={shot.title ?? shot.id} n={i + 1} total={project.shots.length} wide={isWide(project.size)} faint={v.state !== 'rendering'} />}
                 {!thumb && (v.state === 'rendering' || v.state === 'queued') && <span className="shimmer sweep" />}
                 <span className="frame-no">{i + 1}</span>
+                {shot.starter && <span className="frame-starter" title={t('shot.starterHint')}>{t('shot.starter')}</span>}
                 {v.failedChecks.length > 0 && (
                   <span className="frame-flag" title={t('film.failedChecks', { rules: v.failedChecks.join(', ') })}>{v.failedChecks.length}</span>
                 )}

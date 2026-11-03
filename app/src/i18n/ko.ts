@@ -169,6 +169,7 @@ export const ko: Record<Key, string> = {
   'stage.download': '다운로드 중(MB)',
   'stage.voice': '내레이션 생성',
   'stage.subtitles': '자막 가림 검사',
+  'stage.subtitleImages': '자막 그리기',
   'editor.save': '저장 · ⌘S',
   'editor.edit': '편집',
   'editor.cancel': '취소',
@@ -399,6 +400,15 @@ export const ko: Record<Key, string> = {
   'settings.parallelMore': '늘리기',
   'settings.parallelReset': '자동으로 되돌리기({n})',
   'settings.parallelMachine': '이 Mac: 코어 {cores}개, 메모리 {memory}GB. 자동 모드에서는 {n}개를 동시에 빌드합니다.',
+  'settings.effort': '샷 추론 강도',
+  'settings.effortNote': 'AI가 샷을 쓸 때 얼마나 깊이 생각할지. 높을수록 정지 화면을 보고 더 고치지만 느리고 AI 사용량이 늘어납니다.',
+  'settings.effortLabel': '강도',
+  'settings.effort.low': '낮음',
+  'settings.effort.medium': '중간',
+  'settings.effort.high': '높음',
+  'settings.effort.lowHint': '샷당 약 1~2분(기본)',
+  'settings.effort.mediumHint': '샷당 약 4분, 구도를 더 자주 고침',
+  'settings.effort.highHint': '샷당 약 6분, 중간과 큰 차이 없음',
   'settings.alertsNote': '대기열이 비었을 때, 즉 모든 렌더링, 검사, 내보내기가 끝났을 때 알립니다.',
   'settings.sound': '완료 사운드',
   'settings.desktop': '데스크탑 알림',
@@ -457,6 +467,7 @@ export const ko: Record<Key, string> = {
 
   'film.title': '전체 영상',
   'film.watch': '전체 영상 보기',
+  'film.needsBuild': 'AI가 아직 샷을 만들지 않았습니다. 먼저 만드세요',
   'film.rendering': '변경 사항 렌더링 중…',
   'film.joining': '영상을 합치는 중…',
   'film.note': '음악이 포함된 전체 영상',
@@ -589,14 +600,44 @@ export const ko: Record<Key, string> = {
   'voice.on': '켜기',
   'voice.voice': '목소리',
   'voice.fitting': '내레이션 생성 중…',
+  'voice.starting': '음성 모델 시작 중 (처음엔 1~2분)',
+  'plan.voiceAsk': '이 영상의 내레이션은 {name}이 읽습니다. 먼저 {mb} MB를 받아야 합니다(한 번만).',
+  'plan.voiceDownload': '받고 만들기',
+  'plan.voiceOff': '내레이션 없이 만들기',
+  'build.waitVoice': '음성 모델 받는 중: {done} / {total} MB. 끝나면 바로 샷을 만듭니다.',
+  'studio.starters': '샷 {n}개가 아직 임시 카드입니다. AI가 아직 그리지 않았습니다.',
+  'studio.startersBuilding': 'AI가 샷을 만드는 중입니다. 완성되는 대로 여기에 나타납니다.',
+  'studio.startersWaiting': '음성 모델을 받는 중입니다. 끝나면 AI가 샷을 만듭니다.',
+  'studio.startersWatch': '진행 상황 보기',
+  'studio.startersMake': 'AI로 샷 만들기',
+  'shot.starter': '임시',
+  'shot.starterHint': 'AI가 아직 이 샷을 그리지 않았습니다',
   'voice.unavailable': '이 언어를 말하는 목소리가 아직 없습니다.',
   'voice.noLines': '아직 내레이션 원고가 없습니다. 다시 기획하거나 기획에서 샷마다 대사를 써 주세요.',
+  'subs.look': '자막',
+  'subs.sample': '자막이 목소리를 따라가요',
+  'subs.autoName': '자막 자동',
+  'subs.autoAbout': 'AI가 영상의 템포와 분위기에 맞는 자막을 고릅니다',
+  'subs.spacedOnly': '영어처럼 단어를 띄어 쓰는 언어 전용입니다. 중국어·일본어 영상은 기본 자막을 씁니다',
+  'subs.needsVoice': '자막은 내레이션과 함께 나옵니다. 내레이션을 켜야 고를 수 있습니다',
+  'subs.look.highlight': '하이라이트',
+  'subs.look.pill': '블록',
+  'subs.look.pop': '단어 팝',
+  'subs.look.sticker': '스티커',
+  'subs.look.word': '한 단어씩',
+  'subs.look.reveal': '리빌',
+  'subs.look.classic': '클래식',
+  'subs.look.clean': '깔끔',
+  'subs.look.none': '없음',
   'voiceDl.get': '{name} 다운로드({mb} MB)',
   'voiceDl.retry': '다시 다운로드({mb} MB)',
   'voiceDl.progress': '{done} / {total} MB',
   'voiceDl.model': '음성 모델',
   'voiceDl.title': '내레이션 모델',
   'voiceDl.intro': '음성 모델은 앱과 함께 설치되지 않습니다. 해당 언어로 처음 내레이션할 때 자동으로 다운로드되며(여기서 미리 받을 수도 있음) 이후에는 오프라인으로 작동합니다.',
+  'voiceDl.needTitle': '먼저 음성 모델을 받으세요',
+  'voiceDl.needNote': '이 영상에는 내레이션이 있어 {name}({mb} MB)이 읽습니다. 한 번만 받으면 이후 오프라인으로 쓸 수 있고, 받으면 바로 재생됩니다.',
+  'voiceDl.watchSilent': '내레이션 없이 재생',
   'voiceDl.installed': '다운로드됨',
   'voiceDl.folder': '저장 위치',
   'plan.say': '내레이션',
@@ -608,7 +649,8 @@ export const ko: Record<Key, string> = {
   'plan.step.plan': '기획',
   'plan.step.build': '빌드',
   'plan.step.edit': '편집',
-  'plan.skip': '편집기로 건너뛰기',
+  'plan.remake': '샷 다시 만들기',
+  'plan.toEditor': '편집으로 이동',
   'plan.make': '영상 만들기',
   'plan.retry': '다시 시도',
   'plan.writing': '문안과 스토리보드 작성 중…',
@@ -664,6 +706,7 @@ export const ko: Record<Key, string> = {
   'build.rendering': '스틸 렌더링 중',
   'build.written': '코드 작성됨',
   'build.waiting': '다음 차례',
+  'build.waitParts': '공통 그림을 기다리는 중',
   'build.readyCount': '샷 {done}/{total}개 준비됨',
   'build.took': '{time} 걸림',
   'build.shotDoing': '샷 {n}: {what}',
@@ -680,6 +723,86 @@ export const ko: Record<Key, string> = {
   'job.voiceFit': '내레이션 생성 및 길이 맞춤',
 
   'nav.library': '에셋 보관함',
+
+  'nav.usage': '사용량',
+
+  'usage.title': 'AI 사용량',
+
+  'usage.note': 'AI가 실행한 모든 단계가 프로젝트에 기록됩니다: 토큰, 시간, 그리고 도구가 추정하면 API 가격 기준 비용(구독은 토큰 단위로 과금되지 않음).',
+
+  'usage.empty': '아직 기록이 없습니다.',
+
+  'usage.tokens': '토큰',
+
+  'usage.cost': '비용(추정)',
+
+  'usage.time': 'AI 시간',
+
+  'usage.project': '프로젝트',
+
+  'usage.runs': '실행 횟수',
+
+  'usage.last': '최근',
+
+  'usage.byStep': '단계별',
+
+  'usage.history': '실행별',
+
+  'usage.open': '프로젝트 열기',
+
+  'usage.failed': '실패',
+
+  'usage.thinking': '생각 {n}',
+
+  'usage.col.step': '단계',
+
+  'usage.col.count': '횟수',
+
+  'usage.col.avg': '평균 토큰',
+
+  'usage.col.avgOutput': '평균 출력',
+
+  'usage.col.avgTime': '평균 시간',
+
+  'usage.col.total': '비중',
+
+  'usage.col.model': '모델',
+
+  'usage.col.input': '입력',
+
+  'usage.col.cacheRead': '캐시 읽기',
+
+  'usage.col.cacheWrite': '캐시 쓰기',
+
+  'usage.col.output': '출력',
+
+  'usage.col.turns': '턴',
+
+  'usage.step.plan': '기획',
+
+  'usage.step.revise': '기획 수정',
+
+  'usage.step.world': '비주얼',
+
+  'usage.step.layout': '공통 레이아웃',
+
+  'usage.step.part': '공통 그림',
+
+  'usage.step.shot': '샷',
+
+  'usage.step.fix': '수정',
+
+  'usage.step.propose': '수정안',
+
+  'usage.step.check': '검사',
+
+  'usage.step.publish': '게시 문구',
+
+  'usage.step.sound': '사운드',
+
+  'usage.step.cover': '커버',
+
+  'usage.step.build': '샷 만들기',
   'library.title': '에셋 보관함',
   'library.search': '찾기',
   'library.mine': '이 Mac에 있음',

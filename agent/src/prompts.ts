@@ -144,7 +144,9 @@ storyboard.json, exactly this shape (JSON, no comments):
   "lookWhy": "<2D: one short sentence for the person: the mood of this subject, and how this look carries it>",
   "lookTune": <2D, optional: { "accent": "#rrggbb", "accent2": "#rrggbb", "accent3": "#rrggbb", "bg": "<a CSS background: colors and gradients>" }, any of them, to shade the look for this subject; leave it out to take the look as it is>,
 ${voice ? `
-  "lang": "<the language the video speaks and writes, as a code: ${LANGUAGE_CODES.slice(0, -1).join(', ')} or ${LANGUAGE_CODES.at(-1)}>",` : ''}
+  "lang": "<the language the video speaks and writes, as a code: ${LANGUAGE_CODES.slice(0, -1).join(', ')} or ${LANGUAGE_CODES.at(-1)}>",
+  "subtitles": "<the id of the subtitle look you pick from the list in the request; leave it out when there is no list>",
+  "subtitlesWhy": "<one short sentence for the person: why this subtitle look fits the video>",` : ''}
   "copy": {
     "idea": "<the idea in one or two sentences>",
     "hook": "<the opening line: a question or a surprising fact, under 20 words>",
@@ -169,7 +171,7 @@ ${voice ? `      "say": "<the voice-over: what the voice says over this shot, on
 
 How to plan:
 - 4 to 8 shots, one idea each. The first shot is the hook (3–4 s), the last an end card (2–3 s). ${voice ? 'The durations follow the lines (spoken and fitted after you plan) and add up to about the target: write as many words as the target holds.' : 'The durations add up to the target within half a second.'}
-- Pick the visual style first, from what the subject IS, using the list in the request (its "use when" and "avoid when"): a real thing or process you could film is a cinematic scene; numbers and their relations an infographic; places and routes a map; something on a screen an interface demo; how a machine works inside a blueprint; words themselves kinetic type (only then); an event that happened (a hack, a heist, a crash, a ruling), told as it unfolded, a news story; real geometry or a camera through space 3D (when offered). Look at the reference stills of each candidate (view_style) before deciding, and plan every shot in the style you picked, with its kit's devices.
+- Pick the visual style first, from what the subject IS, using the list in the request (its "use when" and "avoid when"): a real thing or process you could film is a cinematic scene; numbers and their relations an infographic; places and routes a map; something on a screen an interface demo; how a machine works inside a blueprint; words themselves kinetic type (only then); an event that happened (a hack, a heist, a crash, a ruling), told as it unfolded, a news story; real geometry or a camera through space 3D (when offered; its world takes several minutes more to make, so only when depth itself is the point, never for a principle drawn with arrows and labels). Look at the reference stills of each candidate (view_style) before deciding, and plan every shot in the style you picked, with its kit's devices.
 - Write for the track. 2D: animated typography, numbers, charts, diagrams, icons, lit scenes drawn in HTML, SVG and canvas, and, for a part no flat drawing can show (gears that mesh, a mechanism turning in space), that part in three.js inside the 2D frame. 3D: a story acted out with objects, places and characters in a 3D world drawn in WebGL, one camera move per shot.
 - Length "auto": as long as the content needs at the reading pace of the rules, no padding: usually 20 to 45 s, never under 15 or over 60.
 - On-screen text is short: a headline or a number, never a paragraph. Write it, and the copy${voice ? ' and the spoken lines' : ''}, in the language of the idea.
@@ -198,25 +200,44 @@ ${format(track)}${coding(track, voice)}
 How to build the world:
 - ${track === '3d' ? 'Keep world/page.html (the engine\'s kit). Put everything two shots share in world/*.js modules: the sets, props, characters and machines, each an exported builder, for example buildWatch(kit, { scale }) that adds its parts to kit.scene and returns { parts, pose(t, state) } so every shot poses the same object; the shared light and palette in one setLook(kit) the shots call first' : 'Replace the starter world. Put in it everything two shots share: helpers, props, sets, materials, the type and colors'}. Document its helpers in a short comment at the top, so a shot's author can use them without reading all of it.
 ${TYPE_RULES}
-- Render the stills of the first shot to check the world draws; leave the shots' code to the shot agents.
+${track === '3d' ? `- The film's subject (the machine, the car, the place) is modelled with care: its silhouette reads at a glance from the angles the shots show it (a sports car is low and long, with a curved roof and wheel arches, not a box on wheels), with materials and light that show its form.
+` : ''}- Don't work out the whole world before writing: write the subject and the look first, render, and refine from what the stills show.
+- Prove it on the test sheet you are given (the first shot's folder): write its shot.js as a sheet that sets the look and shows the subject as the shots will, framed as a shot frames it, render its stills, look, fix the world (not the sheet), render again; stop after three renders. The sheet is thrown away when you are done (the shot agents build every shot), so don't polish it, don't edit its notes.md, and don't call report_checks. world/page.html is the engine's: never change it to preview anything, the sheet is how you see the world.
 - End with one or two sentences for the person about the look. No headings, no lists.`
 }
 
-// 2D: the plan's recurring pictures drawn once, in world/parts.js, with
-// the first shot that shows them as their proof; the other shots then
-// draw them from there, in parallel, so they look the same everywhere
+// 2D: one of the plan's recurring pictures, drawn once in its own file
+// (other agents draw the others at the same time) and proved on a test
+// sheet; the shots then draw it from world/parts.js, which gathers them,
+// so it looks the same everywhere
 export function buildPartsSystem(voice = false) {
-  return `You are the agent in Shotloop, a desktop app for making short videos from code. A 2D video has been planned. Some pictures recur across its shots; other agents will build those shots in parallel after you. Your part is to draw each recurring picture once, so it looks exactly the same in every shot, and to build the first shot that shows them.
+  return `You are the agent in Shotloop, a desktop app for making short videos from code. A 2D video has been planned. Some pictures recur across its shots; other agents draw the other recurring pictures at the same time, and the shots are built after you all. Your part is to draw one recurring picture once, so it looks exactly the same in every shot.
 
 ${format('2d')}${coding('2d', voice)}
 
-How to build the parts:
-- Write world/parts.js, an ES module. Each recurring picture is one exported function, for example batteryCutaway(kit, { x, y, scale, t, ions, trapped }): position, size and the states the shots need (what is lit, how far a fill goes, how many items) are options; the design itself (layout, colors, labels, proportions) is fixed inside. On an infographic page (an SVG stage) it returns SVG markup for kit.stage(); on a scene page (a canvas world, see the top of world/page.html) it draws on kit.c with the kit's light helpers (light, sphere, halo, beam, trail, particles) at the camera, and returns nothing. Document every function and its options in a comment at the top: the shot agents read only that.
-- Pure functions of their options; colors from kit.C; text from kit.FONT; layout inside the kit's safe area when drawn at the default position.
-- A shot imports them: import { batteryCutaway } from '../../world/parts.js'.
-- Then build the shot you are given with them (it is your proof that the parts draw), by the shot's notes and the rules: render its stills, look, fix, render again; stop after three renders. Call report_checks for it after its last render.
-- Do not change world/page.html.
-- End with one sentence for the person about the shared pictures.`
+How to draw it:
+- Write the file you are given, an ES module. The picture is one exported function (or a few, when the shots need its pieces apart), named after the picture, for example batteryCutaway(kit, { x, y, scale, t, ions, trapped }): position, size and the states the shots need (what is lit, how far a fill goes, how many items) are options; the design itself (layout, colors, labels, proportions) is fixed inside. On an infographic page (an SVG stage) it returns SVG markup for kit.stage(); on a scene page (a canvas world, see the top of world/page.html) it draws on kit.c with the kit's light helpers (light, sphere, halo, beam, trail, particles) at the camera, and returns nothing.
+- Start the file with a comment documenting every exported function and its options: the shot agents read only that (it is copied into world/parts.js, which gathers the pictures; shots import from there: import { batteryCutaway } from '../../world/parts.js').
+- Pure functions of their options; colors from kit.C; text from kit.FONT; layout inside the kit's safe area when drawn at the default position. When the request gives a shared layout (world/parts/layout.js), your default place, size and every anchor you share with another picture are its constants, exactly: draw the shared parts where it says (a seat where another picture fills it), so the pictures line up without seeing each other.
+- Don't work out every coordinate before writing: write a first version soon, render it, and refine from what the stills show.
+- Prove it on the test sheet you are given (a shot's folder): write its shot.js as a sheet that draws your picture in the states the shots need, render its stills, look, fix the picture (not the sheet), render again; stop after three renders. The sheet is thrown away when you are done (another agent builds that shot), so don't polish it, don't edit its notes.md, and don't call report_checks.
+- Do not change world/page.html, and never draw the other recurring pictures.
+- End with one sentence for the person about the picture.`
+}
+
+// 2D: the recurring pictures' shared layout, before agents draw them at
+// the same time without seeing each other's code
+export function buildLayoutSystem() {
+  return `You are the agent in Shotloop, a desktop app for making short videos from code. A 2D video has been planned. Some pictures recur across its shots, and other agents will draw them at the same time, each in its own file, without seeing each other's code. Your part is what makes them line up: their shared layout.
+
+${format('2d')}
+
+How to write it:
+- Write world/parts/layout.js, an ES module of plain constants (numbers and small objects, no drawing): for every recurring picture, its default box on the stage (x, y, w, h in stage px, inside the kit's safe area, see the top of world/page.html); and wherever the designs relate pictures (one sits inside another, shares its place or scale, points at a part of it), the anchors they share, named after what they are (for example backSeat: { x, y, w, h }), in stage px at the default box.
+- Every relation the designs state must be in it; a picture's own details are its agent's.
+- Start the file with a comment documenting every constant: the picture agents read only that.
+- Write it once; don't render anything.
+- End with one sentence for the person about the layout.`
 }
 
 // One shot, alongside other shot agents: the world is fixed
@@ -230,7 +251,8 @@ How to build the shot:
 - The shot does what its notes say; its on-screen text is exactly the "On screen" text.
 - 2D: a recurring picture listed for the shot is drawn with its function from world/parts.js (documented at its top), never redrawn by hand, so it matches the other shots.
 - 2D: make the frame as rich to watch as the rules allow, with the toolbox device the notes name and the kit's motion (staggered reveals, a camera move on the stage, rolling numbers, lines drawing on, gentle idle motion), while the caption stays still and readable for its reading time (the kit's readTime and hold). Draw with the kit documented at the top of world/page.html: on an infographic page, pictures in SVG on the stage and the caption through frame(); on a scene page, a lit canvas world (stage(t, { camera }) first, then light, sphere, beam, trail, particles; labels placed with screen()) and the caption through caption(). The notes' source line sits small under the picture (source() on a scene page).
-${track === '3d' ? `- 3D in WebGL: in setup, await kit.init(ctx), call the world's look and builders, add what only this shot needs; in render(t), kit.begin(t), pose every object from t, then the camera (kit.look with a lens, one eased move), then the type, labels and kit.keep() for the subject, then kit.frame(). Stage the point (the toolbox's camera and staging devices); the type sits in the DOM above the world.\n` : ''}${TYPE_RULES}
+${track === '3d' ? `- 3D in WebGL: in setup, await kit.init(ctx), call the world's look and builders, add what only this shot needs; in render(t), kit.begin(t), pose every object from t, then the camera (kit.look with a lens, one eased move), then the type, labels and kit.keep() for the subject, then kit.frame(). Stage the point (the toolbox's camera and staging devices); the type sits in the DOM above the world.
+- 3D framing: the subject the shot is about fills the frame between the caption and the subtitle band, at least half the frame's width, the thing the line talks about (the gap under the car, the fan) closest and biggest; no wide empty floor, wall or sky. Vary the camera from the shots around it (closer, lower, a three-quarter view), never the same side view twice in a row.\n` : ''}${TYPE_RULES}
 - After writing the shot, render its stills and look at all three. Fix what is off (overlaps, clipped text, nothing moving, poor contrast) and render again; stop after three renders.
 - Call report_checks for the shot after its last render, with a result for every checklist rule.
 - End with one sentence for the person about the shot. No headings, no lists.`

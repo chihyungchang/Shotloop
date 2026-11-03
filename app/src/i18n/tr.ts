@@ -169,6 +169,7 @@ export const tr: Record<Key, string> = {
   'stage.download': 'İndiriliyor (MB)',
   'stage.voice': 'Seslendiriliyor',
   'stage.subtitles': 'Altyazı denetimi',
+  'stage.subtitleImages': 'Altyazılar çiziliyor',
   'editor.save': 'Kaydet · ⌘S',
   'editor.edit': 'Düzenle',
   'editor.cancel': 'İptal',
@@ -399,6 +400,15 @@ export const tr: Record<Key, string> = {
   'settings.parallelMore': 'Daha çok',
   'settings.parallelReset': 'Otomatiğe dön ({n})',
   'settings.parallelMachine': 'Bu Mac: {cores} çekirdek, {memory} GB bellek. Otomatik modda aynı anda {n} çekim oluşturulur.',
+  'settings.effort': 'Çekim başına düşünme',
+  'settings.effortNote': 'Yapay zekâ her çekimi yazarken ne kadar düşünsün. Yüksek seviye karelere bakıp daha çok düzeltir ama daha uzun sürer ve daha çok kullanım harcar.',
+  'settings.effortLabel': 'Seviye',
+  'settings.effort.low': 'Düşük',
+  'settings.effort.medium': 'Orta',
+  'settings.effort.high': 'Yüksek',
+  'settings.effort.lowHint': 'Çekim başına ~1–2 dk (varsayılan)',
+  'settings.effort.mediumHint': 'Çekim başına ~4 dk; kadrajı daha sık düzeltir',
+  'settings.effort.highHint': 'Çekim başına ~6 dk; ortadan pek iyi değil',
   'settings.alertsNote': 'Kuyruk boşaldığında: içindeki her işleme, denetim ve dışa aktarma bittiğinde.',
   'settings.sound': 'Bitiş sesi',
   'settings.desktop': 'Masaüstü bildirimi',
@@ -457,6 +467,7 @@ export const tr: Record<Key, string> = {
 
   'film.title': 'Filmin tamamı',
   'film.watch': 'Filmi izle',
+  'film.needsBuild': 'Yapay zekâ çekimleri henüz oluşturmadı: önce oluşturun',
   'film.rendering': 'Değişiklikler işleniyor…',
   'film.joining': 'Video birleştiriliyor…',
   'film.note': 'Müzikli olarak filmin tamamı',
@@ -589,14 +600,44 @@ export const tr: Record<Key, string> = {
   'voice.on': 'Açık',
   'voice.voice': 'Ses',
   'voice.fitting': 'Repliklar seslendiriliyor…',
+  'voice.starting': 'ses başlatılıyor (ilk seferde bir iki dakika)',
+  'plan.voiceAsk': 'Bu videonun seslendirmesini {name} okur: önce {mb} MB indirilmesi gerekir (bir kez).',
+  'plan.voiceDownload': 'İndir ve oluştur',
+  'plan.voiceOff': 'Seslendirmesiz oluştur',
+  'build.waitVoice': 'Ses modeli iniyor: {done} / {total} MB. İner inmez çekimler oluşturulur.',
+  'studio.starters': '{n} çekim hâlâ yer tutucu kart: yapay zekâ henüz çizmedi.',
+  'studio.startersBuilding': 'Yapay zekâ çekimleri oluşturuyor; hazır oldukça burada görünür.',
+  'studio.startersWaiting': 'Ses modeli iniyor; ardından yapay zekâ çekimleri oluşturur.',
+  'studio.startersWatch': 'İlerlemeyi gör',
+  'studio.startersMake': 'Çekimleri oluştur',
+  'shot.starter': 'Yer tutucu',
+  'shot.starterHint': 'Yapay zekâ bu çekimi henüz çizmedi',
   'voice.unavailable': 'Bu videonun dilini konuşan bir ses henüz yok.',
   'voice.noLines': 'Henüz replik yok: videoyu yeniden planlayın ya da planda her çekime bir replik yazın.',
+  'subs.look': 'Altyazı',
+  'subs.sample': 'Kelimeler sesi izler',
+  'subs.autoName': 'Otomatik altyazı',
+  'subs.autoAbout': 'Yapay zekâ altyazıyı videonun temposuna ve tonuna göre seçer',
+  'subs.spacedOnly': 'Yalnızca İngilizce gibi kelimeleri boşlukla ayıran diller için; Çince ve Japonca videolar varsayılan stili kullanır',
+  'subs.needsVoice': 'Altyazılar seslendirmeyle gelir: seçmek için onu açın',
+  'subs.look.highlight': 'Vurgu',
+  'subs.look.pill': 'Hap',
+  'subs.look.pop': 'Kelime kelime',
+  'subs.look.sticker': 'Çıkartma',
+  'subs.look.word': 'Tek kelime',
+  'subs.look.reveal': 'Belirme',
+  'subs.look.classic': 'Klasik',
+  'subs.look.clean': 'Sade',
+  'subs.look.none': 'Yok',
   'voiceDl.get': '{name} indir ({mb} MB)',
   'voiceDl.retry': 'Yeniden indir ({mb} MB)',
   'voiceDl.progress': '{done} / {total} MB',
   'voiceDl.model': 'Ses modeli',
   'voiceDl.title': 'Seslendirme modelleri',
   'voiceDl.intro': 'Ses modelleri uygulamayla gelmez: her biri, bir video onun dillerinde ilk kez konuştuğunda (ya da burada önceden) indirilir ve sonra çevrimdışı çalışır.',
+  'voiceDl.needTitle': 'Önce sesi indirin',
+  'voiceDl.needNote': 'Bu videoda {name} ({mb} MB) tarafından okunan bir seslendirme var. Bir kez iner, sonra çevrimdışı çalışır; inince video oynar.',
+  'voiceDl.watchSilent': 'Sessiz izle',
   'voiceDl.installed': 'İndirildi',
   'voiceDl.folder': 'Konumu',
   'plan.say': 'Seslendirme',
@@ -608,7 +649,8 @@ export const tr: Record<Key, string> = {
   'plan.step.plan': 'Plan',
   'plan.step.build': 'Oluştur',
   'plan.step.edit': 'Düzenle',
-  'plan.skip': 'Düzenleyiciye geç',
+  'plan.remake': 'Çekimleri yeniden oluştur',
+  'plan.toEditor': 'Düzenleyiciye git',
   'plan.make': 'Videoyu yap',
   'plan.retry': 'Yeniden dene',
   'plan.writing': 'Metin ve senaryo taslağı yazılıyor…',
@@ -664,6 +706,7 @@ export const tr: Record<Key, string> = {
   'build.rendering': 'Kareler işleniyor',
   'build.written': 'Kod yazıldı',
   'build.waiting': 'Sırada',
+  'build.waitParts': 'Ortak görseller bekleniyor',
   'build.readyCount': '{total} çekimden {done} tanesi hazır',
   'build.took': '{time} sürdü',
   'build.shotDoing': '{n}. çekim: {what}',
@@ -680,6 +723,86 @@ export const tr: Record<Key, string> = {
   'job.voiceFit': 'Replikleri seslendir ve çekimleri uydur',
 
   'nav.library': 'Varlık kitaplığı',
+
+  'nav.usage': 'Kullanım',
+
+  'usage.title': 'Yapay zekâ kullanımı',
+
+  'usage.note': 'Yapay zekânın her adımı projesine kaydedilir: token, süre ve araç tahmin ediyorsa API fiyatlarıyla maliyet (abonelik token başına ücretlendirilmez).',
+
+  'usage.empty': 'Henüz kayıt yok.',
+
+  'usage.tokens': 'Token',
+
+  'usage.cost': 'Maliyet (tahmini)',
+
+  'usage.time': 'Yapay zekâ süresi',
+
+  'usage.project': 'Proje',
+
+  'usage.runs': 'Çalıştırma',
+
+  'usage.last': 'Son',
+
+  'usage.byStep': 'Adıma göre',
+
+  'usage.history': 'Her çalıştırma',
+
+  'usage.open': 'Projeyi aç',
+
+  'usage.failed': 'Başarısız',
+
+  'usage.thinking': '{n} düşünme',
+
+  'usage.col.step': 'Adım',
+
+  'usage.col.count': 'Sayı',
+
+  'usage.col.avg': 'Ort. token',
+
+  'usage.col.avgOutput': 'Ort. çıktı',
+
+  'usage.col.avgTime': 'Ort. süre',
+
+  'usage.col.total': 'Pay',
+
+  'usage.col.model': 'Model',
+
+  'usage.col.input': 'Girdi',
+
+  'usage.col.cacheRead': 'Önbellek okuma',
+
+  'usage.col.cacheWrite': 'Önbellek yazma',
+
+  'usage.col.output': 'Çıktı',
+
+  'usage.col.turns': 'Tur',
+
+  'usage.step.plan': 'Plan',
+
+  'usage.step.revise': 'Plan düzeltme',
+
+  'usage.step.world': 'Görsel dünya',
+
+  'usage.step.layout': 'Ortak yerleşim',
+
+  'usage.step.part': 'Ortak görsel',
+
+  'usage.step.shot': 'Çekim',
+
+  'usage.step.fix': 'Düzeltme',
+
+  'usage.step.propose': 'Öneriler',
+
+  'usage.step.check': 'Kontrol',
+
+  'usage.step.publish': 'Yayın metni',
+
+  'usage.step.sound': 'Ses',
+
+  'usage.step.cover': 'Kapak',
+
+  'usage.step.build': 'Çekimleri oluştur',
   'library.title': 'Varlık kitaplığı',
   'library.search': 'Bul',
   'library.mine': 'Bu Mac’te',

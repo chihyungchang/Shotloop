@@ -19,9 +19,11 @@
 @import './shared.css';
 @import '../components/Pickers.css';
 @import '../components/studio/export/Export.css';
+@import '../components/SubtitleLooks.css';
 @import '../components/ExampleGallery.css';
 @import '../components/RulesSettings.css';
 @import '../components/studio/AudioTimeline.css';
 @import '../components/studio/SoundDialog.css';
 @import '../components/RuleRef.css';
 @import '../components/ErrorDialog.css';
+@import '../components/UsagePage.css';

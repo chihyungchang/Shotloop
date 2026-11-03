@@ -5,6 +5,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { runTool, TOOLS, type ToolContext, type ToolOutput } from './tools.ts'
 import { MAX_TURNS, runTurns } from './turns.ts'
+import type { AiMeter } from '../../engine/shotloop/protocol.d.ts'
 
 export const MODELS = {
   // Planning and scene code
@@ -26,6 +27,8 @@ export interface AgentOptions {
   // and its key; by default Anthropic's own API and ANTHROPIC_API_KEY
   baseURL?: string
   apiKey?: string
+  // Filled with what the responses report they used
+  meter?: AiMeter
 }
 
 // A tool's output as a tool_result: text alone as a string, images each
@@ -44,7 +47,7 @@ export function toToolResult(id: string, out: ToolOutput): Anthropic.Beta.BetaTo
 }
 
 // Returns the agent's last text: its summary for the person
-export async function runAgent({ model, effort, system, prompt, ctx, maxTurns = MAX_TURNS, baseURL, apiKey }: AgentOptions): Promise<string> {
+export async function runAgent({ model, effort, system, prompt, ctx, maxTurns = MAX_TURNS, baseURL, apiKey, meter }: AgentOptions): Promise<string> {
   // The user's own key, from the app; Anthropic-only request options are
   // sent to Anthropic's API only
   const client = new Anthropic({ ...(apiKey ? { apiKey } : {}), ...(baseURL ? { baseURL } : {}) })
@@ -69,6 +72,14 @@ export async function runAgent({ model, effort, system, prompt, ctx, maxTurns = 
         : {})
     })
 
+    if (meter) {
+      meter.input += res.usage.input_tokens
+      meter.output += res.usage.output_tokens
+      meter.cacheRead += res.usage.cache_read_input_tokens ?? 0
+      meter.cacheWrite += res.usage.cache_creation_input_tokens ?? 0
+      meter.turns += 1
+      meter.model = res.model
+    }
     for (const block of res.content) if (block.type === 'text') say(block.text)
     if (res.stop_reason === 'refusal') throw new Error('the request was declined by the model')
     if (res.stop_reason === 'max_tokens') throw new Error('the response hit max_tokens before finishing')

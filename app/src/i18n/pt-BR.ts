@@ -169,6 +169,7 @@ export const ptBR: Record<Key, string> = {
   'stage.download': 'Baixando (MB)',
   'stage.voice': 'Gravando falas',
   'stage.subtitles': 'Verificação de legendas',
+  'stage.subtitleImages': 'Desenhando legendas',
   'editor.save': 'Salvar · ⌘S',
   'editor.edit': 'Editar',
   'editor.cancel': 'Cancelar',
@@ -399,6 +400,15 @@ export const ptBR: Record<Key, string> = {
   'settings.parallelMore': 'Mais',
   'settings.parallelReset': 'Voltar ao automático ({n})',
   'settings.parallelMachine': 'Este Mac: {cores} núcleos, {memory} GB de memória. O automático gera {n} ao mesmo tempo.',
+  'settings.effort': 'Raciocínio por cena',
+  'settings.effortNote': 'Quanto a IA pensa ao escrever cada cena. Mais alto corrige mais a partir dos quadros, mas demora mais e usa mais IA.',
+  'settings.effortLabel': 'Nível',
+  'settings.effort.low': 'Baixo',
+  'settings.effort.medium': 'Médio',
+  'settings.effort.high': 'Alto',
+  'settings.effort.lowHint': 'Cerca de 1–2 min por cena (padrão)',
+  'settings.effort.mediumHint': 'Cerca de 4 min por cena; corrige mais o enquadramento',
+  'settings.effort.highHint': 'Cerca de 6 min por cena; pouco melhor que médio',
   'settings.alertsNote': 'Quando a fila esvazia: todas as renderizações, verificações e exportações terminaram.',
   'settings.sound': 'Som de conclusão',
   'settings.desktop': 'Notificação na área de trabalho',
@@ -457,6 +467,7 @@ export const ptBR: Record<Key, string> = {
 
   'film.title': 'Filme inteiro',
   'film.watch': 'Ver o filme',
+  'film.needsBuild': 'A IA ainda não criou as cenas: crie-as primeiro',
   'film.rendering': 'Renderizando alterações…',
   'film.joining': 'Montando o vídeo…',
   'film.note': 'O filme inteiro, com música',
@@ -589,14 +600,44 @@ export const ptBR: Record<Key, string> = {
   'voice.on': 'Sim',
   'voice.voice': 'Voz',
   'voice.fitting': 'Gravando as falas…',
+  'voice.starting': 'iniciando a voz (um ou dois minutos na primeira vez)',
+  'plan.voiceAsk': 'A narração deste vídeo é lida por {name}: antes é preciso baixar {mb} MB (uma vez só).',
+  'plan.voiceDownload': 'Baixar e criar',
+  'plan.voiceOff': 'Criar sem narração',
+  'build.waitVoice': 'Baixando o modelo de voz: {done} / {total} MB. As cenas são criadas assim que terminar.',
+  'studio.starters': '{n} cenas ainda são cartões provisórios: a IA ainda não as desenhou.',
+  'studio.startersBuilding': 'A IA está criando as cenas; elas aparecem aqui conforme ficam prontas.',
+  'studio.startersWaiting': 'Baixando o modelo de voz; depois a IA cria as cenas.',
+  'studio.startersWatch': 'Ver progresso',
+  'studio.startersMake': 'Criar as cenas',
+  'shot.starter': 'Provisória',
+  'shot.starterHint': 'A IA ainda não desenhou esta cena',
   'voice.unavailable': 'Ainda não há uma voz para o idioma deste vídeo.',
   'voice.noLines': 'Ainda não há falas: planeje o vídeo de novo ou escreva a fala de cada cena no plano.',
+  'subs.look': 'Legendas',
+  'subs.sample': 'As palavras seguem a voz',
+  'subs.autoName': 'Legendas automáticas',
+  'subs.autoAbout': 'A IA escolhe as legendas pelo ritmo e tom do vídeo',
+  'subs.spacedOnly': 'Só para idiomas que separam palavras com espaços, como o inglês; vídeos em chinês ou japonês usam o estilo padrão',
+  'subs.needsVoice': 'As legendas vêm com a narração: ligue-a para escolhê-las',
+  'subs.look.highlight': 'Destaque',
+  'subs.look.pill': 'Pílula',
+  'subs.look.pop': 'Palavra a palavra',
+  'subs.look.sticker': 'Adesivo',
+  'subs.look.word': 'Uma palavra',
+  'subs.look.reveal': 'Revelar',
+  'subs.look.classic': 'Clássico',
+  'subs.look.clean': 'Limpo',
+  'subs.look.none': 'Nenhuma',
   'voiceDl.get': 'Baixar {name} ({mb} MB)',
   'voiceDl.retry': 'Baixar de novo ({mb} MB)',
   'voiceDl.progress': '{done} / {total} MB',
   'voiceDl.model': 'Modelo de voz',
   'voiceDl.title': 'Modelos de narração',
   'voiceDl.intro': 'Os modelos de voz não vêm com o app: cada um é baixado na primeira vez que um vídeo fala seus idiomas (ou aqui, antes) e depois funciona offline.',
+  'voiceDl.needTitle': 'Baixe a voz primeiro',
+  'voiceDl.needNote': 'Este vídeo tem narração, lida por {name} ({mb} MB). Baixa uma vez e depois funciona offline; o vídeo toca quando terminar.',
+  'voiceDl.watchSilent': 'Assistir sem a voz',
   'voiceDl.installed': 'Baixado',
   'voiceDl.folder': 'Onde ficam',
   'plan.say': 'Narração',
@@ -608,7 +649,8 @@ export const ptBR: Record<Key, string> = {
   'plan.step.plan': 'Planejar',
   'plan.step.build': 'Gerar',
   'plan.step.edit': 'Editar',
-  'plan.skip': 'Ir direto ao editor',
+  'plan.remake': 'Criar as cenas de novo',
+  'plan.toEditor': 'Ir para o editor',
   'plan.make': 'Gerar o vídeo',
   'plan.retry': 'Tentar de novo',
   'plan.writing': 'Escrevendo o texto e o storyboard…',
@@ -664,6 +706,7 @@ export const ptBR: Record<Key, string> = {
   'build.rendering': 'Gerando quadros',
   'build.written': 'Código escrito',
   'build.waiting': 'A seguir',
+  'build.waitParts': 'Aguardando as imagens compartilhadas',
   'build.readyCount': '{done} de {total} planos prontos',
   'build.took': 'levou {time}',
   'build.shotDoing': 'plano {n}: {what}',
@@ -680,6 +723,86 @@ export const ptBR: Record<Key, string> = {
   'job.voiceFit': 'Gravar as falas e ajustar as cenas',
 
   'nav.library': 'Biblioteca de recursos',
+
+  'nav.usage': 'Uso',
+
+  'usage.title': 'Uso da IA',
+
+  'usage.note': 'Cada passo da IA fica registrado no projeto: tokens, tempo e, quando a ferramenta estima, o custo a preços de API (assinatura não é cobrada por token).',
+
+  'usage.empty': 'Ainda não há registros.',
+
+  'usage.tokens': 'Tokens',
+
+  'usage.cost': 'Custo (est.)',
+
+  'usage.time': 'Tempo de IA',
+
+  'usage.project': 'Projeto',
+
+  'usage.runs': 'Execuções',
+
+  'usage.last': 'Última',
+
+  'usage.byStep': 'Por passo',
+
+  'usage.history': 'Cada execução',
+
+  'usage.open': 'Abrir o projeto',
+
+  'usage.failed': 'Falhou',
+
+  'usage.thinking': '{n} pensando',
+
+  'usage.col.step': 'Passo',
+
+  'usage.col.count': 'Vezes',
+
+  'usage.col.avg': 'Tokens médios',
+
+  'usage.col.avgOutput': 'Saída média',
+
+  'usage.col.avgTime': 'Tempo médio',
+
+  'usage.col.total': 'Parte',
+
+  'usage.col.model': 'Modelo',
+
+  'usage.col.input': 'Entrada',
+
+  'usage.col.cacheRead': 'Cache lido',
+
+  'usage.col.cacheWrite': 'Cache gravado',
+
+  'usage.col.output': 'Saída',
+
+  'usage.col.turns': 'Turnos',
+
+  'usage.step.plan': 'Plano',
+
+  'usage.step.revise': 'Revisão do plano',
+
+  'usage.step.world': 'Mundo visual',
+
+  'usage.step.layout': 'Layout compartilhado',
+
+  'usage.step.part': 'Imagem compartilhada',
+
+  'usage.step.shot': 'Cena',
+
+  'usage.step.fix': 'Correção',
+
+  'usage.step.propose': 'Propostas',
+
+  'usage.step.check': 'Checagem',
+
+  'usage.step.publish': 'Texto de publicação',
+
+  'usage.step.sound': 'Som',
+
+  'usage.step.cover': 'Capa',
+
+  'usage.step.build': 'Criar as cenas',
   'library.title': 'Biblioteca de recursos',
   'library.search': 'Buscar',
   'library.mine': 'Neste Mac',

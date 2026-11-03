@@ -4,6 +4,8 @@
 // apart from voice.mjs so the renderers, the cache and the subtitle check
 // need nothing else (no speech engine, no model).
 
+import { DEFAULT_SUBTITLES, spacesWords, SUBTITLE_STYLES } from './data.mjs'
+
 // Where the subtitles sit, as fractions of the frame's height (the
 // subtitle layer, subtitles.mjs, and the agent's rules read it here)
 export const SUBTITLE_BAND = { portrait: [0.68, 0.79], landscape: [0.72, 0.84] }
@@ -28,6 +30,15 @@ export function voiceLang(project) {
   if (/\p{Script=Han}/u.test(text)) return 'zh-CN'
   if (/\p{Script=Cyrillic}/u.test(text)) return 'ru'
   return 'en'
+}
+
+// The subtitles' look (data.mjs SUBTITLE_STYLES): 'none' burns none. A
+// look for spaced words gives way to the default in a language without
+// spaces between them
+export function subtitleStyle(project) {
+  const style = project.config.voice?.subtitles
+  const look = Object.hasOwn(SUBTITLE_STYLES, style) ? style : DEFAULT_SUBTITLES
+  return SUBTITLE_STYLES[look]?.spaced && !spacesWords(voiceLang(project)) ? DEFAULT_SUBTITLES : look
 }
 
 // The voice-over plays: switched on, and at least one shot has a line

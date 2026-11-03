@@ -26,12 +26,16 @@ export interface Style {
 }
 export interface Look { id: string; about: string; mood: string; scene?: unknown }
 
-export const { STYLES, styleById, lookFits, LOOKS, readTime } = await load<{
+// A look of the voice-over's subtitles (null: none burned)
+export interface SubtitleLook { words: 'line' | 'follow' | 'one' | 'single'; use: string }
+
+export const { STYLES, styleById, lookFits, LOOKS, readTime, SUBTITLE_STYLES } = await load<{
   STYLES: Style[]
   styleById: (id: string) => Style | null
   lookFits: (style: string | null | undefined, look: string) => boolean
   LOOKS: Look[]
   readTime: (text: string) => number
+  SUBTITLE_STYLES: Record<string, SubtitleLook | null>
 }>('data.mjs')
 export const { styleStills } = await load<{ styleStills: (id: string) => string[] }>('styles.mjs')
 export const { SUBTITLE_BAND, VOICE_HOLD, VOICE_LEAD, VOICE_TAIL } = await load<{

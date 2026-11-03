@@ -20,6 +20,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { CLIS, findBin, runCli, type CliId } from './cli.ts'
 import { listModels as listOpenAiModels, runLocal } from './local.ts'
+import type { AiMeter, AiStep } from '../../engine/shotloop/protocol.d.ts'
+import { meter, record } from './ledger.ts'
 import { MODELS, runAgent as runAnthropic, type AgentOptions } from './loop.ts'
 import { newContext } from './tools.ts'
 import { MAX_TURNS } from './turns.ts'
@@ -90,22 +92,49 @@ export type Task = 'code' | 'routine' | 'copy'
 
 // task: "code" for scenes and fixes (the stronger model), "routine" for
 // checks, "copy" for the plan's writing
-export function runAgent(task: Task, opts: Omit<AgentOptions, 'model'>): Promise<string> {
+// step: what this run is in its task, for the project's usage record
+// (ledger.ts), with what the backend reports it took
+export async function runAgent(task: Task, { step, ...opts }: Omit<AgentOptions, 'model' | 'meter'> & { step?: AiStep['step'] }): Promise<string> {
+  const m = meter()
+  const t0 = Date.now()
+  let ok = false
+  try {
+    const reply = await dispatch(task, opts, m)
+    ok = true
+    return reply
+  } finally {
+    if (step) record({ step, backend: backend(), effort: opts.effort, ms: Date.now() - t0, ok, ...m })
+  }
+}
+
+function dispatch(task: Task, opts: Omit<AgentOptions, 'model' | 'meter'>, m: AiMeter): Promise<string> {
   switch (provider()) {
     case 'cli':
       // The CLI's own default model (its strongest) unless one is chosen
-      return runCli(process.env.SHOTLOOP_CLI as CliId, { ...opts, model: process.env.SHOTLOOP_MODEL || undefined, maxTurns: opts.maxTurns ?? MAX_TURNS })
+      return runCli(process.env.SHOTLOOP_CLI as CliId, { ...opts, model: process.env.SHOTLOOP_MODEL || undefined, maxTurns: opts.maxTurns ?? MAX_TURNS, meter: m })
     case 'local':
       return runLocal({
         url: process.env.SHOTLOOP_LOCAL_URL!,
         model: process.env.SHOTLOOP_LOCAL_MODEL!,
         apiKey: process.env.SHOTLOOP_LOCAL_KEY || undefined
-      }, opts.system, opts.prompt, opts.ctx, opts.maxTurns)
+      }, opts.system, opts.prompt, opts.ctx, opts.maxTurns, m)
     default: {
       const { protocol, url, key, model } = api()
-      if (protocol === 'openai') return runLocal({ url, model, apiKey: key || undefined }, opts.system, opts.prompt, opts.ctx, opts.maxTurns)
-      return runAnthropic({ ...opts, model: model || MODELS[task], baseURL: url || undefined, apiKey: key || undefined })
+      if (protocol === 'openai') return runLocal({ url, model, apiKey: key || undefined }, opts.system, opts.prompt, opts.ctx, opts.maxTurns, m)
+      return runAnthropic({ ...opts, model: model || MODELS[task], baseURL: url || undefined, apiKey: key || undefined, meter: m })
     }
+  }
+}
+
+// The backend a run went through, as the usage record names it
+function backend() {
+  switch (provider()) {
+    case 'cli':
+      return `cli:${process.env.SHOTLOOP_CLI}`
+    case 'local':
+      return 'local'
+    default:
+      return `api:${api().protocol}`
   }
 }
 

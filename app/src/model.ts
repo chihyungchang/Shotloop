@@ -80,7 +80,8 @@ export function estimate(project: Project, shot: Shot, mode: Mode, stills = fals
 }
 
 export function jobEstimate(project: Project | null, job: Job): number | null {
-  if (job.state === 'running' && job.progress?.eta != null) return job.progress.eta
+  // An agent's progress is its tools' (a build's voice-over fit), not its own
+  if (job.state === 'running' && job.lane !== 'agent' && job.progress?.eta != null) return job.progress.eta
   if (!project || job.project !== project.root) return null
   if (job.kind === 'render' && job.shot && job.mode) {
     const shot = project.shots.find(s => s.id === job.shot)
@@ -281,7 +282,7 @@ export function buildStepList(job: Job, shots: { id: string }[], look: string | 
 // A render's stage, in words
 const STAGES: Record<string, Key> = {
   frames: 'stage.frames', captions: 'stage.captions', screen: 'stage.screen', export: 'stage.export',
-  // The voice-over's: a model downloading (MB), lines spoken, the subtitle check
-  download: 'stage.download', 'voice-model': 'stage.download', voice: 'stage.voice', 'subtitle check': 'stage.subtitles'
+  // The voice-over's: a model downloading (MB), lines spoken, the subtitle check, the subtitles drawn
+  download: 'stage.download', 'voice-model': 'stage.download', voice: 'stage.voice', 'subtitle check': 'stage.subtitles', subtitles: 'stage.subtitleImages'
 }
 export const stageName = (s: string) => (STAGES[s] ? t(STAGES[s]) : s)

@@ -169,6 +169,7 @@ export const de: Record<Key, string> = {
   'stage.download': 'Wird geladen (MB)',
   'stage.voice': 'Sprechtext wird aufgenommen',
   'stage.subtitles': 'Untertitel-Prüfung',
+  'stage.subtitleImages': 'Untertitel zeichnen',
   'editor.save': 'Sichern · ⌘S',
   'editor.edit': 'Bearbeiten',
   'editor.cancel': 'Abbrechen',
@@ -399,6 +400,15 @@ export const de: Record<Key, string> = {
   'settings.parallelMore': 'Mehr',
   'settings.parallelReset': 'Zurück zu Auto ({n})',
   'settings.parallelMachine': 'Dieser Mac: {cores} Kerne, {memory} GB Speicher. Auto erstellt {n} gleichzeitig.',
+  'settings.effort': 'Denkaufwand pro Szene',
+  'settings.effortNote': 'Wie gründlich die KI beim Schreiben jeder Szene nachdenkt. Höher korrigiert mehr anhand der Standbilder, dauert aber länger und verbraucht mehr KI.',
+  'settings.effortLabel': 'Stufe',
+  'settings.effort.low': 'Niedrig',
+  'settings.effort.medium': 'Mittel',
+  'settings.effort.high': 'Hoch',
+  'settings.effort.lowHint': 'Etwa 1–2 Min. pro Szene (Standard)',
+  'settings.effort.mediumHint': 'Etwa 4 Min. pro Szene; korrigiert öfter den Bildausschnitt',
+  'settings.effort.highHint': 'Etwa 6 Min. pro Szene; kaum besser als Mittel',
   'settings.alertsNote': 'Wenn die Warteschlange leer ist: Alle Renderings, Prüfungen und Exporte darin sind fertig.',
   'settings.sound': 'Ton bei Abschluss',
   'settings.desktop': 'Mitteilung auf dem Schreibtisch',
@@ -457,6 +467,7 @@ export const de: Record<Key, string> = {
 
   'film.title': 'Ganzer Film',
   'film.watch': 'Film ansehen',
+  'film.needsBuild': 'Die KI hat die Szenen noch nicht erstellt: erst erstellen',
   'film.rendering': 'Änderungen werden gerendert …',
   'film.joining': 'Video wird zusammengesetzt…',
   'film.note': 'Der ganze Film mit Musik',
@@ -589,14 +600,44 @@ export const de: Record<Key, string> = {
   'voice.on': 'An',
   'voice.voice': 'Stimme',
   'voice.fitting': 'Sprechtext wird aufgenommen…',
+  'voice.starting': 'Stimme startet (beim ersten Mal ein, zwei Minuten)',
+  'plan.voiceAsk': 'Das Voice-over liest {name}: Vorher sind {mb} MB zu laden (einmalig).',
+  'plan.voiceDownload': 'Laden und erstellen',
+  'plan.voiceOff': 'Ohne Voice-over erstellen',
+  'build.waitVoice': 'Stimmmodell wird geladen: {done} / {total} MB. Danach werden die Szenen erstellt.',
+  'studio.starters': '{n} Szenen sind noch Platzhalter: Die KI hat sie noch nicht gezeichnet.',
+  'studio.startersBuilding': 'Die KI erstellt die Szenen; sie erscheinen hier, sobald sie fertig sind.',
+  'studio.startersWaiting': 'Das Stimmmodell wird geladen; danach erstellt die KI die Szenen.',
+  'studio.startersWatch': 'Fortschritt ansehen',
+  'studio.startersMake': 'Szenen erstellen',
+  'shot.starter': 'Platzhalter',
+  'shot.starterHint': 'Die KI hat diese Szene noch nicht gezeichnet',
   'voice.unavailable': 'Für die Sprache dieses Videos gibt es noch keine Stimme.',
   'voice.noLines': 'Noch kein Sprechtext: Plane das Video neu oder schreib im Plan für jede Einstellung einen Satz.',
+  'subs.look': 'Untertitel',
+  'subs.sample': 'Worte folgen der Stimme',
+  'subs.autoName': 'Untertitel automatisch',
+  'subs.autoAbout': 'Die KI wählt Untertitel passend zu Tempo und Ton des Videos',
+  'subs.spacedOnly': 'Nur für Sprachen mit Leerzeichen zwischen Wörtern wie Englisch; chinesische und japanische Videos nutzen den Standardstil',
+  'subs.needsVoice': 'Untertitel gehören zum Voice-over: Schalte es ein, um sie zu wählen',
+  'subs.look.highlight': 'Hervorheben',
+  'subs.look.pill': 'Pille',
+  'subs.look.pop': 'Wort für Wort',
+  'subs.look.sticker': 'Sticker',
+  'subs.look.word': 'Ein Wort',
+  'subs.look.reveal': 'Enthüllen',
+  'subs.look.classic': 'Klassisch',
+  'subs.look.clean': 'Schlicht',
+  'subs.look.none': 'Keine',
   'voiceDl.get': '{name} laden ({mb} MB)',
   'voiceDl.retry': 'Erneut laden ({mb} MB)',
   'voiceDl.progress': '{done} / {total} MB',
   'voiceDl.model': 'Sprachmodell',
   'voiceDl.title': 'Sprachmodelle',
   'voiceDl.intro': 'Die Sprachmodelle sind nicht in der App enthalten: Jedes wird geladen, wenn ein Video zum ersten Mal in seinen Sprachen spricht (oder hier vorab), und funktioniert danach offline.',
+  'voiceDl.needTitle': 'Erst die Stimme laden',
+  'voiceDl.needNote': 'Dieses Video hat ein Voice-over, gelesen von {name} ({mb} MB). Es wird einmal geladen und läuft dann offline; danach startet das Video.',
+  'voiceDl.watchSilent': 'Ohne Stimme ansehen',
   'voiceDl.installed': 'Geladen',
   'voiceDl.folder': 'Speicherort',
   'plan.say': 'Sprechtext',
@@ -608,7 +649,8 @@ export const de: Record<Key, string> = {
   'plan.step.plan': 'Planen',
   'plan.step.build': 'Erstellen',
   'plan.step.edit': 'Bearbeiten',
-  'plan.skip': 'Direkt zum Editor',
+  'plan.remake': 'Szenen neu erstellen',
+  'plan.toEditor': 'Zum Editor',
   'plan.make': 'Video erstellen',
   'plan.retry': 'Erneut versuchen',
   'plan.writing': 'Text und Storyboard werden geschrieben …',
@@ -664,6 +706,7 @@ export const de: Record<Key, string> = {
   'build.rendering': 'Rendert Standbilder',
   'build.written': 'Code geschrieben',
   'build.waiting': 'Als Nächstes',
+  'build.waitParts': 'Wartet auf die gemeinsamen Bilder',
   'build.readyCount': '{done} von {total} Shots fertig',
   'build.took': 'dauerte {time}',
   'build.shotDoing': 'Shot {n}: {what}',
@@ -680,6 +723,86 @@ export const de: Record<Key, string> = {
   'job.voiceFit': 'Sprechtext aufnehmen und Einstellungen anpassen',
 
   'nav.library': 'Asset-Bibliothek',
+
+  'nav.usage': 'Nutzung',
+
+  'usage.title': 'KI-Nutzung',
+
+  'usage.note': 'Jeder KI-Schritt wird beim Projekt erfasst: Tokens, Zeit und, wo das Tool es schätzt, Kosten zu API-Preisen (ein Abo wird nicht pro Token abgerechnet).',
+
+  'usage.empty': 'Noch nichts erfasst.',
+
+  'usage.tokens': 'Tokens',
+
+  'usage.cost': 'Kosten (geschätzt)',
+
+  'usage.time': 'KI-Zeit',
+
+  'usage.project': 'Projekt',
+
+  'usage.runs': 'Läufe',
+
+  'usage.last': 'Zuletzt',
+
+  'usage.byStep': 'Nach Schritt',
+
+  'usage.history': 'Jeder Lauf',
+
+  'usage.open': 'Projekt öffnen',
+
+  'usage.failed': 'Fehlgeschlagen',
+
+  'usage.thinking': '{n} Denken',
+
+  'usage.col.step': 'Schritt',
+
+  'usage.col.count': 'Anzahl',
+
+  'usage.col.avg': 'Ø Tokens',
+
+  'usage.col.avgOutput': 'Ø Ausgabe',
+
+  'usage.col.avgTime': 'Ø Zeit',
+
+  'usage.col.total': 'Anteil',
+
+  'usage.col.model': 'Modell',
+
+  'usage.col.input': 'Eingabe',
+
+  'usage.col.cacheRead': 'Cache gelesen',
+
+  'usage.col.cacheWrite': 'Cache geschrieben',
+
+  'usage.col.output': 'Ausgabe',
+
+  'usage.col.turns': 'Runden',
+
+  'usage.step.plan': 'Plan',
+
+  'usage.step.revise': 'Plan überarbeiten',
+
+  'usage.step.world': 'Bildwelt',
+
+  'usage.step.layout': 'Gemeinsames Layout',
+
+  'usage.step.part': 'Gemeinsames Bild',
+
+  'usage.step.shot': 'Szene',
+
+  'usage.step.fix': 'Korrektur',
+
+  'usage.step.propose': 'Vorschläge',
+
+  'usage.step.check': 'Prüfung',
+
+  'usage.step.publish': 'Veröffentlichungstext',
+
+  'usage.step.sound': 'Ton',
+
+  'usage.step.cover': 'Cover',
+
+  'usage.step.build': 'Szenen erstellen',
   'library.title': 'Asset-Bibliothek',
   'library.search': 'Suchen',
   'library.mine': 'Auf diesem Mac',

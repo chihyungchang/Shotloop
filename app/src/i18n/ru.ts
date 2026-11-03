@@ -169,6 +169,7 @@ export const ru: Record<Key, string> = {
   'stage.download': 'Загрузка (МБ)',
   'stage.voice': 'Озвучивание',
   'stage.subtitles': 'Проверка субтитров',
+  'stage.subtitleImages': 'Рисуем субтитры',
   'editor.save': 'Сохранить · ⌘S',
   'editor.edit': 'Изменить',
   'editor.cancel': 'Отмена',
@@ -399,6 +400,15 @@ export const ru: Record<Key, string> = {
   'settings.parallelMore': 'Больше',
   'settings.parallelReset': 'Вернуть авто ({n})',
   'settings.parallelMachine': 'Этот Mac: ядер — {cores}, памяти — {memory} ГБ. В режиме «Авто» собирается {n} одновременно.',
+  'settings.effort': 'Глубина размышлений над кадром',
+  'settings.effortNote': 'Насколько глубоко ИИ думает над каждым кадром. Выше — чаще исправляет по стоп-кадрам, но дольше и больше расход ИИ.',
+  'settings.effortLabel': 'Уровень',
+  'settings.effort.low': 'Низкий',
+  'settings.effort.medium': 'Средний',
+  'settings.effort.high': 'Высокий',
+  'settings.effort.lowHint': 'Около 1–2 мин на кадр (по умолчанию)',
+  'settings.effort.mediumHint': 'Около 4 мин на кадр; чаще правит композицию',
+  'settings.effort.highHint': 'Около 6 мин на кадр; чуть лучше среднего',
   'settings.alertsNote': 'Когда очередь опустеет: все рендеры, проверки и экспорты в ней завершены.',
   'settings.sound': 'Звук завершения',
   'settings.desktop': 'Уведомление на рабочем столе',
@@ -457,6 +467,7 @@ export const ru: Record<Key, string> = {
 
   'film.title': 'Весь фильм',
   'film.watch': 'Смотреть фильм',
+  'film.needsBuild': 'ИИ ещё не создал кадры: сначала создайте их',
   'film.rendering': 'Рендер изменений…',
   'film.joining': 'Собираем видео…',
   'film.note': 'Весь фильм с музыкой',
@@ -589,14 +600,44 @@ export const ru: Record<Key, string> = {
   'voice.on': 'Вкл',
   'voice.voice': 'Голос',
   'voice.fitting': 'Озвучиваем реплики…',
+  'voice.starting': 'запуск голоса (в первый раз минута-две)',
+  'plan.voiceAsk': 'Озвучку читает {name}: сначала нужно загрузить {mb} МБ (один раз).',
+  'plan.voiceDownload': 'Загрузить и создать',
+  'plan.voiceOff': 'Создать без озвучки',
+  'build.waitVoice': 'Загрузка голосовой модели: {done} / {total} МБ. После неё сразу начнётся создание кадров.',
+  'studio.starters': '{n} кадров пока заглушки: ИИ их ещё не нарисовал.',
+  'studio.startersBuilding': 'ИИ создаёт кадры; готовые появляются здесь.',
+  'studio.startersWaiting': 'Загружается голосовая модель; затем ИИ создаст кадры.',
+  'studio.startersWatch': 'Смотреть ход работы',
+  'studio.startersMake': 'Создать кадры',
+  'shot.starter': 'Заглушка',
+  'shot.starterHint': 'ИИ ещё не нарисовал этот кадр',
   'voice.unavailable': 'Для языка этого видео пока нет голоса.',
   'voice.noLines': 'Реплик пока нет: составьте план заново или впишите реплику каждого кадра в план.',
+  'subs.look': 'Субтитры',
+  'subs.sample': 'Слова идут за голосом',
+  'subs.autoName': 'Субтитры: авто',
+  'subs.autoAbout': 'ИИ подберёт субтитры под темп и тон видео',
+  'subs.spacedOnly': 'Только для языков с пробелами между словами, как английский; для китайского и японского берётся стиль по умолчанию',
+  'subs.needsVoice': 'Субтитры идут с озвучкой: включите её, чтобы выбрать стиль',
+  'subs.look.highlight': 'Подсветка',
+  'subs.look.pill': 'Плашка',
+  'subs.look.pop': 'По слову',
+  'subs.look.sticker': 'Стикер',
+  'subs.look.word': 'Одно слово',
+  'subs.look.reveal': 'Проявление',
+  'subs.look.classic': 'Классика',
+  'subs.look.clean': 'Чистый',
+  'subs.look.none': 'Нет',
   'voiceDl.get': 'Скачать {name} ({mb} МБ)',
   'voiceDl.retry': 'Скачать снова ({mb} МБ)',
   'voiceDl.progress': '{done} / {total} МБ',
   'voiceDl.model': 'Модель голоса',
   'voiceDl.title': 'Модели озвучки',
   'voiceDl.intro': 'Модели голоса не входят в приложение: каждая скачивается, когда видео впервые говорит на её языках (или здесь, заранее), и потом работает офлайн.',
+  'voiceDl.needTitle': 'Сначала загрузите голос',
+  'voiceDl.needNote': 'В этом видео есть озвучка, её читает {name} ({mb} МБ). Загрузка нужна один раз, потом работает офлайн; видео запустится после загрузки.',
+  'voiceDl.watchSilent': 'Смотреть без озвучки',
   'voiceDl.installed': 'Скачано',
   'voiceDl.folder': 'Где хранятся',
   'plan.say': 'Озвучка',
@@ -608,7 +649,8 @@ export const ru: Record<Key, string> = {
   'plan.step.plan': 'План',
   'plan.step.build': 'Сборка',
   'plan.step.edit': 'Правка',
-  'plan.skip': 'Сразу в редактор',
+  'plan.remake': 'Создать кадры заново',
+  'plan.toEditor': 'Перейти в редактор',
   'plan.make': 'Сделать видео',
   'plan.retry': 'Повторить',
   'plan.writing': 'Пишем текст и раскадровку…',
@@ -664,6 +706,7 @@ export const ru: Record<Key, string> = {
   'build.rendering': 'Рендерит стоп-кадры',
   'build.written': 'Код написан',
   'build.waiting': 'Следующий',
+  'build.waitParts': 'Ждёт общие картинки',
   'build.readyCount': 'Готово кадров: {done} из {total}',
   'build.took': 'заняло {time}',
   'build.shotDoing': 'кадр {n}: {what}',
@@ -680,6 +723,86 @@ export const ru: Record<Key, string> = {
   'job.voiceFit': 'Озвучить реплики и подогнать кадры',
 
   'nav.library': 'Библиотека ресурсов',
+
+  'nav.usage': 'Расход',
+
+  'usage.title': 'Расход ИИ',
+
+  'usage.note': 'Каждый шаг ИИ записывается в проект: токены, время и, если инструмент оценивает, стоимость по ценам API (подписка не тарифицируется по токенам).',
+
+  'usage.empty': 'Записей пока нет.',
+
+  'usage.tokens': 'Токены',
+
+  'usage.cost': 'Стоимость (оценка)',
+
+  'usage.time': 'Время ИИ',
+
+  'usage.project': 'Проект',
+
+  'usage.runs': 'Запуски',
+
+  'usage.last': 'Последний',
+
+  'usage.byStep': 'По шагам',
+
+  'usage.history': 'Каждый запуск',
+
+  'usage.open': 'Открыть проект',
+
+  'usage.failed': 'Ошибка',
+
+  'usage.thinking': 'размышления {n}',
+
+  'usage.col.step': 'Шаг',
+
+  'usage.col.count': 'Раз',
+
+  'usage.col.avg': 'Ср. токены',
+
+  'usage.col.avgOutput': 'Ср. вывод',
+
+  'usage.col.avgTime': 'Ср. время',
+
+  'usage.col.total': 'Доля',
+
+  'usage.col.model': 'Модель',
+
+  'usage.col.input': 'Ввод',
+
+  'usage.col.cacheRead': 'Чтение кэша',
+
+  'usage.col.cacheWrite': 'Запись кэша',
+
+  'usage.col.output': 'Вывод',
+
+  'usage.col.turns': 'Ходы',
+
+  'usage.step.plan': 'План',
+
+  'usage.step.revise': 'Правка плана',
+
+  'usage.step.world': 'Визуальный мир',
+
+  'usage.step.layout': 'Общая раскладка',
+
+  'usage.step.part': 'Общая картинка',
+
+  'usage.step.shot': 'Кадр',
+
+  'usage.step.fix': 'Исправление',
+
+  'usage.step.propose': 'Варианты',
+
+  'usage.step.check': 'Проверка',
+
+  'usage.step.publish': 'Текст публикации',
+
+  'usage.step.sound': 'Звук',
+
+  'usage.step.cover': 'Обложка',
+
+  'usage.step.build': 'Создание кадров',
   'library.title': 'Библиотека ресурсов',
   'library.search': 'Поиск',
   'library.mine': 'На этом Mac',

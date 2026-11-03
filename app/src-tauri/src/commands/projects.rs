@@ -51,6 +51,8 @@ pub struct NewProject {
     style: Option<String>,
     /// The voice-over: off unless the person turned it on
     voice: Option<bool>,
+    /// The voice-over subtitles' look; empty: the planner picks
+    subtitles: Option<String>,
 }
 
 /// Creates a starter project from an idea (`shotloop new`)
@@ -62,7 +64,8 @@ pub async fn create_project(handle: AppHandle, project: NewProject) -> Result<Va
         let args = Args::new(["new", &p.dir, "--idea", &p.idea, "--title", &p.title, "--track", &p.track, "--aspect", &p.aspect, "--duration", &p.duration])
             .flag(p.voice == Some(true), "--voice-over")
             .opt("--look", given(p.look))
-            .opt("--style", given(p.style));
+            .opt("--style", given(p.style))
+            .opt("--subtitles", given(p.subtitles));
         engine(&handle, args)
     })
     .await
@@ -85,6 +88,22 @@ pub async fn list_projects(handle: AppHandle, paths: Vec<String>, examples: bool
 #[tauri::command]
 pub fn read_text(project: String, path: String) -> Result<String, String> {
     std::fs::read_to_string(project_file(&project, &path)?).map_err(|e| e.to_string())
+}
+
+/// What the AI's steps took in a project (the agent's ledger.ts record),
+/// one entry a step, oldest first; none before anything was recorded. A
+/// line cut short by a crash is left out
+#[tauri::command]
+pub fn project_usage(project: String) -> Result<Vec<Value>, String> {
+    let root = Path::new(&project).canonicalize().map_err(|e| e.to_string())?;
+    if !root.join("shotloop.json").exists() {
+        return Err(format!("{} is not a Shotloop project", project));
+    }
+    match std::fs::read_to_string(root.join(".shotloop").join("ai-usage.jsonl")) {
+        Ok(text) => Ok(text.lines().filter_map(|l| serde_json::from_str(l).ok()).collect()),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(Vec::new()),
+        Err(e) => Err(e.to_string()),
+    }
 }
 
 #[tauri::command]

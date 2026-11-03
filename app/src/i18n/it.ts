@@ -169,6 +169,7 @@ export const it: Record<Key, string> = {
   'stage.download': 'Download (MB)',
   'stage.voice': 'Registrazione battute',
   'stage.subtitles': 'Controllo sottotitoli',
+  'stage.subtitleImages': 'Disegno dei sottotitoli',
   'editor.save': 'Salva · ⌘S',
   'editor.edit': 'Modifica',
   'editor.cancel': 'Annulla',
@@ -399,6 +400,15 @@ export const it: Record<Key, string> = {
   'settings.parallelMore': 'Più',
   'settings.parallelReset': 'Torna ad auto ({n})',
   'settings.parallelMachine': 'Questo Mac: {cores} core, {memory} GB di memoria. In auto ne genera {n} insieme.',
+  'settings.effort': 'Ragionamento per inquadratura',
+  'settings.effortNote': 'Quanto pensa l’IA scrivendo ogni inquadratura. Più alto corregge di più dai fotogrammi, ma richiede più tempo e più IA.',
+  'settings.effortLabel': 'Livello',
+  'settings.effort.low': 'Basso',
+  'settings.effort.medium': 'Medio',
+  'settings.effort.high': 'Alto',
+  'settings.effort.lowHint': 'Circa 1–2 min per inquadratura (predefinito)',
+  'settings.effort.mediumHint': 'Circa 4 min; corregge più spesso l’inquadratura',
+  'settings.effort.highHint': 'Circa 6 min; poco meglio di medio',
   'settings.alertsNote': 'Quando la coda si svuota: ogni render, verifica ed esportazione è terminata.',
   'settings.sound': 'Suono di completamento',
   'settings.desktop': 'Notifica sulla scrivania',
@@ -457,6 +467,7 @@ export const it: Record<Key, string> = {
 
   'film.title': 'Film completo',
   'film.watch': 'Guarda il film',
+  'film.needsBuild': 'L’IA non ha ancora creato le inquadrature: creale prima',
   'film.rendering': 'Render delle modifiche…',
   'film.joining': 'Montaggio del video…',
   'film.note': 'Il film completo con la musica',
@@ -589,14 +600,44 @@ export const it: Record<Key, string> = {
   'voice.on': 'Sì',
   'voice.voice': 'Voce',
   'voice.fitting': 'Registrazione delle battute…',
+  'voice.starting': 'avvio della voce (un paio di minuti la prima volta)',
+  'plan.voiceAsk': 'La voce fuori campo è letta da {name}: prima vanno scaricati {mb} MB (una volta sola).',
+  'plan.voiceDownload': 'Scarica e crea',
+  'plan.voiceOff': 'Crea senza voce fuori campo',
+  'build.waitVoice': 'Download del modello vocale: {done} / {total} MB. Le inquadrature si creano appena finito.',
+  'studio.starters': '{n} inquadrature sono ancora schede provvisorie: l’IA non le ha disegnate.',
+  'studio.startersBuilding': 'L’IA sta creando le inquadrature; compaiono qui man mano.',
+  'studio.startersWaiting': 'Download del modello vocale; poi l’IA crea le inquadrature.',
+  'studio.startersWatch': 'Vedi avanzamento',
+  'studio.startersMake': 'Crea le inquadrature',
+  'shot.starter': 'Provvisoria',
+  'shot.starterHint': 'L’IA non ha ancora disegnato questa inquadratura',
   'voice.unavailable': 'Non c’è ancora una voce per la lingua di questo video.',
   'voice.noLines': 'Non ci sono ancora battute: pianifica di nuovo il video o scrivi la battuta di ogni inquadratura nel piano.',
+  'subs.look': 'Sottotitoli',
+  'subs.sample': 'Le parole seguono la voce',
+  'subs.autoName': 'Sottotitoli automatici',
+  'subs.autoAbout': 'L’IA sceglie i sottotitoli in base a ritmo e tono del video',
+  'subs.spacedOnly': 'Solo per lingue che separano le parole con spazi, come l’inglese; i video in cinese o giapponese usano lo stile predefinito',
+  'subs.needsVoice': 'I sottotitoli seguono la voce fuori campo: attivala per sceglierli',
+  'subs.look.highlight': 'Evidenziato',
+  'subs.look.pill': 'Pillola',
+  'subs.look.pop': 'Parola per parola',
+  'subs.look.sticker': 'Adesivo',
+  'subs.look.word': 'Una parola',
+  'subs.look.reveal': 'Rivela',
+  'subs.look.classic': 'Classico',
+  'subs.look.clean': 'Pulito',
+  'subs.look.none': 'Nessuno',
   'voiceDl.get': 'Scarica {name} ({mb} MB)',
   'voiceDl.retry': 'Scarica di nuovo ({mb} MB)',
   'voiceDl.progress': '{done} / {total} MB',
   'voiceDl.model': 'Modello vocale',
   'voiceDl.title': 'Modelli della voce narrante',
   'voiceDl.intro': 'I modelli vocali non sono inclusi nell’app: ognuno si scarica la prima volta che un video parla le sue lingue (o qui, in anticipo) e poi funziona offline.',
+  'voiceDl.needTitle': 'Scarica prima la voce',
+  'voiceDl.needNote': 'Questo video ha una voce fuori campo, letta da {name} ({mb} MB). Si scarica una volta e poi funziona offline; il video parte appena finito.',
+  'voiceDl.watchSilent': 'Guarda senza la voce',
   'voiceDl.installed': 'Scaricato',
   'voiceDl.folder': 'Posizione',
   'plan.say': 'Voce narrante',
@@ -608,7 +649,8 @@ export const it: Record<Key, string> = {
   'plan.step.plan': 'Piano',
   'plan.step.build': 'Genera',
   'plan.step.edit': 'Modifica',
-  'plan.skip': 'Vai all’editor',
+  'plan.remake': 'Ricrea le inquadrature',
+  'plan.toEditor': 'Vai all’editor',
   'plan.make': 'Crea il video',
   'plan.retry': 'Riprova',
   'plan.writing': 'Scrivo i testi e lo storyboard…',
@@ -664,6 +706,7 @@ export const it: Record<Key, string> = {
   'build.rendering': 'Render dei fotogrammi',
   'build.written': 'Codice scritto',
   'build.waiting': 'A seguire',
+  'build.waitParts': 'In attesa delle immagini condivise',
   'build.readyCount': '{done} di {total} inquadrature pronte',
   'build.took': 'in {time}',
   'build.shotDoing': 'inquadratura {n}: {what}',
@@ -680,6 +723,86 @@ export const it: Record<Key, string> = {
   'job.voiceFit': 'Registrare le battute e adattare le inquadrature',
 
   'nav.library': 'Libreria risorse',
+
+  'nav.usage': 'Uso',
+
+  'usage.title': 'Uso dell’IA',
+
+  'usage.note': 'Ogni passo dell’IA è registrato nel progetto: token, tempo e, quando lo strumento lo stima, il costo a prezzi API (un abbonamento non si paga a token).',
+
+  'usage.empty': 'Ancora nessun dato.',
+
+  'usage.tokens': 'Token',
+
+  'usage.cost': 'Costo (stima)',
+
+  'usage.time': 'Tempo IA',
+
+  'usage.project': 'Progetto',
+
+  'usage.runs': 'Esecuzioni',
+
+  'usage.last': 'Ultima',
+
+  'usage.byStep': 'Per passo',
+
+  'usage.history': 'Ogni esecuzione',
+
+  'usage.open': 'Apri il progetto',
+
+  'usage.failed': 'Fallito',
+
+  'usage.thinking': '{n} di ragionamento',
+
+  'usage.col.step': 'Passo',
+
+  'usage.col.count': 'Volte',
+
+  'usage.col.avg': 'Token medi',
+
+  'usage.col.avgOutput': 'Output medio',
+
+  'usage.col.avgTime': 'Tempo medio',
+
+  'usage.col.total': 'Quota',
+
+  'usage.col.model': 'Modello',
+
+  'usage.col.input': 'Input',
+
+  'usage.col.cacheRead': 'Cache letta',
+
+  'usage.col.cacheWrite': 'Cache scritta',
+
+  'usage.col.output': 'Output',
+
+  'usage.col.turns': 'Turni',
+
+  'usage.step.plan': 'Piano',
+
+  'usage.step.revise': 'Revisione del piano',
+
+  'usage.step.world': 'Mondo visivo',
+
+  'usage.step.layout': 'Layout condiviso',
+
+  'usage.step.part': 'Immagine condivisa',
+
+  'usage.step.shot': 'Inquadratura',
+
+  'usage.step.fix': 'Correzione',
+
+  'usage.step.propose': 'Proposte',
+
+  'usage.step.check': 'Controllo',
+
+  'usage.step.publish': 'Testo di pubblicazione',
+
+  'usage.step.sound': 'Suono',
+
+  'usage.step.cover': 'Copertina',
+
+  'usage.step.build': 'Crea le inquadrature',
   'library.title': 'Libreria risorse',
   'library.search': 'Cerca',
   'library.mine': 'Su questo Mac',

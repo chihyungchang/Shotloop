@@ -1,10 +1,12 @@
-import { api, fileUrl, type Job, type Project } from '../../api'
+import { useEffect, useState, type ReactNode } from 'react'
+import { api, fileUrl, type Job, type Project, type VoiceInfo } from '../../api'
 import { useErrorLine, useTick } from '../../hooks'
 import { agentNow, buildProgress, formatEta, formatMB, formatSeconds, isActive, jobEstimate, jobLabel, stageName } from '../../model'
 import { baseName } from '../../recent'
 import { Icon } from '../Icon'
 import { formatDate, t } from '../../i18n'
 import { ErrorText } from '../ErrorDialog'
+import { VoiceDownload } from '../VoiceDownload'
 
 // The queue (docs/PRD.md §7.7): the downloads waiting for the person's
 // approval first, then renders one shot at a time with agent work
@@ -17,6 +19,7 @@ export function QueuePanel({ project, jobs }: { project: Project; jobs: Job[] })
   useTick(active.length > 0)
   const doneAt = formatDate(Date.now() + left * 1000, { hour: '2-digit', minute: '2-digit' })
   const { error, guard } = useErrorLine()
+  const voice = useMissingVoice(project, finished)
 
   return (
     <div className="queue">
@@ -44,7 +47,18 @@ export function QueuePanel({ project, jobs }: { project: Project; jobs: Job[] })
             <h3>{t('queue.done')}</h3>
             <button className="link" onClick={() => guard(api.clearJobs())}>{t('queue.clear')}</button>
           </div>
-          {finished.slice(0, 30).map(j => <JobRow key={j.id} job={j} project={project} />)}
+          {finished.slice(0, 30).map(j => (
+            <JobRow key={j.id} job={j} project={project}>
+              {voice && j.id === voice.job.id && (
+                <VoiceDownload model={voice.model} project={project.root} jobs={jobs}
+                  onDone={() => {
+                    voice.landed()
+                    // The fit runs again; an export is the person's to start again
+                    if (j.kind === 'voiceFit') guard(api.enqueue({ kind: 'voiceFit', project: project.root }))
+                  }} />
+              )}
+            </JobRow>
+          ))}
         </>
       )}
     </div>
@@ -81,7 +95,28 @@ const ABOUT: Partial<Record<Job['kind'], 'act.about.build' | 'act.about.plan' | 
   build: 'act.about.build', plan: 'act.about.plan', fix: 'act.about.fix'
 }
 
-function JobRow({ job, project, cancel }: { job: Job; project: Project; cancel?: () => void }) {
+// Jobs that speak the voice-over, and fail without its model
+const SPEAKING: Job['kind'][] = ['voiceFit', 'export']
+
+// The latest of this project's speaking jobs that failed because its
+// voice model isn't on this Mac (still): its download goes under it
+function useMissingVoice(project: Project, finished: Job[]) {
+  const failed = finished.find(j => j.state === 'failed' && j.project === project.root && SPEAKING.includes(j.kind))
+  const [model, setModel] = useState<NonNullable<VoiceInfo['model']> | null>(null)
+  useEffect(() => {
+    if (!failed) return setModel(null)
+    api.voice(project.root).then(
+      v => setModel(v.model && !v.model.installed ? v.model : null),
+      // The settings can't be read: no download to offer, the job's own
+      // error stays in view
+      () => setModel(null)
+    )
+  }, [failed?.id, project.root])
+  // landed: the model is here now, nothing more to offer
+  return failed && model && failed.error?.includes(model.name) ? { job: failed, model, landed: () => setModel(null) } : null
+}
+
+function JobRow({ job, project, cancel, children }: { job: Job; project: Project; cancel?: () => void; children?: ReactNode }) {
   const running = job.state === 'running'
   const queued = job.state === 'queued'
   useTick(running)
@@ -89,8 +124,10 @@ function JobRow({ job, project, cancel }: { job: Job; project: Project; cancel?:
   const elapsed = job.startedAt ? ((job.finishedAt ?? Date.now()) - job.startedAt) / 1000 : null
   const other = job.project !== project.root
   const agent = job.lane === 'agent'
-  // Agents report steps, renders report frames
-  const p = job.progress ?? buildProgress(job, project.shots.length)
+  // Agents report steps (a build its shots, of its own project), renders
+  // report frames. An agent's progress events are its tools' (the build's
+  // voice-over fit counts sentences), never the agent's own
+  const p = agent ? (other ? null : buildProgress(job, project.shots.length)) : job.progress
   const pTotal = p?.total ?? 0
   const pct = pTotal ? Math.round((p!.done / pTotal) * 100) : null
   const now = job.log.at(-1)
@@ -131,6 +168,7 @@ function JobRow({ job, project, cancel }: { job: Job; project: Project; cancel?:
         </div>
       )}
       <ErrorText error={job.state === 'failed' && job.error} as="div" className="error-box small" />
+      {children}
     </div>
   )
 }

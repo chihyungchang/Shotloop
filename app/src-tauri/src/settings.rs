@@ -41,6 +41,9 @@ pub struct Settings {
     pub smithsonian_key: String,
     /// Shots the AI builds at the same time, 1–5; 0 picks by the machine
     pub parallel: u32,
+    /// How hard the AI thinks building each shot: "low", "medium" or
+    /// "high"; empty for the agent's default (low)
+    pub shot_effort: String,
     /// Anonymous usage counts (telemetry.rs) are on unless this is set
     pub telemetry_off: bool,
     /// The first-launch notice about them was shown
@@ -130,6 +133,9 @@ fn normalize(s: &mut Settings) {
     if !s.api_key.is_empty() {
         s.api_keys.entry("anthropic".into()).or_insert(std::mem::take(&mut s.api_key));
     }
+    if !["", "low", "medium", "high"].contains(&s.shot_effort.as_str()) {
+        s.shot_effort.clear();
+    }
 }
 
 /// Some fields changed on the settings as saved now (the top-level fields
@@ -214,6 +220,9 @@ impl Settings {
         }
         let parallel = if (1..=5).contains(&self.parallel) { self.parallel } else { machine().auto_parallel };
         env.push(("SHOTLOOP_PARALLEL".into(), parallel.to_string()));
+        if !self.shot_effort.is_empty() {
+            env.push(("SHOTLOOP_SHOT_EFFORT".into(), self.shot_effort.clone()));
+        }
         env
     }
 }
@@ -267,6 +276,18 @@ mod tests {
         assert!(update(&dir, &serde_json::json!({ "parallel": "many" })).is_err());
         assert!(update(&dir, &serde_json::json!([1])).is_err());
         assert_eq!(load(&dir).unwrap().parallel, 3);
+        std::fs::remove_dir_all(dir).ok();
+    }
+
+    #[test]
+    fn the_shot_effort_reaches_the_agent_and_a_bad_one_is_the_default() {
+        let dir = temp();
+        let has = |s: &Settings| s.env().into_iter().find(|(k, _)| k == "SHOTLOOP_SHOT_EFFORT").map(|(_, v)| v);
+        let s = update(&dir, &serde_json::json!({ "shotEffort": "medium" })).unwrap();
+        assert_eq!(has(&s).as_deref(), Some("medium"));
+        let s = update(&dir, &serde_json::json!({ "shotEffort": "max" })).unwrap();
+        assert_eq!(s.shot_effort, "");
+        assert_eq!(has(&s), None);
         std::fs::remove_dir_all(dir).ok();
     }
 

@@ -1,6 +1,7 @@
 import { round } from '../../../../engine/shotloop/data.mjs'
 import type { Project, Storyboard as Plan, StoryShot } from '../../api'
 import { t } from '../../i18n'
+import type { Key } from '../../i18n/en'
 import { isWide } from '../../model'
 import { LOOKS, lookAbout, lookName, lookPreview } from '../../looks'
 import { lookFits, STYLES, styleName } from '../../styles'
@@ -31,6 +32,12 @@ export function Storyboard({ project, sb, edit, planning, chooseStyle }: {
       </div>
       {sb.style && (project.track === '2d' || project.trackAuto) && <StyleRow project={project} sb={sb} planning={planning} choose={chooseStyle} />}
       {project.track === '2d' && sb.style !== '3d' && <LookRow sb={sb} edit={edit} />}
+      {/* The subtitles' look the AI picked, and why (changed in the studio) */}
+      {project.voice?.on && !project.voice.subtitlesChosen && sb.subtitles && (
+        <p className="small muted style-why">
+          <Icon name="subtitles" size={12} /> {t('subs.look')} · {t(`subs.look.${sb.subtitles}` as Key)}{sb.subtitlesWhy && `: ${sb.subtitlesWhy}`}
+        </p>
+      )}
       <div className="timeline" aria-hidden>
         {sb.shots.map((s, i) => (
           <i key={i} style={{ flex: Math.max(0.5, Number(s.duration) || 0), background: shotHue(i) }} title={`${i + 1}. ${s.title}`}>

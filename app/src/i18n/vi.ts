@@ -169,6 +169,7 @@ export const vi: Record<Key, string> = {
   'stage.download': 'Đang tải (MB)',
   'stage.voice': 'Đang đọc lời',
   'stage.subtitles': 'Kiểm tra phụ đề',
+  'stage.subtitleImages': 'Đang vẽ phụ đề',
   'editor.save': 'Lưu · ⌘S',
   'editor.edit': 'Sửa',
   'editor.cancel': 'Hủy',
@@ -399,6 +400,15 @@ export const vi: Record<Key, string> = {
   'settings.parallelMore': 'Nhiều hơn',
   'settings.parallelReset': 'Về tự động ({n})',
   'settings.parallelMachine': 'Máy Mac này: {cores} lõi, {memory} GB bộ nhớ. Tự động dựng {n} cảnh cùng lúc.',
+  'settings.effort': 'Mức suy nghĩ khi viết cảnh',
+  'settings.effortNote': 'AI nghĩ sâu đến đâu khi viết mỗi cảnh. Mức cao sửa nhiều hơn theo khung hình tĩnh nhưng chậm hơn và tốn AI hơn.',
+  'settings.effortLabel': 'Mức',
+  'settings.effort.low': 'Thấp',
+  'settings.effort.medium': 'Vừa',
+  'settings.effort.high': 'Cao',
+  'settings.effort.lowHint': 'Khoảng 1–2 phút mỗi cảnh (mặc định)',
+  'settings.effort.mediumHint': 'Khoảng 4 phút mỗi cảnh; hay sửa bố cục hơn',
+  'settings.effort.highHint': 'Khoảng 6 phút mỗi cảnh; tốt hơn mức vừa không nhiều',
   'settings.alertsNote': 'Khi hàng đợi trống: mọi tác vụ kết xuất, kiểm tra và xuất trong đó đã xong.',
   'settings.sound': 'Âm báo hoàn tất',
   'settings.desktop': 'Thông báo trên màn hình',
@@ -457,6 +467,7 @@ export const vi: Record<Key, string> = {
 
   'film.title': 'Toàn bộ phim',
   'film.watch': 'Xem phim',
+  'film.needsBuild': 'AI chưa tạo các cảnh: hãy tạo trước',
   'film.rendering': 'Đang kết xuất thay đổi…',
   'film.joining': 'Đang ghép video…',
   'film.note': 'Toàn bộ phim kèm nhạc',
@@ -589,14 +600,44 @@ export const vi: Record<Key, string> = {
   'voice.on': 'Bật',
   'voice.voice': 'Giọng',
   'voice.fitting': 'Đang đọc lời thoại…',
+  'voice.starting': 'đang khởi động giọng đọc (lần đầu mất một hai phút)',
+  'plan.voiceAsk': 'Lời đọc của video này do {name} đọc: cần tải {mb} MB trước (chỉ một lần).',
+  'plan.voiceDownload': 'Tải và tạo',
+  'plan.voiceOff': 'Tạo không có lời đọc',
+  'build.waitVoice': 'Đang tải mô hình giọng: {done} / {total} MB. Tải xong sẽ bắt đầu tạo cảnh.',
+  'studio.starters': '{n} cảnh vẫn là thẻ tạm: AI chưa vẽ chúng.',
+  'studio.startersBuilding': 'AI đang tạo các cảnh; cảnh nào xong sẽ hiện ở đây.',
+  'studio.startersWaiting': 'Đang tải mô hình giọng; sau đó AI sẽ tạo các cảnh.',
+  'studio.startersWatch': 'Xem tiến độ',
+  'studio.startersMake': 'Để AI tạo cảnh',
+  'shot.starter': 'Tạm',
+  'shot.starterHint': 'AI chưa vẽ cảnh này',
   'voice.unavailable': 'Chưa có giọng nói cho ngôn ngữ của video này.',
   'voice.noLines': 'Chưa có lời thoại: lập kế hoạch lại hoặc viết lời cho từng cảnh trong kế hoạch.',
+  'subs.look': 'Phụ đề',
+  'subs.sample': 'Chữ chạy theo giọng nói',
+  'subs.autoName': 'Phụ đề tự động',
+  'subs.autoAbout': 'AI chọn kiểu phụ đề theo nhịp và giọng của video',
+  'subs.spacedOnly': 'Chỉ dành cho ngôn ngữ tách từ bằng dấu cách như tiếng Anh; video tiếng Trung, tiếng Nhật dùng kiểu mặc định',
+  'subs.needsVoice': 'Phụ đề đi cùng lời đọc: bật lời đọc để chọn',
+  'subs.look.highlight': 'Tô sáng',
+  'subs.look.pill': 'Viên',
+  'subs.look.pop': 'Từng từ',
+  'subs.look.sticker': 'Nhãn dán',
+  'subs.look.word': 'Một từ',
+  'subs.look.reveal': 'Hiện dần',
+  'subs.look.classic': 'Cổ điển',
+  'subs.look.clean': 'Gọn gàng',
+  'subs.look.none': 'Không',
   'voiceDl.get': 'Tải {name} ({mb} MB)',
   'voiceDl.retry': 'Tải lại ({mb} MB)',
   'voiceDl.progress': '{done} / {total} MB',
   'voiceDl.model': 'Mô hình giọng',
   'voiceDl.title': 'Mô hình lồng tiếng',
   'voiceDl.intro': 'Mô hình giọng nói không đi kèm ứng dụng: mỗi mô hình được tải khi video lần đầu dùng ngôn ngữ của nó (hoặc tải trước ở đây), sau đó dùng được ngoại tuyến.',
+  'voiceDl.needTitle': 'Tải giọng đọc trước',
+  'voiceDl.needNote': 'Video này có lời đọc bằng {name} ({mb} MB). Chỉ cần tải một lần, sau đó dùng ngoại tuyến; tải xong video sẽ phát.',
+  'voiceDl.watchSilent': 'Xem không có giọng đọc',
   'voiceDl.installed': 'Đã tải',
   'voiceDl.folder': 'Nơi lưu',
   'plan.say': 'Lồng tiếng',
@@ -608,7 +649,8 @@ export const vi: Record<Key, string> = {
   'plan.step.plan': 'Kế hoạch',
   'plan.step.build': 'Dựng',
   'plan.step.edit': 'Chỉnh sửa',
-  'plan.skip': 'Đến trình chỉnh sửa',
+  'plan.remake': 'Tạo lại các cảnh',
+  'plan.toEditor': 'Vào trình chỉnh sửa',
   'plan.make': 'Làm video',
   'plan.retry': 'Thử lại',
   'plan.writing': 'Đang viết lời văn và kịch bản phân cảnh…',
@@ -664,6 +706,7 @@ export const vi: Record<Key, string> = {
   'build.rendering': 'Đang kết xuất ảnh tĩnh',
   'build.written': 'Đã viết mã',
   'build.waiting': 'Tiếp theo',
+  'build.waitParts': 'Chờ vẽ xong hình dùng chung',
   'build.readyCount': '{done}/{total} cảnh đã sẵn sàng',
   'build.took': 'mất {time}',
   'build.shotDoing': 'cảnh {n}: {what}',
@@ -680,6 +723,86 @@ export const vi: Record<Key, string> = {
   'job.voiceFit': 'Đọc lời thoại và khớp thời lượng',
 
   'nav.library': 'Thư viện tài nguyên',
+
+  'nav.usage': 'Mức dùng',
+
+  'usage.title': 'Mức dùng AI',
+
+  'usage.note': 'Mỗi bước AI chạy đều được ghi vào dự án: số token, thời gian và, khi công cụ ước tính, chi phí theo giá API (gói thuê bao không tính theo token).',
+
+  'usage.empty': 'Chưa có ghi nhận.',
+
+  'usage.tokens': 'Token',
+
+  'usage.cost': 'Chi phí (ước tính)',
+
+  'usage.time': 'Thời gian AI',
+
+  'usage.project': 'Dự án',
+
+  'usage.runs': 'Số lần chạy',
+
+  'usage.last': 'Gần nhất',
+
+  'usage.byStep': 'Theo bước',
+
+  'usage.history': 'Từng lần chạy',
+
+  'usage.open': 'Mở dự án',
+
+  'usage.failed': 'Thất bại',
+
+  'usage.thinking': 'suy nghĩ {n}',
+
+  'usage.col.step': 'Bước',
+
+  'usage.col.count': 'Số lần',
+
+  'usage.col.avg': 'Token TB',
+
+  'usage.col.avgOutput': 'Đầu ra TB',
+
+  'usage.col.avgTime': 'Thời gian TB',
+
+  'usage.col.total': 'Tỷ lệ',
+
+  'usage.col.model': 'Mô hình',
+
+  'usage.col.input': 'Đầu vào',
+
+  'usage.col.cacheRead': 'Đọc cache',
+
+  'usage.col.cacheWrite': 'Ghi cache',
+
+  'usage.col.output': 'Đầu ra',
+
+  'usage.col.turns': 'Lượt',
+
+  'usage.step.plan': 'Kế hoạch',
+
+  'usage.step.revise': 'Sửa kế hoạch',
+
+  'usage.step.world': 'Phong cách hình',
+
+  'usage.step.layout': 'Bố cục chung',
+
+  'usage.step.part': 'Hình dùng chung',
+
+  'usage.step.shot': 'Cảnh',
+
+  'usage.step.fix': 'Sửa',
+
+  'usage.step.propose': 'Đề xuất',
+
+  'usage.step.check': 'Kiểm tra',
+
+  'usage.step.publish': 'Nội dung đăng',
+
+  'usage.step.sound': 'Âm thanh',
+
+  'usage.step.cover': 'Ảnh bìa',
+
+  'usage.step.build': 'Tạo các cảnh',
   'library.title': 'Thư viện tài nguyên',
   'library.search': 'Tìm',
   'library.mine': 'Trên máy Mac này',

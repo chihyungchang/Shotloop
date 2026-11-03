@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { api, type Job, type Project, type Storyboard as Plan } from '../../api'
+import { api, type Job, type Project, type Storyboard as Plan, type VoiceInfo } from '../../api'
 import { useAutosave } from '../../hooks'
 import { t } from '../../i18n'
 import { aspectOf, isActive, planSteps } from '../../model'
 import { styleName } from '../../styles'
+import { AgentAvatar } from '../AgentAvatar'
 import { AgentError } from '../AgentError'
 import { Icon } from '../Icon'
 import { Title } from '../studio/Studio'
@@ -35,6 +36,8 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
   const [error, setError] = useState<string | null>(null)
   // A step that replaces work, waiting for a yes
   const [confirm, setConfirm] = useState<'again' | 'make' | null>(null)
+  // The voice model to fetch before a voiced build, waiting for a choice
+  const [voiceAsk, setVoiceAsk] = useState<NonNullable<VoiceInfo['model']> | null>(null)
   const [deriving, setDeriving] = useState(false)
   const autosave = useAutosave((next: Plan) => api.writeText(project.root, FILE, JSON.stringify(next, null, 2) + '\n'))
 
@@ -43,9 +46,12 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
   const buildJob = mine.filter(j => j.kind === 'build').at(-1)
   const planning = !!planJob && isActive(planJob)
   const building = !!buildJob && isActive(buildJob)
+  // The speech model downloading for this project: a build waits for it
+  const download = mine.find(j => j.kind === 'voiceModel' && isActive(j))
   const target = sb?.target ?? project.duration
-  // Shots with frames already: rebuilding them replaces finished work
-  const built = project.shots.some(s => s.draft.state === 'cached' || s.final.state === 'cached')
+  // Shots the AI has drawn: rebuilding them replaces finished work (a
+  // starter card rendered is nothing to lose)
+  const built = project.shots.some(s => !s.starter)
 
   // No storyboard.json yet reads as no plan; one that can't be parsed says so
   const load = () =>
@@ -128,6 +134,8 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
     try {
       await autosave.flush()
       await api.applyStoryboard(project.root)
+      // Read back: the plan now names each shot's id, which edits keep
+      await load()
       refresh()
       return await api.status(project.root)
     } catch (e) {
@@ -135,18 +143,29 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
       return null
     }
   }
-  const make = async () => {
+  // voice, when the voiced film's model isn't on this Mac: ask first, or
+  // the person's answer (download it, the build waiting; or build without
+  // the voice-over)
+  const make = async (voice: 'ask' | 'download' | 'off' = 'ask') => {
     setConfirm(null)
+    setVoiceAsk(null)
     const now = await apply()
     if (!now) return
-    // A voice not on this Mac yet downloads first, as its own job with a
-    // bar; the build waits for it when it needs the voice
     if (now.voiced) {
       const v = await api.voice(project.root).catch(e => {
         setError(String(e))
         return null
       })
-      if (v?.model && !v.model.installed && !(await enqueue({ kind: 'voiceModel', model: v.model.id, project: project.root }))) return
+      if (v?.model && !v.model.installed) {
+        if (voice === 'ask') return setVoiceAsk(v.model)
+        const ready = voice === 'off'
+          ? await api.voice(project.root, { on: false }).then(() => true, e => {
+            setError(String(e))
+            return false
+          })
+          : await enqueue({ kind: 'voiceModel', model: v.model.id, project: project.root })
+        if (!ready) return
+      }
     }
     if (await enqueue({ kind: 'build', project: project.root })) setPhase('build')
   }
@@ -154,8 +173,15 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
     const now = await apply()
     if (!now) return
     // Lines edited without a build: spoken and fitted as a queue job, with
-    // its progress and any error (a build does this itself first)
-    if (now.voiced && !(await enqueue({ kind: 'voiceFit', project: project.root }))) return
+    // its progress and any error (a build does this itself first); lines
+    // timed already need nothing
+    if (now.voiced) {
+      const v = await api.voice(project.root).catch(e => {
+        setError(String(e))
+        return null
+      })
+      if (!v || (!v.fitted && !(await enqueue({ kind: 'voiceFit', project: project.root })))) return
+    }
     toStudio()
   }
 
@@ -178,10 +204,23 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
         <ErrorText error={autosave.status.state === 'failed' && t('common.notSaved', { error: autosave.status.error })} as="span" className="small error ellipsis" />
         {phase === 'plan' && (
           <>
-            <button className="ghost" onClick={skip} disabled={!sb || planning}>{t('plan.skip')}</button>
-            <button className="primary" onClick={() => (built ? setConfirm('make') : make())} disabled={!sb || planning || !sb.shots.length}>
-              <Icon name="spark" size={14} /> {t('plan.make')}
-            </button>
+            {/* Built: the editor is what comes next, building again is asked
+                for (it replaces the shots); else making the video, the only
+                way on (the editor would have nothing but starter cards) */}
+            {built
+              ? (
+                <>
+                  <button className="ghost" onClick={() => setConfirm('make')} disabled={!sb || planning || !sb.shots.length}>
+                    <Icon name="refresh" size={14} /> {t('plan.remake')}
+                  </button>
+                  <button className="primary" onClick={skip} disabled={!sb || planning}>{t('plan.toEditor')} <Icon name="arrow" size={13} /></button>
+                </>
+              )
+              : (
+                <button className="primary" onClick={() => make()} disabled={!sb || planning || !sb.shots.length}>
+                  <Icon name="spark" size={14} /> {t('plan.make')}
+                </button>
+              )}
           </>
         )}
       </header>
@@ -202,6 +241,17 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
         </div>
       )}
 
+      {voiceAsk && (
+        <div className="plan-confirm" role="alertdialog">
+          <Icon name="mic" size={16} />
+          <span>{t('plan.voiceAsk', { name: voiceAsk.name, mb: Math.round(voiceAsk.bytes / 1e6) })}</span>
+          <span className="spacer" />
+          <button className="ghost small" onClick={() => setVoiceAsk(null)}>{t('plan.cancel')}</button>
+          <button className="ghost small" onClick={() => make('off')}>{t('plan.voiceOff')}</button>
+          <button className="primary small" onClick={() => make('download')}><Icon name="download" size={12} /> {t('plan.voiceDownload')}</button>
+        </div>
+      )}
+
       {error
         ? <ErrorText error={error} as="div" className="plan-error error-box" />
         : (
@@ -211,7 +261,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
         )}
 
       {phase === 'build'
-        ? <BuildView project={project} plan={sb} job={buildJob ?? null} toStudio={toStudio} back={() => setPhase('plan')} />
+        ? <BuildView project={project} plan={sb} job={buildJob ?? null} download={download} toStudio={toStudio} back={() => setPhase('plan')} />
         : !sb
           ? <PlanWait project={project} job={planning ? planJob! : null} reading={deriving || !loaded} />
           : (
@@ -219,7 +269,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
               {planning && (
                 <div className="plan-overlay" role="status">
                   <div className="plan-overlay-card">
-                    <span className="agent-avatar large"><span className="spinner" /></span>
+                    <AgentAvatar large busy />
                     <strong>{t('plan.revising')}</strong>
                     <p className="muted small">{t('plan.revisingNote')}</p>
                     {planJob!.state === 'running' ? <StepList steps={planSteps(planJob!)} /> : <PlanActivity job={planJob!} />}
