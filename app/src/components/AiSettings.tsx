@@ -17,7 +17,7 @@ const MODES: { id: Provider; title: Key }[] = [
 ]
 
 const unique = (xs: string[]) => [...new Set(xs.filter(Boolean))]
-type Probe = { ok: true; text: string } | { ok: false; error: string } | null
+type Probe = { ok: true; text: string; warn?: string } | { ok: false; error: string } | null
 type Update = (s: Partial<Settings>) => void
 
 // The outcome of a Test or a model listing, on one line; a failure in the
@@ -25,8 +25,16 @@ type Update = (s: Partial<Settings>) => void
 function ProbeLine({ probe }: { probe: Probe }) {
   if (!probe) return null
   if (!probe.ok) return <ErrorText error={probe.error} summary={agentError(probe.error).text} as="div" className="probe bad small" title={t('ai.test')} />
-  return <small className="probe ok"><Icon name="check" size={12} /> {probe.text}</small>
+  return (
+    <>
+      <small className="probe ok"><Icon name="check" size={12} /> {probe.text}</small>
+      {probe.warn && <small className="warn-note">{probe.warn}</small>}
+    </>
+  )
 }
+
+// A plan this many minutes long or more is too slow to wait for
+const SLOW_PLAN_MIN = 10
 
 // The panes' shared tools: listing an endpoint's models and one tiny test
 // request, with their outcome on one line. A reply for a backend the person
@@ -42,14 +50,14 @@ function useProbes(settings: Settings, backend: string) {
     setProbe(null)
   }, [backend])
 
-  const ask = async <T,>(id: string, run: () => Promise<T>, ok: (v: T) => string, failed?: () => void): Promise<T | null> => {
+  const ask = async <T,>(id: string, run: () => Promise<T>, ok: (v: T) => string, failed?: () => void, warn?: (v: T) => string | undefined): Promise<T | null> => {
     const asked = current.current
     setBusy(id)
     setProbe(null)
     try {
       const v = await run()
       if (asked !== current.current) return null
-      setProbe({ ok: true, text: ok(v) })
+      setProbe({ ok: true, text: ok(v), warn: warn?.(v) })
       return v
     } catch (e) {
       if (asked !== current.current) return null
@@ -70,7 +78,13 @@ function useProbes(settings: Settings, backend: string) {
   // One tiny request through the backend as shown, saved or not
   const testButton = (patch: Partial<Settings> = {}, id = 'test') => (
     <button className="pill-button" onClick={() => ask(id, () => api.aiTest({ ...settings, ...patch }), r =>
-      t('ai.testOk', { s: (r.latencyMs / 1000).toFixed(1), reply: r.reply.slice(0, 40) }) + (r.context ? ` · ${t('ai.context', { n: r.context.toLocaleString() })}` : ''))} disabled={!!busy}>
+      [
+        t('ai.testOk', { s: (r.latencyMs / 1000).toFixed(1), reply: r.reply.slice(0, 40) }),
+        r.context && t('ai.context', { n: r.context.toLocaleString() }),
+        r.speed && t('ai.speed', { n: r.speed.perSecond, m: r.speed.planMinutes })
+      ].filter(Boolean).join(' · '),
+      undefined,
+      r => (r.speed && r.speed.planMinutes >= SLOW_PLAN_MIN ? t('ai.slow', { m: r.speed.planMinutes }) : undefined))} disabled={!!busy}>
       {busy === id ? <span className="spinner small" /> : <Icon name="play" size={12} />} {t('ai.test')}
     </button>
   )
@@ -311,6 +325,16 @@ function LocalPane({ settings, update, detected, probes }: { settings: Settings;
         </div>
         <ProbeLine probe={probes.probe} />
         <small className="muted">{t('ai.localModelNote')}</small>
+      </div>
+      <div className="field">
+        <span>{t('ai.think')}</span>
+        <div className="seg-control" role="radiogroup">
+          {(['', 'off', 'on'] as const).map(v => (
+            <button key={v} role="radio" aria-checked={settings.localThink === v} className={settings.localThink === v ? 'on' : ''}
+              onClick={() => update({ localThink: v })}>{t(`ai.think.${v || 'auto'}`)}</button>
+          ))}
+        </div>
+        <small className="muted">{t('ai.thinkNote')}</small>
       </div>
       <label className="field">
         <span>{t('ai.key')}</span>

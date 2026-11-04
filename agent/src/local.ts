@@ -6,7 +6,7 @@
 
 import http from 'node:http'
 import https from 'node:https'
-import { reason } from './events.ts'
+import { emit, reason } from './events.ts'
 import { runTool, TOOLS, type ToolContext, type ToolOutput } from './tools.ts'
 import { MAX_TURNS, runTurns } from './turns.ts'
 import type { AiMeter } from '../../engine/shotloop/protocol.d.ts'
@@ -35,30 +35,110 @@ const auth = (apiKey?: string): Record<string, string> => (apiKey ? { authorizat
 // prompt, stills to look at); one silent for longer than this has hung
 const REQUEST_TIMEOUT_MIN = 15
 
-// A plain request, not fetch: Node's fetch gives up on a server that
-// sends no headers within five minutes ("fetch failed"), and a local
-// model reading a long prompt before answering can take longer
-async function post(m: LocalModel, path: string, body: unknown) {
-  const url = new URL(`${base(m.url)}${path}`)
-  const data = JSON.stringify(body)
-  const { status, text } = await new Promise<{ status: number; text: string }>((resolve, reject) => {
+interface Usage { prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: { cached_tokens?: number } }
+interface Reply { content: string | null; tool_calls?: ToolCall[]; usage?: Usage }
+// What the model is doing as a reply streams in: reading the prompt (no
+// token yet), thinking, or writing its answer; n: its tokens so far
+export type Stage = 'read' | 'think' | 'write'
+
+// Turns thinking off where the server lets a request say so: LM Studio
+// and Ollama read reasoning_effort, vLLM and llama.cpp the chat template's
+// switch. A model that doesn't think ignores both
+const NO_THINKING = { reasoning_effort: 'none', chat_template_kwargs: { enable_thinking: false } }
+
+// One chat request, streamed: the reply put together from its pieces,
+// `on` told how far the model is as they come. A plain request, not
+// fetch: Node's fetch gives up on a server that sends no headers within
+// five minutes ("fetch failed"), and a local model reading a long prompt
+// can take longer. A server that answers in one piece is read as such
+async function chat(m: LocalModel, body: Record<string, unknown>, on: (stage: Stage, n: number) => void = () => {}): Promise<Reply> {
+  const url = new URL(`${base(m.url)}/chat/completions`)
+  const data = JSON.stringify({ ...body, stream: true, stream_options: { include_usage: true } })
+  on('read', 0)
+  return new Promise<Reply>((resolve, reject) => {
     const req = (url.protocol === 'https:' ? https : http).request(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(data), ...auth(m.apiKey) },
       timeout: REQUEST_TIMEOUT_MIN * 60_000
     }, res => {
-      let text = ''
       res.setEncoding('utf8')
-      res.on('data', d => (text += d))
-      res.on('end', () => resolve({ status: res.statusCode ?? 0, text }))
+      const status = res.statusCode ?? 0
+      const streamed = /event-stream/.test(res.headers['content-type'] ?? '')
+      const reply = new StreamedReply(on)
+      let text = ''
+      res.on('data', (d: string) => {
+        if (status < 200 || status >= 300 || !streamed) text += d
+        else {
+          try {
+            reply.feed(d)
+          } catch (err) {
+            req.destroy(err as Error)
+          }
+        }
+      })
+      res.on('end', () => {
+        if (status < 200 || status >= 300) return reject(new Error(`${m.url}: ${status} ${text.slice(0, 400)}`))
+        try {
+          if (streamed) return resolve(reply.done())
+          const whole = JSON.parse(text)
+          const message = whole.choices?.[0]?.message
+          if (!message) throw new Error('the model returned no message')
+          resolve({ ...message, usage: whole.usage })
+        } catch (err) {
+          reject(err)
+        }
+      })
       res.on('error', reject)
     })
     req.on('timeout', () => req.destroy(new Error(`no answer within ${REQUEST_TIMEOUT_MIN} minutes`)))
     req.on('error', err => reject(new Error(`${m.url}: ${reason(err)}`)))
     req.end(data)
   })
-  if (status < 200 || status >= 300) throw new Error(`${m.url}: ${status} ${text.slice(0, 400)}`)
-  return JSON.parse(text)
+}
+
+// A streamed reply's server-sent events, put back together: the text,
+// each tool call's name and arguments (in pieces, by index), the usage
+class StreamedReply {
+  private buffer = ''
+  private content = ''
+  private calls: ToolCall[] = []
+  private usage: Usage | undefined
+  private thought = 0
+  private written = 0
+  private on: (stage: Stage, n: number) => void
+  constructor(on: (stage: Stage, n: number) => void) {
+    this.on = on
+  }
+
+  feed(chunk: string) {
+    this.buffer += chunk
+    const lines = this.buffer.split('\n')
+    this.buffer = lines.pop() ?? ''
+    for (const line of lines) {
+      const data = line.match(/^data:\s*(.*)$/)?.[1]
+      if (!data || data === '[DONE]') continue
+      const ev = JSON.parse(data)
+      if (ev.error) throw new Error(typeof ev.error === 'string' ? ev.error : ev.error.message ?? JSON.stringify(ev.error))
+      if (ev.usage) this.usage = ev.usage
+      const delta = ev.choices?.[0]?.delta
+      if (!delta) continue
+      if (delta.reasoning_content || delta.reasoning) this.on('think', ++this.thought)
+      if (delta.content) this.content += delta.content
+      for (const piece of delta.tool_calls ?? []) {
+        const call = (this.calls[piece.index ?? 0] ??= { id: '', type: 'function', function: { name: '', arguments: '' } })
+        if (piece.id) call.id = piece.id
+        if (piece.function?.name) call.function.name += piece.function.name
+        if (piece.function?.arguments) call.function.arguments += piece.function.arguments
+      }
+      if (delta.content || delta.tool_calls) this.on('write', ++this.written)
+    }
+  }
+
+  done(): Reply {
+    // Some servers leave a call's id out: the tool message needs one
+    const calls = this.calls.filter(Boolean).map((c, i) => ({ ...c, id: c.id || `call_${i}` }))
+    return { content: this.content || null, tool_calls: calls.length ? calls : undefined, usage: this.usage }
+  }
 }
 
 // Not chat models: embeddings, speech, images, video, moderation…
@@ -143,16 +223,44 @@ async function callTool(ctx: ToolContext, call: ToolCall): Promise<ToolOutput> {
   return runTool(ctx, call.function.name, args)
 }
 
+// How the tokens of one request are shown: what the model is doing and
+// how many it has made, at most every second
+function progress() {
+  let last = 0
+  return (stage: Stage, n: number) => {
+    const now = Date.now()
+    if (stage !== 'read' && now - last < 1000) return
+    last = now
+    emit({ type: 'progress', stage, done: n, total: 0, eta: null })
+  }
+}
+
+// One request: thinking off when asked, and again without
+// reasoning_effort if the server refuses that field (it is newer than the
+// chat template's switch)
+async function ask(m: LocalModel, body: Record<string, unknown>, think: boolean, on?: (stage: Stage, n: number) => void) {
+  if (think) return chat(m, body, on)
+  try {
+    return await chat(m, { ...body, ...NO_THINKING }, on)
+  } catch (err) {
+    if (!/\b400\b.*reasoning/i.test(reason(err))) throw err
+    return chat(m, { ...body, chat_template_kwargs: NO_THINKING.chat_template_kwargs }, on)
+  }
+}
+
 // meter: filled with the tokens the server reports (when it does)
-export async function runLocal(m: LocalModel, system: string, prompt: string, ctx: ToolContext, maxTurns = MAX_TURNS, meter?: AiMeter): Promise<string> {
+// think: false turns the model's thinking off (local servers); true
+// leaves it to the server
+export async function runLocal(m: LocalModel, system: string, prompt: string, ctx: ToolContext, { maxTurns = MAX_TURNS, meter, think = true }: { maxTurns?: number; meter?: AiMeter; think?: boolean } = {}): Promise<string> {
   const messages: Message[] = [
     { role: 'system', content: system },
     { role: 'user', content: prompt }
   ]
+  const on = progress()
   return runTurns(maxTurns, async say => {
-    const res = await post(m, '/chat/completions', { model: m.model, messages, tools, tool_choice: 'auto' })
+    const msg = await ask(m, { model: m.model, messages, tools, tool_choice: 'auto' }, think, on)
     if (meter) {
-      const u = res.usage as { prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: { cached_tokens?: number } } | undefined
+      const u = msg.usage
       const cached = u?.prompt_tokens_details?.cached_tokens ?? 0
       meter.input += (u?.prompt_tokens ?? 0) - cached
       meter.cacheRead += cached
@@ -160,8 +268,6 @@ export async function runLocal(m: LocalModel, system: string, prompt: string, ct
       meter.turns += 1
       meter.model = m.model
     }
-    const msg = res.choices?.[0]?.message as { content: string | null; tool_calls?: ToolCall[] } | undefined
-    if (!msg) throw new Error('the model returned no message')
     say(msg.content)
     messages.push({ role: 'assistant', content: msg.content ?? null, tool_calls: msg.tool_calls })
     if (!msg.tool_calls?.length) return false
@@ -175,4 +281,24 @@ export async function runLocal(m: LocalModel, system: string, prompt: string, ct
     if (images.length) messages.push({ role: 'user', content: [{ type: 'text', text: 'Images from the tools above (render_stills: start, middle, end):' }, ...images] })
     return true
   })
+}
+
+// What a plan takes the model to write, thinking included: Claude's plans
+// run about 13,000 tokens over a dozen turns (a project's ai-usage.jsonl)
+const PLAN_TOKENS = 13_000
+
+// The model's speed as the person will get it: tokens a second over a
+// short answer, once the first token is out, and what that makes a plan
+export async function measureSpeed(m: LocalModel, think: boolean) {
+  let first = 0
+  let n = 0
+  await ask(m, { model: m.model, messages: [{ role: 'user', content: 'Count from 1 to 80 in words, separated by commas.' }], max_tokens: 160 }, think, stage => {
+    if (stage === 'read') return
+    if (!first) first = Date.now()
+    n++
+  })
+  const seconds = (Date.now() - first) / 1000
+  if (n < 10 || seconds <= 0) return null
+  const perSecond = (n - 1) / seconds
+  return { perSecond: Math.round(perSecond * 10) / 10, planMinutes: Math.ceil(PLAN_TOKENS / perSecond / 60) }
 }

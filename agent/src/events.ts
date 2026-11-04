@@ -35,7 +35,8 @@ export function emit(ev: AgentEvent) {
       console.log(`  → ${ev.name} ${ev.summary ?? ''}`)
       break
     case 'progress':
-      process.stdout.write(`\r  ${ev.shot ?? ''} ${ev.stage} ${ev.done}/${ev.total}   ${ev.done === ev.total ? '\n' : ''}`)
+      // A model's tokens have no total (local.ts)
+      process.stdout.write(ev.total ? `\r  ${ev.shot ?? ''} ${ev.stage} ${ev.done}/${ev.total}   ${ev.done === ev.total ? '\n' : ''}` : `\r  ${ev.stage} ${ev.done}   `)
       break
     case 'phase':
       console.log(`\n${ev.phase}`)

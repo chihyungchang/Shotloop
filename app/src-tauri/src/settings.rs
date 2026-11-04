@@ -31,6 +31,9 @@ pub struct Settings {
     pub local_url: String,
     pub local_model: String,
     pub local_key: String,
+    /// local: whether the model thinks before it answers: "on", "off",
+    /// or empty for auto (not on routine steps such as checks)
+    pub local_think: String,
     /// A Chromium browser or headless shell binary, over the one found
     pub chrome: String,
     /// A sound and a desktop notification when the queue runs dry
@@ -210,6 +213,7 @@ impl Settings {
             ("SHOTLOOP_LOCAL_URL", &self.local_url),
             ("SHOTLOOP_LOCAL_MODEL", &self.local_model),
             ("SHOTLOOP_LOCAL_KEY", &self.local_key),
+            ("SHOTLOOP_LOCAL_THINK", &self.local_think),
         ] {
             if !v.is_empty() {
                 env.push((k.into(), v.clone()));

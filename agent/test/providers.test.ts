@@ -6,7 +6,11 @@ import assert from 'node:assert/strict'
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { test } from 'node:test'
-import { checkContext, contextLength, MIN_CONTEXT } from '../src/local.ts'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { checkContext, contextLength, MIN_CONTEXT, runLocal } from '../src/local.ts'
+import { newContext } from '../src/tools.ts'
 import { isLoopback, listModels } from '../src/providers.ts'
 
 async function serve(handler: http.RequestListener) {
@@ -86,5 +90,58 @@ test('context check: a window known too small fails before the run, an unknown o
   } finally {
     small.close()
     silent.close()
+  }
+})
+
+// A streamed chat reply as server-sent events
+const sse = (chunks: object[]) => chunks.map(c => `data: ${JSON.stringify(c)}\n\n`).join('') + 'data: [DONE]\n\n'
+const delta = (d: object) => ({ choices: [{ index: 0, delta: d }] })
+
+test('streamed reply: thinking, a tool call in pieces and the usage put back together; thinking off retried without reasoning_effort', async () => {
+  const bodies: any[] = []
+  const s = await serve((req, res) => {
+    let body = ''
+    req.on('data', d => (body += d))
+    req.on('end', () => {
+      const b = JSON.parse(body)
+      bodies.push(b)
+      // A server that doesn't know reasoning_effort refuses it
+      if ('reasoning_effort' in b) {
+        res.statusCode = 400
+        return res.end(JSON.stringify({ error: 'Unrecognized field: reasoning_effort' }))
+      }
+      res.setHeader('content-type', 'text/event-stream')
+      const turn = bodies.filter(x => !('reasoning_effort' in x)).length
+      res.end(turn === 1
+        ? sse([
+          delta({ reasoning_content: 'Let me ' }), delta({ reasoning_content: 'look.' }),
+          delta({ tool_calls: [{ index: 0, id: 'c1', function: { name: 'list_', arguments: '' } }] }),
+          delta({ tool_calls: [{ index: 0, function: { name: 'files', arguments: '{"dir":' } }] }),
+          delta({ tool_calls: [{ index: 0, function: { arguments: '"."}' } }] }),
+          { choices: [], usage: { prompt_tokens: 100, completion_tokens: 9 } }
+        ])
+        : sse([delta({ content: 'All ' }), delta({ content: 'done.' })]))
+    })
+  })
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-stream-'))
+  fs.writeFileSync(path.join(root, 'a.txt'), 'a')
+  const ctx = newContext(root, path.join(root, 'checklist.md'), [])
+  const meter = { input: 0, output: 0, thinking: 0, cacheRead: 0, cacheWrite: 0, cost: null, turns: 0, model: null } as any
+  try {
+    const reply = await runLocal({ url: `${s.url}/v1`, model: 'm' }, 'sys', 'go', ctx, { meter, think: false })
+    assert.equal(reply, 'All done.')
+    const sent = bodies.filter(b => !('reasoning_effort' in b))
+    assert.equal(sent.length, 2)
+    assert.deepEqual(sent[0].chat_template_kwargs, { enable_thinking: false })
+    assert.equal(sent[0].stream, true)
+    // The tool call went back whole, answered
+    assert.deepEqual(sent[1].messages[2].tool_calls, [{ id: 'c1', type: 'function', function: { name: 'list_files', arguments: '{"dir":"."}' } }])
+    assert.equal(sent[1].messages[3].role, 'tool')
+    assert.match(sent[1].messages[3].content, /a\.txt/)
+    assert.equal(meter.input, 100)
+    assert.equal(meter.output, 9)
+  } finally {
+    s.close()
+    fs.rmSync(root, { recursive: true, force: true })
   }
 })

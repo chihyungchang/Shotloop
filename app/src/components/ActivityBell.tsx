@@ -37,7 +37,7 @@ export function ActivityBell({ jobs, settings }: { jobs: Job[]; settings: Settin
                   <li key={j.id}>
                     <span className="ellipsis">{jobLabel(j)}</span>
                     {j.state === 'running'
-                      ? <span className="bar"><i style={{ width: `${p ? (p.done / Math.max(1, p.total)) * 100 : 8}%` }} /></span>
+                      ? <span className="bar"><i style={{ width: `${p?.total ? (p.done / p.total) * 100 : 8}%` }} /></span>
                       : <span className="small muted">{t('queue.waiting')}</span>}
                   </li>
                 )

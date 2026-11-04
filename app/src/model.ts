@@ -191,13 +191,23 @@ const QUIET = 20
 // Seconds since a running job's last event
 const quietFor = (job: Job) => (job.state === 'running' && job.logAt ? (Date.now() - job.logAt) / 1000 : 0)
 
-// What a running agent is doing now, in words: its last step, or that it
-// has been thinking for a while
+// What a model answering through the chat API is doing as its reply
+// streams in (agent/src/local.ts Stage): reading the prompt, thinking or
+// writing, with its tokens so far
+export function modelNow(job: Job): string | null {
+  const p = job.state === 'running' ? job.progress : null
+  if (p?.stage === 'read') return t('model.read')
+  if (p?.stage === 'think' || p?.stage === 'write') return t(`model.${p.stage}`, { n: p.done.toLocaleString() })
+  return null
+}
+
+// What a running agent is doing now, in words: its last step, or, in a
+// long quiet turn, how far its model is (or that it has been thinking)
 export function agentNow(job: Job): string | null {
   const last = job.log.at(-1)
   if (!last) return null
   const quiet = quietFor(job)
-  return quiet > QUIET ? t('act.thinkFor', { time: formatSeconds(quiet) }) : activityLine(last)
+  return quiet > QUIET ? modelNow(job) ?? t('act.thinkFor', { time: formatSeconds(quiet) }) : activityLine(last)
 }
 
 // Where a build stands, from the agent's events: its phase (the world
@@ -250,7 +260,7 @@ export function planSteps(job: Job): Step[] {
   return [
     ...site,
     { label: t('planStep.read'), state: s[0] },
-    { label: t('planStep.write'), state: s[1], detail: s[1] === 'active' ? t('planStep.writeDetail', { time }) : undefined },
+    { label: t('planStep.write'), state: s[1], detail: s[1] === 'active' ? t('planStep.writeDetail', { time, what: modelNow(job) ?? t('model.ponder') }) : undefined },
     { label: t('planStep.save'), state: s[2] }
   ]
 }

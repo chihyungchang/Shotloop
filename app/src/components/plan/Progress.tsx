@@ -104,9 +104,13 @@ export function BuildView({ project, plan, job, download, toStudio, back }: {
   )
 }
 
-// Before the plan exists: what the AI is doing, for how long, and the
-// outline of what it will hand back (the copy and a column of frames)
-export function PlanWait({ project, job, reading }: { project: Project; job: Job | null; reading: boolean }) {
+// Past this, "usually 1–2 min" no longer holds (a slow local model)
+const USUAL_MAX_S = 180
+
+// Before the plan exists: what the AI is doing, for how long, a way to
+// stop it, and the outline of what it will hand back (the copy and a
+// column of frames)
+export function PlanWait({ project, job, reading, stop }: { project: Project; job: Job | null; reading: boolean; stop: () => void }) {
   useTick(!!job)
   const elapsed = job?.startedAt ? (Date.now() - job.startedAt) / 1000 : null
   const n = Math.max(4, Math.min(8, Math.round(project.duration / 5)))
@@ -120,9 +124,10 @@ export function PlanWait({ project, job, reading }: { project: Project; job: Job
         </div>
         {job && (
           <span className="wait-time small muted">
-            {job.state === 'queued' ? t('queue.waiting') : elapsed != null ? `${t('act.elapsed', { time: formatSeconds(elapsed) })} · ${t('plan.usualShort')}` : ''}
+            {job.state === 'queued' ? t('queue.waiting') : elapsed != null ? t('act.elapsed', { time: formatSeconds(elapsed) }) + (elapsed < USUAL_MAX_S ? ` · ${t('plan.usualShort')}` : '') : ''}
           </span>
         )}
+        {job && <button className="ghost small wait-stop" onClick={stop}><Icon name="pause" size={12} /> {t('queue.stop')}</button>}
         {job?.state === 'running' && <StepList steps={planSteps(job)} row />}
       </div>
       <div className="plan-skeleton" aria-hidden>

@@ -11,6 +11,8 @@
 //   SHOTLOOP_LOCAL_URL    local: OpenAI-compatible base URL (…/v1)
 //   SHOTLOOP_LOCAL_MODEL  local: model name
 //   SHOTLOOP_LOCAL_KEY    local: API key, if the server wants one
+//   SHOTLOOP_LOCAL_THINK  local: on | off; unset, the model thinks except
+//                         on routine steps (checks)
 //
 // The many hosted providers (OpenAI, Gemini, DeepSeek, OpenRouter, Qwen,
 // GLM, Kimi, MiniMax…) are presets in the app: a protocol and a URL.
@@ -19,7 +21,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { CLIS, findBin, runCli, type CliId } from './cli.ts'
-import { checkContext, listModels as listOpenAiModels, runLocal, type LocalModel } from './local.ts'
+import { checkContext, listModels as listOpenAiModels, measureSpeed, runLocal, type LocalModel } from './local.ts'
 import type { AiMeter, AiStep } from '../../engine/shotloop/protocol.d.ts'
 import { meter, record } from './ledger.ts'
 import { MODELS, runAgent as runAnthropic, type AgentOptions } from './loop.ts'
@@ -113,6 +115,13 @@ export async function runAgent(task: Task, { step, ...given }: Omit<AgentOptions
   }
 }
 
+// Whether a local model thinks on a task: as Settings says, else on all
+// but routine steps, where thinking only costs time on a slow machine
+function thinks(task: Task) {
+  const set = process.env.SHOTLOOP_LOCAL_THINK
+  return set === 'on' || (set !== 'off' && task !== 'routine')
+}
+
 // The local backend's server and model, as Settings chose them
 const local = (): LocalModel => ({
   url: process.env.SHOTLOOP_LOCAL_URL!,
@@ -127,10 +136,10 @@ async function dispatch(task: Task, opts: Omit<AgentOptions, 'model' | 'meter'>,
       return runCli(process.env.SHOTLOOP_CLI as CliId, { ...opts, model: process.env.SHOTLOOP_MODEL || undefined, maxTurns: opts.maxTurns ?? MAX_TURNS, meter: m })
     case 'local':
       await checkContext(local())
-      return runLocal(local(), opts.system, opts.prompt, opts.ctx, opts.maxTurns, m)
+      return runLocal(local(), opts.system, opts.prompt, opts.ctx, { maxTurns: opts.maxTurns, meter: m, think: thinks(task) })
     default: {
       const { protocol, url, key, model } = api()
-      if (protocol === 'openai') return runLocal({ url, model, apiKey: key || undefined }, opts.system, opts.prompt, opts.ctx, opts.maxTurns, m)
+      if (protocol === 'openai') return runLocal({ url, model, apiKey: key || undefined }, opts.system, opts.prompt, opts.ctx, { maxTurns: opts.maxTurns, meter: m })
       return runAnthropic({ ...opts, model: model || MODELS[task], baseURL: url || undefined, apiKey: key || undefined, meter: m })
     }
   }
@@ -207,15 +216,19 @@ export async function smokeTest() {
   fs.writeFileSync(ctx.checklist, '')
   const started = Date.now()
   try {
-    // A local model's window, for the test to show it fits
-    const context = provider() === 'local' ? await checkContext(local()) : null
     const reply = await runAgent('routine', {
       effort: 'low',
       system: 'This is a connection test. Do not call any tools.',
       prompt: 'Reply with the single word OK.',
       ctx
     })
-    return { ok: true, latencyMs: Date.now() - started, reply: reply.slice(0, 200), backend: describe(), context }
+    const latencyMs = Date.now() - started
+    // A local model's window, and its speed as a plan would get it: on a
+    // slow machine that decides whether it's worth using
+    const isLocal = provider() === 'local'
+    const context = isLocal ? await checkContext(local()) : null
+    const speed = isLocal ? await measureSpeed(local(), thinks('copy')) : null
+    return { ok: true, latencyMs, reply: reply.slice(0, 200), backend: describe(), context, speed }
   } finally {
     fs.rmSync(root, { recursive: true, force: true })
   }

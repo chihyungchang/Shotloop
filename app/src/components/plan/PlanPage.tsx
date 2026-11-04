@@ -263,7 +263,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
       {phase === 'build'
         ? <BuildView project={project} plan={sb} job={buildJob ?? null} download={download} toStudio={toStudio} back={() => setPhase('plan')} />
         : !sb
-          ? <PlanWait project={project} job={planning ? planJob! : null} reading={deriving || !loaded} />
+          ? <PlanWait project={project} job={planning ? planJob! : null} reading={deriving || !loaded} stop={() => api.cancel(planJob!.id).catch(e => setError(String(e)))} />
           : (
             <div className={`plan-body${planning ? ' busy' : ''}`}>
               {planning && (

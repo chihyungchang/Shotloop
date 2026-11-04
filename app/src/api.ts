@@ -170,6 +170,9 @@ export interface Settings {
   localUrl: string
   localModel: string
   localKey: string
+  // local: whether the model thinks first; '' is auto (not on routine
+  // steps such as checks)
+  localThink: '' | 'on' | 'off'
   chrome: string
   // A sound and a desktop notification when the queue runs dry
   notifySound: boolean
@@ -380,7 +383,7 @@ export const api = {
   openPath: (path: string) => invoke<void>('open_path', { path }),
   setTrayText: (status: string, show: string, quit: string, done: string, failed: string, update: string) => invoke<void>('set_tray_text', { status, show, quit, done, failed, update }),
   // One tiny request through the backend as Settings shows it, saved or not
-  aiTest: (settings: Settings) => invoke<{ ok: boolean; latencyMs: number; reply: string; backend: string; context: number | null }>('ai_test', { settings }),
+  aiTest: (settings: Settings) => invoke<{ ok: boolean; latencyMs: number; reply: string; backend: string; context: number | null; speed: { perSecond: number; planMinutes: number } | null }>('ai_test', { settings }),
   about: () => invoke<About>('about'),
   telemetryDue: () => invoke<TelemetryReport | null>('telemetry_due'),
   telemetrySent: (counts: TelemetryCounts) => invoke<void>('telemetry_sent', { counts }),

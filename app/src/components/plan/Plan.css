@@ -92,7 +92,7 @@ textarea.autotext { resize: none; overflow: hidden; line-height: 1.5; min-height
 .step-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding-top: 1px; }
 .step-text .small { font-weight: 400; }
 .plan-wait { display: flex; flex-direction: column; gap: 12px; margin: 0 12px 12px; min-height: 0; overflow: hidden; }
-.wait-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px 14px; padding: 18px 20px; border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--shadow-sm), 0 0 0 1px var(--border-soft); }
+.wait-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 6px 14px; padding: 18px 20px; border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--shadow-sm), 0 0 0 1px var(--border-soft); }
 .wait-card .steps-wrap { grid-column: 2 / -1; margin-top: 6px; }
 .wait-words { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .wait-words strong { font-size: 16px; color: var(--text-strong); }
