@@ -355,6 +355,8 @@ export interface RenderResult {
   exposure?: StillExposure[] | null
   // A promo shot's layout as measured in its page (render/measure.mjs)
   layout?: LayoutIssue[]
+  // A clip's picture by ffmpeg's detectors: black, standing still, soft
+  faults?: LayoutIssue[]
 }
 
 // A layout fault: the rule it breaks, when, and what (render/measure.mjs)

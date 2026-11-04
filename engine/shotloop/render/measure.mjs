@@ -22,11 +22,17 @@
 //
 // Each shot's facts (its headline's size, its desktop's box) are kept in
 // .shotloop/shots/<id>/layout.json for the other shots to be held to.
+//
+// A rendered clip, of any film, is measured too, by ffmpeg's own
+// detectors (measureClip): black frames (clean), a picture that stands
+// still for a second (alive, or promo-motion), and in a promo a picture
+// left soft once a move has ended (promo-crisp).
 
 import fs from 'node:fs'
 import path from 'node:path'
 import { readJson, writeJson } from '../project/files.mjs'
 import { list as listRules } from '../rules.mjs'
+import { ffmpeg } from './compose.mjs'
 import { openShot } from './render2d.mjs'
 
 const STEP = 0.1
@@ -248,13 +254,68 @@ export async function measureLayout(project, shot) {
     .filter(f => f.to - f.from >= LASTS[f.kind] - 1e-6)
     .map(({ kind, ...f }) => (kind === 'still' ? { ...f, what: `nothing moves for ${(f.to - f.from).toFixed(1)} s` } : f))
   if (promo) issues.push(...againstOthers(project, shot, settled(facts)))
-  // A rule the person turned off or reworded is theirs to judge, not measured
+  const kept = ruled(issues).sort((a, b) => a.from - b.from)
+  writeJson(layoutFile(project, shot), { facts: settled(facts), issues: kept })
+  return kept
+}
+
+// Only the rules that are on as the house wrote them: one the person
+// turned off or reworded is theirs to judge, not measured
+function ruled(issues) {
   const { fixed, taste } = listRules()
   const measured = new Set([...fixed, ...taste].filter(r => !r.off && !r.edited).map(r => r.id))
-  issues.splice(0, issues.length, ...issues.filter(i => measured.has(i.rule)))
-  issues.sort((a, b) => a.from - b.from)
-  writeJson(layoutFile(project, shot), { facts: settled(facts), issues })
-  return issues
+  return issues.filter(i => measured.has(i.rule))
+}
+
+// A rendered clip's faults, by ffmpeg's detectors, each { rule, from, to,
+// what } in clip seconds
+export async function measureClip(project, clip) {
+  const promo = !!project.config.promo
+  let out = ''
+  await ffmpeg(['-i', clip, '-an', '-vf', 'blackdetect=d=0.1:pix_th=0.10,freezedetect=n=-60dB:d=1,blurdetect=block_width=32:block_height=32,metadata=print:file=-', '-f', 'null', '-'], { onStdout: d => (out += d) })
+  const issues = []
+  const blur = []
+  let at = 0, black = null, freeze = null
+  for (const line of out.split('\n')) {
+    const time = line.match(/pts_time:([\d.]+)/)
+    if (time) at = Number(time[1])
+    const [key, value] = line.split('=')
+    if (key === 'lavfi.blur') blur.push({ at, v: Number(value) })
+    else if (key === 'lavfi.black_start') black = Number(value)
+    else if (key === 'lavfi.black_end' && black != null) {
+      issues.push({ rule: 'clean', from: black, to: Number(value), what: 'black frames' })
+      black = null
+    } else if (key === 'lavfi.freezedetect.freeze_start') freeze = Number(value)
+    else if (key === 'lavfi.freezedetect.freeze_end' && freeze != null) {
+      issues.push({ rule: promo ? 'promo-motion' : 'alive', from: freeze, to: Number(value), what: `the picture stands still for ${(Number(value) - freeze).toFixed(1)} s` })
+      freeze = null
+    }
+  }
+  // Still frozen or black at the end: up to the last frame
+  if (freeze != null) issues.push({ rule: promo ? 'promo-motion' : 'alive', from: freeze, to: at, what: `the picture stands still for ${(at - freeze).toFixed(1)} s` })
+  if (black != null) issues.push({ rule: 'clean', from: black, to: at, what: 'black frames' })
+  if (promo) issues.push(...softSpans(blur))
+  return ruled(issues).sort((a, b) => a.from - b.from)
+}
+
+// Soft for half a second or more: frames blurrier than half again the
+// clip's usual sharpness (its median), a move's blur passing in a moment
+function softSpans(blur) {
+  if (blur.length < 10) return []
+  const usual = blur.map(b => b.v).sort((a, b) => a - b)[Math.floor(blur.length / 2)]
+  const out = []
+  let from = null, peak = 0
+  for (const [i, b] of blur.entries()) {
+    const soft = b.v > usual * 1.5
+    if (soft && from == null) from = b.at
+    if (soft) peak = Math.max(peak, b.v)
+    if ((!soft || i === blur.length - 1) && from != null) {
+      if (b.at - from >= 0.5) out.push({ rule: 'promo-crisp', from, to: b.at, what: `the picture is soft (blur up to ${peak.toFixed(1)}, the clip's usual ${usual.toFixed(1)})` })
+      from = null
+      peak = 0
+    }
+  }
+  return out
 }
 
 // Where a shot ends up: its last moment's headline and desktop

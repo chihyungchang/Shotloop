@@ -7,7 +7,8 @@ import path from 'node:path'
 import { after, test } from 'node:test'
 import { newProject } from '../project/create.mjs'
 import { loadProject } from '../project/project.mjs'
-import { measureLayout } from './measure.mjs'
+import { execFileSync } from 'node:child_process'
+import { measureClip, measureLayout } from './measure.mjs'
 
 const made = []
 after(() => made.forEach(d => fs.rmSync(d, { recursive: true, force: true })))
@@ -62,4 +63,16 @@ export default function render(t, { window }) {
   const explainer = loadProject(project.root)
   explainer.config = { ...explainer.config, promo: null }
   assert.equal(await measureLayout(explainer, shot), null)
+})
+
+test('measure: a clip\'s black frames and a picture standing still, by ffmpeg', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-clip-'))
+  made.push(dir)
+  const clip = path.join(dir, 'clip.mp4')
+  // Half a second of black, then a picture that never changes
+  execFileSync('ffmpeg', ['-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=160x120:d=0.5:r=30[a];color=c=0xcc3344:s=160x120:d=1.6:r=30[b];[a][b]concat',
+    '-pix_fmt', 'yuv420p', clip])
+  const faults = await measureClip({ config: {} }, clip)
+  assert.ok(faults.some(f => f.rule === 'clean' && f.what === 'black frames' && f.from < 0.1), JSON.stringify(faults))
+  assert.ok(faults.some(f => f.rule === 'alive' && /stands still/.test(f.what)), JSON.stringify(faults))
 })

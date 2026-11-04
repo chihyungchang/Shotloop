@@ -12,7 +12,7 @@ import { frameCount, projectPath } from '../project/project.mjs'
 import { renderFrames2d } from './render2d.mjs'
 import { dressFilm } from '../voiceover/voice.mjs'
 import { checkSubtitles, describeIssues } from '../voiceover/check.mjs'
-import { describeLayout, layoutResult, measureLayout } from './measure.mjs'
+import { describeLayout, layoutResult, measureClip, measureLayout } from './measure.mjs'
 
 // Local frame numbers of the three review stills
 export function stillFrames(project, shot) {
@@ -26,7 +26,8 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
   if (!force && (stills ? e.stills : e.clip)) {
     emit({ type: 'log', message: `${shot.id}: ${mode} ${what} cached (${e.key})` })
     const layout = layoutResult(project, shot)
-    return { shot: shot.id, mode, key: e.key, cached: true, ...(await outputs(project, shot, e, mode)), ...(layout ? { layout } : {}) }
+    const faults = readJson(path.join(e.dir, 'meta.json'), {}).faults ?? null
+    return { shot: shot.id, mode, key: e.key, cached: true, ...(await outputs(project, shot, e, mode)), ...(layout ? { layout } : {}), ...(faults && !stills ? { faults } : {}) }
   }
 
   // A voiced shot is checked for what its subtitles would cover first
@@ -49,9 +50,11 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
     for (const [i, f] of stillFrames(project, shot).entries()) {
       await composeStill(path.join(framesDir, frameName(f)), path.join(e.dir, 'stills', `${STILLS[i]}.jpg`))
     }
+    let faults = null
     if (!stills) {
       emit({ type: 'log', message: `${shot.id}: encoding` })
       await encodeClip(project, mode, framesDir, path.join(e.dir, 'clip.mp4'))
+      faults = await clipCheck(project, shot, path.join(e.dir, 'clip.mp4'))
     }
 
     const seconds = Math.round((Date.now() - t0) / 100) / 10
@@ -67,6 +70,7 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
       clip: prev.clip || !stills,
       seconds: stills ? prev.seconds ?? null : seconds,
       stillsSeconds: stills ? seconds : prev.stillsSeconds ?? null,
+      faults: faults ?? prev.faults ?? null,
       renderedAt: new Date().toISOString()
     })
     const done = entry(project, shot, mode, e.key)
@@ -75,7 +79,7 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
     emit({ type: 'done', shot: shot.id, mode, what, key: e.key, seconds, take: take.take })
     // Measured with the stills, the review's render; a clip for the film isn't held up
     const layout = stills ? await layoutCheck(project, shot) : null
-    return { shot: shot.id, mode, key: e.key, cached: false, take: take.take, seconds, ...out, ...(subtitles ? { subtitles } : {}), ...(layout ? { layout } : {}) }
+    return { shot: shot.id, mode, key: e.key, cached: false, take: take.take, seconds, ...out, ...(subtitles ? { subtitles } : {}), ...(layout ? { layout } : {}), ...(faults ? { faults } : {}) }
   } catch (err) {
     recordError(project, shot, mode, err)
     throw err
@@ -111,6 +115,19 @@ async function layoutCheck(project, shot) {
     return issues
   } catch (err) {
     emit({ type: 'log', message: `layout check skipped: ${err.message}` })
+    return null
+  }
+}
+
+// A clip's picture faults by ffmpeg (black, standing still, soft): said,
+// kept with the clip; a check that fails to run doesn't fail the render
+async function clipCheck(project, shot, clip) {
+  try {
+    const faults = await measureClip(project, clip)
+    for (const l of describeLayout(faults)) emit({ type: 'log', message: `${shot.id} picture: ${l.slice(2)}` })
+    return faults
+  } catch (err) {
+    emit({ type: 'log', message: `picture check skipped: ${err.message}` })
     return null
   }
 }
