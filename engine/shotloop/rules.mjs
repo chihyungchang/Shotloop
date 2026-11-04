@@ -126,6 +126,11 @@ const FIXED = [
     check: 'Everything drawn on a screen sits exactly on its element at the screen\'s own text size; no overlay is offset or oversized, no blend shows two misaligned pages.'
   },
   {
+    id: 'promo-logo', track: 'all', kind: 'promo', locked: true, name: 'The real logo',
+    rule: 'The product\'s logo is its real one, the picture the project holds (repo/logo.png, site/logo.png or the person\'s), shown as it is: never drawn, redrawn or imitated in code, recoloured or cropped. With no logo among the pictures, the name alone, in the product\'s font.',
+    check: 'Any logo shown is the product\'s own picture, unaltered; no drawn or imitated mark.'
+  },
+  {
     id: 'promo-desktop', track: 'all', kind: 'promo', locked: true, name: 'Screens on a desktop',
     rule: 'Every screen of the product (a program, a website, an app) is shown in a window on a computer\'s desktop (screens.js desktop(): wallpaper, menu bar, Dock), never as a bare screenshot, a cut-out part or a window loose on the film\'s ground. A close-up is the desktop\'s camera moving in on the window; clicking, typing and dragging happen on the desktop.',
     check: 'Every product screen sits in a window on the desktop; none is a bare screenshot, a cut-out part or a loose window on the ground.'
@@ -256,7 +261,7 @@ const TASTE = [
   },
   {
     id: 'promo-chapters', track: 'all', kind: 'promo', name: 'Numbered chapters, big headlines',
-    rule: 'Each beat is a chapter: a mono label over a rule ("01 — The problem", the product\'s name at the right), a big heavy headline of one or two lines rising line by line (the second, the turn, muted), and its picture: the desktop beside the headline (headline left, desktop right) or below it. A footer rule may carry a count.',
+    rule: 'Each beat is a chapter: a mono label over a rule ("01 — The problem", the product\'s name at the right), a big heavy headline of one or two lines rising line by line (the second, the turn, muted), and its picture: the desktop beside the headline (headline left, desktop right), or a drawing of the problem below it. A footer rule may carry a count.',
     check: 'Each beat has its chapter label, a headline of at most two lines, and a clear place for its picture.'
   },
   {
@@ -265,9 +270,9 @@ const TASTE = [
     check: 'Nothing touches or overlaps: headlines, chips, screens and the source line each keep a clear gap from one another, stacked one under another as much as side by side.'
   },
   {
-    id: 'promo-fill', track: 'all', kind: 'promo', name: 'A full, balanced frame',
-    rule: 'Each beat\'s pieces fill the frame together, the product\'s screen the largest thing in it: no band of more than about a quarter of the frame left empty. Headlines keep one size from beat to beat (layout()\'s size), never shrunk to make room or blown up to fill it.',
-    check: 'No large empty band; the screen is the biggest thing; the headline is the same size as in the other beats.'
+    id: 'promo-fill', track: 'all', kind: 'promo', name: 'Every frame designed',
+    rule: 'Every frame of the film is a finished design, not only the one each beat settles on: from a beat\'s first frame to its last, through entrances, camera moves and wipes, the pieces fill the frame together, the product\'s screen the largest thing, with no band of more than about a quarter of the frame left empty, nothing blurred or half-drawn longer than a passing motion, and headlines one size from beat to beat (layout()\'s size).',
+    check: 'At the start, middle and end of the beat alike: no large empty band, the screen the biggest thing, nothing left blurred or half-drawn, the headline the same size as in the other beats.'
   },
   {
     id: 'promo-one-part', track: 'all', kind: 'promo', name: 'One part of the product, big',
@@ -275,9 +280,9 @@ const TASTE = [
     check: 'The product part the beat is about is readable at phone size.'
   },
   {
-    id: 'promo-screens', track: 'all', kind: 'promo', name: 'The desktop big, in its own column',
-    rule: 'The desktop sits in its own column beside its headline (or under it), filling most of the frame, with a light shadow; what the camera follows sits in the middle of the desktop, and nothing outside it moves with it. Never a small desktop floating in the middle, nothing tilted while it must be read.',
-    check: 'The desktop fills its column beside or under the headline; it is not small, floating or tilted while read.'
+    id: 'promo-screens', track: 'all', kind: 'promo', name: 'One desktop, one size',
+    rule: 'The desktop has one size and one place through the whole film: the same box in every beat (layout(\'side\').picture, beside the headline), filling most of the frame, with a light shadow. It never shrinks to make room for a headline above it, and moves only through its own camera; what the camera follows sits in the middle of it, and nothing outside it moves with it. Nothing tilted while it must be read.',
+    check: 'The desktop has the same size and place in every beat, beside the headline, filling most of the frame; it is never shrunk under a headline, floating or tilted.'
   },
   {
     id: 'promo-in-use', track: 'all', kind: 'promo', name: 'Show it in use',
