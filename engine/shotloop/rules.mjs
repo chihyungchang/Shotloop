@@ -136,13 +136,18 @@ const FIXED = [
     check: 'The film\'s first frames show the product\'s logo and name, readable; its last beat is the end card with the name, the line and where to get it; both fill the frame as any beat must.'
   },
   {
+    id: 'promo-aligned', track: 'all', kind: 'promo', locked: true, name: 'Aligned, nothing stray',
+    rule: 'What belongs together lines up: a logo centred on its name\'s capital height and spaced from it as the brand sets them, a lockup\'s name, rule and line on one left edge, labels and chips on a shared edge, a headline\'s lines on one left edge. Nothing stray: no leftover box, outline or shape the design doesn\'t use.',
+    check: 'The logo sits centred on its name\'s capital height; parts of a group share an edge; no leftover box or outline anywhere.'
+  },
+  {
     id: 'promo-desktop', track: 'all', kind: 'promo', locked: true, name: 'Screens on a desktop',
     rule: 'Every screen of the product (a program, a website, an app) is shown in a window on a computer\'s desktop (screens.js desktop(): wallpaper, menu bar, Dock), never as a bare screenshot, a cut-out part or a window loose on the film\'s ground. A close-up is the desktop\'s camera moving in on the window; clicking, typing and dragging happen on the desktop. The film has one desktop, the same size and place in every beat (the same box, filling most of the frame), moved only by its own camera: it never shrinks to make room for words, and nothing outside it moves with it. It keeps a real screen\'s proportions (16:10), never squashed or stretched to fill a box, and where it sits follows the frame: beside the headline or under it, whichever shows it largest (screens.js layout(\'auto\')), chosen once for the film.',
     check: 'Every product screen sits in a window on the desktop, which has the same size and place in every beat, beside or under the headline as shows it largest, at a screen\'s 16:10 (never squashed), and fills most of the frame; none is a bare screenshot, a cut-out part or a loose window.'
   },
   {
     id: 'promo-fill', track: 'all', kind: 'promo', locked: true, name: 'Every frame designed',
-    rule: 'Every frame of the film is a finished design, not only the one each beat settles on: from a beat\'s first frame to its last, through entrances, camera moves and wipes, the desktop takes at least half of the frame\'s height and more of it than anything else; a drawing (the problem\'s) keeps the size it reads best at, never stretched to fill, and sits balanced in the space under its headline (centred in it, never stranded at the top over an empty half); thin strips (a source line, a counter, a rule) never count as filling the frame, and headlines one size from beat to beat (layout()\'s size). Nothing touches: a gap of at least 5% of the frame\'s height between a headline and what is under or beside it, between pictures, and above the source line (its own band at the bottom), stacked as much as side by side; place pieces in the boxes screens.js layout() gives, and whatever goes under a headline at its words.under. A close-up frames whole things: the edge of the desktop or of the frame never cuts a line of the screen\'s text or a control in half.',
+    rule: 'Every frame of the film is a finished design, not only the one each beat settles on: from a beat\'s first frame to its last, through entrances, camera moves and wipes, the desktop takes at least half of the frame\'s height and more of it than anything else; a drawing (the problem\'s) keeps the size it reads best at, never stretched to fill, and sits balanced in the space under its headline (centred in it, never stranded at the top over an empty half); thin strips (a source line, a counter, a rule) never count as filling the frame, and headlines one size from beat to beat (layout()\'s size). Nothing touches: a gap of at least 5% of the frame\'s height between a headline and what is under or beside it, between pictures, and above the source line (its own band at the bottom), stacked as much as side by side; place pieces in the boxes screens.js layout() gives, set headlines with its headline() at layout()\'s size (never redrawn by hand, so lines never collide), and whatever goes under a headline at its words.under. A close-up frames whole things: the edge of the desktop or of the frame never cuts a line of the screen\'s text or a control in half.',
     check: 'At the start, middle and end of the beat alike: the desktop at least half the frame\'s height and the biggest thing, a drawing at a natural size and balanced in its space, not stranded over an empty half (strips of text don\'t fill a frame), the headline the same size as in the other beats, a clear gap between every two pieces, and no line of text or control cut in half at an edge.'
   },
   {
@@ -300,9 +305,9 @@ const TASTE = [
     check: 'Rises are short and unbouncy; cuts are wipes or camera moves; no frame sits frozen for more than a second.'
   },
   {
-    id: 'promo-one-focus', track: 'all', kind: 'promo', name: 'One focus at a time, unmissable',
-    rule: 'Attention goes to one place at a time and can\'t be missed: the thing that matters is marked (a coloured outline, a chip, the accent) while the rest dims; a pointer, when one is needed, is large, moves on a smooth curve and clicks visibly.',
-    check: 'One clear focus at each moment.'
+    id: 'promo-one-focus', track: 'all', kind: 'promo', name: 'One focus at a time, quietly marked',
+    rule: 'Attention goes to one place at a time and can\'t be missed: the thing that matters is marked while the rest dims. A mark on the product\'s screen is quiet: a thin, crisp outline in a colour of the screen\'s own (its accent) or plain ink, never the film\'s loud brand colour, a glow or a fill over someone\'s UI; a label chip on it small and neutral. A pointer, when one is needed, is large, moves on a smooth curve and clicks visibly.',
+    check: 'One clear focus at each moment; marks on the screen are thin and quiet in colour, no loud brand colour or glow over the UI.'
   },
   {
     id: 'promo-brand', track: 'all', kind: 'promo', name: 'The product\'s own visual system',
@@ -421,7 +426,7 @@ export const TOOLS = [
   { id: 'before-after', group: 'product', name: 'Before and after', text: 'two pictures in one box, a divider in the accent sweeping across to uncover the after (compare).', tracks: ['2d'] },
   { id: 'dive', group: 'product', name: 'Dive to the action', text: 'on the desktop, the camera moves in to the part where the action is and centres it, the whole screen growing with it (desktop with camera).', tracks: ['2d'] },
   { id: 'cursor-action', group: 'product', name: 'Cursor action', text: 'a large pointer glides on a curve, presses and lets a soft ring go, while the desktop\'s camera moves in so the click sits in the middle of the screen (cursor with follow and desktopPoint).', tracks: ['2d'] },
-  { id: 'highlight', group: 'product', name: 'Highlight a control', text: 'an outline hugging the control the beat is about, in a colour that stands out on the screen, drawn on the screen\'s picture so it moves with it as the camera moves (mark() in a shot\'s or window\'s draw).', tracks: ['2d'] },
+  { id: 'highlight', group: 'product', name: 'Highlight a control', text: 'a thin outline hugging the control the beat is about, in ink or the screen\'s own accent, drawn on the screen\'s picture so it moves with it as the camera moves (mark() in a shot\'s or window\'s draw).', tracks: ['2d'] },
   { id: 'type-in', group: 'product', name: 'Type it in', text: 'words typed into a field of the product key by key, a caret blinking (typing on a live part, or field over a picture).', tracks: ['2d'] },
   { id: 'state-change', group: 'product', name: 'State change', text: 'the same screen before and after: what stays holds still, what changed blends in (shot with over).', tracks: ['2d'] },
   { id: 'wipe-cut', group: 'product', name: 'Wipe cut', text: 'an ink panel crossing the frame in about 0.36 s, half at the end of one beat and half at the start of the next (wipe).', tracks: ['2d'] },

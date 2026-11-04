@@ -131,6 +131,7 @@ test('rules: a locked rule stays on; a kind\'s rules stay with their part of the
   assert.throws(() => rules.setOn('clean', false), /locked/)
   assert.throws(() => rules.setOn('readable', false), /locked/)
   assert.throws(() => rules.setOn('promo-open-close', false), /locked/)
+  assert.throws(() => rules.setOn('promo-aligned', false), /locked/)
   assert.equal(rules.list().fixed.find(r => r.id === 'original').off, false)
   // The cover's and the sound's taste never join a shot's checklist
   const shots = rules.checklist('2d')

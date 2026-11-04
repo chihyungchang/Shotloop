@@ -530,22 +530,16 @@ export function field(t, under, { region, text, at = 0, cps = 40, color = '#111'
 // ---- The pointer, on the stage above ----
 
 // A highlight round a control of a picture, for a shot's or a window's
-// draw: region in picture px, hugging its edges, in a colour that stands
-// out against the screen: the first of the film's accents deep enough
-// to show on a light app (a lime doesn't), or ink. color sets it
-// (a dark screen wants the light accent); p fades it in. width: the line
-// in picture px
-const markColor = () => {
-  const { C } = kit()
-  return [C.accent, C.accent2, C.accent3].find(c => c && lightness(c) <= 0.65) ?? '#0a0a0a'
-}
-
-export function mark({ region, p = 1, color, width = 4, radius = 8 }) {
+// draw: region in picture px, hugging its edges; thin and quiet (taste:
+// promo-one-focus): ink unless color gives the screen's own accent (a
+// dark screen wants a light one); p fades it in. width: the line in
+// picture px
+export function mark({ region, p = 1, color = '#1d1d1f', width = 3, radius = 8 }) {
   const q = clamp(p)
   if (q <= 0) return ''
   const pad = width
   return `<div style="position:absolute;left:${n(region.x - pad)}px;top:${n(region.y - pad)}px;width:${n(region.w + 2 * pad)}px;height:${n(region.h + 2 * pad)}px;` +
-    `border:${n(width)}px solid ${color ?? markColor()};border-radius:${n(radius + pad)}px;box-sizing:border-box;opacity:${n(q)}"></div>`
+    `border:${n(width)}px solid ${color};border-radius:${n(radius + pad)}px;box-sizing:border-box;opacity:${n(q)}"></div>`
 }
 
 // A pointer through keys [{ at, x, y }] (frame px), moving on a gentle arc
