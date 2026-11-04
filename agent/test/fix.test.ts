@@ -203,7 +203,9 @@ test('build: phases and shots told as events, in order; the parts\' test sheet i
       seen = fs.readFileSync(path.join(project, code), 'utf8')
       return [use('w1', 'write_file', { path: code, content: original })]
     },
-    [{ type: 'text', text: 'Shot built.' }]
+    [{ type: 'text', text: 'Shot built.' }],
+    // A second look by a reviewer that didn't build it: nothing failed, so no fix follows
+    [{ type: 'text', text: 'Looks right.' }]
   ])
   try {
     const { code: exit, events } = await runAgent(['build', project], api.url)
@@ -222,10 +224,38 @@ test('build: phases and shots told as events, in order; the parts\' test sheet i
     assert.deepEqual(result.touched, [code, 'world/parts/part-1.js'].sort())
     // Each step recorded with the project: what it was, its tokens, its time
     const spent = fs.readFileSync(path.join(project, '.shotloop', 'ai-usage.jsonl'), 'utf8').trim().split('\n').map(l => JSON.parse(l))
-    assert.deepEqual(spent.map(e => [e.task, e.step.kind]), [['build', 'world'], ['build', 'part'], ['build', 'shot']])
+    assert.deepEqual(spent.map(e => [e.task, e.step.kind]), [['build', 'world'], ['build', 'part'], ['build', 'shot'], ['build', 'check']])
     assert.equal(spent[2].step.shot, SHOT)
     assert.ok(spent.every(e => e.ok && e.backend === 'api:anthropic' && e.input >= 1 && e.output >= 1 && e.turns >= 1 && e.ms >= 0))
     assert.equal(new Set(spent.map(e => e.run)).size, 1)
+  } finally {
+    api.close()
+    fs.rmSync(project, { recursive: true, force: true })
+  }
+})
+
+test('build: a reviewer that didn\'t build the shot checks it, and what fails goes back to be fixed', async () => {
+  const project = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-agent-'))
+  fs.cpSync(EXAMPLE, project, { recursive: true, filter: src => !/\.shotloop|\/out(\/|$)/.test(src) })
+  const cfgFile = path.join(project, 'shotloop.json')
+  const cfg = JSON.parse(fs.readFileSync(cfgFile, 'utf8'))
+  cfg.shots = cfg.shots.filter((s: { id: string }) => s.id === SHOT)
+  fs.writeFileSync(cfgFile, JSON.stringify(cfg, null, 2))
+  fs.writeFileSync(path.join(project, 'storyboard.json'), JSON.stringify({ shots: [], recurring: [] }))
+  const api = await mockApi([
+    [{ type: 'text', text: 'World ready.' }],
+    [{ type: 'text', text: 'Shot built.' }],
+    [use('c1', 'report_checks', { shot: SHOT, results: [{ rule: 'clean', pass: false, note: 'the label shakes' }], summary: 'One fails.' })],
+    [{ type: 'text', text: 'One fails.' }],
+    [{ type: 'text', text: 'Fixed.' }]
+  ])
+  try {
+    const { code: exit, events } = await runAgent(['build', project], api.url)
+    assert.equal(exit, 0, JSON.stringify(events.filter(e => e.type === 'error')))
+    const spent = fs.readFileSync(path.join(project, '.shotloop', 'ai-usage.jsonl'), 'utf8').trim().split('\n').map(l => JSON.parse(l))
+    assert.deepEqual(spent.map(e => e.step.kind), ['world', 'shot', 'check', 'fix'])
+    // The fix is told what the reviewer saw
+    assert.match(JSON.stringify(api.requests.at(-1).messages[0].content), /clean: the label shakes/)
   } finally {
     api.close()
     fs.rmSync(project, { recursive: true, force: true })

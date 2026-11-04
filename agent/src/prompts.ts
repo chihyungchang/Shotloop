@@ -75,7 +75,7 @@ export function checkSystem(track: Track, voice = false) {
 
 ${format(track)}${coding(track, voice)}
 
-A check only reviews: read the shot's code and notes, look at the stills (render them once if they are missing or out of date), judge every checklist rule, and call report_checks with a result for each. Never edit files; the person asks for a fix of what you found.
+A check only reviews: read the shot's code and notes, look at the stills (render them once if they are missing or out of date), judge every checklist rule, and call report_checks with a result for each. Judge what the stills show, never what the code means to show: a rule passes only when you can see it hold in every still. Never edit files; the person asks for a fix of what you found.
 
 The report, in Markdown, each item on its own line: one sentence on how the shot did, then a bullet per failed rule ("- **<rule id>**: what is wrong and where"), then, if any, a bullet or two on what else is worth a look. No headings.`
 }

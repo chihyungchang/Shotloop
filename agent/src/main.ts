@@ -523,12 +523,42 @@ async function buildShots(project: ProjectStatus, b: Build) {
         maxTurns: 30
       })
       b.done.push(`${shot.id}: ${summary}`)
+      collect(b, project, ctx)
+      await reviewShot(project, shot, b, world)
     } catch (err) {
       b.failed.push(`${shot.id}: ${reason(err)}`)
+      collect(b, project, ctx)
     }
-    collect(b, project, ctx)
     emit({ type: 'shot', id: shot.id, state: 'done' })
   })
+}
+
+// A second look at a built shot: a reviewer that didn't write it judges
+// its stills against the checklist (quick, low effort), since a builder
+// passes its own work too easily; what fails goes back to a builder once
+async function reviewShot(project: ProjectStatus, shot: ShotStatus, b: Build, world: string) {
+  const brief = `${shotBrief(project, shot)}${promoBrief(project)}`
+  const look = context(project.root, [])
+  await runAgent('routine', {
+    step: { kind: 'check', shot: shot.id },
+    effort: 'low',
+    system: checkSystem(project.track, !!project.voiced) + replyLanguage(values.lang),
+    prompt: `Review shot ${shot.id} against the checklist and report. Do not edit files.\n\n${brief}`,
+    ctx: look
+  })
+  saveChecks(project, look)
+  const failed = look.checks.at(-1)?.results.filter(r => !r.pass) ?? []
+  if (!failed.length) return
+  const ctx = context(project.root, [`shots/${shot.id}/`])
+  await runAgent('code', {
+    step: { kind: 'fix', shot: shot.id },
+    effort: SHOT_EFFORT,
+    system: buildShotSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
+    prompt: `Shot ${shot.id} of ${head(project)} was reviewed from its stills, and these rules fail:\n${failed.map(r => `- ${r.rule}: ${r.note}`).join('\n')}\n\nFix them, render its stills and check it again.\n\n${world}\n\n${brief}`,
+    ctx,
+    maxTurns: 20
+  })
+  collect(b, project, ctx)
 }
 
 // Stills out of date (a shot that never rendered, a world changed after
