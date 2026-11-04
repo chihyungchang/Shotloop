@@ -318,7 +318,8 @@ const SHOT_EFFORTS = ['low', 'medium', 'high'] as const
 const SHOT_EFFORT = SHOT_EFFORTS.find(e => e === process.env.SHOTLOOP_SHOT_EFFORT) ?? 'low'
 
 // A second look at each built shot by a reviewer that didn't build it:
-// on unless turned off, for a quicker build (SHOTLOOP_REVIEW=off)
+// on unless turned off, for a quicker build (SHOTLOOP_REVIEW=off); the
+// engine's measure, which costs no images, runs either way
 const REVIEW = process.env.SHOTLOOP_REVIEW !== 'off'
 
 // What a build has done so far, across its phases
@@ -528,7 +529,7 @@ async function buildShots(project: ProjectStatus, b: Build) {
       })
       b.done.push(`${shot.id}: ${summary}`)
       collect(b, project, ctx)
-      if (REVIEW) await reviewShot(project, shot, b, world)
+      await reviewShot(project, shot, b, world)
     } catch (err) {
       b.failed.push(`${shot.id}: ${reason(err)}`)
       collect(b, project, ctx)
@@ -537,11 +538,17 @@ async function buildShots(project: ProjectStatus, b: Build) {
   })
 }
 
-// A second look at a built shot: a reviewer that didn't write it judges
-// its stills against the checklist (quick, low effort), since a builder
-// passes its own work too easily; what fails goes back to a builder once
+// A second look at a built shot. First what the engine measures in its
+// page (overlaps, cuts, the desktop, empty bands): exact and costing no
+// images, so a fault found there goes straight back to be fixed. Then,
+// with nothing measured wrong, a reviewer that didn't write the shot
+// judges its stills against the checklist (quick, low effort), since a
+// builder passes its own work too easily; what fails goes back once
 async function reviewShot(project: ProjectStatus, shot: ShotStatus, b: Build, world: string) {
   const brief = `${shotBrief(project, shot)}${promoBrief(project)}`
+  const measured = (await renderStills(project.root, shot.id).catch(() => null))?.layout ?? []
+  if (measured.length) return fixShot(project, shot, b, world, brief, 'measured in its page', measured.map(i => `- ${i.rule}, ${i.from.toFixed(1)}–${i.to.toFixed(1)} s: ${i.what}`))
+  if (!REVIEW) return
   const look = context(project.root, [])
   await runAgent('routine', {
     step: { kind: 'check', shot: shot.id },
@@ -552,13 +559,17 @@ async function reviewShot(project: ProjectStatus, shot: ShotStatus, b: Build, wo
   })
   saveChecks(project, look)
   const failed = look.checks.at(-1)?.results.filter(r => !r.pass) ?? []
-  if (!failed.length) return
+  if (failed.length) await fixShot(project, shot, b, world, brief, 'reviewed from its stills', failed.map(r => `- ${r.rule}: ${r.note}`))
+}
+
+// What a review or the measure found, back to a builder once
+async function fixShot(project: ProjectStatus, shot: ShotStatus, b: Build, world: string, brief: string, how: string, faults: string[]) {
   const ctx = context(project.root, [`shots/${shot.id}/`])
   await runAgent('code', {
     step: { kind: 'fix', shot: shot.id },
     effort: SHOT_EFFORT,
     system: buildShotSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
-    prompt: `Shot ${shot.id} of ${head(project)} was reviewed from its stills, and these rules fail:\n${failed.map(r => `- ${r.rule}: ${r.note}`).join('\n')}\n\nFix them, render its stills and check it again.\n\n${world}\n\n${brief}`,
+    prompt: `Shot ${shot.id} of ${head(project)} was ${how}, and these rules fail:\n${faults.join('\n')}\n\nFix them, render its stills and check it again.\n\n${world}\n\n${brief}`,
     ctx,
     maxTurns: 20
   })

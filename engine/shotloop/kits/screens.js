@@ -1,52 +1,52 @@
-// world/screens.js: a product promo's shots: the product explained with
-// drawn pieces in its own visual system, and proved with its real screens.
-// It is the engine's (engine/shotloop/kits/screens.js), kept current in every
-// promo's world before each command: never edit it here; a promo's own
-// pieces go in world/*.js modules beside it. Shots import what they use:
+// world/screens.js: a product promo's shots, the product shown on its own
+// screens on a simulated Mac desktop. It is the engine's
+// (engine/shotloop/kits/screens.js), kept current in every promo's world
+// before each command: never edit it here; a promo's own pieces go in
+// world/*.js modules beside it. The rules it serves are the promo's
+// (Settings → Rules, kind promo); use these pieces rather than drawing
+// your own, so the rules hold by construction.
 //
-//   import { load, depth, layout, source, chapter, headline, row, counter, steps, bubble, compare, wipe, endCard,
-//     desktop, desktopPoint, shot, camera, follow, drift, cursor, typing, field, livePart, fill } from '../../world/screens.js'
-//
-// The craft it follows is the promo's taste (Settings → Rules, kind
-// promo), after oliverz.dev's product films: the problem first, then the
-// product's answer in the same picture; numbered chapters with big
-// headlines; diagrams for the mechanism, screens as proof; short calm
-// rises, wipes at the cuts, nothing frozen; the product's own ground,
-// accent and fonts; screens always sharp.
-//
-// Material, named by its place in the project:
-// - pictures: "images/…" (the person's), "repo/pictures/…" (the
-//   repository's screenshots), "site/hero.png", "site/framed/…",
-//   "site/parts/…" (the page's), with their size in pixels (the plan
-//   lists them);
-// - live parts: "site/live/NN-name.json", parts of the page kept as HTML,
-//   sharp at any size, whose fields can be typed into (livePart, fill);
-// - the page's fonts: "site/fonts.css" (--brand-head, --brand-mono, used
-//   by the drawn pieces).
-// Load what a shot shows once, in setup:
-//
-//   export const setup = () => load('site/fonts.css', 'repo/pictures/01-studio.jpg')
+// What there is, by job (each documented where it is defined):
+//   material   load(...files) in setup; url(file)
+//   layout     layout('auto') the beat's boxes: words, picture (the
+//              desktop beside or under the headline, whichever shows it
+//              largest), source line; words.under for what goes below a
+//              headline. screenBox(box) the 16:10 screen in a box
+//   the screen desktop({ box, windows, view, app, dock }) one Mac desktop,
+//              the same box every beat; a window { file, width, height,
+//              x, y, w, title, over, draw }; desktopPoint() a picture
+//              point for the camera. shot() a picture without a desktop
+//              (only for what isn't a product screen)
+//   on it      draw: HTML in the picture's own px, moving with it to the
+//              pixel: mark({ region }) a highlight, field() typed words.
+//              Find a control's region with the find_text tool, never by
+//              eye. Never lay anything over the desktop from outside it:
+//              it shakes as the camera moves
+//   camera     camera(t, keys), follow(t, clicks), drift() for a landed
+//              screen; cursor(t, { path, clicks }) on kit.stage
+//   words      chapter(), headline() (always: its size from layout()),
+//              steps(), bubble(), counter(), row(), compare(), source()
+//   cuts, ends wipe(), endCard()
 //
 // Two layers, both drawn the same at any t:
 // - depth(...html) sets the depth layer for this frame (call it every
-//   frame), later parts over earlier ones: shot() and livePart() first,
-//   then field(), the words (chapter, headline…) and wipe() last, so a
-//   window the camera moves in on never covers the words. layout() gives
-//   each beat's boxes with room between words, picture and source line:
-//   place the pieces there rather than by hand.
-//   It returns the layer, so a live part's field can be filled after.
+//   frame), later parts over earlier ones: the desktop first, the words
+//   (chapter, headline…) and wipe() last. It returns the layer, so a live
+//   part's field can be filled after.
 // - kit.stage(svg) above it: cursor().
 //
-// The camera's moves (in to a click, along to the next, a window dragged)
-// happen on a desktop(): a simulated screen in its own box, so nothing
-// else in the frame moves, and what the camera follows sits in its middle.
-// A shot sits in stageBox() unless given a box: the product running off
-// the bottom and the right. Its camera: { x, y } the point of the picture
-// at the box's centre (0–1 across and down it), zoom 1 the whole picture
-// fitted in the box; camera() moves it through keys on a spring, follow()
-// makes those keys from clicks, drift() keeps a landed screen pushing in.
-// A view never goes closer than the picture's own pixels allow (it would
-// blur), and a picture larger than its box never shows past its edges.
+// Material, named by its place in the project: "images/…" (the person's),
+// "repo/pictures/…" and "repo/logo.png" (the repository's), "site/…" (the
+// page's: hero.png, framed/, parts/, live/NN-name.json, fonts.css with
+// --brand-head and --brand-mono for the words), each with its size in
+// pixels (the brief lists them).
+//
+// The camera moves (in to a click, along to the next, a window dragged)
+// happen on the desktop, so nothing else in the frame moves, and what it
+// follows sits in its middle. A view never goes closer than the picture's
+// own pixels allow (it would blur). The engine measures every render
+// (render_stills says what it found): text over text, text cut off, the
+// desktop's size and place, empty bands, anything laid over the screen.
 
 const kit = () => window.kit
 // Output pixels per page pixel: the final film is 1080×1920 (or 1920×1080)
@@ -459,7 +459,7 @@ export function desktop({ box: given, windows, view = { x: 0.5, y: 0.5, zoom: 1 
       `<div style="position:absolute;left:0;top:0;transform:scale(${w.s});transform-origin:0 0">${layers(w.file, w.width, w.height, w.over, w.draw)}</div></div></div>`
   }).join('')
   const q = clamp(p)
-  const html = mb.svg + `<div style="position:absolute;left:${n(box.x)}px;top:${n(box.y)}px;width:${n(box.w)}px;height:${n(box.h)}px;overflow:hidden;border-radius:${n(12 * u)}px;` +
+  const html = mb.svg + `<div data-kit="desktop" style="position:absolute;left:${n(box.x)}px;top:${n(box.y)}px;width:${n(box.w)}px;height:${n(box.h)}px;overflow:hidden;border-radius:${n(12 * u)}px;` +
     `background:#2c3f86;box-shadow:${SHADOW(u)};opacity:${n(clamp(q * 1.6))};transform:translateY(${n((1 - arrive(q * 1.4, 0)) * 30 * u)}px)">` +
     `<div style="position:absolute;left:0;top:0;width:${n(box.w)}px;height:${n(box.h)}px;transform:translate(${n(tx)}px,${n(ty)}px) scale(${n(z * 1000) / 1000});transform-origin:0 0;${mb.css}">` +
     `${wallpaper}${windowHtml}${menu}${dockHtml}</div></div>`
@@ -583,7 +583,7 @@ export function cursor(t, { path, clicks = [], p = 1, size }) {
   if (o <= 0) return rings
   const k = (size / 24) * (1 - 0.2 * press)
   const lean = clamp(vx / (W * 2), -1, 1) * 8
-  return rings + `<g transform="translate(${n(x)} ${n(y)}) rotate(${n(lean)}) scale(${n(k)})" opacity="${n(o)}" style="filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))">` +
+  return rings + `<g data-kit="cursor" transform="translate(${n(x)} ${n(y)}) rotate(${n(lean)}) scale(${n(k)})" opacity="${n(o)}" style="filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))">` +
     '<path d="M0 0L0 19.5L4.7 15.2L8 22.6L11.6 21L8.4 13.8L14.6 13.4Z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></g>'
 }
 
@@ -711,7 +711,7 @@ export function headline(t, { lines, x, y, at = 0, size, width, color, step = 0.
     return `<span style="display:block;overflow:hidden;padding-bottom:.08em"><span style="display:block;transform:translateY(${n((1 - q) * 110)}%);color:${i ? C.muted : color ?? C.text}">` +
       `${esc(line).replace(/\*(.+?)\*/g, `<span style="color:${C.accent}">$1</span>`)}</span></span>`
   }).join('')
-  return `<div style="position:absolute;left:${n(x ?? margin())}px;top:${n(y)}px;${width ? `width:${n(width)}px;` : `width:${n(W - 2 * margin())}px;`}` +
+  return `<div data-kit="headline" style="position:absolute;left:${n(x ?? margin())}px;top:${n(y)}px;${width ? `width:${n(width)}px;` : `width:${n(W - 2 * margin())}px;`}` +
     `font:900 ${n(fs)}px/0.98 ${HEAD()};letter-spacing:-0.035em">${html}</div>`
 }
 

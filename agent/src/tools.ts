@@ -352,6 +352,11 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
       if (r.subtitles) text.push(r.subtitles.length
         ? `Subtitle check: the voice-over's subtitles would cover\n${r.subtitles.map(i => `- ${i.from.toFixed(1)}–${i.to.toFixed(1)} s: ${i.what}`).join('\n')}\nMove it out of the subtitle band, or let it pass under only if it is background.`
         : 'Subtitle check: nothing the viewer must see is under the subtitles.')
+      // The layout as the engine measured it in the page: exact, where the
+      // stills would be judged by eye
+      if (r.layout) text.push(r.layout.length
+        ? `Layout check (measured in the page, every 0.1 s):\n${r.layout.map(i => `- ${i.rule}, ${i.from.toFixed(1)}–${i.to.toFixed(1)} s: ${i.what}`).join('\n')}\nFix each; these are measured, not opinions.`
+        : 'Layout check: nothing measured wrong (overlaps, cuts, the desktop\'s size and place, empty bands, anything laid over the screen).')
       // The exposure check: blown areas striped, beside the stills
       const blown = (r.exposure ?? []).map((e, i) => ({ ...e, name: STILL_NAMES[i] })).filter(e => e.zebra)
       if (blown.length) {

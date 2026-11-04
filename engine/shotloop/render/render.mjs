@@ -12,6 +12,7 @@ import { frameCount, projectPath } from '../project/project.mjs'
 import { renderFrames2d } from './render2d.mjs'
 import { dressFilm } from '../voiceover/voice.mjs'
 import { checkSubtitles, describeIssues } from '../voiceover/check.mjs'
+import { describeLayout, layoutResult, measureLayout } from './measure.mjs'
 
 // Local frame numbers of the three review stills
 export function stillFrames(project, shot) {
@@ -24,7 +25,8 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
   const what = stills ? 'stills' : 'clip'
   if (!force && (stills ? e.stills : e.clip)) {
     emit({ type: 'log', message: `${shot.id}: ${mode} ${what} cached (${e.key})` })
-    return { shot: shot.id, mode, key: e.key, cached: true, ...(await outputs(project, shot, e, mode)) }
+    const layout = layoutResult(project, shot)
+    return { shot: shot.id, mode, key: e.key, cached: true, ...(await outputs(project, shot, e, mode)), ...(layout ? { layout } : {}) }
   }
 
   // A voiced shot is checked for what its subtitles would cover first
@@ -71,7 +73,9 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
     const out = await outputs(project, shot, done, mode)
     const take = addTake(project, shot, { mode, kind: what, key: e.key, parts: keyParts(project, shot, mode), seconds, ...out })
     emit({ type: 'done', shot: shot.id, mode, what, key: e.key, seconds, take: take.take })
-    return { shot: shot.id, mode, key: e.key, cached: false, take: take.take, seconds, ...out, ...(subtitles ? { subtitles } : {}) }
+    // Measured with the stills, the review's render; a clip for the film isn't held up
+    const layout = stills ? await layoutCheck(project, shot) : null
+    return { shot: shot.id, mode, key: e.key, cached: false, take: take.take, seconds, ...out, ...(subtitles ? { subtitles } : {}), ...(layout ? { layout } : {}) }
   } catch (err) {
     recordError(project, shot, mode, err)
     throw err
@@ -92,6 +96,21 @@ async function subtitleCheck(project, shot) {
   } catch (err) {
     // The check is advice before a render: the render goes on, and says why
     emit({ type: 'log', message: `subtitle check skipped: ${err.message}` })
+    return null
+  }
+}
+
+// The layout measured after a render, from the code just drawn; like the
+// subtitle check it is advice, and a failure to measure doesn't fail the
+// render
+async function layoutCheck(project, shot) {
+  try {
+    const issues = await measureLayout(project, shot)
+    if (!issues) return null
+    for (const l of describeLayout(issues)) emit({ type: 'log', message: `${shot.id} layout: ${l.slice(2)}` })
+    return issues
+  } catch (err) {
+    emit({ type: 'log', message: `layout check skipped: ${err.message}` })
     return null
   }
 }

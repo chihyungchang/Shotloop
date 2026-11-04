@@ -353,6 +353,16 @@ export interface RenderResult {
   // --stills of a 3D shot: each still's areas blown to white (exposure.mjs);
   // null when the check couldn't run
   exposure?: StillExposure[] | null
+  // A promo shot's layout as measured in its page (render/measure.mjs)
+  layout?: LayoutIssue[]
+}
+
+// A layout fault: the rule it breaks, when, and what (render/measure.mjs)
+export interface LayoutIssue {
+  rule: string
+  from: number
+  to: number
+  what: string
 }
 
 export interface StillExposure {
