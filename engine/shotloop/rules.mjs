@@ -137,7 +137,7 @@ const FIXED = [
   },
   {
     id: 'promo-aligned', track: 'all', kind: 'promo', locked: true, name: 'Aligned, nothing stray',
-    rule: 'What belongs together lines up: a logo centred on its name\'s capital height and spaced from it as the brand sets them, a lockup\'s name, rule and line on one left edge, labels and chips on a shared edge, a headline\'s lines on one left edge. Nothing stray: no leftover box, outline or shape the design doesn\'t use.',
+    rule: 'What belongs together lines up: a logo centred on its name\'s capitals, a lockup\'s name, rule and line on one left edge, labels and chips on a shared edge, a headline\'s lines on one left edge. Nothing stray: no leftover box, outline or shape the design doesn\'t use.',
     check: 'The logo sits centred on its name\'s capital height; parts of a group share an edge; no leftover box or outline anywhere.'
   },
   {
@@ -308,6 +308,11 @@ const TASTE = [
     id: 'promo-one-focus', track: 'all', kind: 'promo', name: 'One focus at a time, quietly marked',
     rule: 'Attention goes to one place at a time and can\'t be missed: the thing that matters is marked while the rest dims. A mark on the product\'s screen is quiet: a thin, crisp outline in a colour of the screen\'s own (its accent) or plain ink, never the film\'s loud brand colour, a glow or a fill over someone\'s UI; a label chip on it small and neutral. A pointer, when one is needed, is large, moves on a smooth curve and clicks visibly.',
     check: 'One clear focus at each moment; marks on the screen are thin and quiet in colour, no loud brand colour or glow over the UI.'
+  },
+  {
+    id: 'promo-lockup', track: 'all', kind: 'promo', name: 'Logo and name as one',
+    rule: 'Where the logo stands with the product\'s name (the title, the end card), it is as tall as the name\'s capitals and sits just before it, the two read as one mark; the name in the product\'s own font and weight.',
+    check: 'The logo is as tall as the name\'s capitals, right before it, one mark.'
   },
   {
     id: 'promo-brand', track: 'all', kind: 'promo', name: 'The product\'s own visual system',
