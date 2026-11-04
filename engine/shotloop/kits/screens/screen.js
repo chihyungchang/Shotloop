@@ -41,9 +41,11 @@ export function place(width, height, box, view) {
   return { s, left: box.x + box.w / 2 - cx * width * s, top: box.y + box.h / 2 - cy * height * s }
 }
 
-// A motion blur for a layer panning vx, vy page px a second: how far it
-// travels while a shutter of half a frame is open, as an SVG filter; none
-// under a pixel. Zooms get none: a radial smear reads as a lost focus
+// A motion blur for a layer panning vx, vy page px a second, from how far
+// it travels while a shutter of half a frame is open: a Gaussian a third
+// of that wide reads as that smear (a camera's is even along the move),
+// capped so a quick pan still shows the screen; none under a pixel. Zooms
+// get none: a radial smear reads as a lost focus
 export function blur(vx, vy) {
   const per = 0.5 / fps()
   const bx = Math.abs(vx) * per, by = Math.abs(vy) * per
@@ -51,7 +53,7 @@ export function blur(vx, vy) {
   const id = `mb${++uid}`
   return {
     css: `filter:url(#${id});`,
-    svg: `<svg width="0" height="0" style="position:absolute"><filter id="${id}" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="${n(Math.min(bx, 16))} ${n(Math.min(by, 16))}"/></filter></svg>`
+    svg: `<svg width="0" height="0" style="position:absolute"><filter id="${id}" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="${n(Math.min(bx / 3, 6))} ${n(Math.min(by / 3, 6))}"/></filter></svg>`
   }
 }
 
