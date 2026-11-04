@@ -225,6 +225,28 @@ export function desktopPoint({ box: given, windows }, i, px, py) {
   return { x: (w.x + px * w.s) / box.w, y: (w.y + w.bar + py * w.s) / box.h }
 }
 
+// A value held in [lo, hi]; soft eases it into either end over k (the
+// same speed where it enters, none where it stops), so a move that
+// reaches an end slows into it instead of stopping dead
+function hold(v, lo, hi, soft) {
+  const k = soft ? Math.min(0.03, (hi - lo) / 2) : 0
+  if (k <= 0) return clamp(v, lo, hi)
+  if (v > hi - k) return v >= hi + k ? hi : v - (v - hi + k) ** 2 / (4 * k)
+  if (v < lo + k) return v <= lo - k ? lo : v + (lo + k - v) ** 2 / (4 * k)
+  return v
+}
+
+// The view a desktop shows for a camera's { x, y, zoom } (desktop
+// fractions), its windows placed (desktopWindows): no closer than the
+// pictures' pixels, the point held inside the screen as a screen
+// recording's is (a click by its edge is followed without showing past it)
+export function desktopView(wins, view, soft = false) {
+  // Sharp: the window shown largest sets how close the camera may come
+  const z = hold(view.zoom, 0.5, Math.max(1, Math.min(...wins.map(w => 1 / OUT / w.s))), soft)
+  const along = c => (z > 1 ? hold(c, 0.5 / z, 1 - 0.5 / z, soft) : 0.5)
+  return { x: along(view.x), y: along(view.y), zoom: z }
+}
+
 // The desktop: a 16:10 screen in box { x, y, w, h } (screenBox), its windows [{ file, width, height,
 // x, y, w, title, p, over, draw }] (over and draw as shot()'s) (p brings a window in; x, y may change with t
 // to drag it), seen by view { x, y, zoom } (a camera(t, keys) over desktop
@@ -239,21 +261,19 @@ export function desktop({ box: given, windows, view = { x: 0.5, y: 0.5, zoom: 1 
   const box = screenBox(given)
   const u = unit()
   const wins = desktopWindows(windows, u)
-  // Sharp: the window shown largest sets how close the camera may come
-  const sharp = Math.min(...wins.map(w => 1 / OUT / w.s))
-  const z = clamp(view.zoom, 0.5, Math.max(1, sharp))
+  const { x: vx, y: vy, zoom: z } = desktopView(wins, view, true)
   const cx = box.w / 2, cy = box.h / 2
-  // The view held inside the screen, as a screen recording's is: a click
-  // by its edge is followed without showing past it
-  const vx = z > 1 ? clamp(view.x, 0.5 / z, 1 - 0.5 / z) : 0.5
-  const vy = z > 1 ? clamp(view.y, 0.5 / z, 1 - 0.5 / z) : 0.5
   // Desktop px → box px: the view's point to the box's centre
   const tx = cx - vx * box.w * z, ty = cy - vy * box.h * z
   const at = (i, px, py) => {
     const w = wins[i]
     return { x: box.x + tx + (w.x + px * w.s) * z, y: box.y + ty + (w.y + w.bar + py * w.s) * z }
   }
-  const mb = blur((view.vx ?? 0) * box.w * z, (view.vy ?? 0) * box.h * z)
+  // Blurred by how the screen moves as shown, a frame back along the
+  // camera's speed: a move held at an edge or at the zoom's limit is still
+  const h = 1 / fps()
+  const back = desktopView(wins, { x: view.x - (view.vx ?? 0) * h, y: view.y - (view.vy ?? 0) * h, zoom: view.zoom * Math.exp(-(view.vz ?? 0) * h) }, true)
+  const mb = blur((vx - back.x) / h * box.w * z, (vy - back.y) / h * box.h * z)
   // The screen: a soft blue wallpaper (drawn, wider than the desktop so
   // no edge shows when the camera centres something near one), a menu
   // bar, a Dock

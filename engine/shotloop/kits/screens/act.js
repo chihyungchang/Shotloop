@@ -4,14 +4,15 @@
 // field just clicked, and what the action brings shows as the window's
 // next picture. Part of the screens kit (world/screens.js, which documents
 // it and re-exports its pieces); the engine's, never edited here.
-import { clamp, esc, kit, n } from './base.js'
+import { clamp, esc, kit, n, unit } from './base.js'
 import { cursor } from './cursor.js'
-import { camera, follow, typing } from './motion.js'
-import { desktopPoint } from './screen.js'
+import { SPRINGS, camera, typing } from './motion.js'
+import { desktopPoint, desktopView, desktopWindows } from './screen.js'
 
 // Seconds: the pointer's glide to a control, the pause after a click or
-// the last word, a picture's crossfade into the next
-const MOVE = 0.7, AFTER = 0.35, SHOW = 0.45
+// the last word, a picture's crossfade into the next, the camera's glide
+// (motion.js SPRINGS), how long it stays on a last click that shows nothing
+const MOVE = 0.7, AFTER = 0.35, SHOW = 0.45, GLIDE = SPRINGS.glide.over, HOLD = 1.2
 
 // One action on window i of a desktop (box and windows as desktop()
 // takes them). steps, in order:
@@ -51,13 +52,21 @@ export function act(t, { box, windows, window: i = 0, steps, at = 0, zoom = 1.6,
   const win = windows[i]
   const centre = r => ({ px: r.x + r.w / 2, py: r.y + r.h / 2 })
   const clicks = timed.filter(s => s.kind === 'click').map(s => ({ at: s.at, ...centre(s.region) }))
-  // The camera comes in to each click early and calmly (a quick pan
-  // blurs the screen it shows), and steps back to the whole window as
-  // the next picture shows, so what the action brought is seen whole
+  // The camera glides in to each click and pans from one click to the
+  // next (a step back between them reads as a hitch), arriving as the
+  // pointer clicks; it steps back to the whole window as the next picture
+  // shows, so what the action brought is seen whole, or a moment after a
+  // last click that shows nothing. It aims where the desktop can look (a
+  // control by the screen's edge is seen from inside it), so no move is
+  // cut short at an edge
+  const wins = desktopWindows(windows, unit())
   const shows = timed.filter(s => s.kind === 'show')
+  const last = clicks.at(-1)
   const keys = [
-    ...follow(clicks.map(c => ({ at: c.at, ...desktopPoint({ box, windows }, i, c.px, c.py) })), { base, zoom, pre: 0.6, spring: 'gentle' }),
-    ...shows.map(s => ({ at: s.at, ...base, spring: 'gentle' }))
+    { at: -Infinity, ...base },
+    ...clicks.map(c => ({ at: Math.max(at, c.at - GLIDE), ...desktopView(wins, { ...desktopPoint({ box, windows }, i, c.px, c.py), zoom }), spring: 'glide' })),
+    ...shows.map(s => ({ at: s.at, ...base, spring: 'glide' })),
+    ...(last && !shows.some(s => s.at > last.at) ? [{ at: last.at + HOLD, ...base, spring: 'glide' }] : [])
   ].sort((x, y) => x.at - y.at)
   const view = camera(t, keys)
 
