@@ -160,6 +160,9 @@ const LOOK = `((promo, beat) => {
   }
   // The beat the plan made it: its cards from the kit, its drawing big
   // enough for its box
+  if (beat && (beat.beat === 'title' || beat.beat === 'end') && document.querySelector('[data-kit="card"]') && document.querySelector('[data-kit="headline"], [data-kit="chapter"]')) {
+    out.push({ kind: 'card', rule: 'promo-open-close', what: 'the ' + (beat.beat === 'title' ? 'title' : 'end card') + ' has a headline or a chapter label besides its card: a card stands alone' })
+  }
   if (beat && (beat.beat === 'title' || beat.beat === 'end') && !document.querySelector('[data-kit="card"]')) {
     out.push({ kind: 'card', rule: 'promo-open-close', what: 'the ' + (beat.beat === 'title' ? 'title' : 'end card') + ' is not drawn with the kit\\'s ' + (beat.beat === 'title' ? 'titleCard()' : 'endCard()') + ', which sets the logo and name as one mark at a size that fits' })
   }

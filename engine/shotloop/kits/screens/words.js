@@ -26,7 +26,7 @@ export function chapter(t, { number, title, name = '', at = 0, color }) {
   const u = unit(), m = margin()
   const q = rise(t, at, 0.4)
   const ink = color ?? C.text
-  return `<div style="position:absolute;left:${n(m)}px;top:${n(40 * u)}px;width:${n(W - 2 * m)}px;display:flex;justify-content:space-between;` +
+  return `<div data-kit="chapter" style="position:absolute;left:${n(m)}px;top:${n(40 * u)}px;width:${n(W - 2 * m)}px;display:flex;justify-content:space-between;` +
     `padding-bottom:${n(12 * u)}px;border-bottom:${n(RULE())}px solid ${ink};clip-path:inset(0 ${n((1 - q) * 100)}% 0 0);` +
     `font:500 ${n(15 * u)}px/1 ${MONO()};letter-spacing:.08em;text-transform:uppercase;color:${ink}">` +
     `<span>${String(number).padStart(2, '0')} — ${esc(title)}</span><span>${esc(name)}</span></div>`

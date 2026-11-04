@@ -116,7 +116,8 @@ export function cardBoxes(page, { logo = true, name = '' } = {}) {
     big,
     logo: mark,
     name: { x: mark ? m + cap + big * 0.22 : m, y: base - cap, h: cap, size: big },
-    line: { x: m, y: H * 0.79, size: 38 * u },
+    // the line's foot: under the name's descenders (a p, a g) and a gap
+    line: { x: m, y: base + big * 0.34 + 38 * u, size: 38 * u },
     meta: { x: m, y: H - 48 * u - 34 * u, w: W - 2 * m, h: 34 * u }
   }
 }

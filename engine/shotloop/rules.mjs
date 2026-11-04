@@ -132,7 +132,7 @@ const FIXED = [
   },
   {
     id: 'promo-open-close', track: 'all', kind: 'promo', locked: true, name: 'A title and an end card',
-    rule: 'A promo opens on its title and closes on its end card. The title is the first thing seen, drawn with screens.js titleCard() and the end card with endCard(): the product\'s real logo and name (its one line may join them), held long enough to read, as a beat of its own or the first seconds of the first one, before the hook. The end card is the last beat: the name, the line to remember and where to get it. Title and end card are beats like any other: every frame of them a finished design (promo-fill), never a small block of words on an empty frame.',
+    rule: 'A promo opens on its title and closes on its end card. The title is the first thing seen, drawn with screens.js titleCard() and the end card with endCard(): the product\'s real logo and name (its one line may join them), held long enough to read, as a beat of its own or the first seconds of the first one, before the hook; the card stands alone, no headline or chapter label beside it. The end card is the last beat: the name, the line to remember and where to get it. Title and end card are beats like any other: every frame of them a finished design (promo-fill), never a small block of words on an empty frame.',
     check: 'The film\'s first frames show the product\'s logo and name, readable; its last beat is the end card with the name, the line and where to get it; both fill the frame as any beat must.'
   },
   {
@@ -306,7 +306,7 @@ const TASTE = [
   },
   {
     id: 'promo-one-focus', track: 'all', kind: 'promo', name: 'One focus at a time, quietly marked',
-    rule: 'Attention goes to one place at a time and can\'t be missed: the thing that matters is marked while the rest dims. A mark on the product\'s screen is quiet: a thin, crisp outline in a colour of the screen\'s own (its accent) or plain ink, never the film\'s loud brand colour, a glow or a fill over someone\'s UI; a label chip on it small and neutral. A pointer, when one is needed, is large, moves on a smooth curve and clicks visibly.',
+    rule: 'Attention goes to one place at a time and can\'t be missed: the thing that matters is marked while the rest dims. A mark on the product\'s screen is quiet and rare: what the pointer clicks needs none (the click shows it), and a box is drawn only round a result the viewer must notice after an action, one at a time; a thin, crisp outline in a colour of the screen\'s own (its accent) or plain ink, never the film\'s loud brand colour, a glow or a fill over someone\'s UI; a label chip on it small and neutral. A pointer, when one is needed, is large, moves on a smooth curve and clicks visibly.',
     check: 'One clear focus at each moment; marks on the screen are thin and quiet in colour, no loud brand colour or glow over the UI.'
   },
   {

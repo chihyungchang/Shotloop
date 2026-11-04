@@ -14,6 +14,12 @@ export function depth(...html) {
     layer.id = 'depth'
     layer.style.cssText = `position:absolute;left:0;top:0;overflow:hidden;pointer-events:none;perspective:${PERSPECTIVE}px`
     document.getElementById('stage').before(layer)
+    // What moves is moved as one picture (a layer of its own), smoothly
+    // by fractions of a pixel: text moved slowly otherwise lands its
+    // glyphs on whole pixels anew each frame and shakes
+    const smooth = document.createElement('style')
+    smooth.textContent = '#depth > *, #depth [data-kit] { will-change: transform }'
+    document.head.appendChild(smooth)
   }
   const { W, H } = kit()
   layer.style.width = `${W}px`
