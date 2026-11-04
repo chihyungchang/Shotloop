@@ -252,6 +252,10 @@ export function stageBox() {
 //   tilt: { x, y } degrees a window arrives at, flat once p is 1
 //   over: { file, opacity } a second picture of the same size on top, in
 //     the same view (a state change: what stays holds still)
+//   draw: HTML set on the picture in its own px (a highlight round a
+//     control, a badge, typed words): it moves with the picture to the
+//     pixel, where anything laid over the frame from outside would shake
+//     as the camera moves. mark() draws a highlight
 //   dim: 0–1 the picture dimmed and blurred, while the focus is elsewhere
 //   p: brings it in
 // Gives back { html, at(px, py) → frame px, scale, seen } so a cursor or
@@ -260,15 +264,18 @@ export function shot(opts) {
   return opts.frame === 'window' ? windowShot(opts) : boxShot(opts)
 }
 
-const layers = (file, width, height, over) => {
+// A picture, its next state over it, and what is drawn on it in its own
+// px (draw): all in one layer, so the camera moves them together to the
+// pixel
+const layers = (file, width, height, over, draw = '') => {
   const pic = (f, o) => `<div style="position:absolute;left:0;top:0;width:${width}px;height:${height}px;opacity:${n(o)};background:url(${url(f)}) 0 0/100% 100% no-repeat"></div>`
-  return pic(file, 1) + (over ? pic(over.file, clamp(over.opacity)) : '')
+  return pic(file, 1) + (over ? pic(over.file, clamp(over.opacity)) : '') + draw
 }
 const dimmed = (dim, u) => (dim > 0 ? `filter:brightness(${n(1 - 0.6 * clamp(dim))}) blur(${n(12 * u * clamp(dim))}px);` : '')
 const SHADOW = u => `0 0 0 1px rgba(255,255,255,.1),0 ${n(20 * u)}px ${n(60 * u)}px rgba(0,0,0,.18),0 ${n(2 * u)}px ${n(6 * u)}px rgba(0,0,0,.08)`
 
 // The camera within a box the picture fills
-function boxShot({ file, width, height, box, view = { x: 0.5, y: 0.5, zoom: 1 }, tilt = { x: 0, y: 0 }, over = null, dim = 0, p = 1 }) {
+function boxShot({ file, width, height, box, view = { x: 0.5, y: 0.5, zoom: 1 }, tilt = { x: 0, y: 0 }, over = null, draw = '', dim = 0, p = 1 }) {
   const { W, H } = kit()
   const u = unit()
   box ??= stageBox()
@@ -287,7 +294,7 @@ function boxShot({ file, width, height, box, view = { x: 0.5, y: 0.5, zoom: 1 },
   const html = mb.svg + `<div style="position:absolute;left:${n(box.x)}px;top:${n(box.y)}px;width:${n(box.w)}px;height:${n(box.h)}px;opacity:${n(clamp(q * 1.6))};${tf}overflow:hidden;` +
     (corners !== '0 0 0 0' ? `border-radius:${corners};box-shadow:${SHADOW(u)};` : '') + '">' +
     `<div style="position:absolute;left:0;top:0;width:${n(box.w)}px;height:${n(box.h)}px;overflow:hidden;${mb.css}${dimmed(dim, u)}">` +
-    `<div style="position:absolute;left:0;top:0;transform:translate(${n(left - box.x)}px,${n(top - box.y)}px) scale(${s});transform-origin:0 0">${layers(file, width, height, over)}</div></div></div>`
+    `<div style="position:absolute;left:0;top:0;transform:translate(${n(left - box.x)}px,${n(top - box.y)}px) scale(${s});transform-origin:0 0">${layers(file, width, height, over, draw)}</div></div></div>`
   return { html, at: (px, py) => ({ x: left + px * s, y: top + py * s }), scale: s, seen }
 }
 
@@ -295,7 +302,7 @@ function boxShot({ file, width, height, box, view = { x: 0.5, y: 0.5, zoom: 1 },
 // with its title bar; zoom z scales the whole window about the point the
 // view is on, which drifts toward the box's centre as it closes in (so
 // at z = 1 the window sits where it was placed)
-function windowShot({ file, width, height, box, view = { x: 0.5, y: 0.5, zoom: 1 }, tilt = { x: 0, y: 0 }, over = null, dim = 0, p = 1 }) {
+function windowShot({ file, width, height, box, view = { x: 0.5, y: 0.5, zoom: 1 }, tilt = { x: 0, y: 0 }, over = null, draw = '', dim = 0, p = 1 }) {
   const { W, H, C } = kit()
   const u = unit()
   const bar = 30 * u
@@ -330,7 +337,7 @@ function windowShot({ file, width, height, box, view = { x: 0.5, y: 0.5, zoom: 1
     `<div style="position:absolute;left:${n(wx)}px;top:${n(wy)}px;width:${n(ww)}px;height:${n(wh)}px;opacity:${n(clamp(q * 1.6))};overflow:hidden;border-radius:${n(12 * u)}px;box-shadow:${SHADOW(u)};${mb.css}` +
     `transform:translateY(${n(settle * 40 * u)}px) rotateX(${n((tilt.x ?? 0) * settle)}deg) rotateY(${n((tilt.y ?? 0) * settle)}deg)">${chrome}` +
     `<div style="position:absolute;left:0;top:${n(bar)}px;width:${n(ww)}px;height:${n(wh - bar)}px;overflow:hidden;${dimmed(dim, u)}">` +
-    `<div style="position:absolute;left:0;top:0;transform:scale(${s0});transform-origin:0 0">${layers(file, width, height, over)}</div></div></div></div></div>`
+    `<div style="position:absolute;left:0;top:0;transform:scale(${s0});transform-origin:0 0">${layers(file, width, height, over, draw)}</div></div></div></div></div>`
   return { html, at, scale: s0 * z, seen }
 }
 
@@ -387,7 +394,7 @@ export function desktopPoint({ box, windows }, i, px, py) {
 }
 
 // The desktop in box { x, y, w, h }, its windows [{ file, width, height,
-// x, y, w, title, p, over }] (p brings a window in; x, y may change with t
+// x, y, w, title, p, over, draw }] (over and draw as shot()'s) (p brings a window in; x, y may change with t
 // to drag it), seen by view { x, y, zoom } (a camera(t, keys) over desktop
 // fractions; follow() and desktopPoint() aim it at clicks). The view's
 // point is centred in the box; zoom never passes the pictures' pixels.
@@ -439,7 +446,7 @@ export function desktop({ box, windows, view = { x: 0.5, y: 0.5, zoom: 1 }, app 
     return `<div style="position:absolute;left:${n(w.x)}px;top:${n(w.y + rise)}px;width:${n(w.w)}px;height:${n(w.h)}px;opacity:${n(clamp(q * 1.6))};` +
       `border-radius:${n(10 * u)}px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.12),0 ${n(14 * u)}px ${n(36 * u)}px rgba(0,0,0,.22)">${chrome}` +
       `<div style="position:absolute;left:0;top:${n(w.bar)}px;width:${n(w.w)}px;height:${n(w.h - w.bar)}px;overflow:hidden">` +
-      `<div style="position:absolute;left:0;top:0;transform:scale(${w.s});transform-origin:0 0">${layers(w.file, w.width, w.height, w.over)}</div></div></div>`
+      `<div style="position:absolute;left:0;top:0;transform:scale(${w.s});transform-origin:0 0">${layers(w.file, w.width, w.height, w.over, w.draw)}</div></div></div>`
   }).join('')
   const q = clamp(p)
   const html = mb.svg + `<div style="position:absolute;left:${n(box.x)}px;top:${n(box.y)}px;width:${n(box.w)}px;height:${n(box.h)}px;overflow:hidden;border-radius:${n(12 * u)}px;` +
@@ -511,6 +518,25 @@ export function field(t, under, { region, text, at = 0, cps = 40, color = '#111'
 }
 
 // ---- The pointer, on the stage above ----
+
+// A highlight round a control of a picture, for a shot's or a window's
+// draw: region in picture px, hugging its edges, in a colour that stands
+// out against the screen: the first of the film's accents deep enough
+// to show on a light app (a lime doesn't), or ink. color sets it
+// (a dark screen wants the light accent); p fades it in. width: the line
+// in picture px
+const markColor = () => {
+  const { C } = kit()
+  return [C.accent, C.accent2, C.accent3].find(c => c && lightness(c) <= 0.65) ?? '#0a0a0a'
+}
+
+export function mark({ region, p = 1, color, width = 4, radius = 8 }) {
+  const q = clamp(p)
+  if (q <= 0) return ''
+  const pad = width
+  return `<div style="position:absolute;left:${n(region.x - pad)}px;top:${n(region.y - pad)}px;width:${n(region.w + 2 * pad)}px;height:${n(region.h + 2 * pad)}px;` +
+    `border:${n(width)}px solid ${color ?? markColor()};border-radius:${n(radius + pad)}px;box-sizing:border-box;opacity:${n(q)}"></div>`
+}
 
 // A pointer through keys [{ at, x, y }] (frame px), moving on a gentle arc
 // with a minimum-jerk ease and leaning into its move; it presses at each
