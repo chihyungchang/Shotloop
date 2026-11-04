@@ -1,0 +1,163 @@
+{
+  "target": 30,
+  "styleWhy": "The product is a desktop app, so the film is told on its own screens: a Mac desktop, its real windows, clicked and typed into.",
+  "styleAlt": "",
+  "look": "paper",
+  "lookWhy": "Shotloop's mood is calm, practical confidence — a maker's tool, not a hype product — and paper's warm off-white ground with heavy black type is the product's own site (#f1f1ee paper, #0a0a0a ink), with its lime accent carrying the end card.",
+  "lookTune": {
+    "accent": "#d4ff3a",
+    "accent2": "#3f5a00",
+    "accent3": "#0a0a0a",
+    "bg": "#f1f1ee"
+  },
+  "copy": {
+    "idea": "Shotloop is a free, open-source macOS app that turns one sentence into a short video made of shots: the AI writes the copy, the storyboard and each shot's code, and when one shot is wrong you fix that shot in plain words — only it renders again.",
+    "hook": "One shot is wrong, and the whole film renders again.",
+    "body": "The problem, in the maker's own words: the explainers on oliverz.dev were made with a pipeline that rendered the whole film for every check. Feedback was almost always about one shot — the subject too small, hidden behind a caption, nothing moving — but each check still cost a full render: about 8 minutes as a draft, about an hour final, most of it re-rendering shots that had not changed.\n\nShotloop answers that with shots. You start with one sentence on Home; 2D or 3D, the length, the style and the theme can stay on Auto, and the AI picks how to show it from your idea.\n\nBefore anything renders you get the plan: the hook, the script and sourced facts, and the shots with what each one shows — all editable. Then the AI builds every shot.\n\nIn the Studio you look at a shot and say what is wrong in plain words, such as \"it's too still: add some motion\". The AI offers a few ways to change that shot, you pick one, and it changes the shot and shows you a before and after. A fix re-renders that shot only, not the whole film.\n\nExport joins the shots, adds the voice-over, subtitles and music, designs a cover and writes the post for each platform, into a folder of its own.\n\nThe one thing to remember: fix one shot, not the whole film. Free and open source, for macOS.",
+    "facts": [
+      {
+        "text": "Shotloop's tagline: \"Short videos with AI. Fix one shot, not the whole film.\"",
+        "source": "Shotloop README and product page, https://oliverz.dev/products/shotloop"
+      },
+      {
+        "text": "Feedback was nearly always about one shot, but each check meant rendering the whole 48 s: ~8 min as a draft, ~1 h final; most of that time re-rendered shots that had not changed.",
+        "source": "Shotloop docs/PRD.md, §2 Problem, https://github.com/chihyungchang/Shotloop"
+      },
+      {
+        "text": "A film is a list of shots; each shot is cached by a hash of its inputs, so a fix re-renders one shot in seconds, and Export only joins clips.",
+        "source": "Shotloop README, \"How it works\", https://github.com/chihyungchang/Shotloop"
+      },
+      {
+        "text": "On Home you start with one sentence: 2D or 3D, the length, the style and the theme can stay on Auto; the AI picks 2D or 3D, and how to show it, from your idea.",
+        "source": "Shotloop README, \"Product tour\" (screenshot docs/screenshots/home.jpg)"
+      },
+      {
+        "text": "Copy & storyboard: the hook, the script and sourced facts, and the shots with what each one shows, all editable before anything renders.",
+        "source": "Shotloop README, \"Product tour\" (screenshot docs/screenshots/plan.jpg)"
+      },
+      {
+        "text": "Tell the shot assistant what's wrong and it offers two to four concrete ways to change the shot; you pick one and it changes that shot and shows a before/after.",
+        "source": "Shotloop release notes 0.12.1, https://github.com/chihyungchang/Shotloop/releases"
+      },
+      {
+        "text": "Export joins the shots, lays the voice-over with its subtitles and the music under them, designs a cover and writes the post for each platform, into a folder of its own.",
+        "source": "Shotloop README, \"What is Shotloop\" (screenshot docs/screenshots/export.jpg)"
+      },
+      {
+        "text": "Shotloop is out, free, and open source under the Apache 2.0 license; this version runs on Macs with Apple silicon.",
+        "source": "https://oliverz.dev/products/shotloop, \"Availability\""
+      }
+    ]
+  },
+  "shots": [
+    {
+      "title": "Title card",
+      "duration": 3,
+      "beat": "title",
+      "steps": 0,
+      "show": "Title card (screens.js titleCard()) on the paper ground, standing alone with no chapter label and no headline beside it: the real logo repo/logo.png at the left, as tall as the capitals of the name, and just after it SHOTLOOP in the site's Archivo black; under them, on the same left edge, a hairline ink rule and, small and secondary in mono, the product line \"Short videos with AI — macOS\". The lockup sits centred in the frame and fills most of its width; a faint lime field (#d4ff3a) breathes behind the logo only.",
+      "text": "SHOTLOOP",
+      "motion": "Logo and name rise together out of their mask in a 0.45 s ease-out; the rule draws left to right over 0.4 s, staggered 80 ms; the small mono line fades up last. The whole lockup drifts up about 1% over the beat so nothing is frozen. No bounce.",
+      "sound": "a soft low swell as the lockup lands, one quiet click as the rule finishes drawing",
+      "source": "",
+      "id": "01-hook"
+    },
+    {
+      "title": "01 — The problem",
+      "duration": 5,
+      "beat": "problem",
+      "steps": 0,
+      "show": "Chapter device: mono label \"01 — THE PROBLEM\" over a hairline rule, SHOTLOOP small at the right; this label style, place and colour hold for every chapter of the film. Under the headline, the row device (screens.js row): seven big shot tiles in one row across the frame, each a wireframe of a film shot with a chip under it; tile 4 is marked wrong with a thin ink outline and a small mono chip \"TOO STILL\". Then every one of the seven tiles dims and runs a progress sweep — all seven render again — with a small mono label under the row carrying the words the caption no longer says: \"whole film re-renders · ~8 min draft\". The counter device sits in the footer over a rule: \"7 / 7\" in red with the small label \"shots render again\". The row is the only picture, keeps its own proportions and fills the frame's middle band.",
+      "text": "One shot wrong\nAll 7 render",
+      "motion": "Headline rises line by line (second line muted), 80 ms apart; the seven tiles rise in a wave left to right, 60 ms apart; the outline snaps onto tile 4; then the sweep runs across all seven in turn and the counter rolls 0 → 7 and turns red. The beat ends on an ink wipe panel starting to cross the frame.",
+      "sound": "a low tick per tile as the row lands, a dull thud as the wrong shot is marked, a rising whirr under the seven sweeps",
+      "source": "Shotloop, docs/PRD.md: feedback was nearly always about one shot, but each check rendered the whole film (~8 min draft, ~1 h final)",
+      "id": "02-beat-1"
+    },
+    {
+      "title": "02 — One sentence",
+      "duration": 4.75,
+      "beat": "screen",
+      "steps": 0,
+      "picture": "repo/pictures/09-home.jpg",
+      "actions": [
+        "click the idea field \"— what is the video about?\"",
+        "type How long does sunlight take to reach Earth?",
+        "click 16:9"
+      ],
+      "show": "Chapter label \"02 — ONE SENTENCE\" over its rule, headline beside it, and the one desktop of the film (screens.js desktop(): wallpaper, menu bar, Dock) filling most of the frame with the Shotloop window on it, showing repo/pictures/09-home.jpg — Home, \"Let's make a short 2D explainer\" and the idea field. Dive to the action: the desktop's camera moves in and centres the idea field and the row of chips under it (Auto · 2D · 3D · 9:16 · 16:9 · Auto length · Style · Theme), big enough to read at phone size — those chips carry in the picture what the caption no longer spells out. Cursor action: the large pointer glides on a curve into the field and clicks, a soft ring letting go; the words are typed in key by key at the field's own size and colour with a blinking caret; then the pointer moves down and clicks the 16:9 chip, which takes its selected state.",
+      "text": "One sentence\nAI picks how",
+      "motion": "Headline rises line by line; the desktop's camera glides in over 1.2 s and keeps pushing about 4% for the rest of the beat; the pointer travels on a smooth curve, presses, releases a ring; typing runs at an even pace with a caret blinking; the chip's state changes in a 0.2 s blend. Ends on the wipe.",
+      "sound": "a soft click on each press, light key taps under the typing, a small confirm tick when the chip selects",
+      "source": "Shotloop README, Product tour — Home: one sentence; 2D or 3D, the length, the style and the theme can stay on Auto",
+      "id": "03-beat-2"
+    },
+    {
+      "title": "03 — The plan, before anything renders",
+      "duration": 4.5,
+      "beat": "screen",
+      "steps": 3,
+      "picture": "repo/pictures/01-plan.jpg",
+      "actions": [
+        "click the Frame field of shot 2 \"Sun to Earth: 149.6 million km = 1 AU\"",
+        "type a gold ruler draws from the Sun to Earth",
+        "click Make the video"
+      ],
+      "show": "Chapter label \"03 — THE PLAN\" over its rule; three short mono chips under the headline carrying what the caption drops: COPY · STORYBOARD · SOURCES, with a small mono line under them, \"before anything renders\". The same desktop in the same box, now showing repo/pictures/01-plan.jpg — Copy & storyboard, with the hook, the script, facts and sources on the left and the seven numbered shots on the right. Dive to the action: the camera comes in on the storyboard column so shot 2's card and its Frame field are the biggest, most readable thing in the frame. Cursor action: the pointer glides into shot 2's Frame field and clicks; the words are typed into it in the screen's own font and size, caret blinking; then the pointer rises to \"Make the video\" at the top right and clicks it, the button taking its pressed state.",
+      "text": "Plan first\nEdit anything",
+      "motion": "Headline rises, then the three chips light one after another, 90 ms apart; camera glides in and keeps pushing 4%; pointer curves to the field, clicks, words type in; pointer curves up to the button and presses. Ends on the wipe.",
+      "sound": "chip ticks as the three light, key taps under the typing, a firm click on Make the video",
+      "source": "Shotloop README, Product tour — Copy & storyboard: hook, script and sourced facts, all editable before anything renders",
+      "id": "04-beat-3"
+    },
+    {
+      "title": "04 — Fix one shot",
+      "duration": 4.75,
+      "beat": "screen",
+      "steps": 0,
+      "picture": "repo/pictures/06-studio.jpg",
+      "actions": [
+        "click It's too still: add some motion",
+        "show repo/pictures/03-agent.jpg"
+      ],
+      "show": "Chapter label \"04 — FIX ONE SHOT\" over its rule. The same desktop in the same box, showing repo/pictures/06-studio.jpg — the Studio: the shot on its dark stage, the filmstrip of seven shots under it, the AI assistant on the left saying it edits 01-hook only. Dive to the action: the camera comes in on the assistant column so its plain-words suggestions are readable at phone size — the screen's own lines (\"The text is too small\", \"It's too still: add some motion\") carry in the picture what the caption no longer says. Cursor action: the pointer glides to the suggestion \"It's too still: add some motion\" and clicks it. Cut (the two screens do not line up) to repo/pictures/03-agent.jpg: the assistant's answer with the Before / After divider and the green \"All checks pass\". One quiet mark only: a thin ink outline hugging the Before/After card, with a small neutral mono chip \"BEFORE / AFTER\", drawn on the screen's picture so it moves with the camera. Counter in the footer over a rule: \"1 / 7\" with the small label \"shots render again\", the 7 / 7 of chapter 01 struck through beside it.",
+      "text": "What's wrong?\nOnly that shot",
+      "motion": "Headline rises line by line; camera glides in over 1 s and keeps pushing 4%; the pointer curves to the suggestion and presses with a ring; cut to the answer screen, whose outline draws round the before/after card in 0.3 s; the counter rolls 7 → 1 and the old number is struck through. Ends on the wipe.",
+      "sound": "a click on the suggestion, a short whoosh on the cut, a soft tick as the outline closes, a light chime as the counter lands on 1",
+      "source": "Shotloop 0.12.1 release notes: the assistant offers two to four ways to change the shot, then changes that shot and shows a before/after",
+      "id": "05-beat-4"
+    },
+    {
+      "title": "05 — Export",
+      "duration": 4.5,
+      "beat": "screen",
+      "steps": 0,
+      "picture": "repo/pictures/05-hero.jpg",
+      "actions": [
+        "click Export",
+        "show repo/pictures/08-export.jpg",
+        "click Horizontal 16:9"
+      ],
+      "show": "Chapter label \"05 — EXPORT\" over its rule. The same desktop in the same box, showing repo/pictures/05-hero.jpg — the Studio with its finished filmstrip and the dark Export button at the top right. Dive to the action: the camera comes in on that corner. Cursor action: the pointer glides to \"Export\" and presses it; the screen changes to repo/pictures/08-export.jpg — the Export dialog, the AI-designed cover on the left and Video, Cover and Publish copy on the right — and the camera settles so the aspect row and those lines are readable. The pointer then glides to \"Horizontal 16:9\" and clicks; the checkbox takes its ticked state, the rest of the screen holding still. Small mono chips along the footer rule carry what the caption drops: VOICE-OVER · SUBTITLES · MUSIC · COVER · POSTS, lighting one by one, and a thin ink outline draws round the \"Publish copy\" line with the chip \"WRITTEN FOR YOU\".",
+      "text": "Export once\nCover, posts",
+      "motion": "Headline rises; camera glides in on the Export corner, the screen changes, the camera settles and keeps pushing 4%; the footer chips light 90 ms apart; the pointer curves to the checkbox and presses, the tick blending in over 0.2 s; the outline draws round Publish copy. Ends on the wipe.",
+      "sound": "a firm click on Export, a short whoosh as the dialog comes up, chip ticks along the footer, a small tick as the box checks",
+      "source": "Shotloop README: Export joins the shots, lays the voice-over with its subtitles and the music under them, designs a cover and writes the post for each platform",
+      "id": "06-end"
+    },
+    {
+      "title": "End card",
+      "duration": 3.5,
+      "beat": "end",
+      "steps": 0,
+      "show": "End card (screens.js endCard()): a full field of the brand lime #d4ff3a, standing alone with no chapter label. Centred as one lockup on a single left edge: the real logo repo/logo.png as tall as the capitals, then SHOTLOOP huge in black Archivo; under a hairline black rule, the line to remember \"Fix one shot.\" and, smaller and secondary on the same edge, \"Free and open source · macOS, Apple silicon · oliverz.dev/products/shotloop\".",
+      "text": "Fix one shot.",
+      "motion": "The lime field wipes in from the previous shot's ink panel; the logo and name rise out of their mask in 0.45 s, the rule draws left to right, the line and the address rise 80 ms apart; the whole lockup drifts up about 1% to the last frame.",
+      "sound": "a warm low swell on the field, a last soft click as the rule lands",
+      "source": "https://oliverz.dev/products/shotloop — free, open source (Apache 2.0), macOS on Apple silicon",
+      "id": "07-end-card"
+    }
+  ],
+  "recurring": [],
+  "lookAi": "paper"
+}

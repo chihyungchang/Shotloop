@@ -1,0 +1,87 @@
+{
+  "source": "github.com/chihyungchang/Shotloop",
+  "name": "Shotloop",
+  "description": "Short videos with AI. Fix one shot, not the whole film: an idea becomes copy, a storyboard and shots in 2D (web) or 3D (three.js), each fixed by an AI agent in plain words. macOS desktop app.",
+  "homepage": "https://oliverz.dev/products/shotloop",
+  "read": "2026-11-04T08:31:01.908Z",
+  "docs": [
+    "docs/PRD.md",
+    "myslop.txt",
+    "voice/py/build-constraints.txt",
+    "voice/py/requirements.txt"
+  ],
+  "pictures": [
+    {
+      "file": "repo/pictures/01-plan.jpg",
+      "width": 2880,
+      "height": 1800,
+      "from": "docs/screenshots/plan.jpg"
+    },
+    {
+      "file": "repo/pictures/02-plan-zh.jpg",
+      "width": 2880,
+      "height": 1800,
+      "from": "docs/screenshots/plan-zh.jpg"
+    },
+    {
+      "file": "repo/pictures/03-agent.jpg",
+      "width": 2880,
+      "height": 1800,
+      "from": "docs/screenshots/agent.jpg"
+    },
+    {
+      "file": "repo/pictures/04-agent-zh.jpg",
+      "width": 2880,
+      "height": 1800,
+      "from": "docs/screenshots/agent-zh.jpg"
+    },
+    {
+      "file": "repo/pictures/05-hero.jpg",
+      "width": 2880,
+      "height": 1800,
+      "from": "docs/screenshots/hero.jpg"
+    },
+    {
+      "file": "repo/pictures/06-studio.jpg",
+      "width": 2880,
+      "height": 1800,
+      "from": "docs/screenshots/studio.jpg"
+    },
+    {
+      "file": "repo/pictures/07-hero-zh.jpg",
+      "width": 2880,
+      "height": 1800,
+      "from": "docs/screenshots/hero-zh.jpg"
+    },
+    {
+      "file": "repo/pictures/08-export.jpg",
+      "width": 2880,
+      "height": 1800,
+      "from": "docs/screenshots/export.jpg"
+    },
+    {
+      "file": "repo/pictures/09-home.jpg",
+      "width": 2880,
+      "height": 1800,
+      "from": "docs/screenshots/home.jpg"
+    },
+    {
+      "file": "repo/pictures/10-home-zh.jpg",
+      "width": 2880,
+      "height": 1800,
+      "from": "docs/screenshots/home-zh.jpg"
+    },
+    {
+      "file": "repo/pictures/11-settings.jpg",
+      "width": 2880,
+      "height": 1800,
+      "from": "docs/screenshots/settings.jpg"
+    }
+  ],
+  "logo": {
+    "file": "repo/logo.png",
+    "width": 824,
+    "height": 834,
+    "from": "design/logo/icon-1024.png"
+  }
+}

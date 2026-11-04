@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "title": "Shotloop: fix one shot, not the whole film",
+  "slug": "shotloop-promo-en",
+  "track": "2d",
+  "fps": 30,
+  "size": {
+    "width": 1920,
+    "height": 1080
+  },
+  "shots": [
+    {
+      "id": "01-hook",
+      "title": "Title card",
+      "duration": 3
+    },
+    {
+      "id": "02-beat-1",
+      "title": "01 — The problem",
+      "duration": 5
+    },
+    {
+      "id": "03-beat-2",
+      "title": "02 — One sentence",
+      "duration": 4.8
+    },
+    {
+      "id": "04-beat-3",
+      "title": "03 — The plan, before anything renders",
+      "duration": 4.5
+    },
+    {
+      "id": "05-beat-4",
+      "title": "04 — Fix one shot",
+      "duration": 4.8
+    },
+    {
+      "id": "06-end",
+      "title": "05 — Export",
+      "duration": 4.5
+    },
+    {
+      "id": "07-end-card",
+      "title": "End card",
+      "duration": 3.5
+    }
+  ],
+  "music": "music.json",
+  "cover": "thumb.html",
+  "publish": "publish.md",
+  "promo": {
+    "site": "https://oliverz.dev/products/shotloop",
+    "repo": "https://github.com/chihyungchang/Shotloop"
+  },
+  "voice": {
+    "on": false
+  },
+  "look": "paper",
+  "style": "ui",
+  "description": "A 30-second product promo made from Shotloop's own GitHub repository and product page: the real app on a Mac desktop, each feature done step by step."
+}

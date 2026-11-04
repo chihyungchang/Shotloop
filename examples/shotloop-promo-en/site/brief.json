@@ -1,0 +1,230 @@
+{
+  "url": "https://oliverz.dev/products/shotloop",
+  "parts": [
+    {
+      "name": "DOWNLOAD FOR APPLE SILICON ↓ 313 MB",
+      "kind": "button",
+      "box": {
+        "x": 24,
+        "y": 312,
+        "width": 352,
+        "height": 44
+      }
+    }
+  ],
+  "host": "oliverz.dev",
+  "name": "Oliver Zhang",
+  "title": "Shotloop: Make Videos with Code and AI, Free for Mac",
+  "description": "Free, open-source macOS app that turns an idea into a short explainer video made of code, with Claude Code or any AI. Fix one shot; only it re-renders.",
+  "tagline": "SHOTLOOP",
+  "sub": "Short videos with AI. Fix one shot, not the whole film.",
+  "features": [
+    {
+      "title": "Why one shot at a time",
+      "text": "I made the explainers on this site with a pipeline that rendered the whole film for every check. Feedback was almost always about one shot: the subject too small, hidden behind a caption, nothing moving. Each check still cost a full render,"
+    },
+    {
+      "title": "How it works",
+      "text": "STEP WHAT HAPPENS Plan Write the hook, script and storyboard with the AI before any shot exists, with the line a voice-over says over each shot if you want one. The AI picks the visual style from your idea and says why; switch it and the pi"
+    },
+    {
+      "title": "A voice-over and sound, on your Mac",
+      "text": "A voice-over is off by default: the picture sets the timing, with captions on screen. Turn it on and the plan writes one line per shot, and the voice leads the cut: a shot lasts as long as its line, and the picture can land on the words. Or"
+    },
+    {
+      "title": "Eight ways to show an idea",
+      "text": "The style follows what the video is about, and the AI picks it from your idea (or you choose on Home):"
+    },
+    {
+      "title": "How it compares",
+      "text": "TOOL WHAT IT IS HOW YOU ITERATE COST Shotloop A Mac app for the whole loop: plan, 2D (HTML) or 3D (three.js) shots, AI checks, export with voice-over, subtitles, music and publish copy Per shot: only the shot you change renders again Free, "
+    },
+    {
+      "title": "Choose your AI",
+      "text": "Shotloop works with your own key for Anthropic, OpenAI, Google Gemini, OpenRouter, DeepSeek, Qwen and other providers, with Claude Code signed in on your Mac, or with a local model in Ollama, LM Studio or any OpenAI-compatible server. The A"
+    },
+    {
+      "title": "Availability",
+      "text": "Shotloop is out, free, and open source under the Apache 2.0 license (on GitHub). This version runs on Macs with Apple silicon and needs Google Chrome, which renders 2D and 3D alike."
+    },
+    {
+      "title": "CHANGELOG",
+      "text": "RELEASE FEED ↗"
+    },
+    {
+      "title": "QUESTIONS",
+      "text": ""
+    },
+    {
+      "title": "FOUND A BUG, OR HAVE AN IDEA?",
+      "text": ""
+    },
+    {
+      "title": "BUILT ON",
+      "text": "FULL LIST ↗"
+    },
+    {
+      "title": "I SHARE BUILDS, EXPERIMENTS, AND LESSONS AS I GO.",
+      "text": "New videos on YouTube, shorter notes on X. Every post here links back to both."
+    }
+  ],
+  "pricing": [
+    {
+      "name": "",
+      "price": "Free",
+      "items": []
+    }
+  ],
+  "logoBox": null,
+  "icon": "https://oliverz.dev/favicon.ico",
+  "colors": {
+    "theme": "#f1f1ee",
+    "accents": [
+      "#d4ff3a",
+      "#3f5a00"
+    ],
+    "background": "#f1f1ee",
+    "text": "#0a0a0a"
+  },
+  "fonts": {
+    "heading": "Archivo",
+    "body": "Archivo",
+    "mono": "JetBrains Mono"
+  },
+  "pageHeight": 14602,
+  "sections": [
+    {
+      "name": "CHANGELOG",
+      "box": {
+        "x": 0,
+        "y": 8949,
+        "width": 1440,
+        "height": 307
+      }
+    },
+    {
+      "name": "",
+      "box": {
+        "x": 0,
+        "y": 9779,
+        "width": 1440,
+        "height": 386
+      }
+    },
+    {
+      "name": "",
+      "box": {
+        "x": 0,
+        "y": 10419,
+        "width": 1440,
+        "height": 386
+      }
+    },
+    {
+      "name": "",
+      "box": {
+        "x": 0,
+        "y": 12200,
+        "width": 1440,
+        "height": 307
+      }
+    },
+    {
+      "name": "QUESTIONS",
+      "box": {
+        "x": 0,
+        "y": 12507,
+        "width": 1440,
+        "height": 767
+      }
+    },
+    {
+      "name": "BUILT ON",
+      "box": {
+        "x": 0,
+        "y": 13525,
+        "width": 1440,
+        "height": 498
+      }
+    },
+    {
+      "name": "I SHARE BUILDS, EXPERIMENTS, AND LESSONS AS I GO.",
+      "box": {
+        "x": 0,
+        "y": 14119,
+        "width": 1440,
+        "height": 311
+      }
+    }
+  ],
+  "read": "2026-11-04T08:31:15.053Z",
+  "logo": null,
+  "pictures": [
+    {
+      "file": "site/hero.png",
+      "width": 4320,
+      "height": 2700,
+      "what": "the first screen, as a visitor lands on it"
+    },
+    {
+      "file": "site/page.png",
+      "width": 2880,
+      "height": 7200,
+      "what": "the page from the top, for a pan down it"
+    },
+    {
+      "file": "site/parts/01-download-for-apple-silicon-313-m.png",
+      "width": 1056,
+      "height": 132,
+      "what": "a button on its own: \"DOWNLOAD FOR APPLE SILICON ↓ 313 MB\""
+    },
+    {
+      "file": "site/framed/00-hero.png",
+      "width": 4704,
+      "height": 3192,
+      "what": "the first screen in a browser window (transparent around it)"
+    },
+    {
+      "file": "site/framed/01-changelog.png",
+      "width": 4704,
+      "height": 1413,
+      "what": "the section \"CHANGELOG\" in a browser window (transparent around it)"
+    },
+    {
+      "file": "site/framed/02-section.png",
+      "width": 4704,
+      "height": 1650,
+      "what": "the section \"untitled\" in a browser window (transparent around it)"
+    },
+    {
+      "file": "site/framed/03-section.png",
+      "width": 4704,
+      "height": 1650,
+      "what": "the section \"untitled\" in a browser window (transparent around it)"
+    },
+    {
+      "file": "site/framed/04-section.png",
+      "width": 4704,
+      "height": 1413,
+      "what": "the section \"untitled\" in a browser window (transparent around it)"
+    },
+    {
+      "file": "site/framed/05-questions.png",
+      "width": 4704,
+      "height": 2793,
+      "what": "the section \"QUESTIONS\" in a browser window (transparent around it)"
+    },
+    {
+      "file": "site/framed/06-built-on.png",
+      "width": 4704,
+      "height": 1986,
+      "what": "the section \"BUILT ON\" in a browser window (transparent around it)"
+    },
+    {
+      "file": "site/framed/07-i-share-builds-experiments-and-l.png",
+      "width": 4704,
+      "height": 1425,
+      "what": "the section \"I SHARE BUILDS, EXPERIMENTS, AND LESSONS AS I GO.\" in a browser window (transparent around it)"
+    }
+  ]
+}
