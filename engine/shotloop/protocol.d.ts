@@ -443,7 +443,7 @@ export interface TimelineResult {
 
 // shotloop music <project>
 // shotloop sound <project> [changes]: the ambience and the shots' sound
-// effects (engine/shotloop/sound.mjs), each with whether it is on
+// effects (engine/shotloop/sound/sound.mjs), each with whether it is on
 export interface SoundCue {
   // <shot>@<at>:<sound>, what --cue switches
   key: string

@@ -55,16 +55,16 @@ AI は題材に合うスタイルを選び、その理由を伝えます。プ�
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="シネマティックなシーン" /></a><br/><sub><b>シネマティックなシーン</b>：光と奥行き、動くカメラ。宇宙、自然、物理など、撮影できそうなものに。</sub></td>
-<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="インフォグラフィック" /></a><br/><sub><b>インフォグラフィック</b>：グラフと動く数字。統計、比較、お金の話に。</sub></td>
-<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="地図" /></a><br/><sub><b>地図</b>：世界地図、ルート、光る国々。場所や広がり方の話に。</sub></td>
-<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="UI デモ" /></a><br/><sub><b>UI デモ</b>：スマホやブラウザで一歩ずつ。アプリ、設定、詐欺の手口に。</sub></td>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/kits/styles/scene/1.jpg" alt="シネマティックなシーン" /></a><br/><sub><b>シネマティックなシーン</b>：光と奥行き、動くカメラ。宇宙、自然、物理など、撮影できそうなものに。</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/kits/styles/infographic/1.jpg" alt="インフォグラフィック" /></a><br/><sub><b>インフォグラフィック</b>：グラフと動く数字。統計、比較、お金の話に。</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/kits/styles/map/1.jpg" alt="地図" /></a><br/><sub><b>地図</b>：世界地図、ルート、光る国々。場所や広がり方の話に。</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/kits/styles/ui/1.jpg" alt="UI デモ" /></a><br/><sub><b>UI デモ</b>：スマホやブラウザで一歩ずつ。アプリ、設定、詐欺の手口に。</sub></td>
 </tr>
 <tr>
-<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="設計図" /></a><br/><sub><b>設計図</b>：グリッド上の線画、分解図、注釈。機械のしくみの説明に。</sub></td>
-<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="モーションタイポグラフィ" /></a><br/><sub><b>モーションタイポグラフィ</b>：動く大きな文字。名言、言葉、俗説の検証に。</sub></td>
-<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="ニュース・ストーリー" /></a><br/><sub><b>ニュース・ストーリー</b>：緊迫感で伝える速報。進み続ける時計、資金の流れ、時系列、誰が何を言ったか。</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>：スタジオライトとやわらかな影、空間を進むカメラを備えた three.js のワールド。</sub></td>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/kits/styles/blueprint/1.jpg" alt="設計図" /></a><br/><sub><b>設計図</b>：グリッド上の線画、分解図、注釈。機械のしくみの説明に。</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/kits/styles/kinetic/1.jpg" alt="モーションタイポグラフィ" /></a><br/><sub><b>モーションタイポグラフィ</b>：動く大きな文字。名言、言葉、俗説の検証に。</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/kits/styles/news/1.jpg" alt="ニュース・ストーリー" /></a><br/><sub><b>ニュース・ストーリー</b>：緊迫感で伝える速報。進み続ける時計、資金の流れ、時系列、誰が何を言ったか。</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/kits/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>：スタジオライトとやわらかな影、空間を進むカメラを備えた three.js のワールド。</sub></td>
 </tr>
 </table>
 
@@ -118,7 +118,7 @@ flowchart LR
 
 - **長い 1 本ではなく、ショット単位で。** 動画はショットのリストです。各ショットは時刻 t の画面を描く小さなプログラム `shot.js` で、2D ならページを、3D なら three.js のワールドを描きます。入力のハッシュでショットごとにキャッシュするので、修正時の再レンダリングは 1 ショットだけで数秒。書き出しはクリップを結合するだけです。
 - **普段の言葉で修正。** AI が触るのは今開いているショットだけ。共有のワールドを変える必要がある場合は別です。まず具体的な直し方をいくつか提案し、選んだもの（または自分の案）がそのまま修正になります。修正は 1 分もかからずに終わり、直後にショットのクリップがレンダリングされるので、すぐに再生できます。「チェック」はチェックリスト（読める、何も隠れていない、字幕エリアにかからない など）と照合して確認するだけで何も変えず、見つかった問題はワンクリックで直せます。
-- **8 つのビジュアルスタイル。** シネマティックなシーン、インフォグラフィック、地図、UI デモ、設計図、モーションタイポグラフィ、ニュース・ストーリー、3D。それぞれ専用のキットと参考静止画があり、AI は選ぶ前と作る前にそれを確認します（[`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)）。テーマが決めるのは背景と文字だけで、図やデータは題材に必要な色を保ちます。
+- **8 つのビジュアルスタイル。** シネマティックなシーン、インフォグラフィック、地図、UI デモ、設計図、モーションタイポグラフィ、ニュース・ストーリー、3D。それぞれ専用のキットと参考静止画があり、AI は選ぶ前と作る前にそれを確認します（[`engine/shotloop/kits/styles.mjs`](engine/shotloop/kits/styles.mjs)）。テーマが決めるのは背景と文字だけで、図やデータは題材に必要な色を保ちます。
 - **プランはルールで測る。** 何かを作る前に、字幕の長さと表示時間をチェックします。複数のショットに出てくる図は一度だけ描いて共有するので、どのショットでも同じ見た目になります。
 - **事実には出典を。** コピーでは各事実の隣に出典を置き、投稿用テキストはコピー内の事実しか使えません。
 - **カバー。** AI が動画のルックに合わせてカバーをデザインし、自分のレンダリング結果をチェックします。テンプレートとして保存すればシリーズの統一感を保てます。気に入ったカバーをアップロードすれば、AI はそのデザインに倣います。
@@ -205,7 +205,7 @@ my-video/
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
-- **3D**：`world/page.html` はエンジンの WebGL キット（[`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)）で、スタジオライト、マテリアル、図形、glTF モデル、レンズに基づくカメラ、その上に重ねる文字を備えた three.js のステージです。ショット間で共有するセットや機構は `world/*.js` に置きます。ショットは見せるものを `setup(ctx)` で組み立て、`render(t)` で時刻 `t` のポーズを決めます。
+- **3D**：`world/page.html` はエンジンの WebGL キット（[`engine/shotloop/kits/webgl.mjs`](engine/shotloop/kits/webgl.mjs)）で、スタジオライト、マテリアル、図形、glTF モデル、レンズに基づくカメラ、その上に重ねる文字を備えた three.js のステージです。ショット間で共有するセットや機構は `world/*.js` に置きます。ショットは見せるものを `setup(ctx)` で組み立て、`render(t)` で時刻 `t` のポーズを決めます。
 - **2D**：`shot.js` は `render(t, ctx)` をデフォルトエクスポートし、ショット内の時刻 `t` における `world/page.html` を描画します。`ctx.voice` にはショットで話す文とそのタイミングが入っているので、映像を言葉に合わせられます。被写体を `data-keep`（canvas なら `subtitles.keep()`）でマークすると、字幕チェックがそこを避けます。
 - **キャッシュ**：ショットのキーは、ワールド、コード、モデル、レンダラー、設定のハッシュです。変更のないショットは再利用されます。
 

@@ -3,7 +3,7 @@
 // FFmpeg) and libraries (three.js, which 2D pages load), the speech models and what the Chinese voice runs on
 // (downloaded on first use), the npm packages of the app, the agent and
 // the voice-over, and the Rust crates of the shell. Read from the sources
-// of truth (scripts/sidecars.mjs, engine/shotloop/vendor/, voice/src/models.mjs
+// of truth (scripts/sidecars.mjs, engine/shotloop/render/vendor/, voice/src/models.mjs
 // and cosyvoice.mjs, pnpm, cargo), never written by hand.
 //
 // Output: app/src/licenses.json. Run by `pnpm build` (tauri.bundle.json)
@@ -26,11 +26,11 @@ const programs = [
 ]
 
 // Copied into the engine, one folder per library, named <name>-<version>
-const VENDOR = path.join(REPO, 'engine', 'shotloop', 'vendor')
+const VENDOR = path.join(REPO, 'engine', 'shotloop', 'render', 'vendor')
 const LIBRARIES = { three: { name: 'three.js', license: 'MIT', url: 'https://threejs.org' } }
 const libraries = fs.readdirSync(VENDOR).map(dir => {
   const [, id, version] = dir.match(/^(.+)-(\d[\w.]*)$/) ?? []
-  if (!LIBRARIES[id]) throw new Error(`engine/shotloop/vendor/${dir}: add its license to LIBRARIES in licenses.mjs`)
+  if (!LIBRARIES[id]) throw new Error(`engine/shotloop/render/vendor/${dir}: add its license to LIBRARIES in licenses.mjs`)
   return { ...LIBRARIES[id], version }
 })
 

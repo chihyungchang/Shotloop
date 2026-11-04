@@ -164,7 +164,7 @@ my-video/
   images/ repo/ site/ # a product promo: the person's pictures; the repository read; the page read
   captions.html        # 3D: the caption layer
   music.json  thumb.html  publish.md
-  .shotloop/           # cache (engine/shotloop/cache.mjs): frames per shot and key,
+  .shotloop/           # cache (engine/shotloop/project/cache.mjs): frames per shot and key,
                        # takes, checks, fixes, music, voice and subtitles
   out/                 # exports (timestamped); out/latest.json names the newest
 ```

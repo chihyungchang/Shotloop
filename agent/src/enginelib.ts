@@ -37,13 +37,13 @@ export const { STYLES, styleById, lookFits, LOOKS, readTime, SUBTITLE_STYLES } =
   readTime: (text: string) => number
   SUBTITLE_STYLES: Record<string, SubtitleLook | null>
 }>('data.mjs')
-export const { styleStills } = await load<{ styleStills: (id: string) => string[] }>('styles.mjs')
+export const { styleStills } = await load<{ styleStills: (id: string) => string[] }>('kits/styles.mjs')
 export const { SUBTITLE_BAND, VOICE_HOLD, VOICE_LEAD, VOICE_TAIL } = await load<{
   SUBTITLE_BAND: Record<'portrait' | 'landscape', [number, number]>
   VOICE_HOLD: number
   VOICE_LEAD: number
   VOICE_TAIL: number
-}>('cues.mjs')
+}>('voiceover/cues.mjs')
 export interface Memory {
   id: string
   by: 'user' | 'ai'
@@ -55,7 +55,7 @@ export interface Memory {
 export const memory = await load<{
   list: () => Memory[]
   add: (m: { text: string; by: 'ai'; track: string; from: string | null; replaces: string | null }) => Memory
-}>('memory.mjs')
+}>('project/memory.mjs')
 // kind: a rule for one part of the work only (a product promo's shots,
 // the cover, the sound pass); locked: it can't be switched off
 export interface Rule { id: string; track: 'all' | '2d' | '3d'; kind?: 'promo' | 'voice' | 'cover' | 'sound'; locked?: boolean; name: string | null; rule?: string; off?: boolean }
@@ -65,11 +65,11 @@ export const rules = await load<{
   asBuilt: (id: string) => boolean
   checklist: (track: string, own?: string | null, opts?: { promo?: boolean; voice?: boolean }) => string
 }>('rules.mjs')
-export const { AMBIENCE_NAMES, EFFECT_NAMES } = await load<{ AMBIENCE_NAMES: string[]; EFFECT_NAMES: string[] }>('sound.mjs')
-export const { STILLS } = await load<{ STILLS: readonly string[] }>('cache.mjs')
+export const { AMBIENCE_NAMES, EFFECT_NAMES } = await load<{ AMBIENCE_NAMES: string[]; EFFECT_NAMES: string[] }>('sound/sound.mjs')
+export const { STILLS } = await load<{ STILLS: readonly string[] }>('project/cache.mjs')
 // A product promo's pictures, with their sizes
 export interface PromoImage { file: string; width: number; height: number; from: 'person' | 'site'; live?: boolean; fields?: string[] }
-export const { promoImages } = await load<{ promoImages: (root: string) => PromoImage[] }>('images.mjs')
+export const { promoImages } = await load<{ promoImages: (root: string) => PromoImage[] }>('promo/images.mjs')
 export const { emit: emitLine, exit, parseFlags } = await load<{
   emit: (event: object) => void
   exit: (code: number) => void

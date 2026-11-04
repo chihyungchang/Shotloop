@@ -77,7 +77,7 @@ export const CAPTION_RULE = rules.asBuilt('caption')
 const VOICE_TEXT_RULE = rules.asBuilt('voice-roles')
 const VOICE_LINES_RULE = rules.asBuilt('voice-lines')
 
-// Where the subtitles sit (engine/shotloop/cues.mjs), as "68–79%"
+// Where the subtitles sit (engine/shotloop/voiceover/cues.mjs), as "68–79%"
 const band = (k: 'portrait' | 'landscape') => `${SUBTITLE_BAND[k].map(x => Math.round(x * 100)).join('–')}%`
 
 // How fast a line is spoken, for planning (words, or Chinese and Japanese
@@ -92,7 +92,7 @@ const VOICE_PAD = VOICE_LEAD + VOICE_TAIL
 // added to a finished film
 const HEARD = `Lines are written to be heard: short words, no lists, no parentheses, no abbreviations a voice can't say (respell an unusual name the way it sounds). Numbers as they are said: digits are fine in English and Chinese; in other languages write numbers in words. Where the screen shows ≈ the voice says "about".`
 
-// With a voice-over (when the person turns it on, engine/shotloop/voice.mjs) the
+// With a voice-over (when the person turns it on, engine/shotloop/voiceover/voice.mjs) the
 // voice carries the explanation: these rules change the caption and
 // reading rules, and the rest stand
 // A voiced film's own rules (rules.mjs, kind voice), as the person set them
@@ -130,7 +130,7 @@ export const CODE_WEBGL = `WebGL code rules:
 - Text is never in the 3D scene: headlines, numbers and labels are DOM type (kit.caption, kit.label, kit.block) above the world, inside the safe area. Mark the subject the viewer must see each frame with kit.keep(object, 'name') after the camera is set: the subtitle check and the element picker use it, and a person picks a part by that name.
 - Characters (when the story has one): built from rounded primitives in a joint hierarchy; poses as tables of joint angles mixed by eased keys.`
 
-// Sound effects and the ambience (engine/shotloop/sound.mjs), written in
+// Sound effects and the ambience (engine/shotloop/sound/sound.mjs), written in
 // the film's sound pass once the person has approved the shots
 export const SOUND = `Sound:
 - The film has an ambience under it (one of ${AMBIENCE_NAMES.join(', ')}, or none) and sound effects on the picture's beats, made by the engine from these names: ${EFFECT_NAMES.join(', ')} (riser ends on its beat; the others start on it).

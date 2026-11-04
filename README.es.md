@@ -55,16 +55,16 @@ La IA elige el estilo que encaja con el tema y te explica por qué; puedes cambi
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="Escena cinematográfica" /></a><br/><sub><b>Escena cinematográfica</b>: luz, profundidad y cámara en movimiento, para cosas que podrías filmar: espacio, naturaleza, física.</sub></td>
-<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="Infografía" /></a><br/><sub><b>Infografía</b>: gráficos y números en movimiento, para estadísticas, comparaciones, dinero.</sub></td>
-<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="Mapa" /></a><br/><sub><b>Mapa</b>: el mapa del mundo, rutas y países que se iluminan, para lugares y cómo se extienden las cosas.</sub></td>
-<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="Demo de interfaz" /></a><br/><sub><b>Demo de interfaz</b>: un teléfono o un navegador, paso a paso, para apps, ajustes y estafas.</sub></td>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/kits/styles/scene/1.jpg" alt="Escena cinematográfica" /></a><br/><sub><b>Escena cinematográfica</b>: luz, profundidad y cámara en movimiento, para cosas que podrías filmar: espacio, naturaleza, física.</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/kits/styles/infographic/1.jpg" alt="Infografía" /></a><br/><sub><b>Infografía</b>: gráficos y números en movimiento, para estadísticas, comparaciones, dinero.</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/kits/styles/map/1.jpg" alt="Mapa" /></a><br/><sub><b>Mapa</b>: el mapa del mundo, rutas y países que se iluminan, para lugares y cómo se extienden las cosas.</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/kits/styles/ui/1.jpg" alt="Demo de interfaz" /></a><br/><sub><b>Demo de interfaz</b>: un teléfono o un navegador, paso a paso, para apps, ajustes y estafas.</sub></td>
 </tr>
 <tr>
-<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Plano técnico" /></a><br/><sub><b>Plano técnico</b>: dibujo lineal sobre cuadrícula, vistas explosionadas y anotaciones, para explicar cómo funciona una máquina.</sub></td>
-<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Tipografía cinética" /></a><br/><sub><b>Tipografía cinética</b>: letras enormes que se mueven, para citas, palabras y mitos.</sub></td>
-<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Relato informativo" /></a><br/><sub><b>Relato informativo</b>: sucesos de última hora contados con tensión: un reloj en marcha, el rastro del dinero, la cronología, quién dijo qué.</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: mundos de three.js con luz de estudio, sombras suaves y una cámara que recorre el espacio.</sub></td>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/kits/styles/blueprint/1.jpg" alt="Plano técnico" /></a><br/><sub><b>Plano técnico</b>: dibujo lineal sobre cuadrícula, vistas explosionadas y anotaciones, para explicar cómo funciona una máquina.</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/kits/styles/kinetic/1.jpg" alt="Tipografía cinética" /></a><br/><sub><b>Tipografía cinética</b>: letras enormes que se mueven, para citas, palabras y mitos.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/kits/styles/news/1.jpg" alt="Relato informativo" /></a><br/><sub><b>Relato informativo</b>: sucesos de última hora contados con tensión: un reloj en marcha, el rastro del dinero, la cronología, quién dijo qué.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/kits/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: mundos de three.js con luz de estudio, sombras suaves y una cámara que recorre el espacio.</sub></td>
 </tr>
 </table>
 
@@ -118,7 +118,7 @@ flowchart LR
 
 - **Planos, no un render largo.** Una película es una lista de planos. Cada plano es un pequeño programa, `shot.js`, que dibuja su página en un instante t: una página 2D o un mundo de three.js para el 3D. Cada uno se guarda en caché según un hash de sus entradas, así que una corrección vuelve a renderizar un plano en segundos, y Exportar solo une clips.
 - **Correcciones en lenguaje normal.** La IA solo toca el plano en el que estás, salvo que la corrección necesite el mundo compartido. Primero te ofrece unas cuantas formas concretas de hacer tu cambio; la que eliges (o la tuya) es la corrección, lista en bastante menos de un minuto, y el clip del plano se renderiza justo después para que se reproduzca al instante. "Comprobar" revisa el plano con la lista (legible, nada tapado, fuera de la zona de subtítulos, etc.) sin cambiar nada, y corrige lo que encontró con un clic.
-- **Ocho estilos visuales.** Escena cinematográfica, infografía, mapa, demo de interfaz, plano técnico, tipografía cinética, relato informativo o 3D, cada uno con su propio kit y fotogramas de referencia que la IA mira antes de elegir y construir ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Un tema solo define el fondo y la tipografía; las imágenes y los datos mantienen los colores que su tema necesita.
+- **Ocho estilos visuales.** Escena cinematográfica, infografía, mapa, demo de interfaz, plano técnico, tipografía cinética, relato informativo o 3D, cada uno con su propio kit y fotogramas de referencia que la IA mira antes de elegir y construir ([`engine/shotloop/kits/styles.mjs`](engine/shotloop/kits/styles.mjs)). Un tema solo define el fondo y la tipografía; las imágenes y los datos mantienen los colores que su tema necesita.
 - **Reglas para medir un plan.** Antes de construir nada se comprueba la longitud de los subtítulos y el tiempo que permanecen en pantalla. Una imagen que se repite entre planos se dibuja una vez y se comparte, para que se vea igual en todos.
 - **Datos con fuentes.** El texto guarda cada dato junto a su fuente, y el texto de publicación solo puede usar datos del texto.
 - **Portadas.** La IA diseña una portada con el estilo de la película y revisa sus propios renders. Guarda una como plantilla para que una serie sea coherente, o sube una portada que te guste y la IA sigue su diseño.
@@ -205,7 +205,7 @@ my-video/
   out/                 las exportaciones del motor (con marca de tiempo); la app copia cada una a una carpeta nueva donde elijas
 ```
 
-- **3D**: `world/page.html` es el kit WebGL del motor ([`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)): un escenario de three.js con luz de estudio, materiales, formas, modelos glTF, cámaras basadas en objetivos y texto por encima. Los decorados y máquinas que comparten los planos viven en `world/*.js`; un plano construye lo que muestra en `setup(ctx)` y lo coloca para `t` en `render(t)`.
+- **3D**: `world/page.html` es el kit WebGL del motor ([`engine/shotloop/kits/webgl.mjs`](engine/shotloop/kits/webgl.mjs)): un escenario de three.js con luz de estudio, materiales, formas, modelos glTF, cámaras basadas en objetivos y texto por encima. Los decorados y máquinas que comparten los planos viven en `world/*.js`; un plano construye lo que muestra en `setup(ctx)` y lo coloca para `t` en `render(t)`.
 - **2D**: `shot.js` exporta por defecto `render(t, ctx)`, que dibuja `world/page.html` en el tiempo local del plano `t`. `ctx.voice` contiene las oraciones habladas del plano con sus tiempos, para que la imagen caiga sobre las palabras; marca el sujeto con `data-keep` (o `subtitles.keep()` en un canvas) para que la comprobación de subtítulos lo deje despejado.
 - **Caché**: la clave de un plano es un hash del mundo, su código, sus modelos, el renderizador y los ajustes. Los planos sin cambios se reutilizan.
 

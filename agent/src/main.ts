@@ -223,7 +223,7 @@ ${trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 
   sb = load()
   // 2D: measured against the rules; what breaks them goes back once
   // A bar of the music: no caption is up for less (the bed may be tuned
-  // up to 12% faster to land the cuts, engine/shotloop/bed.mjs)
+  // up to 12% faster to land the cuts, engine/shotloop/sound/bed.mjs)
   const bpm = Number(JSON.parse(read(path.join(project.root, 'music.json')).replace(/^\(missing\)$/, '{}')).bpm) || 0
   const bar = bpm ? 240 / (bpm * 1.12) : 0
   // A voiced film is timed by its lines (fitted when it's built), so its

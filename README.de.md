@@ -55,16 +55,16 @@ Die KI wählt den Stil, der zum Thema passt, und begründet ihn; du kannst im Pl
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="Filmische Szene" /></a><br/><sub><b>Filmische Szene</b>: Licht, Tiefe und eine bewegte Kamera, für alles, was man filmen könnte: Weltall, Natur, Physik.</sub></td>
-<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="Infografik" /></a><br/><sub><b>Infografik</b>: Diagramme und bewegte Zahlen, für Statistik, Vergleiche, Geld.</sub></td>
-<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="Karte" /></a><br/><sub><b>Karte</b>: Weltkarte, Routen und aufleuchtende Länder, für Orte und Verbreitung.</sub></td>
-<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="Interface-Demo" /></a><br/><sub><b>Interface-Demo</b>: ein Smartphone oder Browser, Schritt für Schritt, für Apps, Einstellungen und Betrugsmaschen.</sub></td>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/kits/styles/scene/1.jpg" alt="Filmische Szene" /></a><br/><sub><b>Filmische Szene</b>: Licht, Tiefe und eine bewegte Kamera, für alles, was man filmen könnte: Weltall, Natur, Physik.</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/kits/styles/infographic/1.jpg" alt="Infografik" /></a><br/><sub><b>Infografik</b>: Diagramme und bewegte Zahlen, für Statistik, Vergleiche, Geld.</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/kits/styles/map/1.jpg" alt="Karte" /></a><br/><sub><b>Karte</b>: Weltkarte, Routen und aufleuchtende Länder, für Orte und Verbreitung.</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/kits/styles/ui/1.jpg" alt="Interface-Demo" /></a><br/><sub><b>Interface-Demo</b>: ein Smartphone oder Browser, Schritt für Schritt, für Apps, Einstellungen und Betrugsmaschen.</sub></td>
 </tr>
 <tr>
-<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Blaupause" /></a><br/><sub><b>Blaupause</b>: Strichzeichnung auf Raster, Explosionsansichten und Beschriftungen, dafür, wie eine Maschine funktioniert.</sub></td>
-<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Kinetic Type" /></a><br/><sub><b>Kinetic Type</b>: riesige, bewegte Schrift, für Zitate, Wörter und Mythen.</sub></td>
-<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Nachrichtenstory" /></a><br/><sub><b>Nachrichtenstory</b>: Eilmeldungen mit Spannung erzählt: laufende Uhr, Geldspur, Zeitleiste, wer was gesagt hat.</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: three.js-Welten mit Studiolicht, weichen Schatten und einer Kamera, die durch den Raum fliegt.</sub></td>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/kits/styles/blueprint/1.jpg" alt="Blaupause" /></a><br/><sub><b>Blaupause</b>: Strichzeichnung auf Raster, Explosionsansichten und Beschriftungen, dafür, wie eine Maschine funktioniert.</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/kits/styles/kinetic/1.jpg" alt="Kinetic Type" /></a><br/><sub><b>Kinetic Type</b>: riesige, bewegte Schrift, für Zitate, Wörter und Mythen.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/kits/styles/news/1.jpg" alt="Nachrichtenstory" /></a><br/><sub><b>Nachrichtenstory</b>: Eilmeldungen mit Spannung erzählt: laufende Uhr, Geldspur, Zeitleiste, wer was gesagt hat.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/kits/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: three.js-Welten mit Studiolicht, weichen Schatten und einer Kamera, die durch den Raum fliegt.</sub></td>
 </tr>
 </table>
 
@@ -118,7 +118,7 @@ flowchart LR
 
 - **Shots statt eines langen Renders.** Ein Film ist eine Liste von Shots. Jeder Shot ist ein kleines Programm, `shot.js`, das seine Seite zu einem Zeitpunkt t zeichnet: eine 2D-Seite oder eine three.js-Welt für 3D. Jeder wird über einen Hash seiner Eingaben gecacht, sodass eine Korrektur einen Shot in Sekunden neu rendert und der Export nur noch Clips zusammenfügt.
 - **Korrekturen in einfachen Worten.** Die KI ändert nur den aktuellen Shot, außer die Korrektur betrifft die gemeinsame Welt. Sie schlägt zuerst ein paar konkrete Wege für deine Änderung vor; der gewählte (oder dein eigener) ist die Korrektur, erledigt in deutlich unter einer Minute, und der Clip des Shots wird gleich danach gerendert, sodass er sofort abspielt. „Prüfen“ gleicht den Shot mit der Checkliste ab (lesbar, nichts verdeckt, außerhalb der Untertitelzone usw.), ohne etwas zu ändern, und behebt das Gefundene mit einem Klick.
-- **Acht visuelle Stile.** Filmische Szene, Infografik, Karte, Interface-Demo, Blaupause, Kinetic Type, Nachrichtenstory oder 3D, jeder mit eigenem Kit und Referenzbildern, die die KI ansieht, bevor sie wählt und baut ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Ein Theme legt nur Hintergrund und Schrift fest; Bilder und Daten behalten die Farben, die ihr Thema braucht.
+- **Acht visuelle Stile.** Filmische Szene, Infografik, Karte, Interface-Demo, Blaupause, Kinetic Type, Nachrichtenstory oder 3D, jeder mit eigenem Kit und Referenzbildern, die die KI ansieht, bevor sie wählt und baut ([`engine/shotloop/kits/styles.mjs`](engine/shotloop/kits/styles.mjs)). Ein Theme legt nur Hintergrund und Schrift fest; Bilder und Daten behalten die Farben, die ihr Thema braucht.
 - **Regeln, an denen ein Plan gemessen wird.** Untertitel werden auf Länge und Standzeit geprüft, bevor etwas gebaut wird. Ein Bild, das in mehreren Shots vorkommt, wird einmal gezeichnet und geteilt, damit es überall gleich aussieht.
 - **Fakten mit Quellen.** Der Text hält jede Tatsache neben ihrer Quelle, und der Post-Text darf nur Fakten aus dem Text verwenden.
 - **Cover.** Die KI gestaltet ein Cover im Look des Films und prüft ihre eigenen Renders. Speichere eines als Vorlage, damit eine Serie einheitlich bleibt, oder lade ein Cover hoch, das dir gefällt, und die KI folgt seinem Design.
@@ -205,7 +205,7 @@ my-video/
   out/                 Exporte der Engine (mit Zeitstempel); die App kopiert jeden in einen neuen Ordner deiner Wahl
 ```
 
-- **3D**: `world/page.html` ist das WebGL-Kit der Engine ([`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)): eine three.js-Bühne mit Studiolicht, Materialien, Formen, glTF-Modellen, objektivbasierten Kameras und Schrift darüber. Sets und Maschinen, die die Shots teilen, liegen in `world/*.js`; ein Shot baut in `setup(ctx)` auf, was er zeigt, und stellt es in `render(t)` für `t` ein.
+- **3D**: `world/page.html` ist das WebGL-Kit der Engine ([`engine/shotloop/kits/webgl.mjs`](engine/shotloop/kits/webgl.mjs)): eine three.js-Bühne mit Studiolicht, Materialien, Formen, glTF-Modellen, objektivbasierten Kameras und Schrift darüber. Sets und Maschinen, die die Shots teilen, liegen in `world/*.js`; ein Shot baut in `setup(ctx)` auf, was er zeigt, und stellt es in `render(t)` für `t` ein.
 - **2D**: `shot.js` exportiert standardmäßig `render(t, ctx)`, das `world/page.html` zur Shot-lokalen Zeit `t` zeichnet. `ctx.voice` enthält die gesprochenen Sätze des Shots mit ihren Zeiten, damit das Bild die Worte trifft; markiere das Motiv mit `data-keep` (oder `subtitles.keep()` auf einem Canvas), damit die Untertitel-Prüfung es frei hält.
 - **Cache**: Der Schlüssel eines Shots hasht Welt, Code, Modelle, Renderer und Einstellungen. Unveränderte Shots werden wiederverwendet.
 

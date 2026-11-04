@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { spacesWords, SUBTITLE_STYLES, subtitleRules } from '../../../engine/shotloop/data.mjs'
-import { splitWords, wordsHtml } from '../../../engine/shotloop/words.mjs'
+import { splitWords, wordsHtml } from '../../../engine/shotloop/voiceover/words.mjs'
 import { useDismiss } from '../hooks'
 import { lang, t } from '../i18n'
 import type { Key } from '../i18n/en'

@@ -15,7 +15,7 @@ processes and under their own licenses:
   https://ffmpeg.org/download.html and from the build's page.
 
 The page renderer bundles three.js 0.187.0 (https://threejs.org), MIT
-License (engine/shotloop/vendor/three-0.187.0/LICENSE), which a 2D
+License (engine/shotloop/render/vendor/three-0.187.0/LICENSE), which a 2D
 shot's page loads to draw a part in 3D and a WebGL 3D film draws its
 whole world with, and some of its add-ons (addons/: the glTF loader, the
 room environment, post-processing with ground-truth ambient occlusion,
@@ -57,10 +57,10 @@ LICENSE.headless_shell files.
 Third-party material that projects may use is not part of this
 distribution: the CC0 asset packs listed in engine/assets/README.md
 (Kenney, Poly Haven, Quaternius) are downloaded, not committed, and keep
-their own licenses. Music beds are synthesized by engine/shotloop/synth.mjs
+their own licenses. Music beds are synthesized by engine/shotloop/sound/synth.mjs
 and contain no samples.
 
-Map data: engine/shotloop/world-110m.json (the countries the map style
+Map data: engine/shotloop/kits/world-110m.json (the countries the map style
 draws) is derived from Natural Earth 1:110m Admin 0 countries
 (https://www.naturalearthdata.com), which is in the public domain, as
 packaged in world-atlas 2.0.2 by Mike Bostock (https://github.com/topojson/world-atlas),

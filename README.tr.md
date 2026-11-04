@@ -55,16 +55,16 @@ Yapay zekâ konuya uyan stili seçer ve nedenini söyler; planda değiştirebili
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="Sinematik sahne" /></a><br/><sub><b>Sinematik sahne</b>: ışık, derinlik ve hareketli kamera; filme alınabilecek şeyler için: uzay, doğa, fizik.</sub></td>
-<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="İnfografik" /></a><br/><sub><b>İnfografik</b>: grafikler ve hareketli sayılar; istatistik, karşılaştırma, para için.</sub></td>
-<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="Harita" /></a><br/><sub><b>Harita</b>: dünya haritası, rotalar ve yanan ülkeler; yerler ve yayılan şeyler için.</sub></td>
-<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="Arayüz demosu" /></a><br/><sub><b>Arayüz demosu</b>: adım adım bir telefon veya tarayıcı; uygulamalar, ayarlar ve dolandırıcılıklar için.</sub></td>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/kits/styles/scene/1.jpg" alt="Sinematik sahne" /></a><br/><sub><b>Sinematik sahne</b>: ışık, derinlik ve hareketli kamera; filme alınabilecek şeyler için: uzay, doğa, fizik.</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/kits/styles/infographic/1.jpg" alt="İnfografik" /></a><br/><sub><b>İnfografik</b>: grafikler ve hareketli sayılar; istatistik, karşılaştırma, para için.</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/kits/styles/map/1.jpg" alt="Harita" /></a><br/><sub><b>Harita</b>: dünya haritası, rotalar ve yanan ülkeler; yerler ve yayılan şeyler için.</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/kits/styles/ui/1.jpg" alt="Arayüz demosu" /></a><br/><sub><b>Arayüz demosu</b>: adım adım bir telefon veya tarayıcı; uygulamalar, ayarlar ve dolandırıcılıklar için.</sub></td>
 </tr>
 <tr>
-<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Teknik çizim" /></a><br/><sub><b>Teknik çizim</b>: ızgara üzerinde çizgiler, patlatılmış görünümler ve açıklamalar; bir makinenin nasıl çalıştığı için.</sub></td>
-<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Kinetik tipografi" /></a><br/><sub><b>Kinetik tipografi</b>: hareket eden dev yazılar; alıntılar, kelimeler ve efsaneler için.</sub></td>
-<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Haber anlatısı" /></a><br/><sub><b>Haber anlatısı</b>: son dakika olaylar gerilimle: işleyen bir saat, paranın izi, zaman çizelgesi, kim ne dedi.</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: stüdyo ışığı, yumuşak gölgeler ve uzayda dolaşan kamerayla three.js dünyaları.</sub></td>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/kits/styles/blueprint/1.jpg" alt="Teknik çizim" /></a><br/><sub><b>Teknik çizim</b>: ızgara üzerinde çizgiler, patlatılmış görünümler ve açıklamalar; bir makinenin nasıl çalıştığı için.</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/kits/styles/kinetic/1.jpg" alt="Kinetik tipografi" /></a><br/><sub><b>Kinetik tipografi</b>: hareket eden dev yazılar; alıntılar, kelimeler ve efsaneler için.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/kits/styles/news/1.jpg" alt="Haber anlatısı" /></a><br/><sub><b>Haber anlatısı</b>: son dakika olaylar gerilimle: işleyen bir saat, paranın izi, zaman çizelgesi, kim ne dedi.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/kits/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: stüdyo ışığı, yumuşak gölgeler ve uzayda dolaşan kamerayla three.js dünyaları.</sub></td>
 </tr>
 </table>
 
@@ -118,7 +118,7 @@ flowchart LR
 
 - **Tek uzun işleme değil, çekimler.** Bir film, çekimlerden oluşan bir listedir. Her çekim, sayfasını bir t anında çizen küçük bir programdır, `shot.js`: 2D için bir sayfa, 3D için bir three.js dünyası. Her biri girdilerinin hash'iyle önbelleğe alınır; böylece bir düzeltme tek bir çekimi saniyeler içinde yeniden işler ve Dışa aktar yalnızca klipleri birleştirir.
 - **Sade dille düzeltmeler.** Düzeltme ortak dünyayı gerektirmedikçe yapay zekâ yalnızca bulunduğunuz çekime dokunur. Önce değişikliğinizi yapmak için birkaç somut yol önerir; seçtiğiniz yol (ya da kendi fikriniz) düzeltmenin kendisidir, bir dakikadan çok daha kısa sürede biter ve çekimin klibi hemen ardından işlenir, böylece anında oynatılabilir. "Denetle" çekimi kontrol listesine göre inceler (okunabilir, hiçbir şey örtülmemiş, altyazı alanının dışında vb.), hiçbir şeyi değiştirmez ve bulduklarını tek tıkla düzeltir.
-- **Sekiz görsel stil.** Sinematik sahne, infografik, harita, arayüz demosu, teknik çizim, kinetik tipografi, haber anlatısı veya 3D; her birinin kendi kiti ve yapay zekânın seçip oluşturmadan önce baktığı referans kareleri vardır ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Tema yalnızca zemini ve yazıyı belirler; görseller ve veriler konularının gerektirdiği renkleri korur.
+- **Sekiz görsel stil.** Sinematik sahne, infografik, harita, arayüz demosu, teknik çizim, kinetik tipografi, haber anlatısı veya 3D; her birinin kendi kiti ve yapay zekânın seçip oluşturmadan önce baktığı referans kareleri vardır ([`engine/shotloop/kits/styles.mjs`](engine/shotloop/kits/styles.mjs)). Tema yalnızca zemini ve yazıyı belirler; görseller ve veriler konularının gerektirdiği renkleri korur.
 - **Planın ölçüldüğü kurallar.** Altyazıların uzunluğu ve ekranda kalma süresi, hiçbir şey oluşturulmadan önce denetlenir. Çekimler boyunca tekrar eden bir görsel bir kez çizilip paylaşılır, böylece her çekimde aynı görünür.
 - **Kaynaklı bilgiler.** Metin her bilgiyi kaynağının yanında tutar; paylaşım metni yalnızca metindeki bilgileri kullanabilir.
 - **Kapaklar.** Yapay zekâ filmin görünümünde bir kapak tasarlar ve kendi işlediklerini denetler. Bir seriyi tutarlı tutmak için birini şablon olarak kaydedin ya da beğendiğiniz bir kapağı yükleyin, yapay zekâ onun tasarımını izlesin.
@@ -205,7 +205,7 @@ my-video/
   out/                 motorun dışa aktarımları (zaman damgalı); uygulama her birini seçtiğiniz yerde yeni bir klasöre kopyalar
 ```
 
-- **3D**: `world/page.html`, motorun WebGL kitidir ([`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)): stüdyo ışığı, malzemeler, şekiller, glTF modelleri, objektif tabanlı kameralar ve üstünde yazı bulunan bir three.js sahnesi. Çekimlerin paylaştığı dekorlar ve makineler `world/*.js` içinde durur; bir çekim gösterdiğini `setup(ctx)` içinde kurar ve `render(t)` içinde `t` anı için konumlandırır.
+- **3D**: `world/page.html`, motorun WebGL kitidir ([`engine/shotloop/kits/webgl.mjs`](engine/shotloop/kits/webgl.mjs)): stüdyo ışığı, malzemeler, şekiller, glTF modelleri, objektif tabanlı kameralar ve üstünde yazı bulunan bir three.js sahnesi. Çekimlerin paylaştığı dekorlar ve makineler `world/*.js` içinde durur; bir çekim gösterdiğini `setup(ctx)` içinde kurar ve `render(t)` içinde `t` anı için konumlandırır.
 - **2D**: `shot.js`, varsayılan olarak `render(t, ctx)` dışa aktarır; bu fonksiyon `world/page.html` sayfasını çekim içi `t` anında çizer. `ctx.voice`, çekimde söylenen cümleleri zamanlarıyla birlikte tutar; böylece görüntü sözcüklere denk gelebilir. Altyazı denetiminin özneyi açıkta bırakması için onu `data-keep` ile (canvas üzerinde `subtitles.keep()` ile) işaretleyin.
 - **Önbellek**: bir çekimin anahtarı dünyanın, kodunun, modellerinin, işleyicinin ve ayarların hash'idir. Değişmeyen çekimler yeniden kullanılır.
 

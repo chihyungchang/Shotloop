@@ -55,16 +55,16 @@ AI memilih gaya yang cocok dengan topiknya dan menjelaskan alasannya; Anda bisa 
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="Adegan sinematik" /></a><br/><sub><b>Adegan sinematik</b>: cahaya, kedalaman, dan kamera yang bergerak, untuk hal yang bisa difilmkan: luar angkasa, alam, fisika.</sub></td>
-<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="Infografik" /></a><br/><sub><b>Infografik</b>: grafik dan angka yang bergerak, untuk statistik, perbandingan, uang.</sub></td>
-<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="Peta" /></a><br/><sub><b>Peta</b>: peta dunia, rute, dan negara yang menyala, untuk tempat dan cara sesuatu menyebar.</sub></td>
-<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="Demo antarmuka" /></a><br/><sub><b>Demo antarmuka</b>: ponsel atau browser, langkah demi langkah, untuk aplikasi, pengaturan, dan penipuan.</sub></td>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/kits/styles/scene/1.jpg" alt="Adegan sinematik" /></a><br/><sub><b>Adegan sinematik</b>: cahaya, kedalaman, dan kamera yang bergerak, untuk hal yang bisa difilmkan: luar angkasa, alam, fisika.</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/kits/styles/infographic/1.jpg" alt="Infografik" /></a><br/><sub><b>Infografik</b>: grafik dan angka yang bergerak, untuk statistik, perbandingan, uang.</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/kits/styles/map/1.jpg" alt="Peta" /></a><br/><sub><b>Peta</b>: peta dunia, rute, dan negara yang menyala, untuk tempat dan cara sesuatu menyebar.</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/kits/styles/ui/1.jpg" alt="Demo antarmuka" /></a><br/><sub><b>Demo antarmuka</b>: ponsel atau browser, langkah demi langkah, untuk aplikasi, pengaturan, dan penipuan.</sub></td>
 </tr>
 <tr>
-<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Cetak biru" /></a><br/><sub><b>Cetak biru</b>: gambar garis di atas grid, tampilan urai, dan keterangan, untuk cara kerja mesin.</sub></td>
-<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Tipografi kinetik" /></a><br/><sub><b>Tipografi kinetik</b>: huruf besar yang bergerak, untuk kutipan, kata, dan mitos.</sub></td>
-<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Kisah berita" /></a><br/><sub><b>Kisah berita</b>: peristiwa terkini penuh ketegangan: jam yang terus berjalan, jejak uang, linimasa, siapa berkata apa.</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: dunia three.js dengan cahaya studio, bayangan lembut, dan kamera yang melintasi ruang.</sub></td>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/kits/styles/blueprint/1.jpg" alt="Cetak biru" /></a><br/><sub><b>Cetak biru</b>: gambar garis di atas grid, tampilan urai, dan keterangan, untuk cara kerja mesin.</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/kits/styles/kinetic/1.jpg" alt="Tipografi kinetik" /></a><br/><sub><b>Tipografi kinetik</b>: huruf besar yang bergerak, untuk kutipan, kata, dan mitos.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/kits/styles/news/1.jpg" alt="Kisah berita" /></a><br/><sub><b>Kisah berita</b>: peristiwa terkini penuh ketegangan: jam yang terus berjalan, jejak uang, linimasa, siapa berkata apa.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/kits/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: dunia three.js dengan cahaya studio, bayangan lembut, dan kamera yang melintasi ruang.</sub></td>
 </tr>
 </table>
 
@@ -118,7 +118,7 @@ flowchart LR
 
 - **Adegan, bukan satu render panjang.** Film adalah daftar adegan. Setiap adegan adalah program kecil, `shot.js`, yang menggambar halamannya pada waktu t: halaman 2D, atau dunia three.js untuk 3D. Masing-masing di-cache menurut hash inputnya, sehingga perbaikan merender ulang satu adegan dalam hitungan detik, dan Ekspor hanya menggabungkan klip.
 - **Perbaikan dengan bahasa sehari-hari.** AI hanya menyentuh adegan yang sedang Anda buka, kecuali perbaikannya butuh dunia bersama. AI lebih dulu menawarkan beberapa cara konkret untuk melakukan perubahan Anda; cara yang Anda pilih (atau cara Anda sendiri) menjadi perbaikannya, selesai dalam jauh kurang dari semenit, dan klip adegan langsung dirender setelahnya sehingga bisa segera diputar. Periksa meninjau adegan terhadap daftar periksa (terbaca, tidak ada yang tertutup, di luar area teks, dan sebagainya) tanpa mengubah apa pun, lalu memperbaiki temuannya dengan satu klik.
-- **Delapan gaya visual.** Adegan sinematik, infografik, peta, demo antarmuka, cetak biru, tipografi kinetik, kisah berita, atau 3D, masing-masing dengan kit dan bingkai referensinya sendiri yang dilihat AI sebelum memilih dan membangun ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Tema hanya mengatur latar dan huruf; gambar dan data tetap memakai warna yang dibutuhkan topiknya.
+- **Delapan gaya visual.** Adegan sinematik, infografik, peta, demo antarmuka, cetak biru, tipografi kinetik, kisah berita, atau 3D, masing-masing dengan kit dan bingkai referensinya sendiri yang dilihat AI sebelum memilih dan membangun ([`engine/shotloop/kits/styles.mjs`](engine/shotloop/kits/styles.mjs)). Tema hanya mengatur latar dan huruf; gambar dan data tetap memakai warna yang dibutuhkan topiknya.
 - **Aturan untuk mengukur rencana.** Panjang teks dan lamanya tampil di layar diperiksa sebelum apa pun dibangun. Gambar yang muncul di beberapa adegan digambar sekali lalu dipakai bersama, jadi tampak sama di setiap adegan.
 - **Fakta dengan sumber.** Teks menyimpan setiap fakta di samping sumbernya, dan teks unggahan hanya boleh memakai fakta dari teks itu.
 - **Sampul.** AI mendesain sampul sesuai tampilan film dan memeriksa hasil rendernya sendiri. Simpan satu sebagai template agar seri tetap konsisten, atau unggah sampul yang Anda suka dan AI mengikuti desainnya.
@@ -205,7 +205,7 @@ my-video/
   out/                 ekspor engine (bercap waktu); aplikasi menyalin tiap ekspor ke folder baru di tempat pilihan Anda
 ```
 
-- **3D**: `world/page.html` adalah kit WebGL milik engine ([`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)): panggung three.js dengan cahaya studio, material, bentuk, model glTF, kamera berbasis lensa, dan teks di atasnya. Set dan mesin yang dipakai bersama oleh adegan-adegan ada di `world/*.js`; sebuah adegan membangun apa yang ditampilkannya di `setup(ctx)` dan mengatur posenya untuk `t` di `render(t)`.
+- **3D**: `world/page.html` adalah kit WebGL milik engine ([`engine/shotloop/kits/webgl.mjs`](engine/shotloop/kits/webgl.mjs)): panggung three.js dengan cahaya studio, material, bentuk, model glTF, kamera berbasis lensa, dan teks di atasnya. Set dan mesin yang dipakai bersama oleh adegan-adegan ada di `world/*.js`; sebuah adegan membangun apa yang ditampilkannya di `setup(ctx)` dan mengatur posenya untuk `t` di `render(t)`.
 - **2D**: `shot.js` mengekspor default `render(t, ctx)`, yang menggambar `world/page.html` pada waktu lokal adegan `t`. `ctx.voice` berisi kalimat yang diucapkan dalam adegan beserta waktunya, agar gambar bisa jatuh tepat pada kata-katanya; tandai subjek dengan `data-keep` (atau `subtitles.keep()` pada canvas) agar pemeriksaan subtitel menjaganya tetap terlihat.
 - **Cache**: kunci sebuah adegan adalah hash dari dunia, kodenya, modelnya, renderer, dan pengaturan. Adegan yang tidak berubah dipakai ulang.
 

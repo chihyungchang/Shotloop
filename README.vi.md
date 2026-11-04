@@ -55,16 +55,16 @@ AI chọn phong cách hợp với chủ đề và giải thích lý do; bạn c�
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="Cảnh điện ảnh" /></a><br/><sub><b>Cảnh điện ảnh</b>: ánh sáng, chiều sâu và máy quay chuyển động, cho những thứ quay được: vũ trụ, thiên nhiên, vật lý.</sub></td>
-<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="Infographic" /></a><br/><sub><b>Infographic</b>: biểu đồ và con số chuyển động, cho thống kê, so sánh, tiền bạc.</sub></td>
-<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="Bản đồ" /></a><br/><sub><b>Bản đồ</b>: bản đồ thế giới, tuyến đường và quốc gia sáng lên, cho địa điểm và sự lan tỏa.</sub></td>
-<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="Demo giao diện" /></a><br/><sub><b>Demo giao diện</b>: điện thoại hoặc trình duyệt, từng bước, cho ứng dụng, cài đặt và chiêu lừa đảo.</sub></td>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/kits/styles/scene/1.jpg" alt="Cảnh điện ảnh" /></a><br/><sub><b>Cảnh điện ảnh</b>: ánh sáng, chiều sâu và máy quay chuyển động, cho những thứ quay được: vũ trụ, thiên nhiên, vật lý.</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/kits/styles/infographic/1.jpg" alt="Infographic" /></a><br/><sub><b>Infographic</b>: biểu đồ và con số chuyển động, cho thống kê, so sánh, tiền bạc.</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/kits/styles/map/1.jpg" alt="Bản đồ" /></a><br/><sub><b>Bản đồ</b>: bản đồ thế giới, tuyến đường và quốc gia sáng lên, cho địa điểm và sự lan tỏa.</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/kits/styles/ui/1.jpg" alt="Demo giao diện" /></a><br/><sub><b>Demo giao diện</b>: điện thoại hoặc trình duyệt, từng bước, cho ứng dụng, cài đặt và chiêu lừa đảo.</sub></td>
 </tr>
 <tr>
-<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Bản vẽ kỹ thuật" /></a><br/><sub><b>Bản vẽ kỹ thuật</b>: nét vẽ trên lưới, hình tách lớp và chú thích, cho cách một cỗ máy hoạt động.</sub></td>
-<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Chữ chuyển động" /></a><br/><sub><b>Chữ chuyển động</b>: chữ cỡ lớn chuyển động, cho trích dẫn, từ ngữ và ngộ nhận.</sub></td>
-<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Kể chuyện tin tức" /></a><br/><sub><b>Kể chuyện tin tức</b>: sự kiện nóng kể đầy kịch tính: đồng hồ chạy không ngừng, dấu vết dòng tiền, dòng thời gian, ai nói gì.</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: thế giới three.js với ánh sáng studio, bóng đổ mềm và máy quay bay trong không gian.</sub></td>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/kits/styles/blueprint/1.jpg" alt="Bản vẽ kỹ thuật" /></a><br/><sub><b>Bản vẽ kỹ thuật</b>: nét vẽ trên lưới, hình tách lớp và chú thích, cho cách một cỗ máy hoạt động.</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/kits/styles/kinetic/1.jpg" alt="Chữ chuyển động" /></a><br/><sub><b>Chữ chuyển động</b>: chữ cỡ lớn chuyển động, cho trích dẫn, từ ngữ và ngộ nhận.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/kits/styles/news/1.jpg" alt="Kể chuyện tin tức" /></a><br/><sub><b>Kể chuyện tin tức</b>: sự kiện nóng kể đầy kịch tính: đồng hồ chạy không ngừng, dấu vết dòng tiền, dòng thời gian, ai nói gì.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/kits/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: thế giới three.js với ánh sáng studio, bóng đổ mềm và máy quay bay trong không gian.</sub></td>
 </tr>
 </table>
 
@@ -118,7 +118,7 @@ flowchart LR
 
 - **Theo từng cảnh, không phải một lần render dài.** Video là một danh sách cảnh. Mỗi cảnh là một chương trình nhỏ, `shot.js`, vẽ trang của nó tại thời điểm t: một trang 2D, hoặc một thế giới three.js cho 3D. Mỗi cảnh được cache theo hash của đầu vào, nên sửa một cảnh chỉ render lại cảnh đó trong vài giây, và Xuất chỉ ghép các clip.
 - **Sửa bằng lời thường.** AI chỉ đụng vào cảnh bạn đang xem, trừ khi cần sửa thế giới dùng chung. Trước tiên AI đề xuất vài cách cụ thể để thực hiện thay đổi của bạn; cách bạn chọn (hoặc ý của riêng bạn) chính là bản sửa, xong trong chưa tới một phút, và clip của cảnh được render ngay sau đó để phát được liền. Nút Kiểm tra đối chiếu cảnh với danh sách kiểm tra (đọc được, không bị che, không lấn vùng phụ đề…) mà không thay đổi gì, và sửa những gì tìm thấy chỉ với một cú nhấp.
-- **Tám phong cách hình ảnh.** Cảnh điện ảnh, infographic, bản đồ, demo giao diện, bản vẽ kỹ thuật, chữ chuyển động, kể chuyện tin tức hoặc 3D, mỗi phong cách có bộ kit và khung hình tham khảo riêng mà AI xem trước khi chọn và dựng ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Chủ đề chỉ quyết định nền và chữ; hình ảnh và dữ liệu giữ màu mà nội dung cần.
+- **Tám phong cách hình ảnh.** Cảnh điện ảnh, infographic, bản đồ, demo giao diện, bản vẽ kỹ thuật, chữ chuyển động, kể chuyện tin tức hoặc 3D, mỗi phong cách có bộ kit và khung hình tham khảo riêng mà AI xem trước khi chọn và dựng ([`engine/shotloop/kits/styles.mjs`](engine/shotloop/kits/styles.mjs)). Chủ đề chỉ quyết định nền và chữ; hình ảnh và dữ liệu giữ màu mà nội dung cần.
 - **Kế hoạch được đo theo quy tắc.** Trước khi dựng, phụ đề được kiểm tra độ dài và thời gian hiển thị. Hình xuất hiện lặp lại qua nhiều cảnh chỉ vẽ một lần và dùng chung, nên trông giống nhau ở mọi cảnh.
 - **Dữ kiện có nguồn.** Lời văn giữ mỗi dữ kiện cạnh nguồn của nó, và bài đăng chỉ được dùng dữ kiện có trong lời văn.
 - **Ảnh bìa.** AI thiết kế ảnh bìa theo phong cách video và tự kiểm tra bản render. Lưu một ảnh làm mẫu để giữ series đồng nhất, hoặc tải lên ảnh bìa bạn thích để AI làm theo bố cục đó.
@@ -205,7 +205,7 @@ my-video/
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
-- **3D**: `world/page.html` là bộ kit WebGL của engine ([`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)): một sân khấu three.js với ánh sáng studio, vật liệu, hình khối, mô hình glTF, máy quay mô phỏng ống kính và chữ phía trên. Bối cảnh và cỗ máy mà các cảnh dùng chung nằm trong `world/*.js`; mỗi cảnh dựng những gì nó hiển thị trong `setup(ctx)` và đặt tư thế cho `t` trong `render(t)`.
+- **3D**: `world/page.html` là bộ kit WebGL của engine ([`engine/shotloop/kits/webgl.mjs`](engine/shotloop/kits/webgl.mjs)): một sân khấu three.js với ánh sáng studio, vật liệu, hình khối, mô hình glTF, máy quay mô phỏng ống kính và chữ phía trên. Bối cảnh và cỗ máy mà các cảnh dùng chung nằm trong `world/*.js`; mỗi cảnh dựng những gì nó hiển thị trong `setup(ctx)` và đặt tư thế cho `t` trong `render(t)`.
 - **2D**: `shot.js` default-export `render(t, ctx)`, hàm vẽ `world/page.html` tại thời điểm `t` tính theo cảnh. `ctx.voice` chứa các câu được đọc trong cảnh cùng thời điểm của chúng, để hình ảnh khớp với lời; đánh dấu chủ thể bằng `data-keep` (hoặc `subtitles.keep()` trên canvas) để bước kiểm tra phụ đề giữ nó không bị che.
 - **Cache**: khóa của một cảnh là hash của thế giới, code của cảnh, mô hình của cảnh, renderer và cài đặt. Cảnh không đổi sẽ được dùng lại.
 

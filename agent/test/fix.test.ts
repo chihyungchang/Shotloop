@@ -68,7 +68,7 @@ function runAgent(args: string[], baseURL: string) {
   })
 }
 
-// A pick result (engine/shotloop/pick.mjs) for the element the fix is about
+// A pick result (engine/shotloop/render/pick.mjs) for the element the fix is about
 const ELEMENT = { kind: 'dom', name: 'follow', tag: 'div', text: 'Follow for more ↗', path: 'div#follow', box: { x: 0.1, y: 0.8, w: 0.8, h: 0.05 }, point: { x: 360, y: 1050 }, t: 2 }
 
 const use = (id: string, name: string, input: Block) => ({ type: 'tool_use', id, name, input })

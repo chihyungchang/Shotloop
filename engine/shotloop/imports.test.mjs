@@ -20,8 +20,8 @@ function importsOf(file) {
   return out
 }
 
-const modules = ['shotloop', 'lib'].flatMap(d => fs.readdirSync(path.join(ENGINE, d))
-  .filter(f => f.endsWith('.mjs') && !f.endsWith('.test.mjs')).map(f => path.join(ENGINE, d, f)))
+const modules = ['shotloop', 'lib'].flatMap(d => fs.readdirSync(path.join(ENGINE, d), { recursive: true })
+  .filter(f => f.endsWith('.mjs') && !f.endsWith('.test.mjs') && !f.includes('vendor')).map(f => path.join(ENGINE, d, f)))
 const graph = new Map(modules.map(f => [f, importsOf(f)]))
 
 test('engine modules import each other without cycles', () => {

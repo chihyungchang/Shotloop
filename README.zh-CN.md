@@ -55,16 +55,16 @@ AI 会按题目挑选最合适的画面方式并说明理由；你可以在策�
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="电影感场景" /></a><br/><sub><b>电影感场景</b>： 有光、有纵深、镜头在动，适合能“拍到”的东西：宇宙、自然、物理。</sub></td>
-<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="信息图" /></a><br/><sub><b>信息图</b>： 图表和会动的数字，适合统计、对比、金钱。</sub></td>
-<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="地图" /></a><br/><sub><b>地图</b>： 世界地图、航线、国家被点亮，适合地点、路线、传播与分布。</sub></td>
-<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="界面演示" /></a><br/><sub><b>界面演示</b>： 手机或浏览器上一步步演示，适合 App 技巧、设置、诈骗手法。</sub></td>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/kits/styles/scene/1.jpg" alt="电影感场景" /></a><br/><sub><b>电影感场景</b>： 有光、有纵深、镜头在动，适合能“拍到”的东西：宇宙、自然、物理。</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/kits/styles/infographic/1.jpg" alt="信息图" /></a><br/><sub><b>信息图</b>： 图表和会动的数字，适合统计、对比、金钱。</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/kits/styles/map/1.jpg" alt="地图" /></a><br/><sub><b>地图</b>： 世界地图、航线、国家被点亮，适合地点、路线、传播与分布。</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/kits/styles/ui/1.jpg" alt="界面演示" /></a><br/><sub><b>界面演示</b>： 手机或浏览器上一步步演示，适合 App 技巧、设置、诈骗手法。</sub></td>
 </tr>
 <tr>
-<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="剖面图纸" /></a><br/><sub><b>剖面图纸</b>： 网格上的线稿、拆解、标注，适合讲机器和装置怎么运作。</sub></td>
-<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="动态排版" /></a><br/><sub><b>动态排版</b>： 会动的大字，适合名言、词语、辟谣。</sub></td>
-<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="新闻叙事" /></a><br/><sub><b>新闻叙事</b>：有张力地讲突发事件：不停走的时钟、资金流向、时间线、谁说了什么。</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>：three.js 世界，影棚灯光、柔和阴影，镜头在空间里移动。</sub></td>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/kits/styles/blueprint/1.jpg" alt="剖面图纸" /></a><br/><sub><b>剖面图纸</b>： 网格上的线稿、拆解、标注，适合讲机器和装置怎么运作。</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/kits/styles/kinetic/1.jpg" alt="动态排版" /></a><br/><sub><b>动态排版</b>： 会动的大字，适合名言、词语、辟谣。</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/kits/styles/news/1.jpg" alt="新闻叙事" /></a><br/><sub><b>新闻叙事</b>：有张力地讲突发事件：不停走的时钟、资金流向、时间线、谁说了什么。</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/kits/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>：three.js 世界，影棚灯光、柔和阴影，镜头在空间里移动。</sub></td>
 </tr>
 </table>
 
@@ -118,7 +118,7 @@ flowchart LR
 
 - **按镜头做，不是一次渲染整片。** 一部片子由多个镜头组成，每个镜头都是一小段程序 `shot.js`，画出某一时刻 t 的画面：2D 是网页，3D 是 three.js 世界。每个镜头按输入内容缓存，修一个镜头只需几秒，导出时只是把片段拼起来。
 - **用大白话修改。** AI 只改你当前选中的镜头，除非修改必须动到共享场景。它先给出几个具体改法，你选中的那个（或者你自己的想法）才会被执行，一次修改通常不到一分钟，改完自动渲染镜头视频，可以直接预览。“运行检查”会按检查清单逐条审核（文字能否看清、有没有被遮挡、有没有压到字幕区等），只报告不修改，发现的问题一键就能修。
-- **八种画面方式。** 电影感场景、信息图、地图、界面演示、剖面图纸、动态排版、新闻叙事和 3D，各有一套工具和样片，AI 选择和生成之前都会先看样片（[`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)）。主题色只管背景和文字，画面里的物体和数据按含义取色。
+- **八种画面方式。** 电影感场景、信息图、地图、界面演示、剖面图纸、动态排版、新闻叙事和 3D，各有一套工具和样片，AI 选择和生成之前都会先看样片（[`engine/shotloop/kits/styles.mjs`](engine/shotloop/kits/styles.mjs)）。主题色只管背景和文字，画面里的物体和数据按含义取色。
 - **策划会按规则检查。** 生成之前，先检查每句字幕的长度和停留时间。在多个镜头里反复出现的画面只画一次、各镜头共用，保证每次长得一样。
 - **事实都有来源。** 文案里每条事实都附带来源，发布文案也只能使用文案里的事实。
 - **封面。** AI 按视频的风格设计封面，并自己检查渲染效果。可以存为模版让同一系列统一，也可以上传一张喜欢的封面，让 AI 照它的版式设计。

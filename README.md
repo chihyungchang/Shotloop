@@ -55,16 +55,16 @@ The AI picks the style that fits the subject and tells you why; you can switch o
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="Cinematic scene" /></a><br/><sub><b>Cinematic scene</b>: light, depth and a moving camera, for things you could film: space, nature, physics.</sub></td>
-<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="Infographic" /></a><br/><sub><b>Infographic</b>: charts and moving numbers, for statistics, comparisons, money.</sub></td>
-<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="Map" /></a><br/><sub><b>Map</b>: the world map, routes and countries lighting up, for places and how things spread.</sub></td>
-<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="Interface demo" /></a><br/><sub><b>Interface demo</b>: a phone or a browser, step by step, for apps, settings and scams.</sub></td>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/kits/styles/scene/1.jpg" alt="Cinematic scene" /></a><br/><sub><b>Cinematic scene</b>: light, depth and a moving camera, for things you could film: space, nature, physics.</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/kits/styles/infographic/1.jpg" alt="Infographic" /></a><br/><sub><b>Infographic</b>: charts and moving numbers, for statistics, comparisons, money.</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/kits/styles/map/1.jpg" alt="Map" /></a><br/><sub><b>Map</b>: the world map, routes and countries lighting up, for places and how things spread.</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/kits/styles/ui/1.jpg" alt="Interface demo" /></a><br/><sub><b>Interface demo</b>: a phone or a browser, step by step, for apps, settings and scams.</sub></td>
 </tr>
 <tr>
-<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Blueprint" /></a><br/><sub><b>Blueprint</b>: line art on a grid, exploded views and callouts, for how a machine works.</sub></td>
-<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Kinetic type" /></a><br/><sub><b>Kinetic type</b>: huge type that moves, for quotes, words and myths.</sub></td>
-<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="News story" /></a><br/><sub><b>News story</b>: breaking events told with tension: a running clock, the money trail, the timeline, who said what.</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: three.js worlds with studio light, soft shadows and a camera through space.</sub></td>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/kits/styles/blueprint/1.jpg" alt="Blueprint" /></a><br/><sub><b>Blueprint</b>: line art on a grid, exploded views and callouts, for how a machine works.</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/kits/styles/kinetic/1.jpg" alt="Kinetic type" /></a><br/><sub><b>Kinetic type</b>: huge type that moves, for quotes, words and myths.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/kits/styles/news/1.jpg" alt="News story" /></a><br/><sub><b>News story</b>: breaking events told with tension: a running clock, the money trail, the timeline, who said what.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/kits/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: three.js worlds with studio light, soft shadows and a camera through space.</sub></td>
 </tr>
 </table>
 
@@ -118,7 +118,7 @@ flowchart LR
 
 - **Shots, not one long render.** A film is a list of shots. Each shot is a small program, `shot.js`, that draws its page at a time t: a 2D page, or a three.js world for 3D. Each one is cached by a hash of its inputs, so a fix re-renders one shot in seconds, and Export only joins clips.
 - **Plain-language fixes.** The AI only touches the shot you're on, unless the fix needs the shared world. It first offers a few concrete ways to make your change; the one you pick (or your own) is the fix, done in well under a minute, and the shot's clip renders right after so it plays at once. Run checks reviews the shot against the checklist (readable, nothing covered, out of the caption zone and so on) without changing anything, and fixes what it found in one click.
-- **Eight visual styles.** A cinematic scene, an infographic, a map, an interface demo, a blueprint, kinetic type, a news story or 3D, each with its own kit and reference stills the AI looks at before it chooses and builds ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). A theme sets only the ground and the type; pictures and data keep the colors their subject needs.
+- **Eight visual styles.** A cinematic scene, an infographic, a map, an interface demo, a blueprint, kinetic type, a news story or 3D, each with its own kit and reference stills the AI looks at before it chooses and builds ([`engine/shotloop/kits/styles.mjs`](engine/shotloop/kits/styles.mjs)). A theme sets only the ground and the type; pictures and data keep the colors their subject needs.
 - **Rules a plan is measured against.** Captions are checked for length and for the time they stay up before anything is built. A picture that recurs across shots is drawn once and shared, so it looks the same in each.
 - **Facts with sources.** The copy keeps each fact next to its source, and the publish copy may only use facts from the copy.
 - **Covers.** The AI designs a cover in the film's look and checks its own renders. Save one as a template to keep a series consistent, or upload a cover you like and the AI follows its design.
@@ -205,7 +205,7 @@ my-video/
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
-- **3D**: `world/page.html` is the engine's WebGL kit ([`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)): a three.js stage with studio light, materials, shapes, glTF models, lens-based cameras and type above it. Sets and machines the shots share live in `world/*.js`; a shot builds what it shows in `setup(ctx)` and poses it for `t` in `render(t)`.
+- **3D**: `world/page.html` is the engine's WebGL kit ([`engine/shotloop/kits/webgl.mjs`](engine/shotloop/kits/webgl.mjs)): a three.js stage with studio light, materials, shapes, glTF models, lens-based cameras and type above it. Sets and machines the shots share live in `world/*.js`; a shot builds what it shows in `setup(ctx)` and poses it for `t` in `render(t)`.
 - **2D**: `shot.js` default-exports `render(t, ctx)`, which draws `world/page.html` at shot-local time `t`. `ctx.voice` holds the shot's spoken sentences with their times, so the picture can land on the words; mark the subject with `data-keep` (or `subtitles.keep()` on a canvas) so the subtitle check keeps it clear.
 - **Cache**: a shot's key hashes the world, its code, its models, the renderer and the settings. Unchanged shots are reused.
 

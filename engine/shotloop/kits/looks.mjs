@@ -1,0 +1,298 @@
+// The pages of the built-in looks for 2D projects (the looks themselves
+// are data.mjs LOOKS): one page (world/page.html) with the same kit in
+// every look, only the tokens differ (palette, type, background). The
+// planner picks a look, the person can change it on the plan, and the
+// build starts from it, so the AI writes shots instead of a design system.
+
+import { createHash } from 'node:crypto'
+import fs from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { DEFAULT_LOOK, DEFAULT_STYLE, HUES, lookById } from '../data.mjs'
+import { EXTRAS } from './extras.mjs'
+import { KIT_CORE } from './pagekit.mjs'
+import { cssSize } from '../project/project.mjs'
+import { scenePage } from './scene.mjs'
+
+export { DEFAULT_LOOK, HUES, LOOKS, lookById } from '../data.mjs'
+
+// A look with light text sits on a dark ground
+const darkGround = L => {
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(L.text.slice(i, i + 2), 16))
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 128
+}
+const huesFor = L => HUES[darkGround(L) ? 'dark' : 'light']
+
+// The page for a look at the project's size, in a style (styles.mjs): the
+// infographic page below, or the cinematic scene (scene.mjs) for a look
+// that has scene colors. Its first comment documents the kit: the AI
+// reads it before writing shots. The comment also records a hash of the
+// page as written, so untouchedLook knows the page from any later one
+export const lookPage = (id, size, style = DEFAULT_STYLE, tune = null) => stamp(templatePage(id, size, style, tune))
+
+// The planner's shading of a look for one video (storyboard.json
+// lookTune): its accents and its ground, nothing that moves the layout.
+// Only well-formed values pass: a hex color, a background of colors and
+// gradients
+const TUNE = {
+  accent: v => /^#[0-9a-f]{6}$/i.test(v),
+  accent2: v => /^#[0-9a-f]{6}$/i.test(v),
+  accent3: v => /^#[0-9a-f]{6}$/i.test(v),
+  bg: v => v.length < 400 && /^[a-z0-9#(),.%\s-]+$/i.test(v)
+}
+const tuned = (L, tune) => ({ ...L, ...Object.fromEntries(Object.entries(tune ?? {}).filter(([k, v]) => typeof v === 'string' && TUNE[k]?.(v.trim()))) })
+
+// Where things go on a world page of this size, in CSS px: every page
+// (each 2D style, a WebGL film) lays out its type the same way
+export function pageLayout(size) {
+  const { width: w, height: h } = cssSize(size)
+  const tall = h > w
+  const pad = Math.round(w * (tall ? 0.056 : 0.045))
+  // The safe area (engine/shotloop/rules.mjs, safe-area): on a tall
+  // frame the right edge and the bottom 20% carry the platforms' buttons
+  const safeTop = Math.round(h * (tall ? 0.086 : 0.06))
+  const safeRight = tall ? Math.round(w * 0.861) : w - pad
+  const safeBottom = Math.round(h * (tall ? 0.8 : 0.85))
+  const headSize = Math.round(tall ? w * 0.085 : h * 0.085)
+  // The kicker sits 44 px above the headline, on the safe area's top edge
+  const headTop = safeTop + 44
+  const headWidth = Math.round(tall ? safeRight - pad : w * 0.62)
+  return { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop, headWidth }
+}
+
+function templatePage(id, size, style, tune) {
+  const L = tuned(lookById(id) ?? lookById(DEFAULT_LOOK), tune)
+  const { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop, headWidth } = pageLayout(size)
+  if (style === 'scene' && L.scene) return scenePage(L, { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop, hue: HUES.dark })
+  // The other 2D styles: this page plus their kit (extras.mjs)
+  const X = EXTRAS[style] ?? { about: '', tools: '', css: '', js: '', scripts: [] }
+  return `<!doctype html>
+<!--
+  shotloop-look: ${L.id}${EXTRAS[style] ? `
+  shotloop-style: ${style}` : ''}
+  World of a 2D Shotloop project in the "${L.name.en}" look: ${L.about}.
+  ${w}×${h} CSS px, rendered at 1.5x. Every shot draws through window.kit;
+  nothing animates on its own, every frame is a pure function of time.
+
+  Layout: kicker and headline at the top (y ${headTop}…), the stage (an SVG
+  covering the frame, viewBox 0 0 ${w} ${h}) for diagrams, numbers and icons.
+  Keep text and the subject inside x ${pad}…${safeRight}, y ${safeTop}…${safeBottom} (the
+  platforms' buttons cover the rest); backgrounds may fill the whole frame.
+
+  kit:
+    W, H                            frame size
+    PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM   the safe area (x PAD…SAFE_RIGHT)
+    C                               the look (the ground and the type only): text,
+                                    muted, accent (the highlighted word), accent2,
+                                    accent3, line, panel
+    C.hue                           content colors, the same in every look: red,
+                                    orange, yellow, green, teal, blue, violet, pink,
+                                    gray. Pictures and data take the colors their
+                                    subject needs (the sky blue, the sun yellow, a
+                                    loss red, growth green), not the look's accents
+    C.series                        default chart colors, from C.hue
+    FONT, HEAD_FONT                 font stacks (normal widths; never squeeze text)
+    clamp, lerp, ease(p), rise(t, a, d = 0.4), pop(t, a, d = 0.5)
+                                    timing: rise is 0→1 over [a, a+d] eased out,
+                                    pop overshoots a little (for things that land)
+    frame({ kicker, head, typed = 1, sub, subIn = 1, progress, align, top })
+                                    sets the top texts; head is a string or lines,
+                                    *word* is highlighted in the accent; typed
+                                    0→1 types it in; progress 0→1 fills the bar
+    stage(svgMarkup) → q            replaces the stage's content, returns
+                                    q(selector) for its elements
+    set(el, { attr: value, style: { … } })
+    drawOn(el, p)                   draws a stroked path/line/circle on, p 0→1
+    count(p, from, to, digits = 0)  a number for counters
+    stagger(t, i, a, step = 0.12, d = 0.4)   item i of a group revealed in turn
+    hold(t, a, b, d = 0.3)          0→1→0: on screen from a to b, fading d
+    float(t, amp = 4, period = 3, phase = 0)  gentle idle motion (px) for things at rest
+    view({ x, y, s })               the stage's camera: zoom s around (x, y),
+                                    after stage(); s = 1 is the whole frame
+    readTime(text)                  seconds a caption must stay fully on screen
+    hash(a, b = 0)                  seeded random 0…1, the same every frame
+                                    (never Math.random)
+    waffle({ x, y, w, n, cols, lit, color, p, litP })  SVG markup: n squares,
+                                    revealed with p, the first lit lighting with litP
+    arrow(x1, y1, x2, y2, { color, width })      SVG markup
+    bars({ x, y, w, h, values, labels, colors, p }) SVG markup, bars grow with p
+    card(t, { kicker, title, body, progress })  the starter title card
+${X.about}${X.tools}
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --text: ${L.text}; --muted: ${L.muted}; --accent: ${L.accent}; --accent2: ${L.accent2}; --accent3: ${L.accent3};
+        --line: ${L.line}; --panel: ${L.panel};
+        --font: 'PingFang SC', -apple-system, sans-serif; --head: ${L.head};
+      }
+      * { box-sizing: border-box; margin: 0; }
+      html, body { width: ${w}px; height: ${h}px; overflow: hidden; color: var(--text); font-family: var(--font); }
+      body { background: ${L.bg}; }
+      #stage { position: absolute; inset: 0; width: ${w}px; height: ${h}px; overflow: visible; }
+      #progress { position: absolute; left: 0; top: 0; height: 6px; width: 0; background: var(--accent); }
+      #kicker { position: absolute; left: ${pad}px; top: ${headTop - 44}px; width: ${headWidth}px; font: 600 ${Math.round(headSize * 0.32)}px var(--font);
+        letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+      #head { position: absolute; left: ${pad}px; top: ${headTop}px; width: ${headWidth}px; font: ${L.headWeight} ${headSize}px/1.12 var(--head);
+        letter-spacing: -0.01em; text-shadow: ${L.glow}; }
+      #head b { color: var(--accent); font-weight: inherit; }
+      #head .ghost { opacity: 0; }
+      #sub { position: absolute; left: ${pad}px; width: ${headWidth}px; font: 500 ${Math.round(headSize * 0.42)}px/1.4 var(--font); color: var(--muted); }
+${X.css}
+    </style>
+  </head>
+  <body>
+    <svg id="stage" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="progress"></div>
+    <div id="kicker"></div>
+    <div id="head"></div>
+    <div id="sub"></div>
+${(X.scripts ?? []).map(f => `    <script src="${f}"></script>\n`).join('')}    <script>
+      const $ = id => document.getElementById(id)
+      const W = ${w}, H = ${h}, PAD = ${pad}, SAFE_TOP = ${safeTop}, SAFE_RIGHT = ${safeRight}, SAFE_BOTTOM = ${safeBottom}
+      const C = {
+        text: '${L.text}', muted: '${L.muted}', accent: '${L.accent}', accent2: '${L.accent2}', accent3: '${L.accent3}',
+        line: '${L.line}', panel: '${L.panel}', hue: ${JSON.stringify(huesFor(L))}
+      }
+      C.series = [C.hue.blue, C.hue.orange, C.hue.green, C.hue.violet, C.hue.gray]
+      const FONT = "'PingFang SC', -apple-system, sans-serif", HEAD_FONT = ${JSON.stringify(L.head)}
+${KIT_CORE}
+
+      // Headline lines typed in by character; untyped text keeps its place
+      function typeLines(lines, typed) {
+        const fmt = s => esc(s).replace(/\\*(.+?)\\*/g, '<b>$1</b>')
+        const plain = lines.map(l => l.replace(/\\*/g, ''))
+        const total = plain.reduce((n, l) => n + l.length, 0)
+        let left = Math.round(clamp(typed) * total)
+        return lines.map((line, i) => {
+          const n = Math.min(left, plain[i].length)
+          left -= n
+          if (n >= plain[i].length) return '<div>' + fmt(line) + '</div>'
+          return '<div>' + esc(plain[i].slice(0, n)) + '<span class="ghost">' + (esc(plain[i].slice(n)) || '&nbsp;') + '</span></div>'
+        }).join('')
+      }
+
+      // The top texts for one frame
+      function frame({ kicker = '', head = '', typed = 1, sub = '', subIn = 1, progress = 0, align = 'left', top = ${headTop} } = {}) {
+        $('progress').style.width = clamp(progress) * 100 + '%'
+        $('kicker').textContent = kicker
+        const el = $('head')
+        el.style.top = top + 'px'
+        el.style.textAlign = align
+        el.innerHTML = typeLines(Array.isArray(head) ? head : head ? [head] : [], typed)
+        const s = $('sub')
+        s.textContent = sub
+        s.style.textAlign = align
+        s.style.top = top + el.offsetHeight + 18 + 'px'
+        s.style.opacity = clamp(subIn)
+        s.style.transform = 'translateY(' + (1 - clamp(subIn)) * 16 + 'px)'
+        $('kicker').style.textAlign = align
+        return el
+      }
+
+      // The stage's content for this frame; q finds its elements
+      function stage(markup) {
+        const svg = $('stage')
+        svg.innerHTML = markup
+        // Every frame starts from the whole frame; view() moves in
+        svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H)
+        return sel => svg.querySelector(sel)
+      }
+      function set(el, props) {
+        if (!el) return el
+        for (const [k, v] of Object.entries(props)) {
+          if (k === 'style') Object.assign(el.style, v)
+          else if (k === 'text') el.textContent = v
+          else el.setAttribute(k, v)
+        }
+        return el
+      }
+      // Stroke draw-on, p 0 → 1
+      function drawOn(el, p) {
+        if (!el) return el
+        const len = el.getTotalLength ? el.getTotalLength() : 1000
+        el.style.strokeDasharray = len
+        el.style.strokeDashoffset = len * (1 - clamp(p))
+        return el
+      }
+      // The stage's camera: zoom s around (x, y)
+      function view({ x = W / 2, y = H / 2, s = 1 } = {}) {
+        const vw = W / s, vh = H / s
+        $('stage').setAttribute('viewBox', (x - vw / 2) + ' ' + (y - vh / 2) + ' ' + vw + ' ' + vh)
+      }
+
+      function arrow(x1, y1, x2, y2, { color = C.accent, width = 5 } = {}) {
+        const a = Math.atan2(y2 - y1, x2 - x1), hl = width * 3.2
+        const p = (r, s) => (x2 + Math.cos(a + r) * s).toFixed(1) + ',' + (y2 + Math.sin(a + r) * s).toFixed(1)
+        return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + (x2 - Math.cos(a) * hl * 0.6) + '" y2="' + (y2 - Math.sin(a) * hl * 0.6) +
+          '" stroke="' + color + '" stroke-width="' + width + '" stroke-linecap="round"/>' +
+          '<polygon points="' + x2 + ',' + y2 + ' ' + p(Math.PI - 0.45, hl) + ' ' + p(Math.PI + 0.45, hl) + '" fill="' + color + '"/>'
+      }
+
+      // A bar chart that grows with p (each bar a little after the last)
+      function bars({ x = PAD, y = H * 0.72, w = SAFE_RIGHT - PAD, h = H * 0.3, values = [], labels = [], colors = C.series, p = 1 } = {}) {
+        const max = Math.max(...values, 1), n = values.length, gap = w * 0.06, bw = (w - gap * (n - 1)) / n
+        return values.map((v, i) => {
+          const k = rise(p * (n * 0.25 + 1), i * 0.25, 1), bh = (v / max) * h * k, bx = x + i * (bw + gap)
+          return '<rect x="' + bx + '" y="' + (y - bh) + '" width="' + bw + '" height="' + bh + '" rx="' + Math.min(10, bw / 6) +
+            '" fill="' + colors[i % colors.length] + '"/>' +
+            (labels[i] != null ? '<text x="' + (bx + bw / 2) + '" y="' + (y + 30) + '" text-anchor="middle" font-size="' + Math.round(${headSize} * 0.3) +
+              '" fill="' + C.muted + '" font-family="' + FONT.replace(/"/g, '') + '">' + esc(labels[i]) + '</text>' : '')
+        }).join('')
+      }
+
+      // A waffle: n squares in rows of cols, revealed in order with p; the
+      // first lit of them light up in order with litP
+      function waffle({ x = PAD, y = H * 0.45, w = SAFE_RIGHT - PAD, n = 100, cols = 10, lit = 0, color = C.accent, p = 1, litP = 1 } = {}) {
+        const step = w / cols, size = step * 0.84
+        const on = Math.round(lit * clamp(litP))
+        let out = ''
+        for (let k = 0; k < n; k++) {
+          const show = clamp(p * n - k)
+          if (show <= 0) break
+          out += '<rect x="' + (x + (k % cols) * step) + '" y="' + (y + Math.floor(k / cols) * step) + '" width="' + size + '" height="' + size +
+            '" rx="' + size * 0.18 + '" fill="' + (k < on ? color : C.panel) + '" stroke="' + C.line + '" opacity="' + show + '"/>'
+        }
+        return out
+      }
+
+      // The starter title card, until a shot gets its own design
+      function card(t, { kicker, title, body, progress }) {
+        stage('')
+        frame({ kicker, head: title.replace(/<\\/?b>/g, '*'), typed: rise(t, 0.1, 0.6), sub: body, subIn: rise(t, 0.6), progress })
+      }
+
+      window.kit = { $, W, H, PAD, SAFE_TOP, SAFE_RIGHT, SAFE_BOTTOM, C, FONT, HEAD_FONT, clamp, lerp, ease, rise, pop, stagger, hold, float, readTime, hash, waffle,
+        frame, stage, view, set, drawOn, count, arrow, bars, card }
+${X.js}
+      window.ready = document.fonts.ready
+    </script>
+  </body>
+</html>
+`
+}
+
+const HASH_LINE = /\n {2}shotloop-page-hash: ([0-9a-f]{16})/
+const pageHash = text => createHash('sha256').update(text.replace(HASH_LINE, '')).digest('hex').slice(0, 16)
+const stamp = page => page.replace(/shotloop-look: [a-z0-9-]+/, m => `${m}\n  shotloop-page-hash: ${pageHash(page)}`)
+
+// Pages written before the hash was recorded (Shotloop 0.9 and earlier),
+// known by the hash of the whole page: every look in every style and size
+const LEGACY = new Set(JSON.parse(fs.readFileSync(new URL('legacy-pages.json', import.meta.url), 'utf8')))
+
+// A world page the AI hasn't changed: still the page as a look wrote it,
+// so a new look or style may replace it
+export function untouchedLook(text) {
+  const recorded = text.match(HASH_LINE)?.[1]
+  return recorded ? recorded === pageHash(text) : LEGACY.has(pageHash(text))
+}
+
+// Files a style's page loads beside it in world/ (the map's countries,
+// for the map and the news)
+const WORLD_110M = fileURLToPath(new URL('world-110m.json', import.meta.url))
+export function styleFiles(style) {
+  if (!EXTRAS[style]?.scripts?.includes('geo.data.js')) return {}
+  return { 'geo.data.js': `// Natural Earth 1:110m countries (public domain), via world-atlas (ISC)\nwindow.GEO = ${fs.readFileSync(WORLD_110M, 'utf8')}\n` }
+}
+

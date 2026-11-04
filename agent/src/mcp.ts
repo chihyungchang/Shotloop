@@ -9,7 +9,7 @@
 //   SHOTLOOP_WRITABLE   writable paths, comma-separated (see tools.ts)
 //   SHOTLOOP_CHECKLIST  checklist file
 //   SHOTLOOP_SESSION    session file to write after every call
-//   SHOTLOOP_MEMORY     the AI's memory (optional; engine/shotloop/memory.mjs)
+//   SHOTLOOP_MEMORY     the AI's memory (optional; engine/shotloop/project/memory.mjs)
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'

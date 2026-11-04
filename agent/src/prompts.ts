@@ -7,7 +7,7 @@ import { CODE_2D, CODE_VOICE, CODE_WEBGL, COVER_RULES, NARRATION, PRINCIPLES_2D,
 
 type Track = '2d' | '3d'
 const rules = (track: Track) => `\n\n${track === '2d' ? PRINCIPLES_2D : PRINCIPLES_3D}`
-// voice: the film has a voice-over (engine/shotloop/voice.mjs). Sound is
+// voice: the film has a voice-over (engine/shotloop/voiceover/voice.mjs). Sound is
 // its own pass once the shots are approved (soundSystem)
 const principles = (track: Track, voice = false) => rules(track) + (voice ? `\n\n${PRINCIPLES_VOICE}` : '')
 // What builds and fixes code also needs the code rules of its page

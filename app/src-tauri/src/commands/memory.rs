@@ -1,4 +1,4 @@
-//! The AI's memory (engine/shotloop/memory.mjs): the person's notes and the
+//! The AI's memory (engine/shotloop/project/memory.mjs): the person's notes and the
 //! lessons the AI kept, which every agent task reads.
 
 use crate::runner::Args;

@@ -32,7 +32,7 @@ export interface ProjectStatus {
   duration: number
   files: { captions: string | null; music: string | null; cover: string | null; publish: string | null }
   shots: ShotStatus[]
-  // 2D: the look; the visual style (engine/shotloop/styles.mjs); what the
+  // 2D: the look; the visual style (engine/shotloop/kits/styles.mjs); what the
   // planner still decides (2D or 3D, the length)
   look?: string | null
   style?: string | null
@@ -40,10 +40,10 @@ export interface ProjectStatus {
   styleChosen?: boolean
   trackAuto?: boolean
   lengthAuto?: boolean
-  // The language spoken and written; the voice-over (engine/shotloop/voice.mjs)
+  // The language spoken and written; the voice-over (engine/shotloop/voiceover/voice.mjs)
   lang?: string | null
   voice?: { on: boolean; voice?: string; speed?: number; gain?: number; subtitles?: string; subtitlesChosen?: boolean } | null
-  // The voice-over plays: on, with lines (engine/shotloop/cues.mjs voiceOn)
+  // The voice-over plays: on, with lines (engine/shotloop/voiceover/cues.mjs voiceOn)
   voiced?: boolean
   // A product promo: the page it is made from (read into site/)
   promo?: { site: string | null; repo?: string | null } | null
@@ -75,7 +75,7 @@ export async function engine<T>(args: string[]): Promise<T> {
 
 export const status = (project: string) => engine<ProjectStatus>(['status', project])
 
-// A promo's product page read into site/ (engine/shotloop/site.mjs), and
+// A promo's product page read into site/ (engine/shotloop/promo/site.mjs), and
 // its repository into repo/ (repo.mjs)
 export const readSite = (project: string) => engine<{ url: string; name: string; pictures: number }>(['site', project])
 export const readRepo = (project: string) => engine<{ name: string; homepage: string; docs: number; pictures: number }>(['repo', project])

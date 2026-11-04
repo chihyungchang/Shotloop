@@ -55,16 +55,16 @@ L’IA sceglie lo stile adatto al tema e ti spiega perché; puoi cambiarlo nel p
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="Scena cinematografica" /></a><br/><sub><b>Scena cinematografica</b>: luce, profondità e una camera in movimento, per ciò che si potrebbe filmare: spazio, natura, fisica.</sub></td>
-<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="Infografica" /></a><br/><sub><b>Infografica</b>: grafici e numeri in movimento, per statistiche, confronti, soldi.</sub></td>
-<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="Mappa" /></a><br/><sub><b>Mappa</b>: la mappa del mondo, rotte e paesi che si illuminano, per luoghi e diffusioni.</sub></td>
-<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="Demo di interfaccia" /></a><br/><sub><b>Demo di interfaccia</b>: un telefono o un browser, passo dopo passo, per app, impostazioni e truffe.</sub></td>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/kits/styles/scene/1.jpg" alt="Scena cinematografica" /></a><br/><sub><b>Scena cinematografica</b>: luce, profondità e una camera in movimento, per ciò che si potrebbe filmare: spazio, natura, fisica.</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/kits/styles/infographic/1.jpg" alt="Infografica" /></a><br/><sub><b>Infografica</b>: grafici e numeri in movimento, per statistiche, confronti, soldi.</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/kits/styles/map/1.jpg" alt="Mappa" /></a><br/><sub><b>Mappa</b>: la mappa del mondo, rotte e paesi che si illuminano, per luoghi e diffusioni.</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/kits/styles/ui/1.jpg" alt="Demo di interfaccia" /></a><br/><sub><b>Demo di interfaccia</b>: un telefono o un browser, passo dopo passo, per app, impostazioni e truffe.</sub></td>
 </tr>
 <tr>
-<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Disegno tecnico" /></a><br/><sub><b>Disegno tecnico</b>: linee su una griglia, esplosi e didascalie, per spiegare come funziona una macchina.</sub></td>
-<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Tipografia animata" /></a><br/><sub><b>Tipografia animata</b>: testo enorme che si muove, per citazioni, parole e falsi miti.</sub></td>
-<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Racconto di cronaca" /></a><br/><sub><b>Racconto di cronaca</b>: notizie dell’ultima ora raccontate con tensione: un orologio che corre, la pista del denaro, la cronologia, chi ha detto cosa.</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: mondi three.js con luce da studio, ombre morbide e una camera che attraversa lo spazio.</sub></td>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/kits/styles/blueprint/1.jpg" alt="Disegno tecnico" /></a><br/><sub><b>Disegno tecnico</b>: linee su una griglia, esplosi e didascalie, per spiegare come funziona una macchina.</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/kits/styles/kinetic/1.jpg" alt="Tipografia animata" /></a><br/><sub><b>Tipografia animata</b>: testo enorme che si muove, per citazioni, parole e falsi miti.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/kits/styles/news/1.jpg" alt="Racconto di cronaca" /></a><br/><sub><b>Racconto di cronaca</b>: notizie dell’ultima ora raccontate con tensione: un orologio che corre, la pista del denaro, la cronologia, chi ha detto cosa.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/kits/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: mondi three.js con luce da studio, ombre morbide e una camera che attraversa lo spazio.</sub></td>
 </tr>
 </table>
 
@@ -118,7 +118,7 @@ flowchart LR
 
 - **Inquadrature, non un unico lungo render.** Un video è una lista di inquadrature. Ognuna è un piccolo programma, `shot.js`, che disegna la sua pagina a un istante t: una pagina 2D, o un mondo three.js per il 3D. Ognuna è in cache secondo un hash dei suoi input, quindi una correzione renderizza una sola inquadratura in pochi secondi, e l’esportazione si limita a unire le clip.
 - **Correzioni a parole.** L’IA tocca solo l’inquadratura su cui ti trovi, a meno che la correzione non richieda di cambiare il mondo condiviso. Prima propone alcuni modi concreti per fare la tua modifica; quello che scegli (o il tuo) è la correzione, fatta in ben meno di un minuto, e subito dopo viene renderizzato il clip dell’inquadratura, così si riproduce all’istante. «Verifica» controlla l’inquadratura con la checklist (leggibile, niente di coperto, fuori dalla zona delle didascalie e così via) senza cambiare nulla, e corregge ciò che ha trovato con un clic.
-- **Otto stili visivi.** Scena cinematografica, infografica, mappa, demo di interfaccia, disegno tecnico, tipografia animata, racconto di cronaca o 3D, ognuno con il suo kit e i fotogrammi di riferimento che l’IA guarda prima di scegliere e generare ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Un tema imposta solo lo sfondo e il carattere; immagini e dati mantengono i colori richiesti dal soggetto.
+- **Otto stili visivi.** Scena cinematografica, infografica, mappa, demo di interfaccia, disegno tecnico, tipografia animata, racconto di cronaca o 3D, ognuno con il suo kit e i fotogrammi di riferimento che l’IA guarda prima di scegliere e generare ([`engine/shotloop/kits/styles.mjs`](engine/shotloop/kits/styles.mjs)). Un tema imposta solo lo sfondo e il carattere; immagini e dati mantengono i colori richiesti dal soggetto.
 - **Regole con cui si misura un piano.** Lunghezza delle didascalie e tempo a schermo vengono verificati prima di generare qualsiasi cosa. Un’immagine che ricorre in più inquadrature viene disegnata una volta e condivisa, così è uguale in ognuna.
 - **Fatti con fonte.** I testi tengono ogni fatto accanto alla sua fonte, e i testi di pubblicazione possono usare solo fatti presenti nei testi.
 - **Copertine.** L’IA progetta una copertina nello stile del video e controlla i propri render. Salvane una come modello per mantenere coerente una serie, oppure carica una copertina che ti piace e l’IA ne segue il design.
@@ -205,7 +205,7 @@ my-video/
   out/                 le esportazioni del motore (con data e ora); l'app copia ognuna in una nuova cartella dove scegli
 ```
 
-- **3D**: `world/page.html` è il kit WebGL del motore ([`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)): un palco three.js con luce da studio, materiali, forme, modelli glTF, camere basate sugli obiettivi e testo sopra. Set e macchine condivisi dalle inquadrature stanno in `world/*.js`; un’inquadratura costruisce ciò che mostra in `setup(ctx)` e lo mette in posa per `t` in `render(t)`.
+- **3D**: `world/page.html` è il kit WebGL del motore ([`engine/shotloop/kits/webgl.mjs`](engine/shotloop/kits/webgl.mjs)): un palco three.js con luce da studio, materiali, forme, modelli glTF, camere basate sugli obiettivi e testo sopra. Set e macchine condivisi dalle inquadrature stanno in `world/*.js`; un’inquadratura costruisce ciò che mostra in `setup(ctx)` e lo mette in posa per `t` in `render(t)`.
 - **2D**: `shot.js` esporta di default `render(t, ctx)`, che disegna `world/page.html` al tempo locale `t` dell’inquadratura. `ctx.voice` contiene le frasi dette nell’inquadratura con i loro tempi, così l’immagine può cadere sulle parole; marca il soggetto con `data-keep` (o `subtitles.keep()` su un canvas) perché il controllo dei sottotitoli lo lasci libero.
 - **Cache**: la chiave di un’inquadratura è un hash del mondo, del suo codice, dei suoi modelli, del renderer e delle impostazioni. Le inquadrature non modificate vengono riutilizzate.
 

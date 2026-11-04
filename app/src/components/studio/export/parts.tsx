@@ -259,7 +259,7 @@ export function SoundSummary({ project, open }: { project: Project; open: () => 
   )
 }
 
-// The film's ambience and effects settings (engine/shotloop/sound.mjs),
+// The film's ambience and effects settings (engine/shotloop/sound/sound.mjs),
 // read and changed through the engine; stamp: read again when it changes
 export function useSound(project: Project, refresh: () => void, stamp = 0) {
   const [sound, setSound] = useState<SoundInfo | null>(null)

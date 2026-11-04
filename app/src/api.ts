@@ -294,7 +294,7 @@ export interface RuleTool { id: string; group: 'story' | 'science' | 'product' |
 // the defaults stand in for it
 export interface Rules { damaged: string | null; fixed: Rule[]; taste: Rule[]; tools: RuleTool[] }
 
-// One entry of the AI's memory (engine/shotloop/memory.mjs): a note the
+// One entry of the AI's memory (engine/shotloop/project/memory.mjs): a note the
 // person wrote, or a lesson the AI kept while building
 export interface Memory {
   id: string

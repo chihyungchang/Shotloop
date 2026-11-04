@@ -102,11 +102,11 @@ const WORDS: Record<string, { swatch: string; name: Words; about: Words }> = {
 
 export const LOOKS = ENGINE_LOOKS
 
-// A frame each look renders, per style (engine/shotloop/looks/<id>-<style>.jpg,
+// A frame each look renders, per style (engine/shotloop/kits/looks/<id>-<style>.jpg,
 // the same demo shot in every look)
-const PREVIEWS = import.meta.glob('../../engine/shotloop/looks/*.jpg', { eager: true, import: 'default' }) as Record<string, string>
+const PREVIEWS = import.meta.glob('../../engine/shotloop/kits/looks/*.jpg', { eager: true, import: 'default' }) as Record<string, string>
 export const lookPreview = (id: string, style?: string | null) =>
-  PREVIEWS[`../../engine/shotloop/looks/${id}-${style === 'scene' ? 'scene' : 'infographic'}.jpg`] ?? null
+  PREVIEWS[`../../engine/shotloop/kits/looks/${id}-${style === 'scene' ? 'scene' : 'infographic'}.jpg`] ?? null
 
 export const lookById = (id: string | null | undefined) => (id ? engineLook(id) : null)
 export const lookSwatch = (id: string) => WORDS[id]?.swatch ?? lookById(id)?.text ?? null

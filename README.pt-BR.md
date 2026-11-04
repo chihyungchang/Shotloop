@@ -55,16 +55,16 @@ A IA escolhe o estilo que combina com o assunto e explica por quê; você pode t
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="Cena cinematográfica" /></a><br/><sub><b>Cena cinematográfica</b>: luz, profundidade e câmera em movimento, para coisas que daria para filmar: espaço, natureza, física.</sub></td>
-<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="Infográfico" /></a><br/><sub><b>Infográfico</b>: gráficos e números em movimento, para estatísticas, comparações, dinheiro.</sub></td>
-<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="Mapa" /></a><br/><sub><b>Mapa</b>: o mapa-múndi, rotas e países se acendendo, para lugares e como as coisas se espalham.</sub></td>
-<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="Demonstração de interface" /></a><br/><sub><b>Demonstração de interface</b>: um celular ou um navegador, passo a passo, para apps, configurações e golpes.</sub></td>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/kits/styles/scene/1.jpg" alt="Cena cinematográfica" /></a><br/><sub><b>Cena cinematográfica</b>: luz, profundidade e câmera em movimento, para coisas que daria para filmar: espaço, natureza, física.</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/kits/styles/infographic/1.jpg" alt="Infográfico" /></a><br/><sub><b>Infográfico</b>: gráficos e números em movimento, para estatísticas, comparações, dinheiro.</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/kits/styles/map/1.jpg" alt="Mapa" /></a><br/><sub><b>Mapa</b>: o mapa-múndi, rotas e países se acendendo, para lugares e como as coisas se espalham.</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/kits/styles/ui/1.jpg" alt="Demonstração de interface" /></a><br/><sub><b>Demonstração de interface</b>: um celular ou um navegador, passo a passo, para apps, configurações e golpes.</sub></td>
 </tr>
 <tr>
-<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="Planta técnica" /></a><br/><sub><b>Planta técnica</b>: desenho de linhas sobre uma grade, vistas explodidas e legendas, para mostrar como uma máquina funciona.</sub></td>
-<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="Tipografia cinética" /></a><br/><sub><b>Tipografia cinética</b>: letras enormes em movimento, para citações, palavras e mitos.</sub></td>
-<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="Narrativa jornalística" /></a><br/><sub><b>Narrativa jornalística</b>: acontecimentos urgentes contados com tensão: um relógio correndo, o rastro do dinheiro, a linha do tempo, quem disse o quê.</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: mundos three.js com luz de estúdio, sombras suaves e uma câmera percorrendo o espaço.</sub></td>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/kits/styles/blueprint/1.jpg" alt="Planta técnica" /></a><br/><sub><b>Planta técnica</b>: desenho de linhas sobre uma grade, vistas explodidas e legendas, para mostrar como uma máquina funciona.</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/kits/styles/kinetic/1.jpg" alt="Tipografia cinética" /></a><br/><sub><b>Tipografia cinética</b>: letras enormes em movimento, para citações, palavras e mitos.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/kits/styles/news/1.jpg" alt="Narrativa jornalística" /></a><br/><sub><b>Narrativa jornalística</b>: acontecimentos urgentes contados com tensão: um relógio correndo, o rastro do dinheiro, a linha do tempo, quem disse o quê.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/kits/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: mundos three.js com luz de estúdio, sombras suaves e uma câmera percorrendo o espaço.</sub></td>
 </tr>
 </table>
 
@@ -118,7 +118,7 @@ flowchart LR
 
 - **Cenas, não um render longo.** Um filme é uma lista de cenas. Cada cena é um pequeno programa, `shot.js`, que desenha a sua página em um instante t: uma página 2D, ou um mundo three.js para o 3D. Cada uma fica em cache pelo hash das suas entradas, então uma correção renderiza de novo uma cena em segundos, e Exportar só junta os clipes.
 - **Correções em linguagem simples.** A IA só mexe na cena em que você está, a menos que a correção precise do mundo compartilhado. Primeiro ela oferece algumas formas concretas de fazer a sua mudança; a que você escolher (ou a sua) é a correção, feita em bem menos de um minuto, e o clipe da cena é renderizado logo em seguida para tocar na hora. "Verificar" revisa a cena com a checklist (legível, nada encoberto, fora da área da legenda etc.) sem mudar nada, e corrige o que encontrou com um clique.
-- **Oito estilos visuais.** Cena cinematográfica, infográfico, mapa, demonstração de interface, planta técnica, tipografia cinética, narrativa jornalística ou 3D, cada um com o seu kit e quadros de referência que a IA consulta antes de escolher e construir ([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). Um tema define só o fundo e a tipografia; imagens e dados mantêm as cores de que o assunto precisa.
+- **Oito estilos visuais.** Cena cinematográfica, infográfico, mapa, demonstração de interface, planta técnica, tipografia cinética, narrativa jornalística ou 3D, cada um com o seu kit e quadros de referência que a IA consulta antes de escolher e construir ([`engine/shotloop/kits/styles.mjs`](engine/shotloop/kits/styles.mjs)). Um tema define só o fundo e a tipografia; imagens e dados mantêm as cores de que o assunto precisa.
 - **Regras para avaliar um plano.** Antes de construir qualquer coisa, as legendas são verificadas quanto ao tamanho e ao tempo que ficam na tela. Uma imagem que se repete entre cenas é desenhada uma vez e compartilhada, para ficar igual em todas.
 - **Fatos com fontes.** O texto guarda cada fato ao lado da fonte, e o texto de publicação só pode usar fatos do texto.
 - **Capas.** A IA cria uma capa no visual do filme e confere os próprios renders. Salve uma como modelo para manter uma série consistente, ou envie uma capa de que você gosta e a IA segue o design dela.
@@ -205,7 +205,7 @@ my-video/
   out/                 as exportações do motor (com data e hora); o app copia cada uma para uma pasta nova onde você escolher
 ```
 
-- **3D**: `world/page.html` é o kit WebGL do motor ([`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)): um palco three.js com luz de estúdio, materiais, formas, modelos glTF, câmeras baseadas em lentes e texto por cima. Cenários e máquinas que as cenas compartilham ficam em `world/*.js`; uma cena monta o que mostra em `setup(ctx)` e o posiciona para `t` em `render(t)`.
+- **3D**: `world/page.html` é o kit WebGL do motor ([`engine/shotloop/kits/webgl.mjs`](engine/shotloop/kits/webgl.mjs)): um palco three.js com luz de estúdio, materiais, formas, modelos glTF, câmeras baseadas em lentes e texto por cima. Cenários e máquinas que as cenas compartilham ficam em `world/*.js`; uma cena monta o que mostra em `setup(ctx)` e o posiciona para `t` em `render(t)`.
 - **2D**: `shot.js` exporta por padrão `render(t, ctx)`, que desenha `world/page.html` no tempo local da cena `t`. `ctx.voice` traz as frases faladas da cena com os seus tempos, para que a imagem caia sobre as palavras; marque o objeto com `data-keep` (ou `subtitles.keep()` em um canvas) para que a verificação de legendas o deixe livre.
 - **Cache**: a chave de uma cena é um hash do mundo, do código dela, dos modelos dela, do renderizador e das configurações. Cenas sem mudança são reaproveitadas.
 

@@ -8,15 +8,15 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import { MODES, prune, shotKey } from '../../engine/shotloop/cache.mjs'
-import { loadProject } from '../../engine/shotloop/project.mjs'
-import { pruneVoice } from '../../engine/shotloop/voice.mjs'
+import { MODES, prune, shotKey } from '../../engine/shotloop/project/cache.mjs'
+import { loadProject } from '../../engine/shotloop/project/project.mjs'
+import { pruneVoice } from '../../engine/shotloop/voiceover/voice.mjs'
 import { arch, TAURI } from './build-info.mjs'
 
 const REPO = path.resolve(import.meta.dirname, '..', '..')
 const OUT = path.join(TAURI, 'bundle-resources')
 
-// Engine files the CLI imports or reads (see engine/shotloop/cache.mjs)
+// Engine files the CLI imports or reads (see engine/shotloop/project/cache.mjs)
 const ENGINE = [
   'engine/shotloop',
   'engine/lib'

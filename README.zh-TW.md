@@ -55,16 +55,16 @@ AI 會依題材挑選合適的風格並說明理由；你可以在規劃頁切�
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="電影感場景" /></a><br/><sub><b>電影感場景</b>：光影、景深和移動的鏡頭，適合拍得到的東西：太空、自然、物理。</sub></td>
-<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="資訊圖表" /></a><br/><sub><b>資訊圖表</b>：圖表和跳動的數字，適合統計、比較、金錢。</sub></td>
-<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="地圖" /></a><br/><sub><b>地圖</b>：世界地圖、路線和逐一亮起的國家，適合地點與傳播路徑。</sub></td>
-<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="介面示範" /></a><br/><sub><b>介面示範</b>：手機或瀏覽器上一步步操作，適合 App、設定和詐騙手法。</sub></td>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/kits/styles/scene/1.jpg" alt="電影感場景" /></a><br/><sub><b>電影感場景</b>：光影、景深和移動的鏡頭，適合拍得到的東西：太空、自然、物理。</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/kits/styles/infographic/1.jpg" alt="資訊圖表" /></a><br/><sub><b>資訊圖表</b>：圖表和跳動的數字，適合統計、比較、金錢。</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/kits/styles/map/1.jpg" alt="地圖" /></a><br/><sub><b>地圖</b>：世界地圖、路線和逐一亮起的國家，適合地點與傳播路徑。</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/kits/styles/ui/1.jpg" alt="介面示範" /></a><br/><sub><b>介面示範</b>：手機或瀏覽器上一步步操作，適合 App、設定和詐騙手法。</sub></td>
 </tr>
 <tr>
-<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="藍圖" /></a><br/><sub><b>藍圖</b>：格線上的線稿、爆炸圖和標註，適合說明機器怎麼運作。</sub></td>
-<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="動態文字" /></a><br/><sub><b>動態文字</b>：會動的超大字，適合名言、詞語和破解迷思。</sub></td>
-<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="新聞敘事" /></a><br/><sub><b>新聞敘事</b>：有張力地講突發事件：不停走的時鐘、資金流向、時間軸、誰說了什麼。</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>：three.js 世界，攝影棚燈光、柔和陰影，鏡頭在空間中穿梭。</sub></td>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/kits/styles/blueprint/1.jpg" alt="藍圖" /></a><br/><sub><b>藍圖</b>：格線上的線稿、爆炸圖和標註，適合說明機器怎麼運作。</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/kits/styles/kinetic/1.jpg" alt="動態文字" /></a><br/><sub><b>動態文字</b>：會動的超大字，適合名言、詞語和破解迷思。</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/kits/styles/news/1.jpg" alt="新聞敘事" /></a><br/><sub><b>新聞敘事</b>：有張力地講突發事件：不停走的時鐘、資金流向、時間軸、誰說了什麼。</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/kits/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>：three.js 世界，攝影棚燈光、柔和陰影，鏡頭在空間中穿梭。</sub></td>
 </tr>
 </table>
 
@@ -118,7 +118,7 @@ flowchart LR
 
 - **以鏡頭為單位，而不是整支一次渲染。** 一支影片就是一串鏡頭，每個鏡頭是一小段程式 `shot.js`，畫出時間 t 的畫面：2D 是頁面，3D 是 three.js 世界。每個鏡頭依輸入的雜湊值快取，所以修一個鏡頭只要幾秒，匯出時只是把片段接起來。
 - **用白話修改。** AI 只動你目前所在的鏡頭，除非修改必須改到共用的場景。它先給出幾個具體改法，你選中的那個（或你自己的想法）才會執行，一次修改通常不到一分鐘，改完自動渲染鏡頭影片，可以直接預覽。「執行檢查」會依檢查清單逐條審核（看得清楚、沒被遮住、避開字幕區等），只回報不修改，發現的問題一鍵就能修。
-- **八種視覺風格。** 電影感場景、資訊圖表、地圖、介面示範、藍圖、動態文字、新聞敘事和 3D，各有自己的工具組和參考畫面，AI 在選擇與建構前都會先看過（[`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)）。主題只決定背景和字體；圖像和數據保留題材所需的顏色。
+- **八種視覺風格。** 電影感場景、資訊圖表、地圖、介面示範、藍圖、動態文字、新聞敘事和 3D，各有自己的工具組和參考畫面，AI 在選擇與建構前都會先看過（[`engine/shotloop/kits/styles.mjs`](engine/shotloop/kits/styles.mjs)）。主題只決定背景和字體；圖像和數據保留題材所需的顏色。
 - **規劃會依規則檢查。** 建構之前，先檢查每句字幕的長度和停留時間。在多個鏡頭中重複出現的圖像只畫一次、共用，確保每次看起來都一樣。
 - **事實附來源。** 文案中每條事實都緊跟著來源，發布文案也只能使用文案裡的事實。
 - **封面。** AI 依影片風格設計封面，並自行檢查渲染結果。可以存成範本讓系列保持一致，也可以上傳一張喜歡的封面，讓 AI 照著它的設計做。
@@ -205,7 +205,7 @@ my-video/
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
-- **3D**：`world/page.html` 是引擎的 WebGL 工具組（[`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs)）：一個 three.js 舞台，有攝影棚燈光、材質、形狀、glTF 模型、依鏡片參數運作的攝影機，以及疊在上面的文字。鏡頭共用的布景與機械放在 `world/*.js`；每個鏡頭在 `setup(ctx)` 裡建構要呈現的東西，在 `render(t)` 裡擺出時間 `t` 的姿態。
+- **3D**：`world/page.html` 是引擎的 WebGL 工具組（[`engine/shotloop/kits/webgl.mjs`](engine/shotloop/kits/webgl.mjs)）：一個 three.js 舞台，有攝影棚燈光、材質、形狀、glTF 模型、依鏡片參數運作的攝影機，以及疊在上面的文字。鏡頭共用的布景與機械放在 `world/*.js`；每個鏡頭在 `setup(ctx)` 裡建構要呈現的東西，在 `render(t)` 裡擺出時間 `t` 的姿態。
 - **2D**：`shot.js` 預設匯出 `render(t, ctx)`，在鏡頭內時間 `t` 繪製 `world/page.html`。`ctx.voice` 存有這個鏡頭說出的句子和各自的時間，讓畫面能落在字詞上；用 `data-keep`（canvas 上則用 `subtitles.keep()`）標記主體，字幕檢查就會避開它。
 - **快取**：鏡頭的鍵值由場景、程式碼、模型、渲染器和設定雜湊而成。沒變動的鏡頭會直接重用。
 

@@ -55,16 +55,16 @@ AI가 주제에 맞는 스타일을 고르고 이유를 알려 줍니다. 계획
 
 <table>
 <tr>
-<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/styles/scene/1.jpg" alt="시네마틱 장면" /></a><br/><sub><b>시네마틱 장면</b>: 빛, 깊이, 움직이는 카메라. 촬영할 수 있을 법한 것에: 우주, 자연, 물리.</sub></td>
-<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/styles/infographic/1.jpg" alt="인포그래픽" /></a><br/><sub><b>인포그래픽</b>: 차트와 움직이는 숫자. 통계, 비교, 돈 이야기에.</sub></td>
-<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/styles/map/1.jpg" alt="지도" /></a><br/><sub><b>지도</b>: 세계 지도, 경로, 빛나는 국가. 장소와 확산 과정에.</sub></td>
-<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/styles/ui/1.jpg" alt="인터페이스 데모" /></a><br/><sub><b>인터페이스 데모</b>: 휴대폰이나 브라우저에서 단계별로. 앱, 설정, 사기 수법에.</sub></td>
+<td width="25%" valign="top"><a href="examples/sunlight-en/"><img src="engine/shotloop/kits/styles/scene/1.jpg" alt="시네마틱 장면" /></a><br/><sub><b>시네마틱 장면</b>: 빛, 깊이, 움직이는 카메라. 촬영할 수 있을 법한 것에: 우주, 자연, 물리.</sub></td>
+<td width="25%" valign="top"><a href="examples/solar-share-en/"><img src="engine/shotloop/kits/styles/infographic/1.jpg" alt="인포그래픽" /></a><br/><sub><b>인포그래픽</b>: 차트와 움직이는 숫자. 통계, 비교, 돈 이야기에.</sub></td>
+<td width="25%" valign="top"><a href="examples/coffee-map-en/"><img src="engine/shotloop/kits/styles/map/1.jpg" alt="지도" /></a><br/><sub><b>지도</b>: 세계 지도, 경로, 빛나는 국가. 장소와 확산 과정에.</sub></td>
+<td width="25%" valign="top"><a href="examples/fake-parcel-text-en/"><img src="engine/shotloop/kits/styles/ui/1.jpg" alt="인터페이스 데모" /></a><br/><sub><b>인터페이스 데모</b>: 휴대폰이나 브라우저에서 단계별로. 앱, 설정, 사기 수법에.</sub></td>
 </tr>
 <tr>
-<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/styles/blueprint/1.jpg" alt="설계도" /></a><br/><sub><b>설계도</b>: 격자 위 선화, 분해도, 콜아웃. 기계의 작동 원리에.</sub></td>
-<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/styles/kinetic/1.jpg" alt="키네틱 타이포그래피" /></a><br/><sub><b>키네틱 타이포그래피</b>: 움직이는 큰 글자. 인용구, 단어, 통념 바로잡기에.</sub></td>
-<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/styles/news/1.jpg" alt="뉴스 스토리" /></a><br/><sub><b>뉴스 스토리</b>: 긴장감 있게 전하는 속보. 흘러가는 시계, 돈의 흐름, 타임라인, 누가 무엇을 말했는지.</sub></td>
-<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: 스튜디오 조명, 부드러운 그림자, 공간을 누비는 카메라의 three.js 월드.</sub></td>
+<td width="25%" valign="top"><a href="examples/zipper-blueprint-en/"><img src="engine/shotloop/kits/styles/blueprint/1.jpg" alt="설계도" /></a><br/><sub><b>설계도</b>: 격자 위 선화, 분해도, 콜아웃. 기계의 작동 원리에.</sub></td>
+<td width="25%" valign="top"><a href="examples/chinese-words-en/"><img src="engine/shotloop/kits/styles/kinetic/1.jpg" alt="키네틱 타이포그래피" /></a><br/><sub><b>키네틱 타이포그래피</b>: 움직이는 큰 글자. 인용구, 단어, 통념 바로잡기에.</sub></td>
+<td width="25%" valign="top"><a href="examples/bybit-heist-en/"><img src="engine/shotloop/kits/styles/news/1.jpg" alt="뉴스 스토리" /></a><br/><sub><b>뉴스 스토리</b>: 긴장감 있게 전하는 속보. 흘러가는 시계, 돈의 흐름, 타임라인, 누가 무엇을 말했는지.</sub></td>
+<td width="25%" valign="top"><a href="examples/watch-3d-en/"><img src="engine/shotloop/kits/styles/3d/1.jpg" alt="3D" /></a><br/><sub><b>3D</b>: 스튜디오 조명, 부드러운 그림자, 공간을 누비는 카메라의 three.js 월드.</sub></td>
 </tr>
 </table>
 
@@ -118,7 +118,7 @@ flowchart LR
 
 - **긴 렌더링 한 번이 아니라 샷 단위.** 영상은 샷의 목록입니다. 각 샷은 시각 t의 화면을 그리는 작은 프로그램 `shot.js`로, 2D는 페이지를, 3D는 three.js 월드를 그립니다. 샷마다 입력의 해시로 캐시되므로, 수정하면 샷 하나만 몇 초 안에 다시 렌더링되고, 내보내기는 클립을 이어 붙이기만 합니다.
 - **평범한 말로 수정.** AI는 공유 월드를 건드려야 하는 경우가 아니면 지금 보고 있는 샷만 고칩니다. 먼저 원하는 변경을 위한 구체적인 방법을 몇 가지 제안하고, 고른 방법(또는 직접 말한 방법)이 그대로 수정이 됩니다. 수정은 1분도 걸리지 않으며, 끝나면 바로 샷 클립이 렌더링되어 곧장 재생할 수 있습니다. "검사 실행"은 체크리스트(읽기 쉬운지, 가려진 것은 없는지, 자막 영역을 침범하지 않는지 등)와 대조해 아무것도 바꾸지 않고 검토만 하며, 찾은 문제는 클릭 한 번으로 고칠 수 있습니다.
-- **여덟 가지 비주얼 스타일.** 시네마틱 장면, 인포그래픽, 지도, 인터페이스 데모, 설계도, 키네틱 타이포그래피, 뉴스 스토리, 3D. 스타일마다 자체 키트와 참고 정지 화면이 있으며, AI는 고르고 만들기 전에 이를 살펴봅니다([`engine/shotloop/styles.mjs`](engine/shotloop/styles.mjs)). 테마는 배경과 글자만 정하고, 그림과 데이터는 주제에 맞는 색을 유지합니다.
+- **여덟 가지 비주얼 스타일.** 시네마틱 장면, 인포그래픽, 지도, 인터페이스 데모, 설계도, 키네틱 타이포그래피, 뉴스 스토리, 3D. 스타일마다 자체 키트와 참고 정지 화면이 있으며, AI는 고르고 만들기 전에 이를 살펴봅니다([`engine/shotloop/kits/styles.mjs`](engine/shotloop/kits/styles.mjs)). 테마는 배경과 글자만 정하고, 그림과 데이터는 주제에 맞는 색을 유지합니다.
 - **계획을 평가하는 규칙.** 무엇이든 만들기 전에 자막의 길이와 화면에 머무는 시간을 검사합니다. 여러 샷에 반복되는 그림은 한 번만 그려 공유하므로 어디서나 똑같아 보입니다.
 - **출처가 있는 사실.** 문안은 각 사실 옆에 출처를 두고, 게시글은 문안에 있는 사실만 쓸 수 있습니다.
 - **커버.** AI가 영상 분위기에 맞는 커버를 디자인하고 렌더링 결과를 스스로 검사합니다. 템플릿으로 저장해 시리즈를 일관되게 유지하거나, 마음에 드는 커버를 올리면 AI가 그 디자인을 따릅니다.
@@ -205,7 +205,7 @@ my-video/
   out/                 the engine's exports (timestamped); the app copies each into a new folder where you choose
 ```
 
-- **3D**: `world/page.html`은 엔진의 WebGL 키트([`engine/shotloop/webgl.mjs`](engine/shotloop/webgl.mjs))로, 스튜디오 조명, 머티리얼, 도형, glTF 모델, 렌즈 기반 카메라와 그 위의 글자를 갖춘 three.js 무대입니다. 샷들이 공유하는 세트와 기계는 `world/*.js`에 둡니다. 샷은 보여 줄 것을 `setup(ctx)`에서 만들고, `render(t)`에서 `t` 시점의 포즈를 잡습니다.
+- **3D**: `world/page.html`은 엔진의 WebGL 키트([`engine/shotloop/kits/webgl.mjs`](engine/shotloop/kits/webgl.mjs))로, 스튜디오 조명, 머티리얼, 도형, glTF 모델, 렌즈 기반 카메라와 그 위의 글자를 갖춘 three.js 무대입니다. 샷들이 공유하는 세트와 기계는 `world/*.js`에 둡니다. 샷은 보여 줄 것을 `setup(ctx)`에서 만들고, `render(t)`에서 `t` 시점의 포즈를 잡습니다.
 - **2D**: `shot.js`는 `render(t, ctx)`를 default export하며, 샷 기준 시간 `t`의 `world/page.html`을 그립니다. `ctx.voice`에는 샷에서 말하는 문장과 그 시간이 담겨 있어 화면을 말에 맞출 수 있습니다. 피사체를 `data-keep`(canvas라면 `subtitles.keep()`)으로 표시하면 자막 검사가 그 부분을 비워 둡니다.
 - **캐시**: 샷의 키는 월드, 샷 코드, 모델, 렌더러, 설정을 해시한 값입니다. 바뀌지 않은 샷은 재사용됩니다.
 

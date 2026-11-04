@@ -6,14 +6,14 @@ import { STYLES as ENGINE_STYLES, styleById as engineStyle } from '../../engine/
 export { lookFits } from '../../engine/shotloop/data.mjs'
 import type { ListEntry } from './api'
 import { lang, type Lang } from './i18n'
-import scene from '../../engine/shotloop/styles/scene/1.jpg'
-import infographic from '../../engine/shotloop/styles/infographic/1.jpg'
-import threeD from '../../engine/shotloop/styles/3d/1.jpg'
-import map from '../../engine/shotloop/styles/map/1.jpg'
-import ui from '../../engine/shotloop/styles/ui/1.jpg'
-import blueprint from '../../engine/shotloop/styles/blueprint/1.jpg'
-import kinetic from '../../engine/shotloop/styles/kinetic/1.jpg'
-import news from '../../engine/shotloop/styles/news/1.jpg'
+import scene from '../../engine/shotloop/kits/styles/scene/1.jpg'
+import infographic from '../../engine/shotloop/kits/styles/infographic/1.jpg'
+import threeD from '../../engine/shotloop/kits/styles/3d/1.jpg'
+import map from '../../engine/shotloop/kits/styles/map/1.jpg'
+import ui from '../../engine/shotloop/kits/styles/ui/1.jpg'
+import blueprint from '../../engine/shotloop/kits/styles/blueprint/1.jpg'
+import kinetic from '../../engine/shotloop/kits/styles/kinetic/1.jpg'
+import news from '../../engine/shotloop/kits/styles/news/1.jpg'
 
 type Words = Record<Lang, string>
 

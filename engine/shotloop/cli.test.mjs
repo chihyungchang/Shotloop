@@ -6,7 +6,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { after, test } from 'node:test'
-import { newProject } from './create.mjs'
+import { newProject } from './project/create.mjs'
 
 const CLI = path.join(import.meta.dirname, 'cli.mjs')
 const made = []

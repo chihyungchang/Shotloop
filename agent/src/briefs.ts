@@ -84,7 +84,7 @@ function styleBrief(project: ProjectStatus) {
   return `\n\nVisual style: ${s.id} (${s.name.en}). ${s.frames} Reference: ${s.why} Look at its reference stills (view_style "${s.id}") before you build, and reach that quality.`
 }
 
-// The element the person picked in the frame (engine/shotloop/pick.mjs),
+// The element the person picked in the frame (engine/shotloop/render/pick.mjs),
 // said so the agent can find it in the shot's code
 export function elementBrief(el: PickedElement) {
   const at = `at ${el.t} s, at page point (${el.point.x}, ${el.point.y}) CSS px`
@@ -165,7 +165,7 @@ export function trackBrief(project: ProjectStatus) {
   return `Track: ${project.track.toUpperCase()} (chosen by the person)`
 }
 
-// The visual styles the plan picks from (engine/shotloop/styles.mjs)
+// The visual styles the plan picks from (engine/shotloop/kits/styles.mjs)
 export function stylesBrief(project: ProjectStatus) {
   const chosen = project.styleChosen ? STYLES.find(s => s.id === project.style) : null
   if (chosen) return `\n\nVisual style: "${chosen.id}" (${chosen.name.en}), chosen by the person: keep it as "style" and plan every shot in it. ${chosen.frames} Reference: ${chosen.why} Look at its reference stills (view_style) first.`

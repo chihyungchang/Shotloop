@@ -3,7 +3,7 @@ import type { PickedElement, PickMap } from '../../api'
 import { Icon } from '../Icon'
 import { t } from '../../i18n'
 
-// The element picker (engine/shotloop/pick.mjs): the person points at a
+// The element picker (engine/shotloop/render/pick.mjs): the person points at a
 // thing on one of the shot's three stills, and the fix they ask for is
 // about it. The engine maps what is where on the stills once, as picking
 // starts; every hover and click is answered from that map. The stage
