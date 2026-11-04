@@ -11,6 +11,7 @@ import { newProject } from '../project/create.mjs'
 import { loadProject, SIZES } from '../project/project.mjs'
 import { applyStoryboard } from '../project/storyboard.mjs'
 import { measureLayout } from '../render/measure.mjs'
+import { openShot } from '../render/render2d.mjs'
 import { writeFrames } from './frames.mjs'
 
 const made = []
@@ -19,8 +20,8 @@ after(() => made.forEach(d => fs.rmSync(d, { recursive: true, force: true })))
 const PLAN = [
   { title: 'Title', beat: 'title', text: 'Shotloop', duration: 3 },
   { title: 'Problem', beat: 'problem', text: 'One shot off.\nAll renders.', duration: 5 },
-  { title: 'Plan', beat: 'screen', text: 'One line in.', steps: 3, duration: 5 },
-  { title: 'Fix', beat: 'screen', text: 'Say what.\nIt fixes it.', duration: 5 },
+  { title: 'Plan', beat: 'screen', text: 'One line in.', steps: 3, duration: 5, picture: 'repo/pictures/09-home.jpg', actions: ['click the idea field', 'type A promo for Shotloop', 'click Send', 'show repo/pictures/01-plan.jpg'] },
+  { title: 'Fix', beat: 'screen', text: 'Say what.\nIt fixes it.', duration: 5, picture: 'repo/pictures/06-studio.jpg', actions: ['click It\'s too still', 'show repo/pictures/03-agent.jpg'] },
   { title: 'End', beat: 'end', text: 'Fix one shot.', duration: 4 }
 ]
 
@@ -98,6 +99,12 @@ test('frames: what the plan must change for its frames, said for the planner', (
   assert.match(planIssues(page, PLAN.map(({ beat, ...s }) => s))[0], /needs its "beat"/)
   const turned = [PLAN[1], PLAN[0], ...PLAN.slice(2, 4)]
   assert.deepEqual(planIssues(page, turned).map(i => i.split(':')[0]), ['shot 1 (Problem)', 'shot 4 (Fix)'])
+  // A screen beat does something, as a person does it
+  const acting = actions => PLAN.map((s, i) => (i === 3 ? { ...s, actions } : s))
+  assert.match(planIssues(page, acting(['show repo/pictures/03-agent.jpg'])).join('\n'), /shot 4 \(Fix\): its "actions" click a control at least once/)
+  assert.match(planIssues(page, acting(['click Send'])).join('\n'), /after its click, "actions" show what it brought/)
+  assert.match(planIssues(page, acting(['type hello', 'click the field', 'show x.jpg'])).join('\n'), /it types before clicking the field/)
+  assert.match(planIssues(page, PLAN.map((s, i) => (i === 3 ? { ...s, picture: '' } : s))).join('\n'), /shot 4 \(Fix\): say the screenshot it starts on/)
   // Headlines keep their size: a line too long for the column is the plan's to split
   const long = PLAN.map((s, i) => (i === 2 ? { ...s, text: 'One sentence becomes a whole storyboard here' } : s))
   assert.match(planIssues(page, long).join('\n'), /shot 3 \(Plan\): a headline line of 44 letters is longer than its column holds/)
@@ -141,4 +148,45 @@ export default function render(t, { window }) {
 `)
   assert.match((await measureLayout(project, title)).map(f => f.what).join('\n'), /not drawn with the kit's titleCard\(\)/)
   assert.match((await measureLayout(project, problem)).map(f => f.what).join('\n'), /the drawing takes 100% of its box's width and \d+% of its height/)
+})
+
+test('act: words appear only once the field is clicked, and go when the next picture shows', async () => {
+  const dir = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-act-')), 'p')
+  made.push(path.dirname(dir))
+  newProject(dir, { idea: 'x', promo: true, duration: 22 })
+  fs.writeFileSync(path.join(dir, 'storyboard.json'), JSON.stringify({ shots: PLAN }))
+  applyStoryboard(loadProject(dir))
+  const project = loadProject(dir)
+  writeFrames(project)
+  fs.mkdirSync(path.join(dir, 'images'), { recursive: true })
+  for (const f of ['a.jpg', 'b.jpg']) fs.copyFileSync(new URL('../tools/highlight.jpg', import.meta.url), path.join(dir, 'images', f))
+  const shot = project.shots[2]
+  fs.writeFileSync(shot.code, `import { load, depth, frame, desktop, act } from '../../world/screens.js'
+export const setup = () => load('images/a.jpg', 'images/b.jpg')
+export default function render(t, { window }) {
+  const f = frame()
+  const a = act(t, { box: f.desktop, windows: [{ file: 'images/a.jpg', width: 640, height: 360, x: 20, y: 20, w: 600 }], steps: [
+    { click: { x: 100, y: 100, w: 300, h: 40 } }, { type: 'Hello there' }, { click: { x: 500, y: 300, w: 40, h: 40 } }, { show: 'images/b.jpg' }
+  ] })
+  const d = desktop({ box: f.desktop, windows: a.windows, view: a.view })
+  depth(d.html)
+  window.kit.stage(a.cursor(d))
+  window.__act = { end: a.end }
+}
+`)
+  const s = await openShot(project, shot, 'final')
+  try {
+    const at = async t => {
+      await s.draw(t)
+      return s.page.evaluate(`({ words: [...document.querySelectorAll('[data-kit=typed]')].map(e => e.innerText).join('').trim(), b: document.getElementById('depth').innerHTML.includes('images/b.jpg'), end: window.__act.end })`)
+    }
+    assert.equal((await at(0.5)).words, '')
+    const typing = await at(1.6)
+    assert.ok(typing.words.length > 0 && 'Hello there'.startsWith(typing.words), typing.words)
+    const done = await at(5)
+    assert.ok(done.b && done.words === '', JSON.stringify(done))
+    assert.ok(done.end > 3 && done.end < 5)
+  } finally {
+    await s.close()
+  }
 })

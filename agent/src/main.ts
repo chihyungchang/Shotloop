@@ -13,7 +13,8 @@
 //   shotloop-agent detect                     CLI agents and local model servers here
 //   shotloop-agent test                       one tiny request through the chosen backend
 //   shotloop-agent plan    <project> [--request "…"]  copy and storyboard (storyboard.json)
-//   shotloop-agent build   <project>             the world and every shot, from the plan
+//   shotloop-agent build   <project> [--shot <id>] the world and every shot, from the plan
+//                                             (--shot: that shot alone, on the world there)
 //   shotloop-agent sound   <project> [--parts effects,ambience,narration] [--request "…"]
 //                                             the film's sound once its shots are approved: the
 //                                             parts asked for (default effects and ambience);
@@ -354,10 +355,15 @@ async function buildTask() {
   const b: Build = { copy: read(path.join(project.root, 'copy.md')), touched: new Set(), done: [], failed: [] }
   emit({ type: 'log', message: `agent: ${describe()}` })
 
-  const look = project.track === '2d' && /shotloop-look: /.test(read(path.join(project.root, 'world', 'page.html')))
-  if (!look) project = await buildWorld(project, b)
-  await buildParts(project, b)
-  await buildShots(project, b)
+  // --shot: that shot alone, on the world and pictures there already
+  const only = values.shot ? project.shots.find(s => s.id === values.shot) : null
+  if (values.shot && !only) throw new Error(`no shot ${values.shot}`)
+  if (!only) {
+    const look = project.track === '2d' && /shotloop-look: /.test(read(path.join(project.root, 'world', 'page.html')))
+    if (!look) project = await buildWorld(project, b)
+    await buildParts(project, b)
+  }
+  await buildShots(project, b, only)
   if (!b.done.length) throw new Error(b.failed[0] ?? 'no shot was built')
   await renderStale(b)
 
@@ -518,10 +524,10 @@ function exportNames(text: string) {
 }
 
 // Every shot, PARALLEL at a time, on the finished world
-async function buildShots(project: ProjectStatus, b: Build) {
+async function buildShots(project: ProjectStatus, b: Build, only: ShotStatus | null = null) {
   emit({ type: 'phase', phase: 'shots' })
   const world = worldFiles(project, { docs: true })
-  await pool(project.shots, PARALLEL, async shot => {
+  await pool(only ? [only] : project.shots, PARALLEL, async shot => {
     emit({ type: 'shot', id: shot.id, state: 'start' })
     const ctx = context(project.root, [`shots/${shot.id}/`])
     try {

@@ -296,7 +296,7 @@ const TASTE = [
   },
   {
     id: 'promo-in-use', track: 'all', kind: 'promo', name: 'Show it in use',
-    rule: 'A promo shows the product being used, not only looked at: at least the film\'s main beat drives it on the Mac\'s desktop, the cursor gliding to a real control and clicking it while the desktop\'s camera moves in to centre the click, and what the click does follows (a state that changes, words typed, a panel that opens). A screenshot only pushed in on is a picture of the product, not a demo of it.',
+    rule: 'A promo shows the product being used, not only looked at: its screen beats walk the product\'s real flow, each doing one task the way a person does it, step by step in order: the pointer glides to the control and clicks it while the desktop\'s camera comes in, words are typed only into the field just clicked, and what the click brought shows (the next screen, words typed, a panel that opens; screens.js act()). Never words appearing in a field no one clicked, nor a box drawn where an action should be. A screenshot only pushed in on is a picture of the product, not a demo of it.',
     check: 'At least one beat drives the product on the desktop: the cursor clicks a real control, the camera centres the click, and its result shows.'
   },
   {

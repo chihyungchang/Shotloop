@@ -122,7 +122,10 @@ function frameBrief(project: ProjectStatus, shot: ShotStatus) {
   const frame = JSON.parse(read(file)).beats?.find((b: { id: string }) => b.id === shot.id)
   if (!frame) return ''
   const round = (k: string, v: unknown) => (typeof v === 'number' ? Math.round(v) : v)
-  return `\n\nThis beat's frame (frame() in the shot gives it; page px): ${JSON.stringify(frame, round)}`
+  // What the plan says the beat does on the product, for act()
+  const planned = JSON.parse(read(path.join(project.root, 'storyboard.json')) || '{}').shots?.[project.shots.indexOf(shot)]
+  const acts = planned?.actions?.length ? `\nIt starts on ${planned.picture} and does, in order (act(); find_text gives each control's region): ${planned.actions.join('; ')}` : ''
+  return `\n\nThis beat's frame (frame() in the shot gives it; page px): ${JSON.stringify(frame, round)}${acts}`
 }
 
 // What the voice says over the shot, sentence by sentence with its times
@@ -158,7 +161,7 @@ Working with the material:
 - Write the product's story in copy.body first (the problem, who has it, what the product does about it, the one thing to remember), from the briefs above, then plan the shots that tell it. Every claim in copy.facts, its source the repository's file or the page's address.
 - A shot that shows the product names its picture in "show" by its file (repo/pictures/…, site/framed/…, site/hero.png, site/parts/…, site/live/…, or the person's pictures). Look at the pictures (view_image) before you pick them.
 - The brand's colors (in the page's brief) reach the film through the look: pick the look nearest them and shade it with "lookTune".
-- Each shot in storyboard.json also says what beat it is, so the engine lays the film out (its frames, the same boxes the shots are built in and the person sees as wireframes): "beat": "title" (the first shot: the logo and name), "problem" (the problem or the old way, drawn), "screen" (the product on the desktop) or "end" (the last shot: the end card); and "steps": how many chips sit under its headline (0 for none). Its "text" is its headline, a line each (one or two).
+- Each shot in storyboard.json also says what beat it is, so the engine lays the film out (its frames, the same boxes the shots are built in and the person sees as wireframes): "beat": "title" (the first shot: the logo and name), "problem" (the problem or the old way, drawn), "screen" (the product on the desktop) or "end" (the last shot: the end card); and "steps": how many chips sit under its headline (0 for none). Its "text" is its headline, a line each (one or two). A "screen" shot also says "picture", the screenshot it starts on, and "actions", what is done on it in order, the way a person does it: "click <the words on the control, or what it is>", "type <the words>" (into the field just clicked), "show <the picture it brings>" (repo/pictures/…). A beat clicks at least once and shows what its click brought (words typed, or the next picture); together the screen beats walk the product's real flow.
 - "recurring" lists only a drawing the film shows more than once that the screens kit has no piece for (a diagram of the problem); never the desktop, a window, the headline, steps, a counter or the cards, which the kit draws and the frames place.
 - Devices (world/screens.js; name the device in "show"):
 ${PROMO_TOOLS.join('\n')}${taste}` : `

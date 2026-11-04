@@ -12,8 +12,9 @@
 //
 // The pieces live in world/screens/, a file a job: base.js (material,
 // the frames, sizes, colours), motion.js (springs, the camera, typing),
-// screen.js (shots, the desktop, fields, mark), cursor.js, words.js (the
-// drawn pieces) and cards.js (title, end card). Each piece is documented
+// screen.js (shots, the desktop, fields, mark), act.js (an action done
+// step by step), cursor.js, words.js (the drawn pieces) and cards.js
+// (title, end card). Each piece is documented
 // where it is defined: read that file for a detail, not this whole kit.
 //
 // What there is, by job:
@@ -34,6 +35,10 @@
 //              Find a control's region with the find_text tool, never by
 //              eye. Never lay anything over the desktop from outside it:
 //              it shakes as the camera moves
+//   act        act(t, { box, windows, steps }): what a beat does on the
+//              product, step by step: click a control, type into the
+//              field just clicked, show the next picture; it moves the
+//              camera and the pointer. Use it for every action
 //   camera     camera(t, keys), follow(t, clicks), drift() for a landed
 //              screen; cursor(t, { path, clicks }) on kit.stage
 //   words      chapter(), headline() (always: its size from layout()),
@@ -62,6 +67,7 @@
 // desktop's size and place, empty bands, anything laid over the screen.
 
 export { screenBox } from './promo-layout.js'
+export { act } from './screens/act.js'
 export { frame, layout, load, url } from './screens/base.js'
 export { endCard, titleCard } from './screens/cards.js'
 export { cursor } from './screens/cursor.js'

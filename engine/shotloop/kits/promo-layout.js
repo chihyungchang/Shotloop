@@ -176,6 +176,16 @@ export function planIssues(page, shots) {
   const out = []
   if (beats[0].beat !== 'title') out.push(`${name(shots[0], 0)}: the first shot is the title ("beat": "title")`)
   if (beats.at(-1).beat !== 'end') out.push(`${name(shots.at(-1), shots.length - 1)}: the last shot is the end card ("beat": "end")`)
+  // A screen beat does something on the product, the way a person does:
+  // it clicks, types only after a click, and shows what the click brought
+  shots.forEach((s, i) => {
+    if (s.beat !== 'screen') return
+    const acts = (Array.isArray(s.actions) ? s.actions : []).map(a => String(a).trim().split(/\s+/)[0].toLowerCase())
+    if (!s.picture) out.push(`${name(s, i)}: say the screenshot it starts on ("picture")`)
+    if (!acts.includes('click')) out.push(`${name(s, i)}: its "actions" click a control at least once (the pointer shows the product in use)`)
+    else if (!acts.slice(acts.indexOf('click') + 1).some(a => a === 'type' || a === 'show')) out.push(`${name(s, i)}: after its click, "actions" show what it brought ("type …" into the field clicked, or "show <picture>")`)
+    if (acts.includes('type') && acts.indexOf('type') < acts.indexOf('click')) out.push(`${name(s, i)}: it types before clicking the field; "click" the field first`)
+  })
   const frames = filmFrames(page, beats)
   beats.forEach((b, i) => {
     if ((b.beat === 'screen' || b.beat === 'problem') && b.chars > frames.fits) {
