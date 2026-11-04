@@ -386,14 +386,24 @@ function desktopWindows(windows, u) {
   })
 }
 
+// A Mac's screen is 16:10: the desktop keeps it in any box it's given,
+// the largest that fits, centred, never squashed into the box's shape.
+// Windows are placed in its px (screenBox(box).w wide)
+const SCREEN = 16 / 10
+export function screenBox(box) {
+  const w = Math.min(box.w, box.h * SCREEN), h = w / SCREEN
+  return { x: box.x + (box.w - w) / 2, y: box.y + (box.h - h) / 2, w, h }
+}
+
 // Where a point of a window's picture is on the desktop (desktop px),
 // to aim the camera at: follow() takes these divided by the box's size
-export function desktopPoint({ box, windows }, i, px, py) {
+export function desktopPoint({ box: given, windows }, i, px, py) {
+  const box = screenBox(given)
   const w = desktopWindows(windows, unit())[i]
   return { x: (w.x + px * w.s) / box.w, y: (w.y + w.bar + py * w.s) / box.h }
 }
 
-// The desktop in box { x, y, w, h }, its windows [{ file, width, height,
+// The desktop: a 16:10 screen in box { x, y, w, h } (screenBox), its windows [{ file, width, height,
 // x, y, w, title, p, over, draw }] (over and draw as shot()'s) (p brings a window in; x, y may change with t
 // to drag it), seen by view { x, y, zoom } (a camera(t, keys) over desktop
 // fractions; follow() and desktopPoint() aim it at clicks). The view's
@@ -401,10 +411,10 @@ export function desktopPoint({ box, windows }, i, px, py) {
 // app: the name in the menu bar; dock: the product's icon (a picture of
 // the project), first in the Dock; apps: pictures of the project to stand
 // in for the Dock's own icons (the person's, licensed to show), when given
-// Gives back { html, at(i, px, py) → frame px, window(i) } for the
-// cursor and words; window(i) is what field() takes for that window
-export function desktop({ box, windows, view = { x: 0.5, y: 0.5, zoom: 1 }, app = '', dock = '', apps = null, p = 1 }) {
-  const { C } = kit()
+// Gives back { html, at(i, px, py) → frame px, box (the screen's),
+// window(i) } for the cursor and words; window(i) is what field() takes for that window
+export function desktop({ box: given, windows, view = { x: 0.5, y: 0.5, zoom: 1 }, app = '', dock = '', apps = null, p = 1 }) {
+  const box = screenBox(given)
   const u = unit()
   const wins = desktopWindows(windows, u)
   // Sharp: the window shown largest sets how close the camera may come
@@ -456,7 +466,7 @@ export function desktop({ box, windows, view = { x: 0.5, y: 0.5, zoom: 1 }, app 
   const { W, H } = kit()
   const x0 = Math.max(box.x, 0), y0 = Math.max(box.y, 0)
   const seen = { x: x0, y: y0, w: Math.min(box.x + box.w, W) - x0, h: Math.min(box.y + box.h, H) - y0 }
-  return { html, at, zoom: z, window: i => ({ at: (px, py) => at(i, px, py), scale: wins[i].s * z, seen }) }
+  return { html, at, box, zoom: z, window: i => ({ at: (px, py) => at(i, px, py), scale: wins[i].s * z, seen }) }
 }
 
 // A live part (load it first): its left edge at box.x, centred on box.y,
@@ -628,8 +638,9 @@ const margin = () => kit().PAD ?? 56 * unit()
 //   layout('side')  the words in a left column, the picture right of them
 //   layout('below') the words across the top, the picture under them
 //   layout('auto', { aspect }) whichever of the two shows a picture of
-//     that width / height largest (a tall app beside its words, a wide
-//     strip of one under them); kind says which it chose
+//     that width / height largest (the desktop's 16:10 unless given; a
+//     tall picture beside its words, a wide strip under them); kind says
+//     which it chose
 // lines: the headline's lines. Gives back { words: { x, y, width, size,
 // under }, picture: { x, y, w, h } (pass as a shot's box), source: { y } }
 // in page px (under: where steps or a bubble go below the headline, clear
@@ -640,7 +651,7 @@ const margin = () => kit().PAD ?? 56 * unit()
 // the bottom edges instead of stopping at the margin
 export function layout(kind = 'side', { lines = 2, size, bleed = false, aspect } = {}) {
   if (kind === 'auto') {
-    if (!aspect) throw new Error('world/screens.js: layout(\'auto\') needs the picture\'s aspect (width / height)')
+    aspect ??= SCREEN
     const shown = l => Math.min(l.picture.w, l.picture.h * aspect) ** 2 / aspect
     const side = layout('side', { lines, size, bleed }), below = layout('below', { lines, size, bleed })
     return shown(below) > shown(side) ? below : side
