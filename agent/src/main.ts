@@ -317,6 +317,10 @@ const PARALLEL = Math.min(5, Math.max(1, Number(process.env.SHOTLOOP_PARALLEL) |
 const SHOT_EFFORTS = ['low', 'medium', 'high'] as const
 const SHOT_EFFORT = SHOT_EFFORTS.find(e => e === process.env.SHOTLOOP_SHOT_EFFORT) ?? 'low'
 
+// A second look at each built shot by a reviewer that didn't build it:
+// on unless turned off, for a quicker build (SHOTLOOP_REVIEW=off)
+const REVIEW = process.env.SHOTLOOP_REVIEW !== 'off'
+
 // What a build has done so far, across its phases
 interface Build {
   copy: string
@@ -524,7 +528,7 @@ async function buildShots(project: ProjectStatus, b: Build) {
       })
       b.done.push(`${shot.id}: ${summary}`)
       collect(b, project, ctx)
-      await reviewShot(project, shot, b, world)
+      if (REVIEW) await reviewShot(project, shot, b, world)
     } catch (err) {
       b.failed.push(`${shot.id}: ${reason(err)}`)
       collect(b, project, ctx)
