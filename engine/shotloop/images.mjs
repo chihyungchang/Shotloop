@@ -53,11 +53,13 @@ function liveIn(root) {
   })
 }
 
-// Everything a promo can show: the person's images, then the page's logo
+// Everything a promo can show: the person's images, the repository's logo
+// and screenshots, then the page's logo
 // and its sections framed as windows, its parts on their own, and those
 // parts live
 export const promoImages = root => [
   ...picturesIn(root, IMAGES_DIR).map(i => ({ ...i, from: 'person' })),
+  ...picturesIn(root, 'repo').map(i => ({ ...i, from: 'repo' })),
   ...picturesIn(root, REPO_PICTURES).map(i => ({ ...i, from: 'repo' })),
   ...picturesIn(root, SITE_DIR).map(i => ({ ...i, from: 'site' })),
   ...picturesIn(root, `${SITE_DIR}/framed`).map(i => ({ ...i, from: 'site' })),

@@ -12,6 +12,7 @@
 //   repo/brief.md          the repository's own words, trimmed
 //   repo/repo.json         what was read: name, description, files, pictures
 //   repo/pictures/*.png|jpg  its screenshots
+//   repo/logo.png          its logo (the app's icon), when it keeps one
 //
 // Written into a temporary folder and moved into place, so a reading cut
 // short leaves the last complete one.
@@ -51,6 +52,12 @@ export function repoSource(text) {
 // Docs worth reading, in order: the changelog, then docs/ pages by name
 const isDoc = f => /\.(md|mdx|markdown|txt)$/i.test(f) && !/(^|\/)(node_modules|test|tests|fixtures|examples?)\//i.test(f) && !/(license|code_of_conduct|contributing|security)\b/i.test(path.basename(f))
 const docRank = f => (/changelog|releases?|history/i.test(f) ? 0 : /^docs?\//i.test(f) ? 1 : /readme/i.test(path.basename(f)) ? 3 : 2)
+// The product's logo or app icon: a PNG named so, never a favicon, a tray
+// or a badge; one under a logo name or folder first, then the largest
+const isLogo = f => /\.png$/i.test(f) && /(logo|icon)/i.test(path.basename(f)) && !/(favicon|tray|badge|sponsor|avatar|social)/i.test(f)
+const logoRank = f => (/logo/i.test(f.path) ? 0 : 1)
+// A logo is square-ish and big enough to show large
+const MIN_LOGO = 256
 const isPicture = f => /\.(png|jpe?g)$/i.test(f) && /(screen|shot|preview|demo|hero|ui|app|docs?\/|images?\/|assets?\/)/i.test(f) && !/(icon|logo|badge|favicon|avatar|sponsor)/i.test(path.basename(f))
 
 // Markdown made readable for the plan: no badges, no HTML, no long tables
@@ -105,11 +112,12 @@ async function readGithub({ owner, name }) {
     const text = await github(`${base}/contents/${encodeURIComponent(f.path).replace(/%2F/g, '/')}?ref=${branch}`, true).catch(() => null)
     if (text) docs.push({ file: f.path, text })
   }
-  const pictures = files.filter(e => isPicture(e.path) && e.size <= MAX_PICTURE_BYTES).sort((a, b) => b.size - a.size)
-    .map(e => ({ file: e.path, fetch: () => fetch(`https://raw.githubusercontent.com/${owner}/${name}/${branch}/${e.path}`).then(r => (r.ok ? r.arrayBuffer() : null)) }))
+  const raw = e => ({ file: e.path, fetch: () => fetch(`https://raw.githubusercontent.com/${owner}/${name}/${branch}/${e.path}`).then(r => (r.ok ? r.arrayBuffer() : null)) })
+  const pictures = files.filter(e => isPicture(e.path) && e.size <= MAX_PICTURE_BYTES).sort((a, b) => b.size - a.size).map(raw)
+  const logos = logosOf(files).map(raw)
   return {
     name: meta.name, description: meta.description ?? '', homepage: meta.homepage ?? '', topics: meta.topics ?? [], license: meta.license?.spdx_id ?? '',
-    readme, docs, pictures,
+    readme, docs, pictures, logos,
     releases: releases.map(r => ({ name: r.name || r.tag_name, date: (r.published_at ?? '').slice(0, 10), body: r.body ?? '' }))
   }
 }
@@ -139,9 +147,14 @@ function readFolder({ dir }) {
       .sort((a, b) => docRank(a.path) - docRank(b.path)).slice(0, MAX_DOCS).map(f => ({ file: f.path, text: read(f.path) })),
     pictures: files.filter(f => isPicture(f.path) && f.size <= MAX_PICTURE_BYTES).sort((a, b) => b.size - a.size)
       .map(f => ({ file: f.path, fetch: async () => fs.readFileSync(path.join(dir, f.path)) })),
+    logos: logosOf(files).map(f => ({ file: f.path, fetch: async () => fs.readFileSync(path.join(dir, f.path)) })),
     releases: []
   }
 }
+
+// The files that may be the logo, the likeliest first
+const logosOf = files => files.filter(f => isLogo(f.path) && f.size <= MAX_PICTURE_BYTES)
+  .sort((a, b) => logoRank(a) - logoRank(b) || b.size - a.size).slice(0, 6)
 
 // A repository the API won't serve, cloned shallowly into a temporary
 // folder without its large files, and read as a folder there
@@ -151,10 +164,12 @@ function cloned({ owner, name }) {
     execFileSync('git', ['clone', '--depth', '1', '--filter=blob:limit=8m', `https://github.com/${owner}/${name}.git`, dir], { stdio: 'ignore', timeout: 120000 })
     const info = readFolder({ dir })
     // The pictures are read now: the folder goes when this returns
-    info.pictures = info.pictures.slice(0, MAX_PICTURES * 2).map(p => {
+    const keep = p => {
       const bytes = fs.readFileSync(path.join(dir, p.file))
       return { ...p, fetch: async () => bytes }
-    })
+    }
+    info.pictures = info.pictures.slice(0, MAX_PICTURES * 2).map(keep)
+    info.logos = info.logos.map(keep)
     return info
   } catch (err) {
     throw new Error(`github.com/${owner}/${name} could not be read: GitHub's API is over its hourly limit and cloning failed (${err.message.split('\n')[0]})`)
@@ -164,7 +179,7 @@ function cloned({ owner, name }) {
 }
 
 // The brief the plan reads: the repository's own words
-function briefMarkdown(src, info, pictures) {
+function briefMarkdown(src, info, pictures, logo) {
   const lines = [`# ${info.name}: the product in its makers' words`, '', `Read from ${src.label} on ${new Date().toISOString().slice(0, 10)}. Facts for the story come from here: quote them, add none.`, '']
   if (info.description || info.homepage || info.topics.length) {
     lines.push('## About', '')
@@ -177,8 +192,23 @@ function briefMarkdown(src, info, pictures) {
   if (info.readme) lines.push('## README', '', trim(tidy(info.readme), 16000), '')
   if (info.releases.length) lines.push('## Latest releases', '', ...info.releases.flatMap(r => [`### ${r.name}${r.date ? ` (${r.date})` : ''}`, '', trim(tidy(r.body), 1500), '']))
   for (const d of info.docs) lines.push(`## ${d.file}`, '', trim(tidy(d.text), 3000), '')
+  lines.push('## Logo', '', logo ? `${logo.file} (${logo.width}×${logo.height} px): the product's real logo, from ${logo.from}` : '(none found)', '')
   lines.push('## Pictures', '', ...(pictures.length ? pictures.map(p => `- ${p.file} (${p.width}×${p.height} px): ${p.from}`) : ['(none)']), '')
   return lines.join('\n')
+}
+
+// The first of the logos that is one (square-ish, big enough), written to
+// file; null when none is
+async function keepLogo(logos, file) {
+  for (const l of logos) {
+    const bytes = await l.fetch().catch(() => null)
+    if (!bytes) continue
+    fs.writeFileSync(file, Buffer.from(bytes))
+    const size = imageSize(file)
+    if (size && size.width >= MIN_LOGO && Math.abs(size.width - size.height) <= size.width * 0.1) return { file: `${REPO_DIR}/logo.png`, ...size, from: l.file }
+    fs.rmSync(file)
+  }
+  return null
 }
 
 // Reads the repository into the project's repo/. onStep(message, done,
@@ -211,8 +241,10 @@ export async function readRepo(root, source, onStep = () => {}) {
       }
       pictures.push({ file: `${REPO_DIR}/pictures/${name}`, ...size, from: p.file })
     }
-    writeJson(path.join(tmp, 'repo.json'), { source: src.label, name: info.name, description: info.description, homepage: info.homepage, read: new Date().toISOString(), docs: info.docs.map(d => d.file), pictures })
-    fs.writeFileSync(path.join(tmp, 'brief.md'), briefMarkdown(src, info, pictures))
+    onStep('finding its logo')
+    const logo = await keepLogo(info.logos, path.join(tmp, 'logo.png'))
+    writeJson(path.join(tmp, 'repo.json'), { source: src.label, name: info.name, description: info.description, homepage: info.homepage, read: new Date().toISOString(), docs: info.docs.map(d => d.file), pictures, logo })
+    fs.writeFileSync(path.join(tmp, 'brief.md'), briefMarkdown(src, info, pictures, logo))
     fs.rmSync(final, { recursive: true, force: true })
     fs.renameSync(tmp, final)
     return { name: info.name, homepage: info.homepage, docs: info.docs.length, pictures: pictures.length }

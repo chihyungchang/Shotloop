@@ -101,7 +101,7 @@ test('a GitHub address names a repository, given as the page or on its own', () 
   assert.throws(() => newProject(path.join(tmp(), 'h'), { idea: 'x', promo: true, repo: '/no/such/folder' }), /repository/)
 })
 
-test('a repository on this Mac is read: its words, and its screenshots but not its icons', async () => {
+test('a repository on this Mac is read: its words, its screenshots and its logo, but not its icons', async () => {
   const repo = tmp()
   fs.writeFileSync(path.join(repo, 'README.md'), '# Tool\n\n[![ci](https://x/badge.svg)](https://x)\n\nIt does one thing well.\n')
   fs.writeFileSync(path.join(repo, 'package.json'), JSON.stringify({ name: 'tool', description: 'A tool', homepage: 'https://tool.dev' }))
@@ -109,6 +109,11 @@ test('a repository on this Mac is read: its words, and its screenshots but not i
   fs.writeFileSync(path.join(repo, 'docs', 'screenshots', 'app.png'), png(1440, 900))
   fs.writeFileSync(path.join(repo, 'docs', 'screenshots', 'tiny.png'), png(64, 64))
   fs.writeFileSync(path.join(repo, 'CHANGELOG.md'), '## 1.0\n\nFirst release.\n')
+  // The largest logo under a logo name or folder; never a favicon
+  fs.mkdirSync(path.join(repo, 'design', 'logo'), { recursive: true })
+  fs.writeFileSync(path.join(repo, 'design', 'logo', 'icon-1024.png'), png(1024, 1024))
+  fs.writeFileSync(path.join(repo, 'docs', 'screenshots', 'logo.png'), png(256, 256))
+  fs.writeFileSync(path.join(repo, 'favicon.png'), png(2048, 2048))
   const root = path.join(tmp(), 'p')
   newProject(root, { idea: 'x', promo: true, repo })
   const read = await readRepo(root, repo)
@@ -117,7 +122,8 @@ test('a repository on this Mac is read: its words, and its screenshots but not i
   assert.match(brief, /It does one thing well/)
   assert.doesNotMatch(brief, /badge/)
   assert.match(brief, /## CHANGELOG.md/)
-  assert.deepEqual(promoImages(root).map(p => p.file), ['repo/pictures/01-app.png'])
+  assert.match(brief, /repo\/logo.png \(1024×1024 px\): the product's real logo, from design\/logo\/icon-1024.png/)
+  assert.deepEqual(promoImages(root).map(p => p.file), ['repo/logo.png', 'repo/pictures/01-app.png'])
 })
 
 test('a promo\'s screenshot kit is kept as the engine has it', async () => {
