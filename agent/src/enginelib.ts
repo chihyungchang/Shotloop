@@ -70,6 +70,12 @@ export const { STILLS } = await load<{ STILLS: readonly string[] }>('project/cac
 // A product promo's pictures, with their sizes
 export interface PromoImage { file: string; width: number; height: number; from: 'person' | 'site'; live?: boolean; fields?: string[] }
 export const { promoImages } = await load<{ promoImages: (root: string) => PromoImage[] }>('promo/images.mjs')
+// A line of text in a picture, its box in the picture's pixels (promo/text.mjs)
+export interface TextLine { text: string; x: number; y: number; w: number; h: number }
+export const { findText, pictureText } = await load<{
+  findText: (root: string, file: string, words: string) => Promise<TextLine[]>
+  pictureText: (root: string, file: string) => Promise<TextLine[]>
+}>('promo/text.mjs')
 export const { emit: emitLine, exit, parseFlags } = await load<{
   emit: (event: object) => void
   exit: (code: number) => void

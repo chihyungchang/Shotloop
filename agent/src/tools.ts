@@ -9,7 +9,7 @@ import path from 'node:path'
 import type { VoiceResult } from '../../engine/shotloop/protocol.d.ts'
 import { engine, renderCover, renderStills } from './engine.ts'
 import { emit, reason, warn } from './events.ts'
-import { AMBIENCE_NAMES, memory, STYLES, styleById, styleStills } from './enginelib.ts'
+import { AMBIENCE_NAMES, findText, memory, pictureText, STYLES, styleById, styleStills } from './enginelib.ts'
 
 type Tool = Anthropic.Beta.BetaTool
 
@@ -180,6 +180,15 @@ export const TOOLS: Tool[] = [
     description: 'Look at a PNG or JPEG image of the project, e.g. "cover-reference.png". Returns it as an image.',
     strict: true,
     input_schema: object({ path: { type: 'string' } }, ['path'])
+  },
+  {
+    name: 'find_text',
+    description: 'Where words are in a picture of the project (a screenshot): each line holding them with its box { x, y, w, h } in the picture\'s own pixels, read exactly by the system (not guessed). Use it for every control a shot marks, clicks or types into: the box is the region for mark() or field(), its centre the point for desktopPoint(). text "" lists every line of the picture.',
+    strict: true,
+    input_schema: object({
+      path: { type: 'string', description: 'The picture, e.g. "repo/pictures/08-export.jpg".' },
+      text: { type: 'string', description: 'The words on the control, e.g. "Export"; "" for every line.' }
+    }, ['path', 'text'])
   },
   {
     name: 'render_cover',
@@ -379,6 +388,16 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
       if (fs.statSync(abs).size > 4 * 1024 * 1024) throw new Error(`${rel} is larger than 4 MB`)
       emit({ type: 'tool', name, summary: rel })
       return { images: [image(abs, rel)] }
+    }
+    case 'find_text': {
+      const { rel } = resolve(ctx, str('path'))
+      if (!imageType(rel)) throw new Error(`${rel} is not a PNG or JPEG image`)
+      const words = str('text').trim()
+      emit({ type: 'tool', name, summary: words ? `${rel}: "${words}"` : rel })
+      const lines = words ? await findText(ctx.root, rel, words) : await pictureText(ctx.root, rel)
+      if (!lines.length) return words ? `"${words}" is not written anywhere in ${rel} (it may be an icon with no words: place it from find_text "" and the picture)` : `${rel} has no text`
+      const shown = lines.slice(0, words ? 8 : 150)
+      return shown.map(l => `"${l.text}" x ${l.x}, y ${l.y}, w ${l.w}, h ${l.h}`).join('\n') + (lines.length > shown.length ? `\n(${lines.length - shown.length} more)` : '')
     }
     case 'render_cover': {
       // Only the cover task, which may write the cover page
