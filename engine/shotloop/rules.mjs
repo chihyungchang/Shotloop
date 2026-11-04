@@ -132,8 +132,23 @@ const FIXED = [
   },
   {
     id: 'promo-desktop', track: 'all', kind: 'promo', locked: true, name: 'Screens on a desktop',
-    rule: 'Every screen of the product (a program, a website, an app) is shown in a window on a computer\'s desktop (screens.js desktop(): wallpaper, menu bar, Dock), never as a bare screenshot, a cut-out part or a window loose on the film\'s ground. A close-up is the desktop\'s camera moving in on the window; clicking, typing and dragging happen on the desktop.',
-    check: 'Every product screen sits in a window on the desktop; none is a bare screenshot, a cut-out part or a loose window on the ground.'
+    rule: 'Every screen of the product (a program, a website, an app) is shown in a window on a computer\'s desktop (screens.js desktop(): wallpaper, menu bar, Dock), never as a bare screenshot, a cut-out part or a window loose on the film\'s ground. A close-up is the desktop\'s camera moving in on the window; clicking, typing and dragging happen on the desktop. The film has one desktop, the same size and place in every beat (the same box, filling most of the frame), moved only by its own camera: it never shrinks to make room for words, and nothing outside it moves with it.',
+    check: 'Every product screen sits in a window on the desktop, which has the same size and place in every beat and fills most of the frame; none is a bare screenshot, a cut-out part or a loose window.'
+  },
+  {
+    id: 'promo-fill', track: 'all', kind: 'promo', locked: true, name: 'Every frame designed',
+    rule: 'Every frame of the film is a finished design, not only the one each beat settles on: from a beat\'s first frame to its last, through entrances, camera moves and wipes, the pieces fill the frame together, the product\'s screen the largest thing, no band of more than about a quarter of the frame left empty, and headlines one size from beat to beat (layout()\'s size). Nothing touches: a gap of at least 5% of the frame\'s height between a headline and what is under or beside it, between pictures, and above the source line (its own band at the bottom), stacked as much as side by side; place pieces in the boxes screens.js layout() gives, and whatever goes under a headline at its words.under.',
+    check: 'At the start, middle and end of the beat alike: no large empty band, the screen the biggest thing, the headline the same size as in the other beats, and a clear gap between every two pieces.'
+  },
+  {
+    id: 'promo-crisp', track: 'all', kind: 'promo', locked: true, name: 'Always sharp',
+    rule: 'Every screen stays sharp in every frame: never enlarged past its own pixels, nothing left blurred longer than a passing motion. For a close-up use the high-resolution captures.',
+    check: 'No screen looks soft, pixelated or blurred once a move has ended.'
+  },
+  {
+    id: 'promo-clear-words', track: 'all', kind: 'promo', locked: true, name: 'No words over busy screens',
+    rule: 'Words sit on the film\'s ground beside or above the product, never over a busy screen where they would fight its own text.',
+    check: 'No headline, label or caption lies over busy UI.'
   }
 ]
 
@@ -260,29 +275,14 @@ const TASTE = [
     check: 'Every beat about what the product does shows its own screens; drawings appear only for the problem or the old way, outside the product.'
   },
   {
-    id: 'promo-chapters', track: 'all', kind: 'promo', name: 'Numbered chapters, big headlines',
-    rule: 'Each beat is a chapter: a mono label over a rule ("01 — The problem", the product\'s name at the right), a big heavy headline of one or two lines rising line by line (the second, the turn, muted), and its picture: the desktop beside the headline (headline left, desktop right), or a drawing of the problem below it. A footer rule may carry a count.',
-    check: 'Each beat has its chapter label, a headline of at most two lines, and a clear place for its picture.'
-  },
-  {
-    id: 'promo-space', track: 'all', kind: 'promo', name: 'Room between things',
-    rule: 'Words, pictures and the source line never touch: a gap of at least 5% of the frame\'s height between a headline and its picture, between a picture and the source line, and between pictures; the source line has its own band at the bottom. A screen the camera moves in on stays inside its own box. Place each beat\'s pieces in the boxes screens.js layout() gives rather than by hand, and whatever goes under a headline (steps, a bubble) at its words.under, never right against the headline\'s last line.',
-    check: 'Nothing touches or overlaps: headlines, chips, screens and the source line each keep a clear gap from one another, stacked one under another as much as side by side.'
-  },
-  {
-    id: 'promo-fill', track: 'all', kind: 'promo', name: 'Every frame designed',
-    rule: 'Every frame of the film is a finished design, not only the one each beat settles on: from a beat\'s first frame to its last, through entrances, camera moves and wipes, the pieces fill the frame together, the product\'s screen the largest thing, with no band of more than about a quarter of the frame left empty, nothing blurred or half-drawn longer than a passing motion, and headlines one size from beat to beat (layout()\'s size).',
-    check: 'At the start, middle and end of the beat alike: no large empty band, the screen the biggest thing, nothing left blurred or half-drawn, the headline the same size as in the other beats.'
+    id: 'promo-chapters', track: 'all', kind: 'promo', name: 'One chapter style, big headlines',
+    rule: 'How a beat is labelled is the film\'s own choice (a numbered mono label over a rule, a plain word, no label at all), and once chosen it holds through the whole film: the same label, place, fonts and colours in every beat. Headlines are big and heavy, the boldest thing in the frame after the product, one or two lines rising line by line (the second, the turn, muted).',
+    check: 'Every beat labels itself the same way as the others; the headline is big and bold, at most two lines.'
   },
   {
     id: 'promo-one-part', track: 'all', kind: 'promo', name: 'One part of the product, big',
     rule: 'Each beat puts one part of the product forward, big enough to read at phone size: the text on it at least about 1/40 of the frame\'s height. The desktop\'s camera comes close to the part a beat is about.',
     check: 'The product part the beat is about is readable at phone size.'
-  },
-  {
-    id: 'promo-screens', track: 'all', kind: 'promo', name: 'One desktop, one size',
-    rule: 'The desktop has one size and one place through the whole film: the same box in every beat (layout(\'side\').picture, beside the headline), filling most of the frame, with a light shadow. It never shrinks to make room for a headline above it, and moves only through its own camera; what the camera follows sits in the middle of it, and nothing outside it moves with it. Nothing tilted while it must be read.',
-    check: 'The desktop has the same size and place in every beat, beside the headline, filling most of the frame; it is never shrunk under a headline, floating or tilted.'
   },
   {
     id: 'promo-in-use', track: 'all', kind: 'promo', name: 'Show it in use',
@@ -309,14 +309,9 @@ const TASTE = [
     rule: 'A promo is narrated: the voice tells the story in one short line a chapter, the picture shows it, the headline sums it up in a few words; each chapter starts when its line does, with a music bed under the voice.'
   },
   {
-    id: 'promo-words', track: 'all', kind: 'promo', name: 'Few words, never over busy screens',
-    rule: 'Headlines are a few words; labels and chips are short mono capitals; words sit on the ground beside or above the product, never over a busy screen.',
-    check: 'Words are short and sit on the ground, never over busy UI.'
-  },
-  {
-    id: 'promo-crisp', track: 'all', kind: 'promo', name: 'Always sharp',
-    rule: 'Every screen stays sharp: never enlarged past its own pixels. For a close-up use the high-resolution captures or the live parts, which stay sharp at any size.',
-    check: 'No screen looks soft or pixelated.'
+    id: 'promo-words', track: 'all', kind: 'promo', name: 'Few words',
+    rule: 'Headlines are a few words; labels and chips are short mono capitals; the product\'s screens say the rest.',
+    check: 'Headlines and labels are short.'
   },
   {
     id: 'promo-vary', track: 'all', kind: 'promo', name: 'Each chapter its own picture',
