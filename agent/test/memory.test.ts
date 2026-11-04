@@ -18,7 +18,10 @@ test('remember: a lesson kept with the project it came from; the prompt lists it
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-tools-'))
   fs.writeFileSync(path.join(root, 'shotloop.json'), JSON.stringify({ title: 'Lift' }))
   try {
-    const out = await runTool(newContext(root, '', []), 'remember', { text: 'Compute flows from a model', track: '2d', replaces: '' })
+    // A build's agent keeps none: only a change the person asked for does
+    const build = await runTool(newContext(root, '', []), 'remember', { text: 'A build slip', track: '2d', replaces: '' })
+    assert.equal(build.isError, true)
+    const out = await runTool({ ...newContext(root, '', []), learn: true }, 'remember', { text: 'Compute flows from a model', track: '2d', replaces: '' })
     assert.equal(out.isError, false)
     memory.add({ text: 'Plain words', by: 'ai', track: 'all', from: null, replaces: null })
     const kept = memory.list()

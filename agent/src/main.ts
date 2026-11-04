@@ -134,7 +134,7 @@ async function shotTask(kind: ShotKind) {
   const current = shot.final.stills ?? (await renderStills(project.root, shot.id)).stills
   const before = keepStills(current, record, 'before')
 
-  const ctx = context(project.root, edits ? [`shots/${shot.id}/`, 'world/'] : [])
+  const ctx = { ...context(project.root, edits ? [`shots/${shot.id}/`, 'world/'] : []), learn: edits }
   const said = `The person says about shot ${shot.id}: "${values.request}"${element ? `\n${elementBrief(element)}` : ''}`
   const ask = kind === 'fix' ? `${said}\n\nFix it.`
     : kind === 'propose' ? `${said}\n\nLook at the shot and offer ways to make this change with offer_options. Do not edit files.`
@@ -407,7 +407,7 @@ async function buildWorld(project: ProjectStatus, b: Build) {
   await onSheet(sheet, () => runAgent('code', {
     step: { kind: 'world' },
     effort: 'medium',
-    system: buildWorldSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
+    system: buildWorldSystem(project.track, !!project.voiced) + remembered(project.track, false) + replyLanguage(values.lang),
     prompt: `Design the world of ${head(project)} from its plan, and prove it on a test sheet in shot ${sheet.id}.\n\ncopy.md:\n${b.copy}\n\n${worldFiles(project)}\n\n${project.shots.map(s => shotBrief(project, s)).join('\n\n---\n\n')}${promoBrief(project)}`,
     ctx
   }))
@@ -446,7 +446,7 @@ async function buildParts(project: ProjectStatus, b: Build) {
       const summary = await onSheet(sheet, () => runAgent('code', {
         step: { kind: 'part', name: r.name },
         effort: 'medium',
-        system: buildPartsSystem(!!project.voiced) + remembered('2d', true) + replyLanguage(values.lang),
+        system: buildPartsSystem(!!project.voiced) + remembered('2d', false) + replyLanguage(values.lang),
         prompt: `Draw the recurring picture "${r.name}" of ${head(project)} in ${file(i)}, and prove it on a test sheet in shot ${sheet.id} (import it there from '../../${file(i)}').\n\nIts design (shots ${r.shots.join(', ')}): ${r.design}${others.length ? `\n\nThe film's other recurring pictures, drawn by other agents at the same time in their own files (never draw them):\n${others.map(o => `- ${o.name} (shots ${o.shots.join(', ')}): ${o.design}`).join('\n')}` : ''}${layout ? `\n\nThe shared layout, ${layout} (import it in your file from './layout.js'): your picture's default place and size, and every anchor it shares with the others, come from it, exactly, so the pictures line up:\n${read(path.join(project.root, layout))}` : ''}${framed ? '\n\nThe film is laid out in world/frames.json (screens.js frame()): your drawing sits in its beat\'s picture box, at the size it reads best at, balanced in it.' : ''}\n\nWhat the shots that show it need of it:\n${users.map(s => `### ${s.id}\n${read(s.notes)}`).join('\n\n')}\n\n${worldFiles(project, { docs: true })}`,
         ctx
       }))
@@ -528,7 +528,7 @@ async function buildShots(project: ProjectStatus, b: Build) {
       const summary = await runAgent('code', {
         step: { kind: 'shot', shot: shot.id },
         effort: SHOT_EFFORT,
-        system: buildShotSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
+        system: buildShotSystem(project.track, !!project.voiced, !!project.promo) + remembered(project.track, false) + replyLanguage(values.lang),
         prompt: `Build shot ${shot.id} of ${head(project)} from its plan.\n\ncopy.md:\n${b.copy}\n\n${world}\n\n${shotBrief(project, shot)}${promoBrief(project)}`,
         ctx,
         maxTurns: 30
@@ -574,7 +574,7 @@ async function fixShot(project: ProjectStatus, shot: ShotStatus, b: Build, world
   await runAgent('code', {
     step: { kind: 'fix', shot: shot.id },
     effort: SHOT_EFFORT,
-    system: buildShotSystem(project.track, !!project.voiced) + remembered(project.track, true) + replyLanguage(values.lang),
+    system: buildShotSystem(project.track, !!project.voiced, !!project.promo) + remembered(project.track, false) + replyLanguage(values.lang),
     prompt: `Shot ${shot.id} of ${head(project)} was ${how}, and these rules fail:\n${faults.join('\n')}\n\nFix them, render its stills and check it again.\n\n${world}\n\n${brief}`,
     ctx,
     maxTurns: 20

@@ -48,6 +48,9 @@ export interface ToolContext {
   // A shot written only as a test sheet (the recurring pictures' proof):
   // not the shot, so its writes aren't told as the shot's progress
   sheet?: string
+  // May keep a lesson (remember): only a change the person asked for,
+  // where what it took is worth keeping; a build's slips are its own
+  learn?: boolean
 }
 
 export interface ShotOption { title: string; plan: string }
@@ -439,6 +442,7 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
       return 'offered'
     }
     case 'remember': {
+      if (!ctx.learn) throw new Error('lessons are kept only from a change the person asks for, not here')
       const title = JSON.parse(fs.readFileSync(path.join(ctx.root, 'shotloop.json'), 'utf8')).title
       const m = memory.add({ text: str('text'), by: 'ai', track: str('track'), from: typeof title === 'string' ? title : null, replaces: str('replaces') || null })
       emit({ type: 'tool', name, summary: m.text })

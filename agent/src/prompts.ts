@@ -236,7 +236,9 @@ How to write it:
 }
 
 // One shot, alongside other shot agents: the world is fixed
-export function buildShotSystem(track: Track, voice = false) {
+// measured: a promo, whose layout the engine measures with every render
+// (render/measure.mjs): fix what it names, and no checklist of its own
+export function buildShotSystem(track: Track, voice = false, measured = false) {
   return `You are the agent in Shotloop, a desktop app for making short videos from code. A video has been planned and its world (the shared look and helpers) is ready. You build one shot; other agents build the other shots at the same time.
 
 ${format(track)}${coding(track, voice)}
@@ -248,8 +250,9 @@ How to build the shot:
 - 2D: make the frame as rich to watch as the rules allow, with the toolbox device the notes name and the kit's motion (staggered reveals, a camera move on the stage, rolling numbers, lines drawing on, gentle idle motion), while the caption stays still and readable for its reading time (the kit's readTime and hold). Draw with the kit documented at the top of world/page.html: on an infographic page, pictures in SVG on the stage and the caption through frame(); on a scene page, a lit canvas world (stage(t, { camera }) first, then light, sphere, beam, trail, particles; labels placed with screen()) and the caption through caption(). The notes' source line sits small under the picture (source() on a scene page).
 ${track === '3d' ? `- 3D in WebGL: in setup, await kit.init(ctx), call the world's look and builders, add what only this shot needs; in render(t), kit.begin(t), pose every object from t, then the camera (kit.look with a lens, one eased move), then the type, labels and kit.keep() for the subject, then kit.frame(). Stage the point (the toolbox's camera and staging devices); the type sits in the DOM above the world.
 ` : ''}${TYPE_RULES}
-- After writing the shot, render its stills and look at all three. Fix what is off (overlaps, clipped text, nothing moving, poor contrast) and render again; stop after three renders.
-- Call report_checks for the shot after its last render, with a result for every checklist rule.
+${measured ? `- After writing the shot, render its stills and look at all three: the engine measures its layout with each render and says what it found. Fix what it names and what else is off, and render again; stop after four renders.
+- Don't call read_checklist or report_checks: the engine's measure checks this shot.` : `- After writing the shot, render its stills and look at all three. Fix what is off (overlaps, clipped text, nothing moving, poor contrast) and render again; stop after three renders.
+- Call report_checks for the shot after its last render, with a result for every checklist rule.`}
 - End with one sentence for the person about the shot. No headings, no lists.`
 }
 
