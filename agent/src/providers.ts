@@ -90,11 +90,17 @@ export function preflight() {
 
 export type Task = 'code' | 'routine' | 'copy'
 
+// One effort for every step, overriding each step's own (SHOTLOOP_EFFORT=
+// low for a quick, cheap run end to end); unset, each step keeps its own
+const EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'] as const
+const EFFORT = EFFORTS.find(e => e === process.env.SHOTLOOP_EFFORT)
+
 // task: "code" for scenes and fixes (the stronger model), "routine" for
 // checks, "copy" for the plan's writing
 // step: what this run is in its task, for the project's usage record
 // (ledger.ts), with what the backend reports it took
-export async function runAgent(task: Task, { step, ...opts }: Omit<AgentOptions, 'model' | 'meter'> & { step?: AiStep['step'] }): Promise<string> {
+export async function runAgent(task: Task, { step, ...given }: Omit<AgentOptions, 'model' | 'meter'> & { step?: AiStep['step'] }): Promise<string> {
+  const opts = EFFORT ? { ...given, effort: EFFORT } : given
   const m = meter()
   const t0 = Date.now()
   let ok = false
