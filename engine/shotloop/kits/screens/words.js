@@ -54,12 +54,24 @@ export function headline(t, { lines, x, y, at = 0, size, width, color, step = 0.
 // what happens to many things at once, before and after (the old way: all
 // render again; the product's: one does). tiles: [{ file, label? }];
 // state(i) → { chip, kind: 'wrong'|'accent'|'muted', dim 0–1, sweep 0–1,
-// mark: true } at this t. box: { x, y, w, h } for the row
-export function row(t, { tiles, box, at = 0, gap, state = () => ({}) }) {
+// mark: true } at this t. box: { x, y, w, h } for the row. aspect: a
+// tile's width / height, the real thing's (a film's frame is the film's
+// 9:16 or 16:9), the row centred in the box; without it a tile fills the
+// box's height
+export function row(t, { tiles, box, at = 0, gap, aspect, state = () => ({}) }) {
   const { C } = kit()
   const u = unit()
   const g = gap ?? 16 * u
-  const w = (box.w - g * (tiles.length - 1)) / tiles.length
+  // As wide as the box allows, then as tall as the aspect says (never
+  // taller than the box: then the tiles narrow to fit it)
+  let w = (box.w - g * (tiles.length - 1)) / tiles.length
+  let h = aspect ? w / aspect : box.h
+  if (h > box.h) {
+    h = box.h
+    w = h * aspect
+  }
+  const x0 = box.x + (box.w - (w * tiles.length + g * (tiles.length - 1))) / 2
+  const y0 = box.y + (box.h - h) / 2
   const red = '#e5484d'
   return tiles.map((tile, i) => {
     const q = rise(t, at + i * 0.08, 0.35)
@@ -70,7 +82,7 @@ export function row(t, { tiles, box, at = 0, gap, state = () => ({}) }) {
         (s.kind === 'wrong' ? `background:${red};color:#fff` : s.kind === 'accent' ? `background:${C.accent};color:${onAccent()}` : `border:1px solid ${C.muted};color:${C.muted}`) +
         `;opacity:${n(s.chipIn ?? 1)}">${esc(s.chip)}</span>`
       : ''
-    return `<div style="position:absolute;left:${n(box.x + i * (w + g))}px;top:${n(box.y)}px;width:${n(w)}px;height:${n(box.h)}px;outline:${outline};background:${C.text};` +
+    return `<div style="position:absolute;left:${n(x0 + i * (w + g))}px;top:${n(y0)}px;width:${n(w)}px;height:${n(h)}px;outline:${outline};background:${C.text};` +
       `opacity:${n(q)};transform:translateY(${n((1 - q) * 30 * u)}px)">` +
       (tile.file ? `<div style="position:absolute;inset:0;background:url(${url(tile.file)}) center/cover no-repeat"></div>` : '') +
       `<div style="position:absolute;inset:0;background:${paper()};opacity:${n(s.dim ?? 0)}"></div>` +
