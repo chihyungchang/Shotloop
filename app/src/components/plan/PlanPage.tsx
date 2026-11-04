@@ -277,7 +277,7 @@ export function PlanPage({ project, jobs, refresh, back, toStudio, openSettings 
                   </div>
                 </div>
               )}
-              <CopyEditor sb={sb} edit={edit} request={request} setRequest={setRequest} revise={() => revise()} again={() => setConfirm('again')} planning={planning} />
+              <CopyEditor sb={sb} unsourced={planJob?.state === 'done' ? planJob.result?.unsourced ?? [] : []} edit={edit} request={request} setRequest={setRequest} revise={() => revise()} again={() => setConfirm('again')} planning={planning} />
               <Storyboard project={project} sb={sb} edit={edit} planning={planning} chooseStyle={chooseStyle} />
             </div>
           )}

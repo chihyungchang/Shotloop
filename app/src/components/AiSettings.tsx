@@ -128,6 +128,7 @@ export function AiSettings({ settings, update }: { settings: Settings; update: U
       {mode === 'cli' && <CliPane settings={settings} update={update} detected={detected} probes={probes} openLink={openLink} />}
       {mode === 'api' && <ApiPane settings={settings} update={update} preset={preset} choosePreset={choosePreset} probes={probes} openLink={openLink} />}
       {mode === 'local' && <LocalPane settings={settings} update={update} detected={detected} probes={probes} />}
+      <Reasoning local={mode === 'local'} settings={settings} update={update} />
     </section>
   )
 }
@@ -197,7 +198,6 @@ function CliPane({ settings, update, detected, probes, openLink }: { settings: S
           ))}
         </details>
       )}
-      <p className="hint"><Icon name="check" size={12} /> {t('ai.cliSafety')}</p>
     </div>
   )
 }
@@ -274,23 +274,23 @@ function ApiPane({ settings, update, preset, choosePreset, probes, openLink }: {
 }
 
 // A model on a local OpenAI-compatible server, on this Mac or another
-// machine nearby: the servers found here as chips (picking one lists its
-// models), any other address typed in, then its model and optional key
+// machine nearby, in two cards: the server (the ones found here as
+// chips, any other address typed in, its key) and its model
 function LocalPane({ settings, update, detected, probes }: { settings: Settings; update: Update; detected: Detected | null; probes: Probes }) {
   const urlField = useRef<HTMLInputElement>(null)
   const found = detected?.servers.find(s => s.url === settings.localUrl)
   return (
     <div className="provider-body">
       <p className="hint">{t('ai.localNote')}</p>
-      <div className="field">
-        <span className="row between">
-          {t('ai.servers')}
+      <div className="ai-group">
+        <div className="row between">
+          <h4>{t('ai.server')}</h4>
           <Rescan detected={detected} />
-        </span>
+        </div>
         {!detected
           ? <p className="muted small">{t('setup.checking')}</p>
           : (
-            <div className="server-chips" role="radiogroup">
+            <div className="server-chips" role="radiogroup" aria-label={t('ai.servers')}>
               {detected.servers.map(server => (
                 <button key={server.id} role="radio" aria-checked={found === server}
                   className={`provider-chip${found === server ? ' on' : ''}${server.running ? '' : ' idle'}`}
@@ -310,15 +310,21 @@ function LocalPane({ settings, update, detected, probes }: { settings: Settings;
               </button>
             </div>
           )}
+        <div className="ai-fields">
+          <label className="field">
+            <span>{t('ai.url')}</span>
+            <input ref={urlField} value={settings.localUrl} placeholder="http://192.168.1.20:1234/v1" onChange={e => update({ localUrl: e.target.value })} />
+          </label>
+          <label className="field">
+            <span>{t('ai.key')}</span>
+            <input type="password" value={settings.localKey} placeholder={t('ai.keyOptional')} onChange={e => update({ localKey: e.target.value })} />
+          </label>
+        </div>
       </div>
-      <label className="field">
-        <span>{t('ai.url')}</span>
-        <input ref={urlField} value={settings.localUrl} placeholder="http://192.168.1.20:1234/v1" onChange={e => update({ localUrl: e.target.value })} />
-      </label>
-      <div className="field">
-        <span>{t('ai.model')}</span>
+      <div className="ai-group">
+        <h4>{t('ai.model')}</h4>
         <div className="row gap">
-          <input list="local-models" value={settings.localModel} placeholder="qwen2.5vl:7b" onChange={e => update({ localModel: e.target.value })} />
+          <input list="local-models" value={settings.localModel} placeholder="qwen2.5vl:7b" aria-label={t('ai.model')} onChange={e => update({ localModel: e.target.value })} />
           <datalist id="local-models">{(probes.models ?? []).map(m => <option key={m} value={m} />)}</datalist>
           {probes.fetchButton(() => probes.listModels(settings.localUrl, settings.localKey, 'openai'), !settings.localUrl)}
           {probes.testButton()}
@@ -326,20 +332,50 @@ function LocalPane({ settings, update, detected, probes }: { settings: Settings;
         <ProbeLine probe={probes.probe} />
         <small className="muted">{t('ai.localModelNote')}</small>
       </div>
-      <div className="field">
-        <span>{t('ai.think')}</span>
-        <div className="seg-control" role="radiogroup">
-          {(['', 'off', 'on'] as const).map(v => (
-            <button key={v} role="radio" aria-checked={settings.localThink === v} className={settings.localThink === v ? 'on' : ''}
-              onClick={() => update({ localThink: v })}>{t(`ai.think.${v || 'auto'}`)}</button>
-          ))}
-        </div>
-        <small className="muted">{t('ai.thinkNote')}</small>
-      </div>
-      <label className="field">
-        <span>{t('ai.key')}</span>
-        <input type="password" value={settings.localKey} placeholder={t('ai.keyOptional')} onChange={e => update({ localKey: e.target.value })} />
-      </label>
+    </div>
+  )
+}
+
+// How hard the model thinks, beside the model it applies to: a local
+// model's thinking switch, or how deeply a hosted model or CLI builds
+// each shot (the local backend has no effort to set)
+const EFFORTS = ['low', 'medium', 'high'] as const
+function Reasoning({ local, settings, update }: { local: boolean; settings: Settings; update: Update }) {
+  const effort = settings.shotEffort || 'low'
+  return (
+    <div className="ai-group">
+      <h4>{t('ai.reasoning')}</h4>
+      {local
+        ? (
+          <div className="ai-pref">
+            <div>
+              <strong>{t('ai.think')}</strong>
+              <small className="muted">{t('ai.thinkNote')}</small>
+            </div>
+            <div className="seg" role="radiogroup" aria-label={t('ai.think')}>
+              {(['', 'off', 'on'] as const).map(v => (
+                <button key={v} role="radio" aria-checked={settings.localThink === v} className={settings.localThink === v ? 'on' : ''}
+                  onClick={() => update({ localThink: v })}>{t(`ai.think.${v || 'auto'}`)}</button>
+              ))}
+            </div>
+          </div>
+        )
+        : (
+          <div className="ai-pref">
+            <div>
+              <strong>{t('settings.effort')}</strong>
+              <small className="muted">{t('settings.effortNote')}</small>
+            </div>
+            <div className="seg" role="radiogroup" aria-label={t('settings.effort')}>
+              {EFFORTS.map(e => (
+                <button key={e} role="radio" aria-checked={effort === e} className={effort === e ? 'on' : ''}
+                  title={t(`settings.effort.${e}Hint`)} onClick={() => update({ shotEffort: e === 'low' ? '' : e })}>
+                  {t(`settings.effort.${e}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
     </div>
   )
 }

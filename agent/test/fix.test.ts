@@ -112,7 +112,7 @@ test('fix: reads, edits only the shot, renders, reports checks, keeps before/aft
     assert.deepEqual(result.element, ELEMENT)
     assert.equal(first.model, 'claude-opus-5-5')
     assert.deepEqual(first.tools.map((t: any) => t.name),
-      ['list_files', 'read_file', 'write_file', 'edit_file', 'render_stills', 'view_style', 'view_image', 'find_text', 'render_cover', 'read_checklist', 'report_checks', 'offer_options', 'remember', 'set_ambience', 'set_lines'])
+      ['list_files', 'read_file', 'write_file', 'edit_file', 'render_stills', 'view_style', 'view_image', 'find_text', 'render_cover', 'search_web', 'read_page', 'read_checklist', 'report_checks', 'offer_options', 'remember', 'set_ambience', 'set_lines'])
     assert.equal(first.fallbacks, 'default')
 
     // Refusals came back as tool errors, and nothing outside the shot changed

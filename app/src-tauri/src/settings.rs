@@ -42,6 +42,10 @@ pub struct Settings {
     /// Asset library sources: the person's own keys
     pub polypizza_key: String,
     pub smithsonian_key: String,
+    /// Web search for a plan's facts: the whole web with either key, else
+    /// Wikipedia alone (engine/shotloop/web.mjs)
+    pub tavily_key: String,
+    pub brave_key: String,
     /// Shots the AI builds at the same time, 1–5; 0 picks by the machine
     pub parallel: u32,
     /// How hard the AI thinks building each shot: "low", "medium" or
@@ -214,6 +218,8 @@ impl Settings {
             ("SHOTLOOP_LOCAL_MODEL", &self.local_model),
             ("SHOTLOOP_LOCAL_KEY", &self.local_key),
             ("SHOTLOOP_LOCAL_THINK", &self.local_think),
+            ("SHOTLOOP_TAVILY_KEY", &self.tavily_key),
+            ("SHOTLOOP_BRAVE_KEY", &self.brave_key),
         ] {
             if !v.is_empty() {
                 env.push((k.into(), v.clone()));

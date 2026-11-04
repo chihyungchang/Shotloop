@@ -1,7 +1,8 @@
 // The agent's tools, deliberately narrow (docs/PRD.md §9): read and write
 // files inside the project, render stills through the engine, read the
-// checklist, report checks, keep a lesson in the AI's memory. No shell, no
-// network, nothing else outside the project folder.
+// checklist, report checks, keep a lesson in the AI's memory, search the
+// web and read a page (for a plan's facts). No shell, nothing written
+// outside the project folder.
 
 import type Anthropic from '@anthropic-ai/sdk'
 import fs from 'node:fs'
@@ -10,7 +11,7 @@ import type { VoiceResult } from '../../engine/shotloop/protocol.d.ts'
 import { engine, renderCover, renderStills } from './engine.ts'
 import { emit, reason, warn } from './events.ts'
 import { isKit, notesOf } from './notes.ts'
-import { AMBIENCE_NAMES, findText, memory, pictureText, STYLES, styleById, styleStills } from './enginelib.ts'
+import { AMBIENCE_NAMES, findText, memory, pictureText, STYLES, styleById, styleStills, web } from './enginelib.ts'
 
 type Tool = Anthropic.Beta.BetaTool
 
@@ -46,6 +47,9 @@ export interface ToolContext {
   checks: { shot: string; results: CheckResult[]; summary: string }[]
   // The ways to make a change the AI offers, for the person to pick from
   options: ShotOption[]
+  // The web pages read (read_page), as web.sameAddress has them: a fact's
+  // source must be one of them
+  pages: Set<string>
   // A shot written only as a test sheet (the recurring pictures' proof):
   // not the shot, so its writes aren't told as the shot's progress
   sheet?: string
@@ -57,7 +61,7 @@ export interface ToolContext {
 export interface ShotOption { title: string; plan: string }
 
 export function newContext(root: string, checklist: string, writable: string[]): ToolContext {
-  return { root, checklist, writable, touched: new Set(), renders: new Map(), checks: [], options: [] }
+  return { root, checklist, writable, touched: new Set(), renders: new Map(), checks: [], options: [], pages: new Set() }
 }
 
 // Case-insensitive: macOS file systems are, so .Shotloop is .shotloop
@@ -202,6 +206,24 @@ export const TOOLS: Tool[] = [
       frame_shot: { type: 'string', description: 'Shot id the frame comes from, e.g. "03-speed"; "" for none.' },
       frame_time: { type: 'number', description: 'Seconds into that shot (0 for none).' }
     }, ['frame_shot', 'frame_time'])
+  },
+  {
+    name: 'search_web',
+    description: 'Search for pages about a fact: Wikipedia always, the whole web too when the person has a search key. Returns each result\'s title, address and a snippet; read a page with read_page before you use anything from it.',
+    strict: true,
+    input_schema: object({
+      query: { type: 'string', description: 'What to look for, as a search would be typed.' },
+      lang: { type: 'string', description: 'Wikipedia\'s language code, e.g. "en" or "zh"; "en" unless the topic is best covered in another language.' }
+    }, ['query', 'lang'])
+  },
+  {
+    name: 'read_page',
+    description: 'Read a web page as text: its title, the address it was read at and its words. A fact\'s source must be the address of a page read here. find: words to show only the passages around them (a long page); "" for the page from the top.',
+    strict: true,
+    input_schema: object({
+      url: { type: 'string', description: 'The page\'s address (http or https).' },
+      find: { type: 'string', description: 'Words to look for on the page, or "".' }
+    }, ['url', 'find'])
   },
   {
     name: 'read_checklist',
@@ -444,6 +466,22 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
       emit({ type: 'tool', name, summary: ctx.options.map(o => o.title).join(' · ') })
       return 'offered'
     }
+    case 'search_web': {
+      const query = str('query')
+      emit({ type: 'tool', name, summary: query })
+      const found = await web.searchWeb(query, { lang: str('lang') || 'en', tavilyKey: process.env.SHOTLOOP_TAVILY_KEY, braveKey: process.env.SHOTLOOP_BRAVE_KEY })
+      if (!found.length) return `Nothing found for "${query}"; try other words.`
+      return found.map((r, i) => `${i + 1}. ${r.title}\n   ${r.url}\n   ${r.snippet}`).join('\n')
+    }
+    case 'read_page': {
+      const url = str('url')
+      emit({ type: 'tool', name, summary: url })
+      const page = await web.readPage(url, str('find'))
+      // Both the address asked for and the one landed on (a redirect) name it
+      ctx.pages.add(web.sameAddress(url))
+      ctx.pages.add(web.sameAddress(page.url))
+      return `${page.title}\n${page.url}\n\n${page.text}`
+    }
     case 'remember': {
       if (!ctx.learn) throw new Error('lessons are kept only from a change the person asks for, not here')
       const title = JSON.parse(fs.readFileSync(path.join(ctx.root, 'shotloop.json'), 'utf8')).title
@@ -499,10 +537,11 @@ interface Session {
   renders: [string, string[]][]
   checks: ToolContext['checks']
   options: ShotOption[]
+  pages: string[]
 }
 
 export function saveSession(ctx: ToolContext, file: string) {
-  const s: Session = { touched: [...ctx.touched], renders: [...ctx.renders], checks: ctx.checks, options: ctx.options }
+  const s: Session = { touched: [...ctx.touched], renders: [...ctx.renders], checks: ctx.checks, options: ctx.options, pages: [...ctx.pages] }
   writeAtomic(file, JSON.stringify(s))
 }
 
@@ -521,4 +560,5 @@ export function loadSession(ctx: ToolContext, file: string) {
   for (const [shot, stills] of s.renders) ctx.renders.set(shot, stills)
   for (const c of s.checks) recordCheck(ctx, c)
   if (s.options?.length) ctx.options = s.options
+  for (const p of s.pages ?? []) ctx.pages.add(p)
 }

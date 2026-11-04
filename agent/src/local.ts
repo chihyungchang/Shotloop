@@ -32,8 +32,10 @@ const base = (url: string) => url.replace(/\/+$/, '')
 const auth = (apiKey?: string): Record<string, string> => (apiKey ? { authorization: `Bearer ${apiKey}` } : {})
 
 // One answer may take long on a local machine (a big model, a long
-// prompt, stills to look at); one silent for longer than this has hung
-const REQUEST_TIMEOUT_MIN = 15
+// prompt, stills to look at); one silent for longer than this has hung.
+// A streamed reply is silent only while the server reads the prompt,
+// which on a slow machine with a long context can take many minutes
+const REQUEST_TIMEOUT_MIN = 30
 
 interface Usage { prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: { cached_tokens?: number } }
 interface Reply { content: string | null; tool_calls?: ToolCall[]; usage?: Usage }

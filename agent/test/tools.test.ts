@@ -89,3 +89,33 @@ test('report_checks: a shot reviewed twice keeps its latest review, through the 
     fs.rmSync(root, { recursive: true, force: true })
   }
 })
+
+test('read_page records the page read; a fact sourced to it passes, one from memory or unread does not', async () => {
+  const http = await import('node:http')
+  const { lintSources } = await import('../src/principles.ts')
+  const words = 'Thrust vectoring turns the engine\'s push to steer the craft. '.repeat(10)
+  const server = http.createServer((req, res) => {
+    res.setHeader('content-type', 'text/html; charset=utf-8')
+    res.end(`<html><head><title>Thrust</title><script>x()</script></head><body><nav>menu</nav><article><h1>Thrust</h1><p>${words}</p></article></body></html>`)
+  })
+  await new Promise<void>(r => server.listen(0, '127.0.0.1', r))
+  const url = `http://127.0.0.1:${(server.address() as { port: number }).port}/wiki/Thrust`
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-page-'))
+  try {
+    const ctx = newContext(root, '', [])
+    const out = await runTool(ctx, 'read_page', { url, find: '' })
+    assert.equal(out.isError, false)
+    assert.match(out.text[0], /^Thrust\n/)
+    assert.match(out.text[0], /turns the engine's push/)
+    assert.doesNotMatch(out.text[0], /menu|x\(\)/)
+    const unsourced = lintSources([
+      { text: 'Read', source: `Wikipedia, ${url}/.` },
+      { text: 'Remembered', source: 'Jetson official specifications' },
+      { text: 'Unread', source: 'https://example.com/specs' }
+    ], ctx.pages)
+    assert.deepEqual(unsourced.map(f => f.text), ['Remembered', 'Unread'])
+  } finally {
+    server.close()
+    fs.rmSync(root, { recursive: true, force: true })
+  }
+})

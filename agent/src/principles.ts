@@ -5,7 +5,7 @@
 // before anything is built (lintPlan). Within them, the AI makes each
 // frame as rich to watch as it can.
 
-import { AMBIENCE_NAMES, EFFECT_NAMES, readTime, rules, SUBTITLE_BAND, VOICE_HOLD, VOICE_LEAD, VOICE_TAIL, type Rule, type Tool } from './enginelib.ts'
+import { AMBIENCE_NAMES, EFFECT_NAMES, readTime, rules, SUBTITLE_BAND, VOICE_HOLD, VOICE_LEAD, VOICE_TAIL, web, type Rule, type Tool } from './enginelib.ts'
 
 type Track = '2d' | '3d'
 const RULES = rules.list()
@@ -224,4 +224,17 @@ export function lintPlan(shots: { title?: string; duration: number; text?: strin
     }
   })
   return issues
+}
+
+// The plan's facts whose source names no page read for it (read_page),
+// the "sources-read" rule (locked), each with why: pages, the addresses read
+export function lintSources(facts: { text?: string; source?: string }[], pages: Set<string>) {
+  return facts.flatMap(f => {
+    const text = (f.text ?? '').trim()
+    if (!text) return []
+    const urls = (f.source ?? '').match(/https?:\/\/[^\s<>"')\]]+/g)?.map(u => u.replace(/[.,;:!?。，；]+$/, '')) ?? []
+    if (!urls.length) return [{ text, why: `its source "${f.source ?? ''}" names no page address` }]
+    const unread = urls.filter(u => !pages.has(web.sameAddress(u)))
+    return unread.length === urls.length ? [{ text, why: `${unread.join(', ')} was not read with read_page` }] : []
+  })
 }

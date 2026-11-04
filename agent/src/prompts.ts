@@ -148,7 +148,7 @@ ${voice ? `
     "idea": "<the idea in one or two sentences>",
     "hook": "<the opening line: a question or a surprising fact, under 20 words>",
     "body": "<the script: what the video says, beat by beat, in a few short paragraphs>",
-    "facts": [{ "text": "<one claim the video makes>", "source": "<where it comes from: publication or site, with a URL when you know it>" }]
+    "facts": [{ "text": "<one claim the video makes>", "source": "<the publication or site, then the address of the page you read it on>" }]
   },
   "shots": [
     { "title": "<a short label for the shot, a few words, in the language of the idea>", "duration": <seconds>,
@@ -173,7 +173,7 @@ How to plan:
 - Length "auto": as the rules have it, and never under 15 or over 60 s.
 - Write the on-screen text, and the copy${voice ? ' and the spoken lines' : ''}, in the language of the idea.
 - 2D: plan by the 2D rules. Design each shot from what the viewer sees: its "show" is a picture in motion, built from the toolbox where one fits (name the device); its "text" is the on-screen caption, as the person's taste rules have it; its "source" is the source line. ${voice ? 'Write each shot\'s "say" first (the voice-over rules), then the picture that shows it, and give the shot the time its line takes to speak' : 'Give each shot the time its captions need to be read (the reading time in the rules, plus about 0.5 s to enter)'}; when a beat needs more words, split it into two shots rather than crowd one. The plan is measured against these limits after you write it.
-- Every number and claim in the video is in copy.facts with a source you are confident of. Prefer English-language sources; use a source in the language of the idea only when no good English one exists, and name it as it is published. Never invent statistics; when unsure, say it qualitatively and leave the number out.
+- Every number and claim in the video is in copy.facts. Find each with search_web and read it with read_page before you write it (a product promo: from its briefs); its source is that page. Prefer English-language sources; use a source in the language of the idea only when no good English one exists, and name it as it is published. Never invent statistics; when unsure, say it qualitatively and leave the number out.
 - 2D: pick the look that fits the idea's tone from the list in the request (or keep the one the person chose). Every shot is drawn in it, so plan visuals it can carry: typography, charts, diagrams, simple icons.
 - Recurring pictures: when the same picture (a diagram, an object, a chart, a character) appears in more than one shot, list it once in "recurring" with a fixed design, and describe it the same way in every shot's "show", as the rules keep it recognisable. Leave "recurring" empty when nothing recurs.
 - If storyboard.json already exists and the person asks for changes, revise it rather than starting over.
@@ -306,17 +306,32 @@ export function replyLanguage(lang?: string) {
   return `\n\nWrite everything meant for the person (your replies, check notes and summaries) in ${name}. Code, comments and the project's files keep their own language.`
 }
 
-// A plan that breaks the measurable rules, sent back once. A voiced film's
-// length follows its lines (fitted when it's built), so only an unvoiced
-// one keeps its total; target: the plan's length (null when unknown)
-export function revisePlanPrompt(issues: string[], voiced: boolean, target: number | null, storyboard: string) {
+// A plan that breaks the measurable rules, sent back once: its timing and
+// text (issues) and its facts whose source wasn't read (unsourced). A
+// voiced film's length follows its lines (fitted when it's built), so
+// only an unvoiced one keeps its total; target: the plan's length (null
+// when unknown)
+export function revisePlanPrompt(issues: string[], unsourced: string[], voiced: boolean, target: number | null, storyboard: string) {
   const how = voiced
     ? 'shorten a spoken line, cut the on-screen text to the number or a short label, split a crowded beat into two shots, or give a shot the time its line needs'
     : `sum captions up shorter, move words into the picture, split a crowded beat into two shots, or give a shot more time${target ? ` while the total stays ${target} s` : ''}`
-  return `storyboard.json breaks the ${voiced ? 'voice-over rules' : '2D rules'} where they can be measured:
+  const timing = issues.length
+    ? `storyboard.json breaks the ${voiced ? 'voice-over rules' : '2D rules'} where they can be measured:
 ${issues.map(i => `- ${i}`).join('\n')}
 
-Fix it: ${how}. Keep everything else.
+Fix it: ${how}.
+
+`
+    : ''
+  const facts = unsourced.length
+    ? `These facts have no source that was read (the rule "sources-read"):
+${unsourced.map(i => `- ${i}`).join('\n')}
+
+Find each with search_web and read the page with read_page, then give the fact that page's address as its source, and correct the fact (and what the shots say of it) to what the page says. Drop a fact no page backs, and what the shots say of it.
+
+`
+    : ''
+  return `${timing}${facts}Keep everything else.
 
 storyboard.json:
 ${storyboard}`

@@ -101,6 +101,11 @@ const FIXED = [
     check: 'When the shot states a fact, its source line is there, under the picture, in the source\'s own name and language.'
   },
   {
+    id: 'sources-read', track: 'all', locked: true, name: 'Sources read, not remembered',
+    rule: 'Every fact and number the film states comes from a page read while planning it (a product promo: from its page or repository), and its source names that page\'s address. A source from memory, a made-up title or a page never opened is not a source: find the fact on a real page, or leave it out.',
+    check: 'Every fact\'s source names a page that was read for the plan; nothing on screen states a fact that has none.'
+  },
+  {
     id: 'code', track: '2d', locked: true, name: 'Renders frame by frame',
     rule: 'The shot\'s code follows the 2D code rules, so every frame draws the same whenever and in whatever order it is rendered.',
     check: 'From the shot\'s code: the 2D code rules.'

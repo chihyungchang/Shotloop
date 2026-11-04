@@ -10,6 +10,7 @@
 //   SHOTLOOP_CHECKLIST  checklist file
 //   SHOTLOOP_SESSION    session file to write after every call
 //   SHOTLOOP_MEMORY     the AI's memory (optional; engine/shotloop/project/memory.mjs)
+//   SHOTLOOP_TAVILY_KEY, SHOTLOOP_BRAVE_KEY  the person's web search key (optional)
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'

@@ -36,7 +36,7 @@ import { emit, exit, reason, setJson, warn } from './events.ts'
 import { openLedger } from './ledger.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
 import { buildLayoutSystem, buildPartsSystem, buildShotSystem, buildWorldSystem, checkSystem, coverSystem, fixSystem, memoryPrompt, planSystem, proposeSystem, postLanguage, publishSystem, REFERENCE_RULES, replyLanguage, revisePlanPrompt, SOUND_PARTS, soundSystem, TEMPLATE_RULES, type SoundPart } from './prompts.ts'
-import { lintPlan, lintVoice } from './principles.ts'
+import { lintPlan, lintSources, lintVoice } from './principles.ts'
 import { newContext, SET_AMBIENCE, SET_LINES, writeAtomic, type ToolContext } from './tools.ts'
 
 const OPTIONS = {
@@ -217,7 +217,7 @@ ${trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 
   const load = () => {
     const sb = JSON.parse(fs.readFileSync(file, 'utf8'))
     if (!Array.isArray(sb.shots) || !sb.shots.length) throw new Error('the plan has no shots; try again')
-    return sb as { target?: number; shots: { title?: string; duration: number; text?: string; say?: string }[] }
+    return sb as { target?: number; copy?: { facts?: { text?: string; source?: string }[] }; shots: { title?: string; duration: number; text?: string; say?: string }[] }
   }
   let sb = load()
   const aiLook = keepChosenLook(project, existing)
@@ -233,22 +233,29 @@ ${trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 
   // fit their column (kits/promo-layout.js)
   const framed = () => (project.promo ? planIssues(pageOf(pageLayout(project.size)), sb.shots) : [])
   const lint = () => [...(speaks ? lintVoice(sb.shots) : project.track === '2d' ? lintPlan(sb.shots, bar) : []), ...framed()]
+  // Every fact from a page read in this plan (a promo's come from its
+  // briefs, read before it)
+  const unread = () => (project.promo ? [] : lintSources(sb.copy?.facts ?? [], ctx.pages))
   let issues = lint()
+  let unsourced = unread()
   let final = summary
-  if (issues.length) {
-    emit({ type: 'log', message: `plan breaks ${issues.length} measured rule(s); revising` })
+  if (issues.length || unsourced.length) {
+    emit({ type: 'log', message: `plan breaks ${issues.length + unsourced.length} measured rule(s); revising` })
     final = await runAgent('copy', {
       step: { kind: 'revise' },
       effort: 'medium',
       system,
-      prompt: revisePlanPrompt(issues, speaks, Number(sb.target) || (project.lengthAuto ? null : project.duration), fs.readFileSync(file, 'utf8')),
+      prompt: revisePlanPrompt(issues, unsourced.map(f => `"${f.text}": ${f.why}`), speaks, Number(sb.target) || (project.lengthAuto ? null : project.duration), fs.readFileSync(file, 'utf8')),
       ctx
     })
     keepChosenLook(project, existing, aiLook)
     sb = load()
     issues = lint()
+    unsourced = unread()
   }
-  return { task: 'plan', summary: final, shots: sb.shots.length, warnings: issues }
+  // What still breaks a rule after the revise: the facts the page marks
+  // for the person to check
+  return { task: 'plan', summary: final, shots: sb.shots.length, warnings: issues, unsourced: unsourced.map(f => f.text) }
 }
 
 // A promo's repository, then its product page (the repository's home page

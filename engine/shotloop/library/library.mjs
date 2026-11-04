@@ -20,34 +20,18 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { AUDIO_EXTS, POLY_CATEGORIES } from '../data.mjs'
+import { request } from '../../lib/fetch.mjs'
 import { safeId } from '../project/files.mjs'
 
 const LIBRARY = process.env.SHOTLOOP_LIBRARY ?? path.join(os.homedir(), '.shotloop', 'library')
 const SOURCES = ['polypizza', 'smithsonian', 'openverse']
 
-const UA = { 'user-agent': 'Shotloop (https://github.com/chihyungchang/Shotloop)' }
 const assetId = s => safeId(s, 'an asset id')
 
-// A request to a source, its failures as errors the person can act on:
-// no network, a refused API key, too many requests
-async function request(url, headers, timeout) {
-  const host = new URL(url).host
-  const res = await fetch(url, { headers: { ...UA, ...headers }, signal: AbortSignal.timeout(timeout) }).catch(e => {
-    // A source that is up but slow to answer is not the person's network
-    if (e.name === 'TimeoutError') throw new Error(`${host} took too long to answer; try again in a moment`)
-    throw new Error(`could not reach ${host} (${e.cause?.code ?? e.name}): check the network`)
-  })
-  if (res.status === 401 || res.status === 403) throw new Error(`${host}: the API key was refused (${res.status}); check it in Settings`)
-  if (res.status === 429) throw new Error(`${host}: too many requests; try again in a moment`)
-  if (res.status >= 500) throw new Error(`${host} is having trouble (${res.status}); try again in a moment`)
-  if (!res.ok) throw new Error(`${host}: ${res.status} ${(await res.text()).slice(0, 200)}`)
-  return res
-}
-
-const getJson = async (url, headers = {}) => (await request(url, headers, 20000)).json()
+const getJson = async (url, headers = {}) => (await request(url, { headers })).json()
 
 async function fetchTo(url, file, headers = {}) {
-  const res = await request(url, headers, 180000)
+  const res = await request(url, { headers, timeout: 180000 })
   fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()))
 }
 

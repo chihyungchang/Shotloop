@@ -4,9 +4,12 @@ import { Icon } from '../Icon'
 import { AutoText } from './ShotSketch'
 
 // The copy half of the plan: the idea, hook, body and facts with their
-// sources, edited in place, and the box to ask the AI for a revision
-export function CopyEditor({ sb, edit, request, setRequest, revise, again, planning }: {
+// sources, edited in place, and the box to ask the AI for a revision.
+// unsourced: facts the AI found no page for (the "sources-read" rule),
+// marked until the person edits them
+export function CopyEditor({ sb, unsourced, edit, request, setRequest, revise, again, planning }: {
   sb: Storyboard
+  unsourced: string[]
   edit: (next: Storyboard) => void
   request: string
   setRequest: (r: string) => void
@@ -36,7 +39,7 @@ export function CopyEditor({ sb, edit, request, setRequest, revise, again, plann
         <span>{t('plan.facts')}</span>
         <ol className="facts">
           {sb.copy.facts.map((f, i) => (
-            <li key={i} className="fact">
+            <li key={i} className={`fact${unsourced.includes(f.text.trim()) ? ' unsourced' : ''}`}>
               <span className="fact-no">{i + 1}</span>
               <div className="fact-body">
                 <AutoText value={f.text} placeholder={t('plan.factText')} aria-label={t('plan.factText')} onChange={v => fact(i, { text: v })} />
@@ -44,6 +47,7 @@ export function CopyEditor({ sb, edit, request, setRequest, revise, again, plann
                   <Icon name="link" size={12} />
                   <AutoText value={f.source} placeholder={t('plan.factSource')} aria-label={t('plan.factSource')} onChange={v => fact(i, { source: v })} />
                 </label>
+                {unsourced.includes(f.text.trim()) && <small className="fact-warn"><Icon name="info" size={12} /> {t('plan.unsourced')}</small>}
               </div>
               <button className="icon-button" aria-label={t('plan.remove')} title={t('plan.remove')} onClick={() => copy({ facts: sb.copy.facts.filter((_, k) => k !== i) })}><Icon name="x" size={13} /></button>
             </li>

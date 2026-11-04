@@ -137,7 +137,6 @@ function General({ settings, savePref, theme, language }: {
         </div>
       </section>
       <Parallel settings={settings} savePref={savePref} />
-      <ShotEffort settings={settings} savePref={savePref} />
       <section className="settings-block">
         <h3>{t('settings.alerts')}</h3>
         <p className="hint">{t('settings.alertsNote')}</p>
@@ -194,30 +193,6 @@ function Parallel({ settings, savePref }: { settings: Settings; savePref: SavePr
         </div>
       </div>
       {m && <p className="hint">{t('settings.parallelMachine', { cores: m.cores, memory: m.memoryGb, n: m.autoParallel })}</p>}
-    </section>
-  )
-}
-
-// How hard the AI thinks building each shot: low (the default, quick)
-// to high (slower and costlier, for a little more)
-const EFFORTS = ['low', 'medium', 'high'] as const
-function ShotEffort({ settings, savePref }: { settings: Settings; savePref: SavePref }) {
-  const value = settings.shotEffort || 'low'
-  return (
-    <section className="settings-block">
-      <h3>{t('settings.effort')}</h3>
-      <p className="hint">{t('settings.effortNote')}</p>
-      <div className="pref-row">
-        <span>{t('settings.effortLabel')}</span>
-        <div className="seg" role="radiogroup" aria-label={t('settings.effortLabel')}>
-          {EFFORTS.map(e => (
-            <button key={e} role="radio" aria-checked={value === e} className={value === e ? 'on' : ''}
-              title={t(`settings.effort.${e}Hint` as Key)} onClick={() => value !== e && savePref({ shotEffort: e === 'low' ? '' : e })}>
-              {t(`settings.effort.${e}` as Key)}
-            </button>
-          ))}
-        </div>
-      </div>
     </section>
   )
 }
@@ -331,9 +306,11 @@ function VoiceModels({ jobs }: { jobs: Job[] }) {
 // The asset library's sources and the person's keys for them
 function AssetSources({ settings, update }: { settings: Settings; update: (s: Patch) => void }) {
   const { error, guard } = useErrorLine()
-  const rows: { key: 'polypizzaKey' | 'smithsonianKey'; name: string; note: Key; url: string; hint: string }[] = [
+  const rows: { key: 'polypizzaKey' | 'smithsonianKey' | 'tavilyKey' | 'braveKey'; name: string; note: Key; url: string; hint: string }[] = [
     { key: 'polypizzaKey', name: 'Poly Pizza', note: 'assets.polypizzaNote', url: KEY_PAGES.polypizza, hint: '' },
-    { key: 'smithsonianKey', name: 'Smithsonian Open Access', note: 'assets.smithsonianNote', url: KEY_PAGES.smithsonian, hint: 'DEMO_KEY' }
+    { key: 'smithsonianKey', name: 'Smithsonian Open Access', note: 'assets.smithsonianNote', url: KEY_PAGES.smithsonian, hint: 'DEMO_KEY' },
+    { key: 'tavilyKey', name: 'Tavily', note: 'assets.tavilyNote', url: KEY_PAGES.tavily, hint: 'tvly-…' },
+    { key: 'braveKey', name: 'Brave Search', note: 'assets.braveNote', url: KEY_PAGES.brave, hint: '' }
   ]
   return (
     <section className="settings-block">

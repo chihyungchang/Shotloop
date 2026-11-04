@@ -180,6 +180,10 @@ export interface Settings {
   // Asset library sources: the person's own keys
   polypizzaKey: string
   smithsonianKey: string
+  // Web search for a plan's facts: the whole web with either key, else
+  // Wikipedia alone (engine/shotloop/web.mjs)
+  tavilyKey: string
+  braveKey: string
   // Shots the AI builds at once, 1–5; 0 picks by the machine
   parallel: number
   // How hard the AI thinks building each shot; '' for the default (low)
@@ -217,10 +221,12 @@ export interface LibraryItem {
 
 export type AssetKind = 'model' | 'sound'
 
-// Where the person gets a key for the asset sources that need one
-export const KEY_PAGES: Record<'polypizza' | 'smithsonian', string> = {
+// Where the person gets a key for the sources that need one
+export const KEY_PAGES: Record<'polypizza' | 'smithsonian' | 'tavily' | 'brave', string> = {
   polypizza: 'https://poly.pizza/settings/api',
-  smithsonian: 'https://api.data.gov/signup/'
+  smithsonian: 'https://api.data.gov/signup/',
+  tavily: 'https://app.tavily.com/',
+  brave: 'https://api-dashboard.search.brave.com/'
 }
 
 export interface Asset {

@@ -121,7 +121,10 @@ export async function runCli(cli: CliId, { model, system, prompt, ctx, effort, m
       SHOTLOOP_SESSION: session,
       ...(process.env.SHOTLOOP_ENGINE ? { SHOTLOOP_ENGINE: process.env.SHOTLOOP_ENGINE } : {}),
       // remember writes the app's memory, not the default one in ~/.shotloop
-      ...(process.env.SHOTLOOP_MEMORY ? { SHOTLOOP_MEMORY: process.env.SHOTLOOP_MEMORY } : {})
+      ...(process.env.SHOTLOOP_MEMORY ? { SHOTLOOP_MEMORY: process.env.SHOTLOOP_MEMORY } : {}),
+      // search_web reaches the whole web with the person's search key
+      ...(process.env.SHOTLOOP_TAVILY_KEY ? { SHOTLOOP_TAVILY_KEY: process.env.SHOTLOOP_TAVILY_KEY } : {}),
+      ...(process.env.SHOTLOOP_BRAVE_KEY ? { SHOTLOOP_BRAVE_KEY: process.env.SHOTLOOP_BRAVE_KEY } : {})
     }
   }
   let last = ''

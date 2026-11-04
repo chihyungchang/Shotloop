@@ -83,6 +83,13 @@ export const { findText, pictureText } = await load<{
   findText: (root: string, file: string, words: string) => Promise<TextLine[]>
   pictureText: (root: string, file: string) => Promise<TextLine[]>
 }>('promo/text.mjs')
+// The web, for a plan's facts (web.mjs)
+export interface SearchResult { title: string; url: string; snippet: string }
+export const web = await load<{
+  searchWeb: (query: string, opts: { lang?: string; tavilyKey?: string; braveKey?: string }) => Promise<SearchResult[]>
+  readPage: (url: string, find?: string) => Promise<{ title: string; url: string; text: string }>
+  sameAddress: (url: string) => string
+}>('web.mjs')
 export const { emit: emitLine, exit, parseFlags } = await load<{
   emit: (event: object) => void
   exit: (code: number) => void
