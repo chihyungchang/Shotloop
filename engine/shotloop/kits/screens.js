@@ -6,6 +6,10 @@
 // (Settings → Rules, kind promo); use these pieces rather than drawing
 // your own, so the rules hold by construction.
 //
+// Take a piece's HTML as it comes: never rewrite it (a string replaced in
+// it breaks when the kit changes). A piece that doesn't fit says so in
+// its options; ask for the size you need there.
+//
 // What there is, by job (each documented where it is defined):
 //   material   load(...files) in setup; url(file)
 //   layout     frame(): this beat's boxes as the plan set them (words,
@@ -115,7 +119,34 @@ export const load = (...files) => Promise.all([framesRead(), ...files.map(async 
   const img = new Image()
   img.src = url(f)
   await img.decode().catch(() => { throw new Error(`world/screens.js: can't load ${f}`) })
+  pictures.set(f, img)
 })])
+
+// Pictures as load() decoded them, for what is measured from their pixels
+const pictures = new Map()
+// Where a picture's ink is (its pixels that aren't clear), as fractions
+// of it: an app's icon sits inside a clear margin of its own, which a
+// lockup must not count as logo
+const inks = new Map()
+function inkOf(file) {
+  if (inks.has(file)) return inks.get(file)
+  const img = pictures.get(file)
+  let ink = { x: 0, y: 0, w: 1, h: 1 }
+  if (img) {
+    const w = Math.min(img.naturalWidth, 512), h = Math.round(w * img.naturalHeight / img.naturalWidth)
+    const c = Object.assign(document.createElement('canvas'), { width: w, height: h })
+    const g = c.getContext('2d')
+    g.drawImage(img, 0, 0, w, h)
+    const a = g.getImageData(0, 0, w, h).data
+    let l = w, t = h, r = -1, b = -1
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      if (a[(y * w + x) * 4 + 3] > 24) { l = Math.min(l, x); r = Math.max(r, x); t = Math.min(t, y); b = Math.max(b, y) }
+    }
+    if (r >= l) ink = { x: l / w, y: t / h, w: (r - l + 1) / w, h: (b - t + 1) / h }
+  }
+  inks.set(file, ink)
+  return ink
+}
 
 // ---- Springs: every move settles like a damped spring ----
 
@@ -796,16 +827,47 @@ export function wipe(t, { duration, color, half = 0.18, enter = true, leave = tr
 // lockup left a little over the beat, so the card never sits still
 function card(t, { name, line, logo, at, color }) {
   const u = unit()
-  const b = cardBoxes(page(), { logo: !!logo })
+  const b = cardBoxes(page(), { logo: !!logo, name })
   const q = rise(t, at, 0.5)
   const slide = (t - at) * 6 * u
-  // The logo sits on the name's baseline, 1cap tall: exactly as tall as
-  // its capitals, whatever the face
-  return `<div style="position:absolute;left:${n(b.logo?.x ?? b.name.x)}px;top:${n(b.name.y - b.big * 0.2)}px;font:900 ${n(b.big)}px/1 ${HEAD()};letter-spacing:-0.05em;white-space:nowrap;` +
+  const font = `900 ${n(b.big)}px ${HEAD()}`
+  // The logo on the name's baseline (a flex row's baseline is an image's
+  // foot), as tall as its capitals measured in the face itself: a web
+  // font's own cap height can't be trusted to be in its file
+  return `<div data-kit="card" style="position:absolute;left:${n(b.logo?.x ?? b.name.x)}px;top:${n(b.name.y - b.big * 0.2)}px;display:flex;align-items:baseline;gap:${n(b.big * 0.22)}px;font:${font};line-height:1;letter-spacing:-0.05em;white-space:nowrap;` +
     `transform:translate(${n(-slide)}px,${n((1 - q) * 40 * u)}px);opacity:${n(q)};color:${color}">` +
-    (logo ? `<img src="${url(logo)}" style="display:inline-block;height:1cap;width:1cap;vertical-align:baseline;margin-right:.22em;object-fit:contain">` : '') +
-    `${esc(name)}</div>` +
+    (logo ? logoMark(logo, capHeight(font)) : '') +
+    `<span>${esc(name)}</span></div>` +
     (line ? `<div style="position:absolute;left:${n(b.line.x)}px;top:${n(b.line.y - b.line.size)}px;font:800 ${n(b.line.size)}px/1.1 ${HEAD()};letter-spacing:-0.02em;color:${color};opacity:${n(rise(t, at + 0.3))}">${esc(line)}</div>` : '')
+}
+
+// A logo whose ink (not its clear margin) is h tall: the picture scaled
+// and cropped to it, its foot the box's, so a flex row's baseline is the
+// ink's foot. Load the logo first (load()), so its pixels can be read
+function logoMark(file, h) {
+  const ink = inkOf(file)
+  const img = pictures.get(file)
+  const ratio = img ? img.naturalWidth / img.naturalHeight : 1
+  const w = h * (ink.w / ink.h) * ratio
+  const bw = w / ink.w, bh = h / ink.h
+  return `<div style="flex:none;width:${n(w)}px;height:${n(h)}px;background:url(${url(file)}) ${n(-ink.x * bw)}px ${n(-ink.y * bh)}px/${n(bw)}px ${n(bh)}px no-repeat"></div>`
+}
+
+// How tall a face's capitals are set, in px: measured from an H drawn in
+// it, the family resolved as the page resolves it
+const caps = new Map()
+function capHeight(font) {
+  if (!caps.has(font)) {
+    const probe = document.createElement('span')
+    probe.style.font = font
+    document.body.appendChild(probe)
+    const cs = getComputedStyle(probe)
+    const g = document.createElement('canvas').getContext('2d')
+    g.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+    probe.remove()
+    caps.set(font, g.measureText('H').actualBoundingBoxAscent)
+  }
+  return caps.get(font)
 }
 
 // The film's title, the first thing seen (rule: promo-open-close): the

@@ -6,7 +6,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { after, test } from 'node:test'
 import { pageLayout } from '../data.mjs'
-import { filmFrames, pageOf, planBeats, planIssues, SCREEN, wireframe } from '../kits/promo-layout.js'
+import { cardBoxes, filmFrames, pageOf, planBeats, planIssues, SCREEN, wireframe } from '../kits/promo-layout.js'
 import { newProject } from '../project/create.mjs'
 import { loadProject, SIZES } from '../project/project.mjs'
 import { applyStoryboard } from '../project/storyboard.mjs'
@@ -103,4 +103,42 @@ test('frames: what the plan must change for its frames, said for the planner', (
   assert.match(planIssues(page, long).join('\n'), /shot 3 \(Plan\): a headline line of 44 letters is longer than its column holds/)
   const frames = filmFrames(page, planBeats(long))
   assert.ok(frames.beats[2].words.size >= filmFrames(page, planBeats(PLAN)).beats[2].words.size * 0.8 - 1e-9)
+})
+
+test('frames: a card\'s name is set as large as fits between the margins', () => {
+  const page = pageOf(pageLayout(SIZES.landscape))
+  const short = cardBoxes(page, { name: 'Tsuba' })
+  const long = cardBoxes(page, { name: 'SHOTLOOP STUDIO PRO' })
+  assert.ok(long.big < short.big)
+  assert.ok(long.name.x + 'SHOTLOOP STUDIO PRO'.length * 0.72 * long.big <= page.W - page.PAD + 1)
+})
+
+test('frames: a title not drawn with the kit\'s card, and a drawing too small for its box, are measured', async () => {
+  const dir = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-frames-')), 'p')
+  made.push(path.dirname(dir))
+  newProject(dir, { idea: 'x', promo: true, duration: 22 })
+  fs.writeFileSync(path.join(dir, 'storyboard.json'), JSON.stringify({ shots: PLAN }))
+  applyStoryboard(loadProject(dir))
+  const project = loadProject(dir)
+  writeFrames(project)
+  const [title, problem] = project.shots
+  fs.writeFileSync(title.code, `import { load, depth } from '../../world/screens.js'
+export const setup = () => load()
+export default function render(t, { window }) {
+  depth('<div style="position:absolute;left:60px;top:300px;font:900 120px sans-serif">Shotloop</div>')
+  window.kit.stage('')
+}
+`)
+  fs.writeFileSync(problem.code, `import { load, depth, frame, headline } from '../../world/screens.js'
+export const setup = () => load()
+export default function render(t, { window }) {
+  const f = frame(), p = f.picture
+  // A thin strip of tiles across the box
+  depth(headline(t, { lines: ['One shot off.'], x: f.words.x, y: f.words.y, width: f.words.width, size: f.words.size }),
+    '<div style="position:absolute;left:' + p.x + 'px;top:' + (p.y + p.h / 2) + 'px;width:' + p.w + 'px;height:30px;background:#c33"></div>')
+  window.kit.stage('')
+}
+`)
+  assert.match((await measureLayout(project, title)).map(f => f.what).join('\n'), /not drawn with the kit's titleCard\(\)/)
+  assert.match((await measureLayout(project, problem)).map(f => f.what).join('\n'), /the drawing takes 100% of its box's width and \d+% of its height/)
 })

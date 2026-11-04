@@ -96,14 +96,17 @@ export const stepsHeight = (page, n) => {
 }
 
 // A card's lockup (the title, the end card): the logo as tall as the
-// name's capitals just before it (taste: promo-lockup), centred on them
+// name's capitals just before it (taste: promo-lockup), on their baseline
 // (rule: promo-aligned), the line under, the meta row over a rule at the
-// foot. The name's width is known only once it is set, so x and the
-// logo's place are its left edge; each box in page px
-export function cardBoxes(page, { logo = true } = {}) {
+// foot. The name is set as large as fits between the margins, a long
+// one smaller (heavy capitals run about NAME_LETTER of their size wide);
+// each box in page px
+const NAME_LETTER = 0.72
+export function cardBoxes(page, { logo = true, name = '' } = {}) {
   const { W, H } = page
   const u = unitOf(page), m = page.PAD ?? 56 * u
-  const big = Math.min(W * 0.155, H * 0.28)
+  const across = name.length * NAME_LETTER + (logo ? 0.72 + 0.22 : 0)
+  const big = Math.min(W * 0.155, H * 0.28, across ? (W - 2 * m) / across : Infinity)
   // The name sits on a baseline at 72% of the frame's height; its
   // capitals are about 0.72 of its size tall
   const base = H * 0.72

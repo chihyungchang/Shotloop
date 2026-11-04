@@ -37,10 +37,10 @@ import { openShot } from './render2d.mjs'
 
 const STEP = 0.1
 // How long a fault must last to count, by kind (s)
-const LASTS = { overlap: 0.5, cut: 1.0, band: 0.5, small: 0.5, outside: 0.3, words: 0.5, still: 1.0 }
+const LASTS = { card: 0.5, overlap: 0.5, cut: 1.0, band: 0.5, small: 0.5, outside: 0.3, words: 0.5, still: 1.0 }
 
 // Runs in the shot's page: this moment's boxes and what is wrong with them
-const LOOK = `((promo) => {
+const LOOK = `((promo, beat) => {
   const W = innerWidth, H = innerHeight
   const seen = el => {
     let a = 1
@@ -158,6 +158,26 @@ const LOOK = `((promo) => {
     headline: headline ? parseFloat(getComputedStyle(headline).fontSize) : null,
     desktop: deskBox ? [deskBox.l, deskBox.t, deskBox.r - deskBox.l, deskBox.b - deskBox.t].map(v => Math.round(v)) : null
   }
+  // The beat the plan made it: its cards from the kit, its drawing big
+  // enough for its box
+  if (beat && (beat.beat === 'title' || beat.beat === 'end') && !document.querySelector('[data-kit="card"]')) {
+    out.push({ kind: 'card', rule: 'promo-open-close', what: 'the ' + (beat.beat === 'title' ? 'title' : 'end card') + ' is not drawn with the kit\\'s ' + (beat.beat === 'title' ? 'titleCard()' : 'endCard()') + ', which sets the logo and name as one mark at a size that fits' })
+  }
+  if (beat?.picture) {
+    const p = beat.picture
+    const pbox = { l: p.x, t: p.y, r: p.x + p.w, b: p.y + p.h }
+    let ext = null
+    for (const el of document.body.querySelectorAll('*')) {
+      if (seen(el) < 0.05 || el.closest('[data-kit="headline"]')) continue
+      const shape = /^(rect|path|circle|ellipse|polygon|image|use|IMG|CANVAS)$/.test(el.tagName)
+      if (!shape && !drawn(el)) continue
+      const r = meet(box(el.getBoundingClientRect()), pbox)
+      if (area(r) <= 0 || area(r) > area(pbox) * 0.98) continue
+      ext = ext ? { l: Math.min(ext.l, r.l), t: Math.min(ext.t, r.t), r: Math.max(ext.r, r.r), b: Math.max(ext.b, r.b) } : r
+    }
+    const w = ext ? (ext.r - ext.l) / p.w : 0, h = ext ? (ext.b - ext.t) / p.h : 0
+    if (w < 0.6 || h < 0.4) out.push({ kind: 'small', rule: 'promo-fill', what: 'the drawing takes ' + Math.round(w * 100) + '% of its box\\'s width and ' + Math.round(h * 100) + '% of its height (at least 60% and 40%)' })
+  }
   if (deskBox && deskBox.b - deskBox.t < H * 0.5) out.push({ kind: 'small', rule: 'promo-fill', what: 'the desktop is ' + Math.round((deskBox.b - deskBox.t) / H * 100) + '% of the frame\\'s height, under half' })
 
   // Laid on the desktop from outside its picture: a box drawn over it
@@ -214,6 +234,8 @@ const layoutFile = (project, shot) => path.join(project.root, '.shotloop', 'shot
 export async function measureLayout(project, shot) {
   if (project.track !== '2d' || !project.config.promo) return null
   const promo = true
+  // The beat the plan laid out (promo/frames.mjs), when it did
+  const beat = readJson(path.join(project.root, 'world', 'frames.json'), null)?.beats?.find(b => b.id === shot.id) ?? null
   const s = await openShot(project, shot, 'final')
   const found = []
   const open = new Map()
@@ -224,7 +246,7 @@ export async function measureLayout(project, shot) {
   try {
     for (let t = 0; t < shot.duration - 1e-6; t = Math.round((t + STEP) * 1000) / 1000) {
       await s.draw(t)
-      const now = await s.page.evaluate(`${LOOK}(${promo})`)
+      const now = await s.page.evaluate(`${LOOK}(${promo}, ${JSON.stringify(beat)})`)
       if (now.facts) facts.push(now.facts)
       // Consecutive samples of the same fault become one range
       const end = Math.round((t + STEP) * 1000) / 1000

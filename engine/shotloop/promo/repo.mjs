@@ -17,7 +17,7 @@
 // Written into a temporary folder and moved into place, so a reading cut
 // short leaves the last complete one.
 
-import { execFileSync } from 'node:child_process'
+import { execFile, execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -198,17 +198,35 @@ function briefMarkdown(src, info, pictures, logo) {
 }
 
 // The first of the logos that is one (square-ish, big enough), written to
-// file; null when none is
+// file without its clear margin; null when none is
 async function keepLogo(logos, file) {
   for (const l of logos) {
     const bytes = await l.fetch().catch(() => null)
     if (!bytes) continue
     fs.writeFileSync(file, Buffer.from(bytes))
     const size = imageSize(file)
-    if (size && size.width >= MIN_LOGO && Math.abs(size.width - size.height) <= size.width * 0.1) return { file: `${REPO_DIR}/logo.png`, ...size, from: l.file }
+    if (size && size.width >= MIN_LOGO && Math.abs(size.width - size.height) <= size.width * 0.1) {
+      await trimClear(file)
+      return { file: `${REPO_DIR}/logo.png`, ...imageSize(file), from: l.file }
+    }
     fs.rmSync(file)
   }
   return null
+}
+
+// An app's icon sits in a clear margin of its own (a tenth of it on each
+// side, by macOS's grid): cut to its ink, so the logo is as tall as what
+// shows of it wherever it is set. ffmpeg finds the ink in the picture's
+// alpha; a picture without one (or ffmpeg missing) is kept as it is
+async function trimClear(file) {
+  const run = args => new Promise(res => execFile('ffmpeg', ['-hide_banner', ...args], (err, out, log) => res(err ? null : log)))
+  const log = await run(['-i', file, '-vf', 'alphaextract,cropdetect=limit=24:round=2:skip=0', '-f', 'null', '-'])
+  const crop = log?.match(/crop=(\d+):(\d+):(\d+):(\d+)/g)?.at(-1)
+  const size = imageSize(file)
+  if (!crop || crop === `crop=${size.width}:${size.height}:0:0`) return
+  const cut = `${file}.${process.pid}.png`
+  if (await run(['-loglevel', 'error', '-y', '-i', file, '-vf', crop, cut]) != null) fs.renameSync(cut, file)
+  else fs.rmSync(cut, { force: true })
 }
 
 // Reads the repository into the project's repo/. onStep(message, done,
