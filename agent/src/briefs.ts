@@ -111,7 +111,18 @@ ${rel(shot.notes)}:
 ${read(shot.notes)}
 
 ${rel(shot.code)}:
-${read(shot.code)}${styleBrief(project)}${recurringBrief(project, shot)}${assetsBrief(project)}`
+${read(shot.code)}${frameBrief(project, shot)}${styleBrief(project)}${recurringBrief(project, shot)}${assetsBrief(project)}`
+}
+
+// A promo shot's frame as the plan laid it out (world/frames.json, which
+// screens.js frame() returns), in page px
+function frameBrief(project: ProjectStatus, shot: ShotStatus) {
+  const file = path.join(project.root, 'world', 'frames.json')
+  if (!fs.existsSync(file)) return ''
+  const frame = JSON.parse(read(file)).beats?.find((b: { id: string }) => b.id === shot.id)
+  if (!frame) return ''
+  const round = (k: string, v: unknown) => (typeof v === 'number' ? Math.round(v) : v)
+  return `\n\nThis beat's frame (frame() in the shot gives it; page px): ${JSON.stringify(frame, round)}`
 }
 
 // What the voice says over the shot, sentence by sentence with its times
@@ -208,15 +219,39 @@ export function worldFiles(project: ProjectStatus, { docs = false } = {}) {
   const worldDir = path.join(project.root, 'world')
   if (!fs.existsSync(worldDir)) return ''
   return fs.readdirSync(worldDir, { withFileTypes: true })
-    .filter(e => e.isFile() && /\.(py|js|mjs|html|css|json|md|txt|svg)$/i.test(e.name) && !/\.data\./.test(e.name))
+    // The frames are given to each shot as its own (shotBrief)
+    .filter(e => e.isFile() && /\.(py|js|mjs|html|css|json|md|txt|svg)$/i.test(e.name) && !/\.data\./.test(e.name) && e.name !== 'frames.json')
     .map(e => `world/${e.name}:\n${docs ? notesOf(e.name, read(path.join(worldDir, e.name))) : read(path.join(worldDir, e.name))}`).join('\n\n')
 }
 
-// A file's notes: its leading comment (HTML, block or line comments); a
-// small file without one is itself, a big one is named for read_file
+// A file's notes: its leading comment (HTML, block or line comments) and,
+// for a module, what it exports with each one's parameters and the
+// comment over it, so its pieces are used without reading it whole (a
+// kit runs to tens of thousands of tokens); a small file without notes
+// is itself, a big one is named for read_file
 const SMALL = 3000
 function notesOf(name: string, text: string) {
   const top = text.match(/^\s*(?:<!doctype[^>]*>\s*)?(<!--[\s\S]*?-->|(?:\s*(?:\/\/.*|\/\*[\s\S]*?\*\/)\n)+)/i)?.[1].trim()
-  if (top) return `${top}\n(the code: read_file world/${name})`
-  return text.length <= SMALL ? text : `(no notes at its top; read_file world/${name} for its code)`
+  const api = /\.m?js$/.test(name) ? exportsOf(text) : ''
+  if (top) return `${top}${api}\n(the code: read_file world/${name}, only for a detail these don't give)`
+  if (text.length <= SMALL) return text
+  return api ? `${api.trim()}\n(the code: read_file world/${name}, only for a detail these don't give)` : `(no notes at its top; read_file world/${name} for its code)`
+}
+
+// A module's exports: each signature (its line, to its body) with the
+// start of the comment over it
+function exportsOf(text: string) {
+  const lines = text.split('\n')
+  const out: string[] = []
+  lines.forEach((line, i) => {
+    const fn = line.match(/^export (?:async )?function (\w+\s*\(.*?)\s*\{\s*$/)
+    const arrow = line.match(/^export const (\w+) = (?:async )?(.*?)\s*=>/)
+    if (!fn && !arrow) return
+    let k = i
+    while (k > 0 && /^\s*\/\//.test(lines[k - 1])) k--
+    const note = lines.slice(k, i).map(l => l.replace(/^\s*\/\/\s?/, '')).join(' ').trim()
+    const head = fn ? fn[1] : `${arrow![1]}${arrow![2].startsWith('(') ? arrow![2] : `(${arrow![2]})`}`
+    out.push(`- ${head}${note ? `: ${note.length > 240 ? `${note.slice(0, 237)}…` : note}` : ''}`)
+  })
+  return out.length ? `\nExports:\n${out.join('\n')}` : ''
 }
