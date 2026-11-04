@@ -376,7 +376,7 @@ export const id: Record<Key, string> = {
 
   'ai.cli': 'Agen CLI lokal',
   'ai.local': 'Model lokal',
-  'ai.localNote': 'Ollama, LM Studio, atau server apa pun yang kompatibel dengan OpenAI. Tidak ada data yang keluar dari Mac ini.',
+  'ai.localNote': 'Ollama, LM Studio, atau server apa pun yang kompatibel dengan OpenAI, di Mac ini atau komputer lain di jaringan.',
   'ai.model': 'Model',
   'ai.anthropicDefault': 'Bawaan: claude-opus-5-5 untuk perbaikan, claude-sonnet-5-5 untuk pemeriksaan',
   'ai.cliDefault': 'Bawaan CLI itu sendiri',
@@ -389,7 +389,9 @@ export const id: Record<Key, string> = {
   'ai.test': 'Uji',
   'ai.connected': 'Terhubung · {n} model',
   'ai.connected.one': 'Terhubung · 1 model',
-  'ai.visionNote': 'Pemeriksaan melihat gambar diam: pilih model dengan kemampuan visual (mis. qwen2.5vl, gemma3, llama3.2-vision) yang mendukung pemanggilan alat.',
+  'ai.localModelNote': 'Pilih model dengan kemampuan visual dan pemanggilan alat (mis. qwen2.5vl, gemma3), muat dengan konteks besar (32K atau lebih); «Uji» memeriksanya.',
+  'ai.otherServer': 'Alamat lain',
+  'ai.context': 'konteks {n}',
   'ai.key': 'Kunci API',
   'ai.keyOptional': 'Opsional',
 
@@ -527,6 +529,8 @@ export const id: Record<Key, string> = {
 
   'agent.subtitle': 'hanya {shot}',
   'agent.noKey': 'Belum ada AI yang disiapkan: tambahkan kunci API, atau pilih Claude Code atau model lokal, di Pengaturan.',
+  'agent.contextSmall': 'Model dimuat dengan konteks hanya {n} token; Shotloop butuh setidaknya {min}. Muat ulang di server dengan panjang konteks lebih besar (LM Studio: Context Length saat memuat).',
+  'agent.contextFull': 'Prompt tidak muat dalam konteks model. Muat ulang model di server dengan panjang konteks lebih besar (LM Studio: Context Length saat memuat).',
   'agent.openSettings': 'Buka Pengaturan',
   'studio.rename': 'Ubah Nama',
   'export.aspects': 'Rasio',

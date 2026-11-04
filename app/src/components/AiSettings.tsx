@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { BrandIcon } from '../ai/BrandIcon'
 import { detectBackends, useDetected } from '../ai/backends'
+import { agentError } from '../ai/errors'
 import { PRESETS, presetById, type Preset, type Protocol } from '../ai/presets'
 import { api, type Detected, type Provider, type Settings } from '../api'
 import { useErrorLine } from '../hooks'
@@ -16,13 +17,15 @@ const MODES: { id: Provider; title: Key }[] = [
 ]
 
 const unique = (xs: string[]) => [...new Set(xs.filter(Boolean))]
-type Probe = { ok: boolean; text: string } | null
+type Probe = { ok: true; text: string } | { ok: false; error: string } | null
 type Update = (s: Partial<Settings>) => void
 
-// The outcome of a Test or a model listing, on one line
+// The outcome of a Test or a model listing, on one line; a failure in the
+// person's words, its whole in the error dialog
 function ProbeLine({ probe }: { probe: Probe }) {
   if (!probe) return null
-  return <small className={probe.ok ? 'probe ok' : 'probe bad'}>{probe.ok && <Icon name="check" size={12} />} {probe.text}</small>
+  if (!probe.ok) return <ErrorText error={probe.error} summary={agentError(probe.error).text} as="div" className="probe bad small" title={t('ai.test')} />
+  return <small className="probe ok"><Icon name="check" size={12} /> {probe.text}</small>
 }
 
 // The panes' shared tools: listing an endpoint's models and one tiny test
@@ -51,7 +54,7 @@ function useProbes(settings: Settings, backend: string) {
     } catch (e) {
       if (asked !== current.current) return null
       failed?.()
-      setProbe({ ok: false, text: String(e).replace(/^Error: /, '') })
+      setProbe({ ok: false, error: String(e).replace(/^Error: /, '') })
       return null
     } finally {
       if (asked === current.current) setBusy(null)
@@ -66,7 +69,8 @@ function useProbes(settings: Settings, backend: string) {
   }
   // One tiny request through the backend as shown, saved or not
   const testButton = (patch: Partial<Settings> = {}, id = 'test') => (
-    <button className="pill-button" onClick={() => ask(id, () => api.aiTest({ ...settings, ...patch }), r => t('ai.testOk', { s: (r.latencyMs / 1000).toFixed(1), reply: r.reply.slice(0, 40) }))} disabled={!!busy}>
+    <button className="pill-button" onClick={() => ask(id, () => api.aiTest({ ...settings, ...patch }), r =>
+      t('ai.testOk', { s: (r.latencyMs / 1000).toFixed(1), reply: r.reply.slice(0, 40) }) + (r.context ? ` · ${t('ai.context', { n: r.context.toLocaleString() })}` : ''))} disabled={!!busy}>
       {busy === id ? <span className="spinner small" /> : <Icon name="play" size={12} />} {t('ai.test')}
     </button>
   )
@@ -255,38 +259,47 @@ function ApiPane({ settings, update, preset, choosePreset, probes, openLink }: {
   )
 }
 
-// A model on a local OpenAI-compatible server: the servers the agent looks
-// for (running or not), then its URL, model and optional key
+// A model on a local OpenAI-compatible server, on this Mac or another
+// machine nearby: the servers found here as chips (picking one lists its
+// models), any other address typed in, then its model and optional key
 function LocalPane({ settings, update, detected, probes }: { settings: Settings; update: Update; detected: Detected | null; probes: Probes }) {
+  const urlField = useRef<HTMLInputElement>(null)
+  const found = detected?.servers.find(s => s.url === settings.localUrl)
   return (
     <div className="provider-body">
       <p className="hint">{t('ai.localNote')}</p>
-      <div className="row between">
-        <h4>{t('ai.servers')}</h4>
-        <Rescan detected={detected} />
-      </div>
-      {!detected && <p className="muted small">{t('setup.checking')}</p>}
-      <div className="option-list" role="radiogroup">
-        {detected?.servers.map(server => (
-          <button key={server.id} role="radio" aria-checked={settings.localUrl === server.url}
-            className={`option${settings.localUrl === server.url ? ' on' : ''}`}
-            onClick={async () => {
-              update({ localUrl: server.url, localModel: '' })
-              const list = await probes.listModels(server.url, '', 'openai')
-              if (list[0]) update({ localModel: list[0] })
-            }}>
-            <span className="option-logo">{server.id === 'llamacpp' ? <Icon name="cpu" size={15} /> : <BrandIcon id={`local:${server.id}`} size={17} />}</span>
-            <strong>{server.name}</strong>
-            <span className={`dot ${server.running ? 'ok' : ''}`} />
-            <span className="muted small option-meta">
-              {server.running ? t('ai.running', { n: server.models.length }) : t('ai.notRunning')}
-            </span>
-          </button>
-        ))}
+      <div className="field">
+        <span className="row between">
+          {t('ai.servers')}
+          <Rescan detected={detected} />
+        </span>
+        {!detected
+          ? <p className="muted small">{t('setup.checking')}</p>
+          : (
+            <div className="server-chips" role="radiogroup">
+              {detected.servers.map(server => (
+                <button key={server.id} role="radio" aria-checked={found === server}
+                  className={`provider-chip${found === server ? ' on' : ''}${server.running ? '' : ' idle'}`}
+                  title={server.running ? t('ai.running', { n: server.models.length }) : t('ai.notRunning')}
+                  onClick={async () => {
+                    update({ localUrl: server.url, localModel: '' })
+                    const list = await probes.listModels(server.url, '', 'openai')
+                    if (list[0]) update({ localModel: list[0] })
+                  }}>
+                  {server.id === 'llamacpp' ? <Icon name="cpu" size={14} /> : <BrandIcon id={`local:${server.id}`} size={15} />}
+                  {server.name}
+                  {server.running && <span className="dot ok" />}
+                </button>
+              ))}
+              <button role="radio" aria-checked={!found} className={`provider-chip${found ? '' : ' on'}`} onClick={() => urlField.current?.focus()}>
+                <Icon name="link" size={14} /> {t('ai.otherServer')}
+              </button>
+            </div>
+          )}
       </div>
       <label className="field">
         <span>{t('ai.url')}</span>
-        <input value={settings.localUrl} placeholder="http://localhost:11434/v1" onChange={e => update({ localUrl: e.target.value })} />
+        <input ref={urlField} value={settings.localUrl} placeholder="http://192.168.1.20:1234/v1" onChange={e => update({ localUrl: e.target.value })} />
       </label>
       <div className="field">
         <span>{t('ai.model')}</span>
@@ -297,7 +310,7 @@ function LocalPane({ settings, update, detected, probes }: { settings: Settings;
           {probes.testButton()}
         </div>
         <ProbeLine probe={probes.probe} />
-        <small className="muted">{t('ai.visionNote')}</small>
+        <small className="muted">{t('ai.localModelNote')}</small>
       </div>
       <label className="field">
         <span>{t('ai.key')}</span>

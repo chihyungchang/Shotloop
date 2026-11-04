@@ -376,7 +376,7 @@ export const ko: Record<Key, string> = {
 
   'ai.cli': '로컬 CLI 에이전트',
   'ai.local': '로컬 모델',
-  'ai.localNote': 'Ollama, LM Studio 또는 OpenAI 호환 서버. 이 Mac 밖으로 아무것도 나가지 않습니다.',
+  'ai.localNote': 'Ollama, LM Studio 또는 OpenAI 호환 서버. 이 Mac이나 같은 네트워크의 다른 컴퓨터에서 실행할 수 있습니다.',
   'ai.model': '모델',
   'ai.anthropicDefault': '기본값: 수정에는 claude-opus-5-5, 검사에는 claude-sonnet-5-5',
   'ai.cliDefault': 'CLI 자체 기본값',
@@ -389,7 +389,9 @@ export const ko: Record<Key, string> = {
   'ai.test': '테스트',
   'ai.connected': '연결됨 · 모델 {n}개',
   'ai.connected.one': '연결됨 · 모델 1개',
-  'ai.visionNote': '검사는 스틸을 봅니다. 도구 호출을 지원하는 비전 모델(예: qwen2.5vl, gemma3, llama3.2-vision)을 선택하세요.',
+  'ai.localModelNote': '도구 호출을 지원하는 비전 모델(예: qwen2.5vl, gemma3)을 선택하고 큰 컨텍스트 길이(32K 이상)로 로드하세요. 「테스트」가 확인합니다.',
+  'ai.otherServer': '다른 주소',
+  'ai.context': '컨텍스트 {n}',
   'ai.key': 'API 키',
   'ai.keyOptional': '선택 사항',
 
@@ -527,6 +529,8 @@ export const ko: Record<Key, string> = {
 
   'agent.subtitle': '{shot}만 편집',
   'agent.noKey': '아직 설정된 AI가 없습니다. 설정에서 API 키를 추가하거나 Claude Code 또는 로컬 모델을 선택하세요.',
+  'agent.contextSmall': '모델이 {n} 토큰 컨텍스트로만 로드되었습니다. Shotloop에는 최소 {min}이 필요합니다. 서버에서 더 큰 컨텍스트 길이로 다시 로드하세요(LM Studio: 로드 시 Context Length).',
+  'agent.contextFull': '프롬프트가 모델의 컨텍스트를 넘습니다. 서버에서 더 큰 컨텍스트 길이로 모델을 다시 로드하세요(LM Studio: 로드 시 Context Length).',
   'agent.openSettings': '설정 열기',
   'studio.rename': '이름 변경',
   'export.aspects': '화면비',

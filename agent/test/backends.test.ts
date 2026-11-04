@@ -72,10 +72,14 @@ test('MCP server: the narrow tools only, scoped writes, session recorded', async
 })
 
 // OpenAI-compatible chat API stand-in: one scripted assistant message
-// per request
+// per chat request; the context probes' GETs find nothing (no window known)
 function mockChat(turns: any[]) {
   const requests: any[] = []
   const server = http.createServer((req, res) => {
+    if (req.method === 'GET') {
+      res.statusCode = 404
+      return res.end()
+    }
     let body = ''
     req.on('data', d => (body += d))
     req.on('end', () => {

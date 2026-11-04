@@ -19,7 +19,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { CLIS, findBin, runCli, type CliId } from './cli.ts'
-import { listModels as listOpenAiModels, runLocal } from './local.ts'
+import { checkContext, listModels as listOpenAiModels, runLocal, type LocalModel } from './local.ts'
 import type { AiMeter, AiStep } from '../../engine/shotloop/protocol.d.ts'
 import { meter, record } from './ledger.ts'
 import { MODELS, runAgent as runAnthropic, type AgentOptions } from './loop.ts'
@@ -113,17 +113,21 @@ export async function runAgent(task: Task, { step, ...given }: Omit<AgentOptions
   }
 }
 
-function dispatch(task: Task, opts: Omit<AgentOptions, 'model' | 'meter'>, m: AiMeter): Promise<string> {
+// The local backend's server and model, as Settings chose them
+const local = (): LocalModel => ({
+  url: process.env.SHOTLOOP_LOCAL_URL!,
+  model: process.env.SHOTLOOP_LOCAL_MODEL!,
+  apiKey: process.env.SHOTLOOP_LOCAL_KEY || undefined
+})
+
+async function dispatch(task: Task, opts: Omit<AgentOptions, 'model' | 'meter'>, m: AiMeter): Promise<string> {
   switch (provider()) {
     case 'cli':
       // The CLI's own default model (its strongest) unless one is chosen
       return runCli(process.env.SHOTLOOP_CLI as CliId, { ...opts, model: process.env.SHOTLOOP_MODEL || undefined, maxTurns: opts.maxTurns ?? MAX_TURNS, meter: m })
     case 'local':
-      return runLocal({
-        url: process.env.SHOTLOOP_LOCAL_URL!,
-        model: process.env.SHOTLOOP_LOCAL_MODEL!,
-        apiKey: process.env.SHOTLOOP_LOCAL_KEY || undefined
-      }, opts.system, opts.prompt, opts.ctx, opts.maxTurns, m)
+      await checkContext(local())
+      return runLocal(local(), opts.system, opts.prompt, opts.ctx, opts.maxTurns, m)
     default: {
       const { protocol, url, key, model } = api()
       if (protocol === 'openai') return runLocal({ url, model, apiKey: key || undefined }, opts.system, opts.prompt, opts.ctx, opts.maxTurns, m)
@@ -203,13 +207,15 @@ export async function smokeTest() {
   fs.writeFileSync(ctx.checklist, '')
   const started = Date.now()
   try {
+    // A local model's window, for the test to show it fits
+    const context = provider() === 'local' ? await checkContext(local()) : null
     const reply = await runAgent('routine', {
       effort: 'low',
       system: 'This is a connection test. Do not call any tools.',
       prompt: 'Reply with the single word OK.',
       ctx
     })
-    return { ok: true, latencyMs: Date.now() - started, reply: reply.slice(0, 200), backend: describe() }
+    return { ok: true, latencyMs: Date.now() - started, reply: reply.slice(0, 200), backend: describe(), context }
   } finally {
     fs.rmSync(root, { recursive: true, force: true })
   }

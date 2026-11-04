@@ -376,7 +376,7 @@ export const vi: Record<Key, string> = {
 
   'ai.cli': 'CLI agent cục bộ',
   'ai.local': 'Mô hình cục bộ',
-  'ai.localNote': 'Ollama, LM Studio hoặc bất kỳ máy chủ tương thích OpenAI nào. Không có gì rời khỏi máy Mac này.',
+  'ai.localNote': 'Ollama, LM Studio hoặc bất kỳ máy chủ tương thích OpenAI nào, trên Mac này hoặc máy tính khác trong mạng.',
   'ai.model': 'Mô hình',
   'ai.anthropicDefault': 'Mặc định: claude-opus-5-5 để sửa, claude-sonnet-5-5 để kiểm tra',
   'ai.cliDefault': 'Mặc định của CLI',
@@ -389,7 +389,9 @@ export const vi: Record<Key, string> = {
   'ai.test': 'Thử',
   'ai.connected': 'Đã kết nối · {n} mô hình',
   'ai.connected.one': 'Đã kết nối · 1 mô hình',
-  'ai.visionNote': 'Việc kiểm tra cần xem ảnh tĩnh: hãy chọn mô hình có thị giác (ví dụ qwen2.5vl, gemma3, llama3.2-vision) và hỗ trợ gọi công cụ.',
+  'ai.localModelNote': 'Chọn mô hình có thị giác và gọi công cụ (vd. qwen2.5vl, gemma3), tải với độ dài ngữ cảnh lớn (32K trở lên); «Kiểm tra» sẽ xác nhận.',
+  'ai.otherServer': 'Địa chỉ khác',
+  'ai.context': 'ngữ cảnh {n}',
   'ai.key': 'Khóa API',
   'ai.keyOptional': 'Tùy chọn',
 
@@ -527,6 +529,8 @@ export const vi: Record<Key, string> = {
 
   'agent.subtitle': 'chỉ sửa {shot}',
   'agent.noKey': 'Chưa thiết lập AI: hãy thêm khóa API, hoặc chọn Claude Code hay mô hình cục bộ, trong Cài đặt.',
+  'agent.contextSmall': 'Mô hình được tải với ngữ cảnh chỉ {n} token; Shotloop cần ít nhất {min}. Hãy tải lại trên máy chủ với độ dài ngữ cảnh lớn hơn (LM Studio: Context Length khi tải).',
+  'agent.contextFull': 'Lời nhắc vượt quá ngữ cảnh của mô hình. Hãy tải lại mô hình trên máy chủ với độ dài ngữ cảnh lớn hơn (LM Studio: Context Length khi tải).',
   'agent.openSettings': 'Mở Cài đặt',
   'studio.rename': 'Đổi tên',
   'export.aspects': 'Tỷ lệ',

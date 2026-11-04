@@ -376,7 +376,7 @@ export const it: Record<Key, string> = {
 
   'ai.cli': 'Agente CLI locale',
   'ai.local': 'Modello locale',
-  'ai.localNote': 'Ollama, LM Studio o qualsiasi server compatibile con OpenAI. Niente lascia questo Mac.',
+  'ai.localNote': 'Ollama, LM Studio o qualsiasi server compatibile con OpenAI, su questo Mac o su un altro computer della rete.',
   'ai.model': 'Modello',
   'ai.anthropicDefault': 'Predefinito: claude-opus-5-5 per le correzioni, claude-sonnet-5-5 per le verifiche',
   'ai.cliDefault': 'Il predefinito della CLI',
@@ -389,7 +389,9 @@ export const it: Record<Key, string> = {
   'ai.test': 'Prova',
   'ai.connected': 'Connesso · {n} modelli',
   'ai.connected.one': 'Connesso · 1 modello',
-  'ai.visionNote': 'Le verifiche guardano i fotogrammi: scegli un modello con visione e chiamata di strumenti (ad es. qwen2.5vl, gemma3, llama3.2-vision).',
+  'ai.localModelNote': 'Scegli un modello con visione e chiamata di strumenti (ad es. qwen2.5vl, gemma3) e caricalo con un contesto ampio (32K o più); «Prova» lo verifica.',
+  'ai.otherServer': 'Altro indirizzo',
+  'ai.context': 'contesto {n}',
   'ai.key': 'Chiave API',
   'ai.keyOptional': 'Facoltativa',
 
@@ -527,6 +529,8 @@ export const it: Record<Key, string> = {
 
   'agent.subtitle': 'modifica solo {shot}',
   'agent.noKey': 'Nessuna IA configurata: aggiungi una chiave API, o scegli Claude Code o un modello locale, nelle Impostazioni.',
+  'agent.contextSmall': 'Il modello è caricato con un contesto di soli {n} token; Shotloop ne richiede almeno {min}. Ricaricalo sul server con un contesto più ampio (LM Studio: Context Length al caricamento).',
+  'agent.contextFull': 'Il prompt non entra nel contesto del modello. Ricarica il modello sul server con un contesto più ampio (LM Studio: Context Length al caricamento).',
   'agent.openSettings': 'Apri Impostazioni',
   'studio.rename': 'Rinomina',
   'export.aspects': 'Formato',

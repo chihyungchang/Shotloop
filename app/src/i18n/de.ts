@@ -376,7 +376,7 @@ export const de: Record<Key, string> = {
 
   'ai.cli': 'Lokaler CLI-Agent',
   'ai.local': 'Lokales Modell',
-  'ai.localNote': 'Ollama, LM Studio oder ein beliebiger OpenAI-kompatibler Server. Nichts verlässt diesen Mac.',
+  'ai.localNote': 'Ollama, LM Studio oder ein beliebiger OpenAI-kompatibler Server, auf diesem Mac oder einem anderen Computer im Netzwerk.',
   'ai.model': 'Modell',
   'ai.anthropicDefault': 'Standard: claude-opus-5-5 für Korrekturen, claude-sonnet-5-5 für Prüfungen',
   'ai.cliDefault': 'Standard der CLI',
@@ -389,7 +389,9 @@ export const de: Record<Key, string> = {
   'ai.test': 'Testen',
   'ai.connected': 'Verbunden · {n} Modelle',
   'ai.connected.one': 'Verbunden · 1 Modell',
-  'ai.visionNote': 'Prüfungen sehen sich Standbilder an: Wähle ein Modell mit Bilderkennung und Tool-Aufrufen (z. B. qwen2.5vl, gemma3, llama3.2-vision).',
+  'ai.localModelNote': 'Wähle ein Modell mit Bilderkennung und Tool-Aufrufen (z. B. qwen2.5vl, gemma3) und lade es mit großer Kontextlänge (32K oder mehr); „Testen“ prüft das.',
+  'ai.otherServer': 'Andere Adresse',
+  'ai.context': 'Kontext {n}',
   'ai.key': 'API-Schlüssel',
   'ai.keyOptional': 'Optional',
 
@@ -527,6 +529,8 @@ export const de: Record<Key, string> = {
 
   'agent.subtitle': 'bearbeitet nur {shot}',
   'agent.noKey': 'Noch keine KI eingerichtet: Füge in den Einstellungen einen API-Schlüssel hinzu oder wähle Claude Code oder ein lokales Modell.',
+  'agent.contextSmall': 'Das Modell ist mit nur {n} Tokens Kontext geladen; Shotloop braucht mindestens {min}. Lade es auf dem Server mit größerer Kontextlänge neu (LM Studio: Context Length beim Laden).',
+  'agent.contextFull': 'Der Prompt passt nicht in den Kontext des Modells. Lade das Modell auf dem Server mit größerer Kontextlänge neu (LM Studio: Context Length beim Laden).',
   'agent.openSettings': 'Einstellungen öffnen',
   'studio.rename': 'Umbenennen',
   'export.aspects': 'Format',

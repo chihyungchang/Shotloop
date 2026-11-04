@@ -372,7 +372,7 @@ export const zhCN: Record<Key, string> = {
 
   'ai.cli': '本机 CLI',
   'ai.local': '本地模型',
-  'ai.localNote': 'Ollama、LM Studio 或任何 OpenAI 兼容服务。数据不离开这台 Mac。',
+  'ai.localNote': 'Ollama、LM Studio 或任何 OpenAI 兼容服务，可以在这台 Mac 上，也可以在局域网里的另一台电脑上。',
   'ai.model': '模型',
   'ai.anthropicDefault': '默认：修改用 claude-opus-5-5，检查用 claude-sonnet-5-5',
   'ai.cliDefault': '使用 CLI 自己的默认模型',
@@ -385,7 +385,9 @@ export const zhCN: Record<Key, string> = {
   'ai.test': '测试连接',
   'ai.connected': '已连接 · {n} 个模型',
   'ai.connected.one': '已连接 · 1 个模型',
-  'ai.visionNote': '检查要看静帧：请选择支持视觉和工具调用的模型（如 qwen2.5vl、gemma3、llama3.2-vision）。',
+  'ai.localModelNote': '请选择支持视觉和工具调用的模型（如 qwen2.5vl、gemma3），加载时把上下文长度设大（32K 以上）；「测试」会检查。',
+  'ai.otherServer': '其他地址',
+  'ai.context': '上下文 {n}',
   'ai.key': 'API 密钥',
   'ai.keyOptional': '可选',
 
@@ -526,6 +528,8 @@ export const zhCN: Record<Key, string> = {
 
   'agent.subtitle': '只修改 {shot}',
   'agent.noKey': '还没有配置 AI：在设置里填入 API 密钥，或者选用 Claude Code、本地模型。',
+  'agent.contextSmall': '模型加载时的上下文只有 {n} tokens，Shotloop 至少需要 {min}。请在服务器上用更大的上下文长度重新加载它（LM Studio：加载时的 Context Length）。',
+  'agent.contextFull': '提示词超出了模型的上下文。请在服务器上用更大的上下文长度重新加载模型（LM Studio：加载时的 Context Length）。',
   'agent.openSettings': '去设置',
   'studio.rename': '重命名',
   'export.aspects': '画幅',

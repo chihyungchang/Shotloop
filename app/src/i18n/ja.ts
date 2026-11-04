@@ -376,7 +376,7 @@ export const ja: Record<Key, string> = {
 
   'ai.cli': 'ローカル CLI エージェント',
   'ai.local': 'ローカルモデル',
-  'ai.localNote': 'Ollama、LM Studio、または OpenAI 互換のサーバ。データはこの Mac から出ません。',
+  'ai.localNote': 'Ollama、LM Studio、または OpenAI 互換のサーバ。この Mac でも、ネットワーク上の別のコンピュータでも使えます。',
   'ai.model': 'モデル',
   'ai.anthropicDefault': 'デフォルト：修正は claude-opus-5-5、チェックは claude-sonnet-5-5',
   'ai.cliDefault': 'CLI 自体のデフォルト',
@@ -389,7 +389,9 @@ export const ja: Record<Key, string> = {
   'ai.test': 'テスト',
   'ai.connected': '接続済み · {n} モデル',
   'ai.connected.one': '接続済み · 1 モデル',
-  'ai.visionNote': 'チェックは静止画を見ます。ツール呼び出しに対応したビジョンモデル（qwen2.5vl、gemma3、llama3.2-vision など）を選んでください。',
+  'ai.localModelNote': 'ツール呼び出しに対応したビジョンモデル（qwen2.5vl、gemma3 など）を選び、大きなコンテキスト長（32K 以上）で読み込んでください。「テスト」で確認できます。',
+  'ai.otherServer': 'その他のアドレス',
+  'ai.context': 'コンテキスト {n}',
   'ai.key': 'API キー',
   'ai.keyOptional': 'オプション',
 
@@ -527,6 +529,8 @@ export const ja: Record<Key, string> = {
 
   'agent.subtitle': '{shot} のみ編集',
   'agent.noKey': 'AI がまだ設定されていません。設定で API キーを追加するか、Claude Code またはローカルモデルを選んでください。',
+  'agent.contextSmall': 'モデルのコンテキストが {n} トークンしかありません。Shotloop には {min} 以上が必要です。サーバでより大きなコンテキスト長で読み込み直してください（LM Studio：読み込み時の Context Length）。',
+  'agent.contextFull': 'プロンプトがモデルのコンテキストに収まりません。サーバでより大きなコンテキスト長で読み込み直してください（LM Studio：読み込み時の Context Length）。',
   'agent.openSettings': '設定を開く',
   'studio.rename': '名前を変更',
   'export.aspects': '比率',

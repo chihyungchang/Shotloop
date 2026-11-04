@@ -88,13 +88,11 @@ details .field + .field { margin-top: 10px; }
 .provider-chip.on { background: var(--accent-soft); color: var(--accent-text); border-color: transparent; box-shadow: none; }
 .provider-chip.on:hover:not(:disabled) { background: var(--accent-soft); border-color: transparent; }
 .probe { display: inline-flex; gap: 4px; align-items: center; }
-.probe.ok { color: var(--success); } .probe.bad { color: var(--danger); white-space: pre-wrap; }
+.probe.ok { color: var(--success); } .probe.bad { display: block; color: var(--danger); white-space: pre-wrap; }
 .warn-note { color: var(--warning); }
-.option-list { display: flex; flex-direction: column; gap: 6px; }
-.option { justify-content: flex-start; gap: 10px; border-radius: var(--r-md); min-height: 42px; padding: 0 14px; background: var(--surface); }
-.option strong { font-weight: 600; }
-.option.on { background: var(--accent-soft); border-color: var(--accent-line); }
-.option-meta { margin-left: auto; overflow: hidden; text-overflow: ellipsis; }
+.server-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+/* A server found here but not answering: still pickable, to start later */
+.provider-chip.idle:not(.on) { color: var(--text-3); }
 
 /* Settings → About: the third-party software, a folded list per group */
 .oss { margin-top: 18px; }

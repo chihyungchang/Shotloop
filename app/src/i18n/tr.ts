@@ -376,7 +376,7 @@ export const tr: Record<Key, string> = {
 
   'ai.cli': 'Yerel CLI ajanı',
   'ai.local': 'Yerel model',
-  'ai.localNote': 'Ollama, LM Studio veya OpenAI uyumlu herhangi bir sunucu. Hiçbir şey bu Mac’ten çıkmaz.',
+  'ai.localNote': 'Ollama, LM Studio veya OpenAI uyumlu herhangi bir sunucu; bu Mac’te ya da ağdaki başka bir bilgisayarda.',
   'ai.model': 'Model',
   'ai.anthropicDefault': 'Varsayılan: düzeltmeler için claude-opus-5-5, denetimler için claude-sonnet-5-5',
   'ai.cliDefault': 'CLI’nin kendi varsayılanı',
@@ -389,7 +389,9 @@ export const tr: Record<Key, string> = {
   'ai.test': 'Test et',
   'ai.connected': 'Bağlandı · {n} model',
   'ai.connected.one': 'Bağlandı · 1 model',
-  'ai.visionNote': 'Denetimler karelere bakar: araç çağırabilen bir görü modeli seçin (örn. qwen2.5vl, gemma3, llama3.2-vision).',
+  'ai.localModelNote': 'Araç çağırabilen bir görü modeli seçin (örn. qwen2.5vl, gemma3) ve büyük bağlam uzunluğuyla (32K veya üstü) yükleyin; «Test» bunu denetler.',
+  'ai.otherServer': 'Başka adres',
+  'ai.context': 'bağlam {n}',
   'ai.key': 'API anahtarı',
   'ai.keyOptional': 'İsteğe bağlı',
 
@@ -527,6 +529,8 @@ export const tr: Record<Key, string> = {
 
   'agent.subtitle': 'yalnızca {shot} düzenler',
   'agent.noKey': 'Henüz yapay zekâ ayarlanmadı: Ayarlar’da bir API anahtarı ekleyin ya da Claude Code veya yerel bir model seçin.',
+  'agent.contextSmall': 'Model yalnızca {n} token bağlamla yüklü; Shotloop en az {min} ister. Sunucuda daha büyük bağlam uzunluğuyla yeniden yükleyin (LM Studio: yüklerken Context Length).',
+  'agent.contextFull': 'İstem modelin bağlamına sığmıyor. Modeli sunucuda daha büyük bağlam uzunluğuyla yeniden yükleyin (LM Studio: yüklerken Context Length).',
   'agent.openSettings': 'Ayarlar’ı aç',
   'studio.rename': 'Yeniden adlandır',
   'export.aspects': 'Oran',

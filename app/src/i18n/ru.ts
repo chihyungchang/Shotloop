@@ -376,7 +376,7 @@ export const ru: Record<Key, string> = {
 
   'ai.cli': 'Локальный CLI-агент',
   'ai.local': 'Локальная модель',
-  'ai.localNote': 'Ollama, LM Studio или любой сервер, совместимый с OpenAI. Данные не покидают этот Mac.',
+  'ai.localNote': 'Ollama, LM Studio или любой сервер, совместимый с OpenAI, на этом Mac или на другом компьютере в сети.',
   'ai.model': 'Модель',
   'ai.anthropicDefault': 'По умолчанию: claude-opus-5-5 для правок, claude-sonnet-5-5 для проверок',
   'ai.cliDefault': 'Модель CLI по умолчанию',
@@ -389,7 +389,9 @@ export const ru: Record<Key, string> = {
   'ai.test': 'Проверить',
   'ai.connected': 'Подключено · моделей: {n}',
   'ai.connected.one': 'Подключено · 1 модель',
-  'ai.visionNote': 'Проверки смотрят на стоп-кадры: выберите модель со зрением (например, qwen2.5vl, gemma3, llama3.2-vision) и вызовом инструментов.',
+  'ai.localModelNote': 'Выберите модель со зрением и вызовом инструментов (например, qwen2.5vl, gemma3) и загрузите её с большим контекстом (32K и больше); «Проверить» это проверит.',
+  'ai.otherServer': 'Другой адрес',
+  'ai.context': 'контекст {n}',
   'ai.key': 'API-ключ',
   'ai.keyOptional': 'Необязательно',
 
@@ -527,6 +529,8 @@ export const ru: Record<Key, string> = {
 
   'agent.subtitle': 'только {shot}',
   'agent.noKey': 'ИИ ещё не настроен: добавьте API-ключ или выберите Claude Code либо локальную модель в Настройках.',
+  'agent.contextSmall': 'Модель загружена с контекстом всего {n} токенов; Shotloop нужно не меньше {min}. Перезагрузите её на сервере с большей длиной контекста (LM Studio: Context Length при загрузке).',
+  'agent.contextFull': 'Запрос не помещается в контекст модели. Перезагрузите модель на сервере с большей длиной контекста (LM Studio: Context Length при загрузке).',
   'agent.openSettings': 'Открыть Настройки',
   'studio.rename': 'Переименовать',
   'export.aspects': 'Формат',

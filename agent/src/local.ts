@@ -27,6 +27,7 @@ interface ToolCall {
 }
 
 const base = (url: string) => url.replace(/\/+$/, '')
+const auth = (apiKey?: string): Record<string, string> => (apiKey ? { authorization: `Bearer ${apiKey}` } : {})
 
 // One answer may take long on a local machine (a big model, a long
 // prompt, stills to look at); one that takes longer than this has hung
@@ -35,7 +36,7 @@ const REQUEST_TIMEOUT_MIN = 15
 async function post(m: LocalModel, path: string, body: unknown) {
   const res = await fetch(`${base(m.url)}${path}`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', ...(m.apiKey ? { authorization: `Bearer ${m.apiKey}` } : {}) },
+    headers: { 'content-type': 'application/json', ...auth(m.apiKey) },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MIN * 60_000)
   }).catch(err => {
@@ -52,12 +53,51 @@ const NOT_CHAT = /embed|moderation|rerank|whisper|tts|transcri|speech|dall-e|sta
 // The chat models a server offers (GET /models)
 export async function listModels(url: string, apiKey?: string): Promise<string[]> {
   const res = await fetch(`${base(url)}/models`, {
-    headers: apiKey ? { authorization: `Bearer ${apiKey}` } : {},
+    headers: auth(apiKey),
     signal: AbortSignal.timeout(8000)
   })
   if (!res.ok) throw new Error(`${url}: ${res.status} ${(await res.text()).slice(0, 200)}`)
   const body = (await res.json()) as { data?: { id: string }[] }
   return (body.data ?? []).map(d => d.id.replace(/^models\//, '')).filter(id => !NOT_CHAT.test(id)).sort()
+}
+
+// Local servers load a model with a small window unless told otherwise
+// (LM Studio 4096), less than the system prompt and tools alone; a run
+// with stills needs far more
+export const MIN_CONTEXT = 32768
+
+// The context window the server loaded the model with, where it tells:
+// LM Studio's own API, vLLM's model list, llama.cpp's props, Ollama's
+// running models. null when none does (or the model isn't loaded yet)
+export async function contextLength(m: LocalModel): Promise<number | null> {
+  const root = base(m.url).replace(/\/v1$/, '')
+  const get = async (url: string): Promise<any> => {
+    try {
+      const res = await fetch(url, { headers: auth(m.apiKey), signal: AbortSignal.timeout(5000) })
+      return res.ok ? await res.json() : null
+    } catch {
+      // Not this kind of server: another answer may tell
+      return null
+    }
+  }
+  const [lmstudio, models, props, ollama] = await Promise.all([
+    get(`${root}/api/v0/models`),
+    get(`${base(m.url)}/models`),
+    get(`${root}/props`),
+    get(`${root}/api/ps`)
+  ])
+  const n = lmstudio?.data?.find((d: any) => d.id === m.model)?.loaded_context_length
+    ?? models?.data?.find((d: any) => d.id === m.model)?.max_model_len
+    ?? props?.default_generation_settings?.n_ctx
+    ?? ollama?.models?.find((d: any) => d.name === m.model || d.model === m.model)?.context_length
+  return typeof n === 'number' && n > 0 ? n : null
+}
+
+// Fails before the first request when the window is known to be too small
+export async function checkContext(m: LocalModel) {
+  const n = await contextLength(m)
+  if (n !== null && n < MIN_CONTEXT) throw new Error(`${m.model} is loaded with a context length of ${n} tokens; Shotloop needs at least ${MIN_CONTEXT}`)
+  return n
 }
 
 const tools = TOOLS.map(t => ({

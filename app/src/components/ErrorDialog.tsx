@@ -37,16 +37,18 @@ export function errorSummary(text: string) {
   return (named ?? lines.find(l => !/^at\s/.test(l)) ?? text).replace(/^Error:\s*/, '')
 }
 
-// An error where it happened: its summary, and "Details" opening the
-// whole when there is more to it. Nothing without an error
-export function ErrorText({ error, as: Tag = 'p', className = 'error small', title }: {
+// An error where it happened: its summary (or the person's words for it),
+// and "Details" opening the whole when there is more to it. Nothing
+// without an error
+export function ErrorText({ error, summary, as: Tag = 'p', className = 'error small', title }: {
   error: string | null | undefined | false
+  summary?: string
   as?: 'p' | 'span' | 'div'
   className?: string
   title?: string
 }) {
   if (!error) return null
-  const line = errorSummary(error)
+  const line = summary ?? errorSummary(error)
   return (
     <Tag className={className} title={line}>
       {line}

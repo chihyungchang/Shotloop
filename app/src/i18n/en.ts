@@ -377,7 +377,7 @@ export const en = {
 
   'ai.cli': 'Local CLI agent',
   'ai.local': 'Local model',
-  'ai.localNote': 'Ollama, LM Studio or any OpenAI-compatible server. Nothing leaves this Mac.',
+  'ai.localNote': 'Ollama, LM Studio or any OpenAI-compatible server, on this Mac or another computer on your network.',
   'ai.model': 'Model',
   'ai.anthropicDefault': 'Default: claude-opus-5-5 for fixes, claude-sonnet-5-5 for checks',
   'ai.cliDefault': 'The CLI’s own default',
@@ -390,7 +390,9 @@ export const en = {
   'ai.test': 'Test',
   'ai.connected': 'Connected · {n} models',
   'ai.connected.one': 'Connected · 1 model',
-  'ai.visionNote': 'Checks look at stills: choose a vision model (e.g. qwen2.5vl, gemma3, llama3.2-vision) with tool calling.',
+  'ai.localModelNote': 'Choose a vision model with tool calling (e.g. qwen2.5vl, gemma3). Load it with a large context length (32K or more); Test checks it.',
+  'ai.otherServer': 'Other address',
+  'ai.context': 'context {n}',
   'ai.key': 'API key',
   'ai.keyOptional': 'Optional',
 
@@ -528,6 +530,8 @@ export const en = {
 
   'agent.subtitle': 'edits {shot} only',
   'agent.noKey': 'No AI is set up yet: add an API key, or choose Claude Code or a local model, in Settings.',
+  'agent.contextSmall': 'The model is loaded with a context of only {n} tokens; Shotloop needs at least {min}. Reload it on the server with a larger context length (in LM Studio: Context Length when loading).',
+  'agent.contextFull': 'The prompt doesn’t fit the model’s context. Reload the model on the server with a larger context length (in LM Studio: Context Length when loading).',
   'agent.openSettings': 'Open Settings',
   'studio.rename': 'Rename',
   'export.aspects': 'Aspect',

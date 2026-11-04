@@ -6,6 +6,7 @@ import assert from 'node:assert/strict'
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { test } from 'node:test'
+import { checkContext, contextLength, MIN_CONTEXT } from '../src/local.ts'
 import { isLoopback, listModels } from '../src/providers.ts'
 
 async function serve(handler: http.RequestListener) {
@@ -48,4 +49,42 @@ test('loopback servers need no key', () => {
   assert.ok(isLoopback('http://localhost:11434/v1'))
   assert.ok(isLoopback('http://127.0.0.1:8000/v1'))
   assert.ok(!isLoopback('https://api.deepseek.com'))
+})
+
+// A stand-in server answering only the given paths, 404 elsewhere
+const answering = (routes: Record<string, unknown>) => serve((req, res) => {
+  const body = routes[req.url ?? '']
+  res.statusCode = body ? 200 : 404
+  res.end(body ? JSON.stringify(body) : '')
+})
+
+test('context length: LM Studio, vLLM, llama.cpp and Ollama each say it their way', async () => {
+  const cases: [Record<string, unknown>, number | null][] = [
+    [{ '/api/v0/models': { data: [{ id: 'other', loaded_context_length: 999 }, { id: 'qwen/qwen3', loaded_context_length: 65533 }] } }, 65533],
+    [{ '/v1/models': { data: [{ id: 'qwen/qwen3', max_model_len: 40960 }] } }, 40960],
+    [{ '/props': { default_generation_settings: { n_ctx: 8192 } } }, 8192],
+    [{ '/api/ps': { models: [{ name: 'qwen/qwen3', context_length: 4096 }] } }, 4096],
+    // LM Studio lists a model it hasn't loaded yet without a window
+    [{ '/api/v0/models': { data: [{ id: 'qwen/qwen3', state: 'not-loaded', max_context_length: 262144 }] } }, null]
+  ]
+  for (const [routes, want] of cases) {
+    const s = await answering(routes)
+    try {
+      assert.equal(await contextLength({ url: `${s.url}/v1`, model: 'qwen/qwen3' }), want)
+    } finally {
+      s.close()
+    }
+  }
+})
+
+test('context check: a window known too small fails before the run, an unknown one passes', async () => {
+  const small = await answering({ '/api/v0/models': { data: [{ id: 'm', loaded_context_length: 4096 }] } })
+  const silent = await answering({})
+  try {
+    await assert.rejects(checkContext({ url: `${small.url}/v1`, model: 'm' }), new RegExp(`context length of 4096 tokens; Shotloop needs at least ${MIN_CONTEXT}`))
+    assert.equal(await checkContext({ url: `${silent.url}/v1`, model: 'm' }), null)
+  } finally {
+    small.close()
+    silent.close()
+  }
 })
