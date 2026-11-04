@@ -10,6 +10,7 @@ import type { ProjectStatus, ShotStatus } from './engine.ts'
 import { reason, warn } from './events.ts'
 import { creditsPrompt } from './prompts.ts'
 import { LOOKS, promoImages, STYLES, SUBTITLE_STYLES } from './enginelib.ts'
+import { notesOf } from './notes.ts'
 import { PROMO_RULES, PROMO_TOOLS } from './principles.ts'
 
 export const read = (f: string) => (fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '(missing)')
@@ -233,34 +234,3 @@ export function worldFiles(project: ProjectStatus, { docs = false } = {}) {
     .map(f => `world/${f}:\n${docs ? notesOf(f, read(path.join(worldDir, f))) : read(path.join(worldDir, f))}`).join('\n\n')
 }
 
-// A file's notes: its leading comment (HTML, block or line comments) and,
-// for a module, what it exports with each one's parameters and the
-// comment over it, so its pieces are used without reading it whole (a
-// kit runs to tens of thousands of tokens); a small file without notes
-// is itself, a big one is named for read_file
-const SMALL = 3000
-function notesOf(name: string, text: string) {
-  const top = text.match(/^\s*(?:<!doctype[^>]*>\s*)?(<!--[\s\S]*?-->|(?:\s*(?:\/\/.*|\/\*[\s\S]*?\*\/)\n)+)/i)?.[1].trim()
-  const api = /\.m?js$/.test(name) ? exportsOf(text) : ''
-  if (top) return `${top}${api}\n(the code: read_file world/${name}, only for a detail these don't give)`
-  if (text.length <= SMALL) return text
-  return api ? `${api.trim()}\n(the code: read_file world/${name}, only for a detail these don't give)` : `(no notes at its top; read_file world/${name} for its code)`
-}
-
-// A module's exports: each signature (its line, to its body) with the
-// start of the comment over it
-function exportsOf(text: string) {
-  const lines = text.split('\n')
-  const out: string[] = []
-  lines.forEach((line, i) => {
-    const fn = line.match(/^export (?:async )?function (\w+\s*\(.*?)\s*\{\s*$/)
-    const arrow = line.match(/^export const (\w+) = (?:async )?(.*?)\s*=>/)
-    if (!fn && !arrow) return
-    let k = i
-    while (k > 0 && /^\s*\/\//.test(lines[k - 1])) k--
-    const note = lines.slice(k, i).map(l => l.replace(/^\s*\/\/\s?/, '')).join(' ').trim()
-    const head = fn ? fn[1] : `${arrow![1]}${arrow![2].startsWith('(') ? arrow![2] : `(${arrow![2]})`}`
-    out.push(`- ${head}${note ? `: ${note.length > 240 ? `${note.slice(0, 237)}…` : note}` : ''}`)
-  })
-  return out.length ? `\nExports:\n${out.join('\n')}` : ''
-}

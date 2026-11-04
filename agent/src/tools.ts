@@ -9,6 +9,7 @@ import path from 'node:path'
 import type { VoiceResult } from '../../engine/shotloop/protocol.d.ts'
 import { engine, renderCover, renderStills } from './engine.ts'
 import { emit, reason, warn } from './events.ts'
+import { isKit, notesOf } from './notes.ts'
 import { AMBIENCE_NAMES, findText, memory, pictureText, STYLES, styleById, styleStills } from './enginelib.ts'
 
 type Tool = Anthropic.Beta.BetaTool
@@ -328,6 +329,8 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
       if (!fs.existsSync(abs)) throw new Error(`${rel} does not exist`)
       if (fs.statSync(abs).size > MAX_READ) throw new Error(`${rel} is larger than ${MAX_READ / 1024} KB`)
       emit({ type: 'tool', name, summary: rel })
+      // The kit is the engine's: its interface, as the prompt lists it
+      if (rel.startsWith('world/') && isKit(rel.slice(6))) return notesOf(rel.slice(6), fs.readFileSync(abs, 'utf8'))
       return fs.readFileSync(abs, 'utf8')
     }
     case 'write_file':

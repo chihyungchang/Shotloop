@@ -241,8 +241,12 @@ export function desktop({ box: given, windows, view = { x: 0.5, y: 0.5, zoom: 1 
   const sharp = Math.min(...wins.map(w => 1 / OUT / w.s))
   const z = clamp(view.zoom, 0.5, Math.max(1, sharp))
   const cx = box.w / 2, cy = box.h / 2
+  // The view held inside the screen, as a screen recording's is: a click
+  // by its edge is followed without showing past it
+  const vx = z > 1 ? clamp(view.x, 0.5 / z, 1 - 0.5 / z) : 0.5
+  const vy = z > 1 ? clamp(view.y, 0.5 / z, 1 - 0.5 / z) : 0.5
   // Desktop px → box px: the view's point to the box's centre
-  const tx = cx - view.x * box.w * z, ty = cy - view.y * box.h * z
+  const tx = cx - vx * box.w * z, ty = cy - vy * box.h * z
   const at = (i, px, py) => {
     const w = wins[i]
     return { x: box.x + tx + (w.x + px * w.s) * z, y: box.y + ty + (w.y + w.bar + py * w.s) * z }

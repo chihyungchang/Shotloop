@@ -12,6 +12,7 @@ import { loadProject, SIZES } from '../project/project.mjs'
 import { applyStoryboard } from '../project/storyboard.mjs'
 import { measureLayout } from '../render/measure.mjs'
 import { openShot } from '../render/render2d.mjs'
+import { draftShots } from './drafts.mjs'
 import { writeFrames } from './frames.mjs'
 
 const made = []
@@ -189,4 +190,27 @@ export default function render(t, { window }) {
   } finally {
     await s.close()
   }
+})
+
+test('drafts: the plan\'s shots written for the agent to build on, never over a shot it wrote', async () => {
+  const dir = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-drafts-')), 'p')
+  made.push(path.dirname(dir))
+  newProject(dir, { idea: 'x', promo: true, duration: 22 })
+  fs.writeFileSync(path.join(dir, 'storyboard.json'), JSON.stringify({ shots: PLAN }))
+  applyStoryboard(loadProject(dir))
+  const project = loadProject(dir)
+  writeFrames(project)
+  // A shot the agent wrote stays as it is
+  fs.writeFileSync(project.shots[4].code, 'export default function render() {}\n')
+  const drafted = await draftShots(project)
+  assert.deepEqual(drafted, project.shots.slice(0, 4).map(s => s.id))
+  const code = i => fs.readFileSync(project.shots[i].code, 'utf8')
+  assert.match(code(0), /Starter shot drafted by the engine/)
+  assert.match(code(0), /titleCard\(t, \{ name: "Shotloop", line: ""/)
+  // No pictures here: each click is left for the agent to place
+  assert.match(code(2), /act\(t, \{ box: f\.desktop/)
+  assert.match(code(2), /\{ type: "A promo for Shotloop" \}/)
+  assert.match(code(2), /PLACE: Send/)
+  assert.match(code(2), /\{ show: "repo\/pictures\/01-plan\.jpg" \}/)
+  assert.equal(code(4), 'export default function render() {}\n')
 })

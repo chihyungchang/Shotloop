@@ -97,6 +97,7 @@ import { voiceCues, voiceOn } from './voiceover/cues.mjs'
 import { AMBIENCE_NAMES, EFFECT_NAMES, projectSounds, setSound, soundCues } from './sound/sound.mjs'
 import { checkSubtitles, describeIssues } from './voiceover/check.mjs'
 import { readSite, siteUrl } from './promo/site.mjs'
+import { draftShots } from './promo/drafts.mjs'
 import { writeFrames } from './promo/frames.mjs'
 import { readRepo } from './promo/repo.mjs'
 
@@ -389,10 +390,15 @@ try {
         break
       }
       const applied = applyStoryboard(loadProject(args[0]))
-      // A promo's frames, laid out from the plan for its shots to take
+      // A promo's frames, laid out from the plan for its shots to take,
+      // and its starter shots drafted from the plan
       const project = loadProject(args[0])
-      const frames = project.config.promo ? !!writeFrames(project) : undefined
-      result(frames === undefined ? applied : { ...applied, frames })
+      if (!project.config.promo) {
+        result(applied)
+        break
+      }
+      const frames = !!writeFrames(project)
+      result({ ...applied, frames, drafted: frames ? await draftShots(project) : [] })
       break
     }
     case 'title':
