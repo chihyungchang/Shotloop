@@ -132,13 +132,13 @@ const FIXED = [
   },
   {
     id: 'promo-open-close', track: 'all', kind: 'promo', locked: true, name: 'A title and an end card',
-    rule: 'A promo opens on its title and closes on its end card. The title is the first thing seen: the product\'s real logo and name (its one line may join them), held long enough to read, as a beat of its own or the first seconds of the first one, before the hook. The end card is the last beat: the name, the line to remember and where to get it.',
-    check: 'The film\'s first frames show the product\'s logo and name, readable; its last beat is the end card with the name, the line and where to get it.'
+    rule: 'A promo opens on its title and closes on its end card. The title is the first thing seen: the product\'s real logo and name (its one line may join them), held long enough to read, as a beat of its own or the first seconds of the first one, before the hook. The end card is the last beat: the name, the line to remember and where to get it. Title and end card are beats like any other: every frame of them a finished design (promo-fill), never a small block of words on an empty frame.',
+    check: 'The film\'s first frames show the product\'s logo and name, readable; its last beat is the end card with the name, the line and where to get it; both fill the frame as any beat must.'
   },
   {
     id: 'promo-desktop', track: 'all', kind: 'promo', locked: true, name: 'Screens on a desktop',
-    rule: 'Every screen of the product (a program, a website, an app) is shown in a window on a computer\'s desktop (screens.js desktop(): wallpaper, menu bar, Dock), never as a bare screenshot, a cut-out part or a window loose on the film\'s ground. A close-up is the desktop\'s camera moving in on the window; clicking, typing and dragging happen on the desktop. The film has one desktop, the same size and place in every beat (the same box, filling most of the frame), moved only by its own camera: it never shrinks to make room for words, and nothing outside it moves with it.',
-    check: 'Every product screen sits in a window on the desktop, which has the same size and place in every beat and fills most of the frame; none is a bare screenshot, a cut-out part or a loose window.'
+    rule: 'Every screen of the product (a program, a website, an app) is shown in a window on a computer\'s desktop (screens.js desktop(): wallpaper, menu bar, Dock), never as a bare screenshot, a cut-out part or a window loose on the film\'s ground. A close-up is the desktop\'s camera moving in on the window; clicking, typing and dragging happen on the desktop. The film has one desktop, the same size and place in every beat (the same box, filling most of the frame), moved only by its own camera: it never shrinks to make room for words, and nothing outside it moves with it. Where it sits follows the product\'s screens: beside the headline or under it, whichever shows them largest (screens.js layout(\'auto\', { aspect }) with the screens\' width / height), chosen once for the film.',
+    check: 'Every product screen sits in a window on the desktop, which has the same size and place in every beat, beside or under the headline as shows the screens largest, and fills most of the frame; none is a bare screenshot, a cut-out part or a loose window.'
   },
   {
     id: 'promo-fill', track: 'all', kind: 'promo', locked: true, name: 'Every frame designed',

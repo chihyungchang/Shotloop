@@ -624,9 +624,12 @@ const lin = (t, at, d) => clamp((t - at) / d)
 // The page's edge margin, and where a chapter's content starts
 const margin = () => kit().PAD ?? 56 * unit()
 
-// Where a beat's pieces go, with room between them (taste: promo-space):
+// Where a beat's pieces go, with room between them (rule: promo-fill):
 //   layout('side')  the words in a left column, the picture right of them
 //   layout('below') the words across the top, the picture under them
+//   layout('auto', { aspect }) whichever of the two shows a picture of
+//     that width / height largest (a tall app beside its words, a wide
+//     strip of one under them); kind says which it chose
 // lines: the headline's lines. Gives back { words: { x, y, width, size,
 // under }, picture: { x, y, w, h } (pass as a shot's box), source: { y } }
 // in page px (under: where steps or a bubble go below the headline, clear
@@ -635,7 +638,13 @@ const margin = () => kit().PAD ?? 56 * unit()
 // the frame's height parts words from picture, and a band at the bottom
 // is kept for the source line. bleed: the picture runs off the right and
 // the bottom edges instead of stopping at the margin
-export function layout(kind = 'side', { lines = 2, size, bleed = false } = {}) {
+export function layout(kind = 'side', { lines = 2, size, bleed = false, aspect } = {}) {
+  if (kind === 'auto') {
+    if (!aspect) throw new Error('world/screens.js: layout(\'auto\') needs the picture\'s aspect (width / height)')
+    const shown = l => Math.min(l.picture.w, l.picture.h * aspect) ** 2 / aspect
+    const side = layout('side', { lines, size, bleed }), below = layout('below', { lines, size, bleed })
+    return shown(below) > shown(side) ? below : side
+  }
   const { W, H } = kit()
   const u = unit(), m = margin()
   const fs = size ?? Math.min(W, H) * (kind === 'side' ? 0.07 : 0.083)
@@ -649,6 +658,7 @@ export function layout(kind = 'side', { lines = 2, size, bleed = false } = {}) {
     const width = W * 0.27
     const x = m + width + gap
     return {
+      kind,
       words: { x: m, y: top + 46 * u, width, size: fs, under: under(top + 46 * u) },
       picture: { x, y: top, w: bleed ? W - x + 40 * u : W - m - x, h: bleed ? H - top + 40 * u : bottom - gap * 0.5 - top },
       source: { y: H - m * 0.6 - sourceBand * 0.55 }
@@ -656,6 +666,7 @@ export function layout(kind = 'side', { lines = 2, size, bleed = false } = {}) {
   }
   const y = top + textH + gap
   return {
+    kind,
     words: { x: m, y: top, width: W - 2 * m, size: fs, under: under(top) },
     picture: { x: m, y, w: bleed ? W - m + 40 * u : W - 2 * m, h: bleed ? H - y + 40 * u : bottom - gap * 0.5 - y },
     source: { y: H - m * 0.6 - sourceBand * 0.55 }
