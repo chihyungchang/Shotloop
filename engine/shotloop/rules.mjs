@@ -72,8 +72,8 @@ const FIXED = [
   },
   {
     id: 'clean', track: 'all', locked: true, name: 'No broken frames',
-    rule: 'Every frame is clean: nothing clipped, flickering or cut off by the frame or the camera, in a lit 3D scene nothing blown out but a light source, no text spilling out of its box or wrapping where it shouldn\'t, no blank or half-drawn frame, no placeholder left over.',
-    check: 'No clipping through geometry, no subject under the floor, no z-fighting or flicker, nothing cut off by the camera\'s clip range or the frame edge. 3D: nothing blown to flat white but a light source (the stills\' exposure check stripes such areas). No text overflowing or wrapping badly, no blank, half-drawn or placeholder frame.'
+    rule: 'Every frame is clean: nothing clipped, flickering or cut off by the frame or the camera, in a lit 3D scene nothing blown out but a light source, no text spilling out of its box or wrapping where it shouldn\'t, no blank or half-drawn frame, no placeholder left over, and nothing jittering: a piece at rest holds still to the pixel, a move runs smooth.',
+    check: 'No clipping through geometry, no subject under the floor, no z-fighting or flicker, nothing cut off by the camera\'s clip range or the frame edge. 3D: nothing blown to flat white but a light source (the stills\' exposure check stripes such areas). No text overflowing or wrapping badly, no blank, half-drawn or placeholder frame, nothing shaking from frame to frame.'
   },
   {
     id: 'readable', track: 'all', locked: true, name: 'Readable',
@@ -122,13 +122,18 @@ const FIXED = [
   },
   {
     id: 'promo-on-screen', track: 'all', kind: 'promo', locked: true, name: 'True to the screen it\'s on',
-    rule: 'Whatever is drawn onto a product\'s screen (typed words, a caret, a highlight, its next state) sits exactly on the element it belongs to and looks as the product would draw it: its font, size and colour, typed words no bigger than the screen\'s own text in that field, nothing offset from its element or spilling past it. Two pictures blend from one state to the next only where they line up; otherwise the beat cuts between them.',
-    check: 'Everything drawn on a screen sits exactly on its element at the screen\'s own text size; no overlay is offset or oversized, no blend shows two misaligned pages.'
+    rule: 'Whatever is drawn onto a product\'s screen (typed words, a caret, a highlight, its next state) sits exactly on the element it belongs to and looks as the product would draw it: its font, size and colour, typed words no bigger than the screen\'s own text in that field, nothing offset from its element or spilling past it. A highlight hugs the edges of the control it marks and stands out against the screen under it (the accent, or ink where the accent is close to the screen\'s own colours). Two pictures blend from one state to the next only where they line up; otherwise the beat cuts between them.',
+    check: 'Everything drawn on a screen sits exactly on its element at the screen\'s own text size; no overlay is offset or oversized, a highlight hugs its control in a colour that stands out, no blend shows two misaligned pages.'
   },
   {
     id: 'promo-logo', track: 'all', kind: 'promo', locked: true, name: 'The real logo',
     rule: 'The product\'s logo is its real one, the picture the project holds (repo/logo.png, site/logo.png or the person\'s), shown as it is: never drawn, redrawn or imitated in code, recoloured or cropped. With no logo among the pictures, the name alone, in the product\'s font.',
     check: 'Any logo shown is the product\'s own picture, unaltered; no drawn or imitated mark.'
+  },
+  {
+    id: 'promo-open-close', track: 'all', kind: 'promo', locked: true, name: 'A title and an end card',
+    rule: 'A promo opens on its title and closes on its end card. The title is the first thing seen: the product\'s real logo and name (its one line may join them), held long enough to read, as a beat of its own or the first seconds of the first one, before the hook. The end card is the last beat: the name, the line to remember and where to get it.',
+    check: 'The film\'s first frames show the product\'s logo and name, readable; its last beat is the end card with the name, the line and where to get it.'
   },
   {
     id: 'promo-desktop', track: 'all', kind: 'promo', locked: true, name: 'Screens on a desktop',
@@ -137,8 +142,8 @@ const FIXED = [
   },
   {
     id: 'promo-fill', track: 'all', kind: 'promo', locked: true, name: 'Every frame designed',
-    rule: 'Every frame of the film is a finished design, not only the one each beat settles on: from a beat\'s first frame to its last, through entrances, camera moves and wipes, the pieces fill the frame together, the product\'s screen the largest thing, no band of more than about a quarter of the frame left empty, and headlines one size from beat to beat (layout()\'s size). Nothing touches: a gap of at least 5% of the frame\'s height between a headline and what is under or beside it, between pictures, and above the source line (its own band at the bottom), stacked as much as side by side; place pieces in the boxes screens.js layout() gives, and whatever goes under a headline at its words.under. A close-up frames whole things: the edge of the desktop or of the frame never cuts a line of the screen\'s text or a control in half.',
-    check: 'At the start, middle and end of the beat alike: no large empty band, the screen the biggest thing, the headline the same size as in the other beats, a clear gap between every two pieces, and no line of text or control cut in half at an edge.'
+    rule: 'Every frame of the film is a finished design, not only the one each beat settles on: from a beat\'s first frame to its last, through entrances, camera moves and wipes, the main picture (the desktop, or the drawing of the problem) takes at least half of the frame\'s height and more of it than anything else; thin strips (a source line, a counter, a rule) never count as filling the frame, and headlines one size from beat to beat (layout()\'s size). Nothing touches: a gap of at least 5% of the frame\'s height between a headline and what is under or beside it, between pictures, and above the source line (its own band at the bottom), stacked as much as side by side; place pieces in the boxes screens.js layout() gives, and whatever goes under a headline at its words.under. A close-up frames whole things: the edge of the desktop or of the frame never cuts a line of the screen\'s text or a control in half.',
+    check: 'At the start, middle and end of the beat alike: the main picture at least half the frame\'s height and the biggest thing (strips of text don\'t fill a frame), the headline the same size as in the other beats, a clear gap between every two pieces, and no line of text or control cut in half at an edge.'
   },
   {
     id: 'promo-crisp', track: 'all', kind: 'promo', locked: true, name: 'Always sharp',
@@ -266,8 +271,8 @@ const TASTE = [
   // promo of the person's software, website or app, in either frame
   {
     id: 'promo-story', track: 'all', kind: 'promo', name: 'The problem first, then the product',
-    rule: 'Tell the product\'s story from its makers\' own words (its repository and page): open on the problem the viewer knows, shown as a picture with a real number where the material has one (one shot is wrong, so 7 of 7 render again), then the same picture answered by the product (only 1 of 7 renders); then three to five selling points, each its own chapter; end on the one thing to remember. A promo, not a tutorial: never walk through steps, pages or results the material doesn\'t show.',
-    check: 'The film opens on a problem shown as a picture, answers it with the product in the same picture, and ends on one line to remember; no shot walks through a flow the material doesn\'t show.'
+    rule: 'Tell the product\'s story from its makers\' own words (its repository and page): after the title, open on the problem the viewer knows, shown as a picture with a real number where the material has one (one shot is wrong, so 7 of 7 render again), then the product answering it on its own screen (only 1 of 7 renders); then three to five selling points, each its own chapter; end on the one thing to remember. A promo, not a tutorial: never walk through steps, pages or results the material doesn\'t show.',
+    check: 'After its title the film shows a problem as a picture, answers it on the product\'s screen, and ends on one line to remember; no shot walks through a flow the material doesn\'t show.'
   },
   {
     id: 'promo-explain', track: 'all', kind: 'promo', name: 'The product shows it, not a drawing',
@@ -276,8 +281,8 @@ const TASTE = [
   },
   {
     id: 'promo-chapters', track: 'all', kind: 'promo', name: 'One chapter style, big headlines',
-    rule: 'How a beat is labelled is the film\'s own choice (a numbered mono label over a rule, a plain word, no label at all), and once chosen it holds through the whole film: the same label, place, fonts and colours in every beat. Headlines are big and heavy, the boldest thing in the frame after the product, one or two lines rising line by line (the second, the turn, muted).',
-    check: 'Every beat labels itself the same way as the others; the headline is big and bold, at most two lines.'
+    rule: 'How a beat is labelled is the film\'s own choice (a numbered mono label over a rule, a plain word, no label at all), and once chosen it holds through the whole film: every beat, the first included, labelled the same way, in the same place, fonts and colours (numbered, then all of them, from 01). Headlines are big and heavy, the boldest thing in the frame after the product, one or two lines rising line by line (the second, the turn, muted).',
+    check: 'Every beat, the first included, labels itself the same way as the others; the headline is big and bold, at most two lines.'
   },
   {
     id: 'promo-one-part', track: 'all', kind: 'promo', name: 'One part of the product, big',
