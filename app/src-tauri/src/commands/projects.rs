@@ -108,7 +108,8 @@ pub fn add_image(request: tauri::ipc::Request<'_>) -> Result<String, String> {
     let stem: String = Path::new(&name).file_stem().and_then(|s| s.to_str()).unwrap_or("").chars()
         .map(|c| if c.is_ascii_alphanumeric() { c.to_ascii_lowercase() } else { '-' })
         .collect::<String>().split('-').filter(|s| !s.is_empty()).take(6).collect::<Vec<_>>().join("-");
-    let dir = project_file(&project, "images/x")?.parent().ok_or("bad path")?.to_path_buf();
+    // The folder itself, checked against the project before it exists
+    let dir = project_file(&project, "images")?;
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let n = std::fs::read_dir(&dir).map_err(|e| e.to_string())?.count() + 1;
     let rel = format!("images/{n:02}-{}.{ext}", if stem.is_empty() { "image" } else { &stem });

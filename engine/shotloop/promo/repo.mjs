@@ -112,7 +112,9 @@ async function readGithub({ owner, name }) {
     const text = await github(`${base}/contents/${encodeURIComponent(f.path).replace(/%2F/g, '/')}?ref=${branch}`, true).catch(() => null)
     if (text) docs.push({ file: f.path, text })
   }
-  const raw = e => ({ file: e.path, fetch: () => fetch(`https://raw.githubusercontent.com/${owner}/${name}/${branch}/${e.path}`).then(r => (r.ok ? r.arrayBuffer() : null)) })
+  // With the token too: a private repository's files are 404 without it
+  const auth = githubToken() ? { headers: { Authorization: `Bearer ${githubToken()}` } } : {}
+  const raw = e => ({ file: e.path, fetch: () => fetch(`https://raw.githubusercontent.com/${owner}/${name}/${branch}/${e.path}`, auth).then(r => (r.ok ? r.arrayBuffer() : null)) })
   const pictures = files.filter(e => isPicture(e.path) && e.size <= MAX_PICTURE_BYTES).sort((a, b) => b.size - a.size).map(raw)
   const logos = logosOf(files).map(raw)
   return {

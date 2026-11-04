@@ -78,9 +78,13 @@ function head(shot, plan, what) {
 
 const lines = text => String(text ?? '').split('\n').map(l => l.trim()).filter(Boolean)
 const chapterTitle = title => String(title ?? '').replace(/^\s*\d+\s*[—–\-.:)]*\s*/, '')
+// A chapter's number: the plan's own ("03 — …"), else its place among
+// the chapters (the title card isn't one)
+const chapterNumber = (plans, i) => Number(String(plans[i].title ?? '').match(/^\s*(\d+)/)?.[1]) ||
+  plans.slice(0, i + 1).filter(p => p.beat !== 'title' && p.beat !== 'end').length
 
 // One beat's draft, or null for a beat the engine doesn't draft
-async function draft(root, shot, plan, i, { name, logo }) {
+async function draft(root, shot, plan, number, { name, logo }) {
   const text = lines(plan.text)
   const load = files => `export const setup = () => load(${[...new Set(files.filter(Boolean))].map(js).join(', ')})`
   if (plan.beat === 'title' || plan.beat === 'end') {
@@ -96,7 +100,7 @@ export default function render(t, { window }) {
 }
 `
   }
-  const words = `chapter(t, { number: ${i + 1}, title: ${js(chapterTitle(plan.title))}, name: ${js(name)} }),
+  const words = `chapter(t, { number: ${number}, title: ${js(chapterTitle(plan.title))}, name: ${js(name)} }),
     headline(t, { lines: ${js(text)}, x: f.words.x, y: f.words.y, width: f.words.width, size: f.words.size }),
     source(t, { text: ${js(plan.source ?? '')}, y: f.source.y })`
   if (plan.beat === 'screen' && plan.picture) {
@@ -150,7 +154,7 @@ export async function draftShots(project) {
   const done = []
   for (const [i, shot] of project.shots.entries()) {
     if (fs.existsSync(shot.code) && !isStarter(shot.code)) continue
-    const code = await draft(project.root, shot, plan.shots[i], i, known)
+    const code = await draft(project.root, shot, plan.shots[i], chapterNumber(plan.shots, i), known)
     if (!code) continue
     fs.mkdirSync(path.dirname(shot.code), { recursive: true })
     writeAtomic(shot.code, code)

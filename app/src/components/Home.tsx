@@ -208,40 +208,52 @@ function Composer({ ref, open, openSettings, ensureFolder }: {
 
   // A promo can start from its page or pictures alone
   const ready = !!idea.trim() || (promo && (!!site.trim() || !!repo || promoImages.images.length > 0))
+  // A promo made but whose pictures didn't all save: create again goes on
+  // with them instead of making the project a second time
+  const made = useRef<{ root: string; saved: number } | null>(null)
   const create = async () => {
     if (!ready || busy) return
     setError(null)
     setBusy(true)
     try {
-      const parent = folder ?? (await ensureFolder())
-      setFolder(parent)
-      // A promo without words: the idea names the product, in the person's language
-      const text = idea.trim() || t('promo.idea', { name: siteName(site) || repo.split('/').filter(Boolean).at(-1) || t('promo.product') })
-      const title = firstLine(text)
-      const r = await api.createProject({
-        dir: `${parent}/${slugify(title)}`,
-        idea: text,
-        title,
-        track,
-        aspect: frame,
-        duration: length,
-        look: track === '3d' || promo ? '' : look,
-        style: track === '3d' || promo ? '' : style,
-        voice,
-        subtitles: voice ? subtitles : '',
-        promo,
-        site: promo ? site.trim() : '',
-        repo: promo ? repo : ''
-      })
+      if (!made.current) made.current = { root: await makeProject(), saved: 0 }
       // Saved before the plan starts, which looks at them
-      if (promo) for (const i of promoImages.images) await api.addImage(r.root, i.name, i.bytes)
+      const m = made.current
+      if (promo) for (; m.saved < promoImages.images.length; m.saved++) {
+        const i = promoImages.images[m.saved]
+        await api.addImage(m.root, i.name, i.bytes)
+      }
+      made.current = null
       // A new project starts on its planning page: copy and storyboard first
-      open(r.root, true)
+      open(m.root, true)
     } catch (e) {
       setError(String(e))
     } finally {
       setBusy(false)
     }
+  }
+  const makeProject = async () => {
+    const parent = folder ?? (await ensureFolder())
+    setFolder(parent)
+    // A promo without words: the idea names the product, in the person's language
+    const text = idea.trim() || t('promo.idea', { name: siteName(site) || repo.split('/').filter(Boolean).at(-1) || t('promo.product') })
+    const title = firstLine(text)
+    const r = await api.createProject({
+      dir: `${parent}/${slugify(title)}`,
+      idea: text,
+      title,
+      track,
+      aspect: frame,
+      duration: length,
+      look: track === '3d' || promo ? '' : look,
+      style: track === '3d' || promo ? '' : style,
+      voice,
+      subtitles: voice ? subtitles : '',
+      promo,
+      site: promo ? site.trim() : '',
+      repo: promo ? repo : ''
+    })
+    return r.root
   }
 
   const [before, after] = tSplit('home.hero', 'mark')

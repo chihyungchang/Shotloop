@@ -25,7 +25,7 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
   const what = stills ? 'stills' : 'clip'
   if (!force && (stills ? e.stills : e.clip)) {
     emit({ type: 'log', message: `${shot.id}: ${mode} ${what} cached (${e.key})` })
-    const layout = layoutResult(project, shot)
+    const layout = layoutResult(project, shot, e.key)
     const faults = readJson(path.join(e.dir, 'meta.json'), {}).faults ?? null
     return { shot: shot.id, mode, key: e.key, cached: true, ...(await outputs(project, shot, e, mode)), ...(layout ? { layout } : {}), ...(faults && !stills ? { faults } : {}) }
   }
@@ -78,7 +78,7 @@ export async function renderShot(project, shot, { mode = 'draft', stills = false
     const take = addTake(project, shot, { mode, kind: what, key: e.key, parts: keyParts(project, shot, mode), seconds, ...out })
     emit({ type: 'done', shot: shot.id, mode, what, key: e.key, seconds, take: take.take })
     // Measured with the stills, the review's render; a clip for the film isn't held up
-    const layout = stills ? await layoutCheck(project, shot) : null
+    const layout = stills ? await layoutCheck(project, shot, e.key) : null
     return { shot: shot.id, mode, key: e.key, cached: false, take: take.take, seconds, ...out, ...(subtitles ? { subtitles } : {}), ...(layout ? { layout } : {}), ...(faults ? { faults } : {}) }
   } catch (err) {
     recordError(project, shot, mode, err)
@@ -107,9 +107,9 @@ async function subtitleCheck(project, shot) {
 // The layout measured after a render, from the code just drawn; like the
 // subtitle check it is advice, and a failure to measure doesn't fail the
 // render
-async function layoutCheck(project, shot) {
+async function layoutCheck(project, shot, key) {
   try {
-    const issues = await measureLayout(project, shot)
+    const issues = await measureLayout(project, shot, key)
     if (!issues) return null
     for (const l of describeLayout(issues)) emit({ type: 'log', message: `${shot.id} layout: ${l.slice(2)}` })
     return issues

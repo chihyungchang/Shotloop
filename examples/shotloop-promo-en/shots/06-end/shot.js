@@ -27,7 +27,7 @@ export default function render(t, { window }) {
   const d = desktop({ box: f.desktop, windows: shown, view: a.view, app: "Shotloop", dock: "repo/logo.png" })
   depth(d.html,
     // Settled before t = 0: the first frame is already a finished design
-    chapter(t, { number: 6, title: "Export", name: "Shotloop", at: -0.9 }),
+    chapter(t, { number: 5, title: "Export", name: "Shotloop", at: -0.9 }),
     headline(t, { lines: ["Export once", "Cover, posts"], x: f.words.x, y: f.words.y, width: f.words.width, size: f.words.size, at: -0.9 }),
     steps(t, { items: ["VOICE-OVER", "SUBTITLES", "MUSIC", "COVER", "POSTS"], x: f.words.x, y: f.words.under + 24, at: 1.2, step: 0.09, width: f.words.width }),
     source(t, { text: "Shotloop README: Export joins the shots, lays the voice-over with its subtitles and the music under them, designs a cover and writes the post for each platform", y: f.source.y }),

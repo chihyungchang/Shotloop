@@ -541,11 +541,15 @@ async function buildShots(project: ProjectStatus, b: Build, only: ShotStatus | n
       })
       b.done.push(`${shot.id}: ${summary}`)
       collect(b, project, ctx)
-      await reviewShot(project, shot, b, world)
     } catch (err) {
       b.failed.push(`${shot.id}: ${reason(err)}`)
       collect(b, project, ctx)
+      emit({ type: 'shot', id: shot.id, state: 'done' })
+      return
     }
+    // A review that errors (a limit, a timeout) leaves the shot as built:
+    // said, not counted as a failed shot
+    await reviewShot(project, shot, b, world).catch(err => warn(`${shot.id}: its review stopped: ${reason(err)}`))
     emit({ type: 'shot', id: shot.id, state: 'done' })
   })
 }
@@ -558,6 +562,7 @@ async function buildShots(project: ProjectStatus, b: Build, only: ShotStatus | n
 // builder passes its own work too easily; what fails goes back once
 async function reviewShot(project: ProjectStatus, shot: ShotStatus, b: Build, world: string) {
   const brief = `${shotBrief(project, shot)}${promoBrief(project)}`
+  // A shot that doesn't render is found and reported by renderStale
   const measured = (await renderStills(project.root, shot.id).catch(() => null))?.layout ?? []
   if (measured.length) return fixShot(project, shot, b, world, brief, 'measured in its page', measured.map(i => `- ${i.rule}, ${i.from.toFixed(1)}–${i.to.toFixed(1)} s: ${i.what}`))
   if (!REVIEW) return
@@ -577,15 +582,19 @@ async function reviewShot(project: ProjectStatus, shot: ShotStatus, b: Build, wo
 // What a review or the measure found, back to a builder once
 async function fixShot(project: ProjectStatus, shot: ShotStatus, b: Build, world: string, brief: string, how: string, faults: string[]) {
   const ctx = context(project.root, [`shots/${shot.id}/`])
-  await runAgent('code', {
-    step: { kind: 'fix', shot: shot.id },
-    effort: SHOT_EFFORT,
-    system: buildShotSystem(project.track, !!project.voiced, !!project.promo) + remembered(project.track, false) + replyLanguage(values.lang),
-    prompt: `Shot ${shot.id} of ${head(project)} was ${how}, and these rules fail:\n${faults.join('\n')}\n\nFix them, render its stills and check it again.\n\n${world}\n\n${brief}`,
-    ctx,
-    maxTurns: 20
-  })
-  collect(b, project, ctx)
+  // What it edited is kept even when it stops partway
+  try {
+    await runAgent('code', {
+      step: { kind: 'fix', shot: shot.id },
+      effort: SHOT_EFFORT,
+      system: buildShotSystem(project.track, !!project.voiced, !!project.promo) + remembered(project.track, false) + replyLanguage(values.lang),
+      prompt: `Shot ${shot.id} of ${head(project)} was ${how}, and these rules fail:\n${faults.join('\n')}\n\nFix them, render its stills and check it again.\n\n${world}\n\n${brief}`,
+      ctx,
+      maxTurns: 20
+    })
+  } finally {
+    collect(b, project, ctx)
+  }
 }
 
 // Stills out of date (a shot that never rendered, a world changed after

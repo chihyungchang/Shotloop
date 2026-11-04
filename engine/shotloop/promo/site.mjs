@@ -51,6 +51,23 @@ export function siteUrl(text) {
   return url.href
 }
 
+// A repository's home page as the product's page, or null when it isn't
+// one: not a web address, or the code host's own page (a package.json
+// homepage is often github.com/…#readme, whose colours aren't the product's)
+const CODE_HOSTS = /(^|\.)(github\.com|gitlab\.com|bitbucket\.org|codeberg\.org|npmjs\.com)$/i
+export function productPage(homepage) {
+  try {
+    const url = siteUrl(homepage)
+    if (!url) return null
+    // A user in it: a mail address or another scheme read as a host
+    const { hostname, username } = new URL(url)
+    return !username && !CODE_HOSTS.test(hostname) ? url : null
+  } catch {
+    // Not an http address (a file path, a mail link): no page to read
+    return null
+  }
+}
+
 // Runs in the page: everything it says and shows that a promo can use.
 // Self-contained (it is sent as source)
 function readPage(maxSections, maxParts) {

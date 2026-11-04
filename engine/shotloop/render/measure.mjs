@@ -28,7 +28,6 @@
 // still for a second (alive, or promo-motion), and in a promo a picture
 // left soft once a move has ended (promo-crisp).
 
-import fs from 'node:fs'
 import path from 'node:path'
 import { readJson, writeJson } from '../project/files.mjs'
 import { list as listRules } from '../rules.mjs'
@@ -222,10 +221,15 @@ const LOOK = `((promo, beat) => {
   if (H - y > gap.to - gap.from) gap = { from: y, to: H }
   if (spans.length && gap.to - gap.from > H * 0.25) out.push({ kind: 'band', rule: 'promo-fill', what: 'an empty band of ' + Math.round((gap.to - gap.from) / H * 100) + '% of the frame\\'s height (y ' + Math.round(gap.from) + '–' + Math.round(gap.to) + ' px)' })
 
-  // A frame's look in a line, to find one that stands still
+  // A frame's look in a line, to find one that stands still: places and
+  // sizes, and what moves without moving a box (a fade, a colour, a line
+  // drawing on, a shape's own attributes)
   const sign = [...document.body.querySelectorAll('*')].filter(el => seen(el) >= 0.05).map(el => {
     const r = el.getBoundingClientRect()
-    return Math.round(r.left * 2) + ',' + Math.round(r.top * 2) + ',' + Math.round(r.width * 2) + ',' + Math.round(r.height * 2) + ',' + getComputedStyle(el).transform + (el.firstChild?.nodeType === 3 ? el.textContent.length : '')
+    const cs = getComputedStyle(el)
+    const svg = el instanceof SVGElement ? [...el.attributes].map(a => a.value).join(' ') : ''
+    return Math.round(r.left * 2) + ',' + Math.round(r.top * 2) + ',' + Math.round(r.width * 2) + ',' + Math.round(r.height * 2) + ',' + cs.transform + ',' +
+      Math.round(cs.opacity * 50) + ',' + cs.color + ',' + cs.backgroundColor + ',' + cs.strokeDashoffset + ',' + svg + (el.firstChild?.nodeType === 3 ? el.textContent.length : '')
   }).join(';')
   return { faults: out, sign, facts }
 })`
@@ -233,8 +237,9 @@ const LOOK = `((promo, beat) => {
 const layoutFile = (project, shot) => path.join(project.root, '.shotloop', 'shots', shot.id, 'layout.json')
 
 // The shot's layout faults, each { rule, from, to, what } in shot seconds,
-// kept with the shot; null for a shot that isn't measured
-export async function measureLayout(project, shot) {
+// kept with the shot and the render's cache key; null for a shot that
+// isn't measured
+export async function measureLayout(project, shot, key = null) {
   if (project.track !== '2d' || !project.config.promo) return null
   const promo = true
   // The beat the plan laid out (promo/frames.mjs), when it did
@@ -284,7 +289,7 @@ export async function measureLayout(project, shot) {
     .map(({ kind, ...f }) => (kind === 'still' ? { ...f, what: `nothing moves for ${(f.to - f.from).toFixed(1)} s` } : f))
   if (promo) issues.push(...againstOthers(project, shot, settled(facts)))
   const kept = ruled(issues).sort((a, b) => a.from - b.from)
-  writeJson(layoutFile(project, shot), { facts: settled(facts), issues: kept })
+  writeJson(layoutFile(project, shot), { key, facts: settled(facts), issues: kept })
   return kept
 }
 
@@ -378,8 +383,9 @@ function againstOthers(project, shot, mine) {
 export const describeLayout = issues =>
   issues.map(i => `- ${i.rule}, ${i.from.toFixed(1)}–${i.to.toFixed(1)} s: ${i.what}`)
 
-// A shot's layout faults as last measured, or null
-export const layoutResult = (project, shot) => {
-  const file = layoutFile(project, shot)
-  return fs.existsSync(file) ? readJson(file, null)?.issues ?? null : null
+// A shot's layout faults as measured for the render with this key, or
+// null (another version of its code was measured last)
+export const layoutResult = (project, shot, key) => {
+  const layout = readJson(layoutFile(project, shot), null)
+  return layout?.key === key ? layout.issues ?? null : null
 }

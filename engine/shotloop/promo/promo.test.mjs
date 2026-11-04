@@ -7,7 +7,7 @@ import { keyParts } from '../project/cache.mjs'
 import { newProject } from '../project/create.mjs'
 import { loadProject } from '../project/project.mjs'
 import { imageSize, promoImages } from './images.mjs'
-import { siteUrl } from './site.mjs'
+import { productPage, siteUrl } from './site.mjs'
 import { githubRepo, readRepo } from './repo.mjs'
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'promo-'))
@@ -140,4 +140,13 @@ test('a promo\'s screenshot kit is kept as the engine has it', async () => {
   newProject(other, { idea: 'x' })
   freshScreens(other)
   assert.equal(fs.existsSync(path.join(other, 'world', 'screens.js')), false)
+})
+
+test("a repository's home page is the product's page only when it is one", () => {
+  assert.equal(productPage('https://tool.dev'), 'https://tool.dev/')
+  assert.equal(productPage('tool.dev/docs'), 'https://tool.dev/docs')
+  assert.equal(productPage('https://github.com/me/tool#readme'), null)
+  assert.equal(productPage('https://www.npmjs.com/package/tool'), null)
+  assert.equal(productPage('mailto:me@tool.dev'), null)
+  assert.equal(productPage(''), null)
 })

@@ -96,7 +96,7 @@ import { fitVoice, pruneVoice, sampleVoice, setLines, setVoice, soundTimeline, v
 import { voiceCues, voiceOn } from './voiceover/cues.mjs'
 import { AMBIENCE_NAMES, EFFECT_NAMES, projectSounds, setSound, soundCues } from './sound/sound.mjs'
 import { checkSubtitles, describeIssues } from './voiceover/check.mjs'
-import { readSite, siteUrl } from './promo/site.mjs'
+import { productPage, readSite } from './promo/site.mjs'
 import { draftShots } from './promo/drafts.mjs'
 import { writeFrames } from './promo/frames.mjs'
 import { readRepo } from './promo/repo.mjs'
@@ -509,7 +509,8 @@ try {
         tick(done)
       })
       // Its home page is the product's page when none was given
-      if (read.homepage && !project.config.promo.site) updateConfig(project.root, cfg => ({ ...cfg, promo: { ...cfg.promo, site: siteUrl(read.homepage) } }))
+      const page = productPage(read.homepage)
+      if (page && !project.config.promo.site) updateConfig(project.root, cfg => ({ ...cfg, promo: { ...cfg.promo, site: page } }))
       result(read)
       break
     }
