@@ -4,6 +4,8 @@
 // the Anthropic backend. Checks need a vision model (Qwen2.5-VL, Gemma 3,
 // Llama 3.2 Vision…): stills go back to the model as images.
 
+import http from 'node:http'
+import https from 'node:https'
 import { reason } from './events.ts'
 import { runTool, TOOLS, type ToolContext, type ToolOutput } from './tools.ts'
 import { MAX_TURNS, runTurns } from './turns.ts'
@@ -30,21 +32,33 @@ const base = (url: string) => url.replace(/\/+$/, '')
 const auth = (apiKey?: string): Record<string, string> => (apiKey ? { authorization: `Bearer ${apiKey}` } : {})
 
 // One answer may take long on a local machine (a big model, a long
-// prompt, stills to look at); one that takes longer than this has hung
+// prompt, stills to look at); one silent for longer than this has hung
 const REQUEST_TIMEOUT_MIN = 15
 
+// A plain request, not fetch: Node's fetch gives up on a server that
+// sends no headers within five minutes ("fetch failed"), and a local
+// model reading a long prompt before answering can take longer
 async function post(m: LocalModel, path: string, body: unknown) {
-  const res = await fetch(`${base(m.url)}${path}`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', ...auth(m.apiKey) },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MIN * 60_000)
-  }).catch(err => {
-    if (err?.name === 'TimeoutError') throw new Error(`${m.url}: no answer within ${REQUEST_TIMEOUT_MIN} minutes`)
-    throw err
+  const url = new URL(`${base(m.url)}${path}`)
+  const data = JSON.stringify(body)
+  const { status, text } = await new Promise<{ status: number; text: string }>((resolve, reject) => {
+    const req = (url.protocol === 'https:' ? https : http).request(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(data), ...auth(m.apiKey) },
+      timeout: REQUEST_TIMEOUT_MIN * 60_000
+    }, res => {
+      let text = ''
+      res.setEncoding('utf8')
+      res.on('data', d => (text += d))
+      res.on('end', () => resolve({ status: res.statusCode ?? 0, text }))
+      res.on('error', reject)
+    })
+    req.on('timeout', () => req.destroy(new Error(`no answer within ${REQUEST_TIMEOUT_MIN} minutes`)))
+    req.on('error', err => reject(new Error(`${m.url}: ${reason(err)}`)))
+    req.end(data)
   })
-  if (!res.ok) throw new Error(`${m.url}: ${res.status} ${(await res.text()).slice(0, 400)}`)
-  return res.json()
+  if (status < 200 || status >= 300) throw new Error(`${m.url}: ${status} ${text.slice(0, 400)}`)
+  return JSON.parse(text)
 }
 
 // Not chat models: embeddings, speech, images, video, moderation…
