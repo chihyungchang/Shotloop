@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import { ErrorBoundary, ErrorDialogHost } from './components/ErrorDialog'
+import { UpdateDialogHost } from './components/UpdateDialog'
 import './styles/index.css'
 
 // The window's title bar is the app's own ground (titleBarStyle Overlay):
@@ -13,5 +14,6 @@ createRoot(document.getElementById('root')!).render(
       <App />
     </ErrorBoundary>
     <ErrorDialogHost />
+    <UpdateDialogHost />
   </StrictMode>
 )

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, KEY_PAGES, type About, type Job, type Settings, type Machine, type VoiceModel } from '../api'
-import { checkForUpdate, installUpdate, useUpdate } from '../update'
+import { checkForUpdate, useUpdate } from '../update'
 import { LANGS, t, type LangPref, type useLanguage } from '../i18n'
 import type { Key } from '../i18n/en'
 import { formatMB, isActive } from '../model'
@@ -17,6 +17,7 @@ import { ThemeToggle } from './ThemeToggle'
 import { VoiceDownload } from './VoiceDownload'
 import licenses from '../licenses.json'
 import { ErrorText } from './ErrorDialog'
+import { showUpdateNotes } from './UpdateDialog'
 
 export type Section = 'ai' | 'rules' | 'memory' | 'assets' | 'general' | 'deps' | 'about'
 
@@ -370,11 +371,10 @@ function UpdateRow({ version }: { version: string }) {
       <div>
         <strong>{t('update.title')}</strong>
         <p className="hint">{status}</p>
-        {u.kind === 'available' && u.notes && <p className="hint update-notes">{u.notes}</p>}
         <ErrorText error={u.kind === 'failed' && u.error} className="hint error" />
       </div>
       {u.kind === 'available'
-        ? <button className="primary small" onClick={installUpdate}>{t('update.installNow')}</button>
+        ? <button className="primary small" onClick={showUpdateNotes}>{t('update.whatsNew')}</button>
         : <button className="small" onClick={() => checkForUpdate()} disabled={u.kind === 'checking' || u.kind === 'downloading' || u.kind === 'restarting'}>
             {u.kind === 'checking' ? <span className="spinner small" /> : null} {t('update.check')}
           </button>}

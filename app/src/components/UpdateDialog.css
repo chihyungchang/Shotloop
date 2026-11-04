@@ -1,0 +1,11 @@
+/* A new version's notes: headings and lists to read, the install below */
+.update-dialog { --dialog-w: 520px; }
+.update-dialog-title { display: flex; align-items: center; gap: 8px; }
+.update-notes { max-height: min(380px, 55vh); overflow: auto; margin: 0 -18px; padding: 2px 18px 4px; border-block: 1px solid var(--border-soft);
+  font-size: 13px; line-height: 1.6; color: var(--text-2); user-select: text; }
+.dialog.column .update-notes p { margin: 12px 0 4px; }
+.update-notes p strong { font-size: 13px; }
+.update-notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.update-notes code { font: 12px var(--font-mono); padding: 1px 4px; border-radius: 4px; background: var(--surface-2); }
+.update-progress { height: 4px; border-radius: var(--r-pill); background: var(--surface-2); overflow: hidden; }
+.update-progress-bar { height: 100%; background: var(--accent); transition: width var(--dur-fast) var(--ease); }

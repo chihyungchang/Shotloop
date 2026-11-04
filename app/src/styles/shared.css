@@ -70,7 +70,6 @@
 .update-note > span { display: flex; flex-direction: column; min-width: 0; }
 .update-note strong { font-size: 12.5px; }
 .update-note.busy { color: var(--text-2); background: var(--surface-2); }
-.update-notes { white-space: pre-wrap; max-height: 120px; overflow: auto; }
 
 /* A shot as a frame in its look, before it has stills */
 .sketch { position: relative; display: block; aspect-ratio: 9 / 16; border-radius: 8px; overflow: hidden; background: var(--surface-2); color: var(--text); box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 10%, transparent); container-type: inline-size; --sk-accent: var(--accent); --sk-accent2: var(--text-3); }

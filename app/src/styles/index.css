@@ -26,6 +26,7 @@
 @import '../components/studio/SoundDialog.css';
 @import '../components/RuleRef.css';
 @import '../components/ErrorDialog.css';
+@import '../components/UpdateDialog.css';
 @import '../components/UsagePage.css';
 @import '../components/JobDownload.css';
 @import '../components/PromoMaterial.css';

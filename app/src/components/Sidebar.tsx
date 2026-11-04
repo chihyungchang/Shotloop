@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { api, REPO, type Job, type Usage, type UsageWindow } from '../api'
 import { baseName, listRecent, onRecentChange, readRecent } from '../recent'
-import { installUpdate, useUpdate } from '../update'
+import { useUpdate } from '../update'
+import { showUpdateNotes } from './UpdateDialog'
 import type { useTheme } from '../theme/theme'
 import { aiSummary, useDetected } from '../ai/backends'
 import { useUsage, windowUse } from '../ai/useUsage'
@@ -128,14 +129,15 @@ function UsageLine({ usage }: { usage: Usage }) {
   )
 }
 
-// A new version on GitHub: say so above the foot, and install it in place
+// A new version on GitHub: say so above the foot; its notes and the
+// install open in a dialog
 function UpdateNote() {
   const u = useUpdate()
   if (u.kind === 'available') {
     return (
-      <button className="update-note" onClick={installUpdate} title={u.notes || undefined}>
+      <button className="update-note" onClick={showUpdateNotes}>
         <Icon name="download" size={14} />
-        <span><strong>{t('update.available', { v: u.version })}</strong><span className="small">{t('update.install')}</span></span>
+        <span><strong>{t('update.available', { v: u.version })}</strong><span className="small">{t('update.whatsNew')}</span></span>
       </button>
     )
   }
