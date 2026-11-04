@@ -378,6 +378,8 @@ export const ja: Record<Key, string> = {
   'ai.cli': 'ローカル CLI エージェント',
   'ai.local': 'ローカルモデル',
   'ai.localNote': 'Ollama、LM Studio、または OpenAI 互換のサーバ。この Mac でも、ネットワーク上の別のコンピュータでも使えます。',
+  'ai.localWarnTitle': 'お試し向けです',
+  'ai.localWarn': 'ローカルモデルは企画なら書けますが、ショットの生成では長い描画コードを書き、静止画を見て自分で直す必要があります。ローカルでは遅く（20 分以上かかることも多い）、誤りも出がちです。品質と速さを求めるなら Claude Code か有料のモデル API をお使いください。',
   'ai.model': 'モデル',
   'ai.anthropicDefault': 'デフォルト：修正は claude-opus-5-5、チェックは claude-sonnet-5-5',
   'ai.cliDefault': 'CLI 自体のデフォルト',

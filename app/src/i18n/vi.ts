@@ -378,6 +378,8 @@ export const vi: Record<Key, string> = {
   'ai.cli': 'CLI agent cục bộ',
   'ai.local': 'Mô hình cục bộ',
   'ai.localNote': 'Ollama, LM Studio hoặc bất kỳ máy chủ tương thích OpenAI nào, trên Mac này hoặc máy tính khác trong mạng.',
+  'ai.localWarnTitle': 'Chỉ nên dùng để thử',
+  'ai.localWarn': 'Mô hình trên máy bạn viết kế hoạch tạm được, nhưng tạo cảnh quay cần viết nhiều mã vẽ rồi tự kiểm tra qua khung hình: chạy cục bộ thường chậm (hay mất 20 phút trở lên) và dễ sai. Để có chất lượng và tốc độ ổn định, hãy dùng Claude Code hoặc API mô hình trả phí.',
   'ai.model': 'Mô hình',
   'ai.anthropicDefault': 'Mặc định: claude-opus-5-5 để sửa, claude-sonnet-5-5 để kiểm tra',
   'ai.cliDefault': 'Mặc định của CLI',

@@ -378,6 +378,8 @@ export const de: Record<Key, string> = {
   'ai.cli': 'Lokaler CLI-Agent',
   'ai.local': 'Lokales Modell',
   'ai.localNote': 'Ollama, LM Studio oder ein beliebiger OpenAI-kompatibler Server, auf diesem Mac oder einem anderen Computer im Netzwerk.',
+  'ai.localWarnTitle': 'Eher zum Ausprobieren',
+  'ai.localWarn': 'Ein Modell auf deinem Rechner schreibt einen Plan ganz gut, aber Shots bauen heißt langen Zeichencode schreiben und an den eigenen Standbildern prüfen: lokal ist das langsam (oft 20 Minuten und mehr) und oft fehlerhaft. Für verlässliche Qualität und Tempo nimm Claude Code oder eine kostenpflichtige Modell-API.',
   'ai.model': 'Modell',
   'ai.anthropicDefault': 'Standard: claude-opus-5-5 für Korrekturen, claude-sonnet-5-5 für Prüfungen',
   'ai.cliDefault': 'Standard der CLI',

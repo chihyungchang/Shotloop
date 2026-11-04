@@ -10,6 +10,7 @@ import path from 'node:path'
 import type { VoiceResult } from '../../engine/shotloop/protocol.d.ts'
 import { engine, renderCover, renderStills } from './engine.ts'
 import { emit, reason, warn } from './events.ts'
+import { moduleFaults } from './modules.ts'
 import { isKit, notesOf } from './notes.ts'
 import { AMBIENCE_NAMES, findText, memory, pictureText, STYLES, styleById, styleStills, web } from './enginelib.ts'
 
@@ -209,11 +210,11 @@ export const TOOLS: Tool[] = [
   },
   {
     name: 'search_web',
-    description: 'Search for pages about a fact: Wikipedia always, the whole web too when the person has a search key. Returns each result\'s title, address and a snippet; read a page with read_page before you use anything from it.',
+    description: 'Search for pages about a fact: Wikipedia always (in English too), the whole web when the person has a search key. Returns each result\'s title, address and a snippet; read a page with read_page before you use anything from it. Results that don\'t answer what the idea asks are no answer: search again with other words (the thing\'s proper name, in English) rather than settle for a nearby topic.',
     strict: true,
     input_schema: object({
-      query: { type: 'string', description: 'What to look for, as a search would be typed.' },
-      lang: { type: 'string', description: 'Wikipedia\'s language code, e.g. "en" or "zh"; "en" unless the topic is best covered in another language.' }
+      query: { type: 'string', description: 'A few keywords naming the thing, in English, as an encyclopedia would title it (e.g. "Tesla Roadster flight thrusters"), not the whole question.' },
+      lang: { type: 'string', description: 'Wikipedia\'s language code besides English, e.g. "zh" for a topic local to China; "en" for English alone.' }
     }, ['query', 'lang'])
   },
   {
@@ -374,7 +375,9 @@ async function execute(ctx: ToolContext, name: string, input: Record<string, unk
       emit({ type: 'tool', name, summary: rel, path: rel })
       const shot = codeOf(rel)
       if (shot && shot !== ctx.sheet) emit({ type: 'shot', id: shot, state: 'written' })
-      return `${rel} saved`
+      // Saved all the same: the model fixes it before it renders
+      const faults = moduleFaults(ctx.root, rel, content)
+      return faults.length ? `${rel} saved, but it won't load:\n${faults.map(f => `- ${f}`).join('\n')}\nFix it before you render.` : `${rel} saved`
     }
     case 'render_stills': {
       const shot = str('shot')

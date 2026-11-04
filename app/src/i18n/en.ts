@@ -379,6 +379,8 @@ export const en = {
   'ai.cli': 'Local CLI agent',
   'ai.local': 'Local model',
   'ai.localNote': 'Ollama, LM Studio or any OpenAI-compatible server, on this Mac or another computer on your network.',
+  'ai.localWarnTitle': 'Best for trying things out',
+  'ai.localWarn': 'A model on your own machine writes a plan well enough, but building shots means long drawing code it has to check against its own stills: locally that is slow (often 20 minutes or more) and often wrong. For dependable quality and speed, use Claude Code or a paid model API.',
   'ai.model': 'Model',
   'ai.anthropicDefault': 'Default: claude-opus-5-5 for fixes, claude-sonnet-5-5 for checks',
   'ai.cliDefault': 'The CLI’s own default',

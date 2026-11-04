@@ -12,11 +12,14 @@ const PAGE_CHARS = 10_000
 const AROUND = 700
 
 // Results from every source the person has, the web's first:
-// [{ title, url, snippet }]
+// [{ title, url, snippet }]. Wikipedia in another language is searched
+// with English beside it: English covers far more, and a model asking in
+// the idea's language would otherwise miss it
 export async function searchWeb(query, { lang = 'en', tavilyKey = '', braveKey = '' } = {}) {
   const web = tavilyKey ? tavily(query, tavilyKey) : braveKey ? brave(query, braveKey) : Promise.resolve([])
-  const [found, wiki] = await Promise.all([web, wikipedia(query, lang)])
-  return [...found, ...wiki]
+  const langs = lang === 'en' ? ['en'] : [lang, 'en']
+  const [found, ...wikis] = await Promise.all([web, ...langs.map(l => wikipedia(query, l))])
+  return [...found, ...wikis.flat()]
 }
 
 async function wikipedia(query, lang) {

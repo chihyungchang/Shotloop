@@ -145,7 +145,7 @@ ${voice ? `
   "subtitles": "<the id of the subtitle look you pick from the list in the request; leave it out when there is no list>",
   "subtitlesWhy": "<one short sentence for the person: why this subtitle look fits the video>",` : ''}
   "copy": {
-    "idea": "<the idea in one or two sentences>",
+    "idea": "<the person's idea in one or two sentences: what they asked, made clear, never changed to fit what you found>",
     "hook": "<the opening line: a question or a surprising fact, under 20 words>",
     "body": "<the script: what the video says, beat by beat, in a few short paragraphs>",
     "facts": [{ "text": "<one claim the video makes>", "source": "<the publication or site, then the address of the page you read it on>" }]

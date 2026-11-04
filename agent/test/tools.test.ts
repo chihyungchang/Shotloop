@@ -119,3 +119,20 @@ test('read_page records the page read; a fact sourced to it passes, one from mem
     fs.rmSync(root, { recursive: true, force: true })
   }
 })
+
+test('a shot written with an import that won\'t load, or a recurring picture taken from the kit, is told at once', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'shotloop-modules-'))
+  try {
+    fs.mkdirSync(path.join(root, 'world', 'parts'), { recursive: true })
+    fs.writeFileSync(path.join(root, 'world', 'parts', 'part-1.js'), 'export function truck(kit) {}\n')
+    fs.writeFileSync(path.join(root, 'world', 'parts.js'), "export { truck } from './parts/part-1.js'\n")
+    const ctx = newContext(root, '', ['shots/01-a/'])
+    const write = (content: string) => runTool(ctx, 'write_file', { path: 'shots/01-a/shot.js', content })
+    assert.match((await write("import { truck } from '../world/parts/part-1.js'\n")).text[0], /won't load[\s\S]*doesn't exist; the recurring pictures are imported from "\.\.\/\.\.\/world\/parts\.js"/)
+    assert.match((await write("import { wheel } from '../../world/parts.js'\n")).text[0], /exports no wheel \(it exports truck\)/)
+    assert.match((await write('export default function render(t, { window }) { const { c, truck } = window.kit }\n')).text[0], /truck is not in the kit: it is a recurring picture/)
+    assert.equal((await write("import { truck } from '../../world/parts.js'\nexport default function render() {}\n")).text[0], 'shots/01-a/shot.js saved')
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true })
+  }
+})

@@ -378,6 +378,8 @@ export const id: Record<Key, string> = {
   'ai.cli': 'Agen CLI lokal',
   'ai.local': 'Model lokal',
   'ai.localNote': 'Ollama, LM Studio, atau server apa pun yang kompatibel dengan OpenAI, di Mac ini atau komputer lain di jaringan.',
+  'ai.localWarnTitle': 'Sebaiknya hanya untuk mencoba',
+  'ai.localWarn': 'Model di mesin Anda cukup baik menulis rencana, tetapi membuat shot berarti menulis banyak kode gambar lalu memeriksanya lewat gambar diamnya sendiri: secara lokal ini lambat (sering 20 menit atau lebih) dan sering salah. Untuk kualitas dan kecepatan yang andal, gunakan Claude Code atau API model berbayar.',
   'ai.model': 'Model',
   'ai.anthropicDefault': 'Bawaan: claude-opus-5-5 untuk perbaikan, claude-sonnet-5-5 untuk pemeriksaan',
   'ai.cliDefault': 'Bawaan CLI itu sendiri',

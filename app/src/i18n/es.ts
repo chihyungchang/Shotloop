@@ -378,6 +378,8 @@ export const es: Record<Key, string> = {
   'ai.cli': 'Agente CLI local',
   'ai.local': 'Modelo local',
   'ai.localNote': 'Ollama, LM Studio o cualquier servidor compatible con OpenAI, en este Mac o en otro ordenador de la red.',
+  'ai.localWarnTitle': 'Mejor solo para probar',
+  'ai.localWarn': 'Un modelo en tu equipo escribe un plan bastante bien, pero crear los planos exige mucho código de dibujo que debe revisar con sus propios fotogramas: en local es lento (a menudo 20 minutos o más) y falla con frecuencia. Para calidad y velocidad fiables, usa Claude Code o una API de modelo de pago.',
   'ai.model': 'Modelo',
   'ai.anthropicDefault': 'Predeterminado: claude-opus-5-5 para correcciones, claude-sonnet-5-5 para comprobaciones',
   'ai.cliDefault': 'El predeterminado de la CLI',

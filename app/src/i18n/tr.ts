@@ -378,6 +378,8 @@ export const tr: Record<Key, string> = {
   'ai.cli': 'Yerel CLI ajanı',
   'ai.local': 'Yerel model',
   'ai.localNote': 'Ollama, LM Studio veya OpenAI uyumlu herhangi bir sunucu; bu Mac’te ya da ağdaki başka bir bilgisayarda.',
+  'ai.localWarnTitle': 'Yalnızca denemek için',
+  'ai.localWarn': 'Yerel bir model planı idare eder, ama çekimleri üretmek uzun çizim kodu yazıp kendi karelerine bakarak düzeltmeyi gerektirir: yerelde bu yavaştır (çoğu zaman 20 dakika ya da fazlası) ve sık hata yapar. Güvenilir kalite ve hız için Claude Code ya da ücretli bir model API’si kullanın.',
   'ai.model': 'Model',
   'ai.anthropicDefault': 'Varsayılan: düzeltmeler için claude-opus-5-5, denetimler için claude-sonnet-5-5',
   'ai.cliDefault': 'CLI’nin kendi varsayılanı',

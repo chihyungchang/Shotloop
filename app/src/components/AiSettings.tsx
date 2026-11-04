@@ -127,7 +127,7 @@ export function AiSettings({ settings, update }: { settings: Settings; update: U
       <ErrorText error={link.error} className="error small" />
       {mode === 'cli' && <CliPane settings={settings} update={update} detected={detected} probes={probes} openLink={openLink} />}
       {mode === 'api' && <ApiPane settings={settings} update={update} preset={preset} choosePreset={choosePreset} probes={probes} openLink={openLink} />}
-      {mode === 'local' && <LocalPane settings={settings} update={update} detected={detected} probes={probes} />}
+      {mode === 'local' && <LocalPane settings={settings} update={update} detected={detected} probes={probes} chooseMode={chooseMode} />}
       <Reasoning local={mode === 'local'} settings={settings} update={update} />
     </section>
   )
@@ -276,11 +276,25 @@ function ApiPane({ settings, update, preset, choosePreset, probes, openLink }: {
 // A model on a local OpenAI-compatible server, on this Mac or another
 // machine nearby, in two cards: the server (the ones found here as
 // chips, any other address typed in, its key) and its model
-function LocalPane({ settings, update, detected, probes }: { settings: Settings; update: Update; detected: Detected | null; probes: Probes }) {
+// A local model drafts a plan well enough, but building shots is long
+// code it must check against its own stills: on a machine nearby that is
+// slow and often wrong, so the pane says so first, with the way out
+function LocalPane({ settings, update, detected, probes, chooseMode }: { settings: Settings; update: Update; detected: Detected | null; probes: Probes; chooseMode: (m: Provider) => void }) {
   const urlField = useRef<HTMLInputElement>(null)
   const found = detected?.servers.find(s => s.url === settings.localUrl)
   return (
     <div className="provider-body">
+      <div className="local-warn" role="note">
+        <Icon name="info" size={16} />
+        <div>
+          <strong>{t('ai.localWarnTitle')}</strong>
+          <p>{t('ai.localWarn')}</p>
+          <div className="row gap">
+            <button className="pill-button" onClick={() => chooseMode('cli')}>{t('ai.cli')} <Icon name="arrow" size={12} /></button>
+            <button className="pill-button" onClick={() => chooseMode('api')}>{t('ai.api')} <Icon name="arrow" size={12} /></button>
+          </div>
+        </div>
+      </div>
       <p className="hint">{t('ai.localNote')}</p>
       <div className="ai-group">
         <div className="row between">

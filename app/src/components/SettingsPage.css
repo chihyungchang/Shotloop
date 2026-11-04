@@ -91,6 +91,13 @@ details .field + .field { margin-top: 10px; }
 .probe.ok { color: var(--success); } .probe.bad { display: block; color: var(--danger); white-space: pre-wrap; }
 .warn-note { color: var(--warning); }
 .server-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Before a local model is set up: what it is good for, and the way out */
+.local-warn { display: flex; gap: 10px; padding: 12px 14px; border-radius: var(--r-lg); background: var(--warning-soft); color: var(--text); }
+.local-warn > svg { flex: none; margin-top: 2px; color: var(--warning); }
+.local-warn > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.local-warn strong { font-size: 13px; color: var(--text-strong); }
+.local-warn p { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
+.local-warn .pill-button { background: var(--surface); }
 /* A local server's or a model's settings, and the reasoning, each a card */
 .ai-group { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px 16px; border: 1px solid var(--border); border-radius: var(--r-lg); }
 .ai-fields { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 12px; }

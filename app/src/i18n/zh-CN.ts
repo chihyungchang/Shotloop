@@ -374,6 +374,8 @@ export const zhCN: Record<Key, string> = {
   'ai.cli': '本机 CLI',
   'ai.local': '本地模型',
   'ai.localNote': 'Ollama、LM Studio 或任何 OpenAI 兼容服务，可以在这台 Mac 上，也可以在局域网里的另一台电脑上。',
+  'ai.localWarnTitle': '只建议用来尝试',
+  'ai.localWarn': '本地模型写策划还可以，但生成镜头要写大量绘图代码、再对照静帧自己检查修改：在本地往往很慢（常常 20 分钟以上），也容易出错。要保证质量和速度，建议使用 Claude Code 或付费的模型 API。',
   'ai.model': '模型',
   'ai.anthropicDefault': '默认：修改用 claude-opus-5-5，检查用 claude-sonnet-5-5',
   'ai.cliDefault': '使用 CLI 自己的默认模型',
