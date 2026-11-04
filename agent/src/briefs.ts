@@ -218,10 +218,16 @@ ${LOOKS.map(l => `- ${l.id}: ${l.about}; mood: ${l.mood}${l.scene ? '' : ' (not 
 export function worldFiles(project: ProjectStatus, { docs = false } = {}) {
   const worldDir = path.join(project.root, 'world')
   if (!fs.existsSync(worldDir)) return ''
-  return fs.readdirSync(worldDir, { withFileTypes: true })
+  // A kit split into a folder (world/screens/) is listed file by file, so
+  // a piece is read alone; the recurring pictures (world/parts/) have their
+  // index, world/parts.js
+  const files = fs.readdirSync(worldDir, { withFileTypes: true }).flatMap(e => (e.isDirectory() && e.name === 'screens'
+    ? fs.readdirSync(path.join(worldDir, e.name)).sort().map(f => `${e.name}/${f}`)
+    : e.isFile() ? [e.name] : []))
+  return files
     // The frames are given to each shot as its own (shotBrief)
-    .filter(e => e.isFile() && /\.(py|js|mjs|html|css|json|md|txt|svg)$/i.test(e.name) && !/\.data\./.test(e.name) && e.name !== 'frames.json')
-    .map(e => `world/${e.name}:\n${docs ? notesOf(e.name, read(path.join(worldDir, e.name))) : read(path.join(worldDir, e.name))}`).join('\n\n')
+    .filter(f => /\.(py|js|mjs|html|css|json|md|txt|svg)$/i.test(f) && !/\.data\./.test(f) && f !== 'frames.json')
+    .map(f => `world/${f}:\n${docs ? notesOf(f, read(path.join(worldDir, f))) : read(path.join(worldDir, f))}`).join('\n\n')
 }
 
 // A file's notes: its leading comment (HTML, block or line comments) and,

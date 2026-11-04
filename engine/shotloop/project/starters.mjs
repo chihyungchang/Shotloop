@@ -116,9 +116,11 @@ export function freshWebglPage(root) {
 // its world, and brought up to this engine's before a command reads the
 // project, so an improved kit (a camera that moves in on the whole window)
 // reaches every promo; its shots render again, as for any world change
-// The kit's files, copied whole: the screens kit and the layout it shares
-// with the engine and the app
-const SCREENS = ['screens.js', 'promo-layout.js'].map(f => ({ f, from: new URL(`../kits/${f}`, import.meta.url) }))
+// The kit's files, copied whole: the screens kit (its index and its
+// pieces in screens/) and the layout it shares with the engine and the app
+const KITS = new URL('../kits/', import.meta.url)
+const SCREENS = ['screens.js', 'promo-layout.js', ...fs.readdirSync(new URL('screens/', KITS)).sort().map(f => `screens/${f}`)]
+  .map(f => ({ f, from: new URL(f, KITS) }))
 export function freshScreens(root) {
   const cfg = readJson(path.join(root, 'shotloop.json'), null)
   if (!cfg?.promo) return
