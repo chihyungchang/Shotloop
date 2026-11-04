@@ -21,23 +21,37 @@ export const url = file => new URL(`../../${file}`, import.meta.url).href
 // ---- Material ----
 
 export const parts = new Map()
-// Pictures decoded, live parts read and the brand's fonts (site/fonts.css)
-// loaded before the first frame: call it from setup
+// The plan's frames (world/frames.json), read once
 export let frames = null
 export const framesRead = () => (frames ??= fetch(url('world/frames.json')).then(r => (r.ok ? r.json() : null)).catch(() => null).then(f => (frames = f)))
-export const load = (...files) => Promise.all([framesRead(), ...files.map(async f => {
-  if (/\.css$/i.test(f)) {
-    const res = await fetch(url(f)).catch(() => null)
-    if (!res?.ok) throw new Error(`world/screens.js: can't load ${f}`)
-    const style = document.createElement('style')
-    style.textContent = await res.text()
-    document.head.appendChild(style)
-    // Every face it names, loaded now: text drawn later must not wait
-    await Promise.all([...style.sheet.cssRules].filter(r => r instanceof CSSFontFaceRule)
-      .map(r => document.fonts.load(`${r.style.getPropertyValue('font-weight') || 400} 20px ${r.style.getPropertyValue('font-family')}`).catch(() => {})))
-    await document.fonts.ready
-    return
+
+// A style sheet of the project in the page, every face it names loaded
+// now (text drawn later must not wait); null when it isn't there and may
+// not be
+async function sheet(f, optional = false) {
+  const res = await fetch(url(f)).catch(() => null)
+  if (!res?.ok) {
+    if (optional) return null
+    throw new Error(`world/screens.js: can't load ${f}`)
   }
+  const style = document.createElement('style')
+  style.textContent = await res.text()
+  document.head.appendChild(style)
+  await Promise.all([...style.sheet.cssRules].filter(r => r instanceof CSSFontFaceRule)
+    .map(r => document.fonts.load(`${r.style.getPropertyValue('font-weight') || 400} 20px ${r.style.getPropertyValue('font-family')}`).catch(() => {})))
+  await document.fonts.ready
+  return style
+}
+// The brand's fonts (site/fonts.css, from the product's page), in every
+// shot alike, so no beat falls back to the look's own face
+const BRAND = 'site/fonts.css'
+let brand = null
+const brandRead = () => (brand ??= sheet(BRAND, true))
+
+// Pictures decoded and live parts read before the first frame, with the
+// frames and the brand's fonts: call it from setup
+export const load = (...files) => Promise.all([framesRead(), brandRead(), ...files.filter(f => f !== BRAND).map(async f => {
+  if (/\.css$/i.test(f)) return sheet(f)
   if (/\.json$/i.test(f)) {
     const res = await fetch(url(f)).catch(() => null)
     if (!res?.ok) throw new Error(`world/screens.js: can't load ${f}`)

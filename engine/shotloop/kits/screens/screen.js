@@ -258,7 +258,11 @@ export function desktop({ box: given, windows, view = { x: 0.5, y: 0.5, zoom: 1 
   const svg = body => `<svg viewBox="0 0 100 100" width="${n(tile)}" height="${n(tile)}" style="display:block;flex:none;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.25))">${body}</svg>`
   const img = file => `<img src="${url(file)}" style="display:block;flex:none;width:${n(tile)}px;height:${n(tile)}px;border-radius:${n(tile * 0.23)}px;object-fit:cover">`
   const divider = `<i style="display:block;flex:none;width:1px;align-self:stretch;margin:${n(2 * u)}px ${n(1 * u)}px;background:rgba(255,255,255,.45)"></i>`
-  const dockHtml = `<div style="position:absolute;left:50%;bottom:${n(6 * u)}px;transform:translateX(-50%);display:flex;align-items:center;gap:${n(6 * u)}px;padding:${n(5 * u)}px ${n(7 * u)}px;` +
+  // The Dock hides as the camera moves in (macOS's own auto-hide), so it
+  // never covers what the camera came close to; at the whole screen it
+  // shows
+  const hide = clamp((z - 1.08) / 0.25)
+  const dockHtml = `<div style="position:absolute;left:50%;bottom:${n(6 * u)}px;transform:translate(-50%,${n(hide * 60 * u)}px);opacity:${n(1 - hide)};display:flex;align-items:center;gap:${n(6 * u)}px;padding:${n(5 * u)}px ${n(7 * u)}px;` +
     `border-radius:${n(14 * u)}px;background:rgba(255,255,255,.28);backdrop-filter:blur(14px);box-shadow:0 0 0 1px rgba(255,255,255,.35)">` +
     (dock ? img(dock) : '') + (apps ? apps.map(img) : DOCK_APPS.map(svg)).join('') + divider + svg(DOCK_TRASH) + '</div>'
   const windowHtml = wins.map(w => {
