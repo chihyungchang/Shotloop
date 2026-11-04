@@ -147,6 +147,8 @@ Working with the material:
 - Write the product's story in copy.body first (the problem, who has it, what the product does about it, the one thing to remember), from the briefs above, then plan the shots that tell it. Every claim in copy.facts, its source the repository's file or the page's address.
 - A shot that shows the product names its picture in "show" by its file (repo/pictures/…, site/framed/…, site/hero.png, site/parts/…, site/live/…, or the person's pictures). Look at the pictures (view_image) before you pick them.
 - The brand's colors (in the page's brief) reach the film through the look: pick the look nearest them and shade it with "lookTune".
+- Each shot in storyboard.json also says what beat it is, so the engine lays the film out (its frames, the same boxes the shots are built in and the person sees as wireframes): "beat": "title" (the first shot: the logo and name), "problem" (the problem or the old way, drawn), "screen" (the product on the desktop) or "end" (the last shot: the end card); and "steps": how many chips sit under its headline (0 for none). Its "text" is its headline, a line each (one or two).
+- "recurring" lists only a drawing the film shows more than once that the screens kit has no piece for (a diagram of the problem); never the desktop, a window, the headline, steps, a counter or the cards, which the kit draws and the frames place.
 - Devices (world/screens.js; name the device in "show"):
 ${PROMO_TOOLS.join('\n')}${taste}` : `
 

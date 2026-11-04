@@ -59,6 +59,9 @@ textarea.autotext { resize: none; overflow: hidden; line-height: 1.5; min-height
 .shot-card > .sketch { width: 104px; }
 .shot-card:has(> .sketch.wide) { grid-template-columns: 160px minmax(0, 1fr); }
 .shot-card > .sketch.wide { width: 160px; }
+/* A promo's wireframe: the frame the engine lays out, wide enough to read */
+.shot-card:has(> .wireframe) { grid-template-columns: 220px minmax(0, 1fr); }
+.shot-card > .sketch.wireframe { width: 220px; aspect-ratio: 16 / 9; background: var(--surface-2); color: var(--text); border-radius: var(--r-md); overflow: hidden; }
 .shot-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .shot-field { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .shot-field > span { font-size: 11px; font-weight: 600; color: var(--text-3); letter-spacing: 0.02em; }

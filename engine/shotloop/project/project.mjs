@@ -29,10 +29,6 @@ export const SHOT_ID = /^[a-z0-9][a-z0-9-]*$/
 // A shot's code: an ES module drawing the world page at a time
 export const CODE_FILE = 'shot.js'
 
-// Pages (world, subtitles) are laid out in CSS px at 2/3 of the
-// film's pixel size (720×1280 for 1080×1920) and captured at 1.5x
-export const cssSize = size => ({ width: Math.round(size.width / 1.5), height: Math.round(size.height / 1.5) })
-
 export function isProject(dir) {
   return fs.existsSync(path.join(dir, FILE))
 }

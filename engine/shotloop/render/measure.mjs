@@ -113,9 +113,13 @@ const LOOK = `((promo) => {
     const space = room(el)
     if (area(r) < 4 || !space) continue
     const shows = meet(r, space)
-    // Cut: part of it shows, part is lost. A sliver showing is a clip
-    // hiding it on purpose (an odometer's next digit, a line yet to rise)
-    const part = area(shows) / area(r)
+    // Cut: part of its ink shows, part is lost (the box less the leading
+    // above and below, which a line's mask may trim without touching a
+    // letter). A sliver showing is a clip hiding it on purpose (an
+    // odometer's next digit, a line yet to rise)
+    const lead = (r.b - r.t) * 0.12
+    const ink = { l: r.l, t: r.t + lead, r: r.r, b: r.b - lead }
+    const part = area(meet(ink, space)) / area(ink)
     if (part < 0.2) continue
     words.push({ el, text: n.textContent, r: shows, whole: r, cut: part < 0.8 })
   }

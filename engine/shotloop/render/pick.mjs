@@ -20,7 +20,7 @@
 // Frame-sized containers (the page, the SVG stage) are seen through, so a
 // point on the empty stage reaches the scene behind it, or nothing.
 
-import { cssSize } from '../project/project.mjs'
+import { cssSize } from '../data.mjs'
 import { openShot } from './render2d.mjs'
 import { stillFrames } from './render.mjs'
 

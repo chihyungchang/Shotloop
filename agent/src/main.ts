@@ -30,7 +30,7 @@ import path from 'node:path'
 import { assetsBrief, credits, elementBrief, head, ideaOf, looksBrief, promoBrief, read, recurring, shotBrief, stylesBrief, subtitlesBrief, trackBrief, worldFiles } from './briefs.ts'
 import type { PickedElement } from '../../engine/shotloop/protocol.d.ts'
 import { engine, readRepo, readSite, renderCover, renderStills, status, type ProjectStatus, type ShotStatus } from './engine.ts'
-import { lookFits, memory, parseFlags, rules, STILLS, type Memory } from './enginelib.ts'
+import { lookFits, memory, pageLayout, pageOf, parseFlags, planIssues, rules, STILLS, type Memory } from './enginelib.ts'
 import { emit, exit, reason, setJson, warn } from './events.ts'
 import { openLedger } from './ledger.ts'
 import { describe, detect, listModels, preflight, runAgent, smokeTest } from './providers.ts'
@@ -228,11 +228,14 @@ ${trackBrief(project)} · frame ${size} · target length ${project.lengthAuto ? 
   const bar = bpm ? 240 / (bpm * 1.12) : 0
   // A voiced film is timed by its lines (fitted when it's built), so its
   // lines are measured instead of the captions' reading time
-  const lint = () => (speaks ? lintVoice(sb.shots) : project.track === '2d' ? lintPlan(sb.shots, bar) : [])
+  // A promo is held to its frames too: every shot's beat, headlines that
+  // fit their column (kits/promo-layout.js)
+  const framed = () => (project.promo ? planIssues(pageOf(pageLayout(project.size)), sb.shots) : [])
+  const lint = () => [...(speaks ? lintVoice(sb.shots) : project.track === '2d' ? lintPlan(sb.shots, bar) : []), ...framed()]
   let issues = lint()
   let final = summary
   if (issues.length) {
-    emit({ type: 'log', message: `plan breaks ${issues.length} reading rule(s); revising` })
+    emit({ type: 'log', message: `plan breaks ${issues.length} measured rule(s); revising` })
     final = await runAgent('copy', {
       step: { kind: 'revise' },
       effort: 'medium',
@@ -427,7 +430,10 @@ async function buildParts(project: ProjectStatus, b: Build) {
   if (!parts.length) return
   emit({ type: 'phase', phase: 'parts' })
   const file = (i: number) => `world/parts/part-${i + 1}.js`
-  const layout = parts.length > 1 ? await writeLayout(project, b, parts) : null
+  // A promo laid out from its plan (world/frames.json) needs no layout
+  // written: its drawings sit in their beats' picture boxes
+  const framed = fs.existsSync(path.join(project.root, 'world', 'frames.json'))
+  const layout = parts.length > 1 && !framed ? await writeLayout(project, b, parts) : null
   // The sheets free to take, the shots that show a picture first
   const free = [...new Set([...parts.flatMap(r => r.shots).map(n => project.shots[n - 1]), ...project.shots].filter(Boolean))]
   const drawn: number[] = []
@@ -441,7 +447,7 @@ async function buildParts(project: ProjectStatus, b: Build) {
         step: { kind: 'part', name: r.name },
         effort: 'medium',
         system: buildPartsSystem(!!project.voiced) + remembered('2d', true) + replyLanguage(values.lang),
-        prompt: `Draw the recurring picture "${r.name}" of ${head(project)} in ${file(i)}, and prove it on a test sheet in shot ${sheet.id} (import it there from '../../${file(i)}').\n\nIts design (shots ${r.shots.join(', ')}): ${r.design}${others.length ? `\n\nThe film's other recurring pictures, drawn by other agents at the same time in their own files (never draw them):\n${others.map(o => `- ${o.name} (shots ${o.shots.join(', ')}): ${o.design}`).join('\n')}` : ''}${layout ? `\n\nThe shared layout, ${layout} (import it in your file from './layout.js'): your picture's default place and size, and every anchor it shares with the others, come from it, exactly, so the pictures line up:\n${read(path.join(project.root, layout))}` : ''}\n\nWhat the shots that show it need of it:\n${users.map(s => `### ${s.id}\n${read(s.notes)}`).join('\n\n')}\n\n${worldFiles(project, { docs: true })}`,
+        prompt: `Draw the recurring picture "${r.name}" of ${head(project)} in ${file(i)}, and prove it on a test sheet in shot ${sheet.id} (import it there from '../../${file(i)}').\n\nIts design (shots ${r.shots.join(', ')}): ${r.design}${others.length ? `\n\nThe film's other recurring pictures, drawn by other agents at the same time in their own files (never draw them):\n${others.map(o => `- ${o.name} (shots ${o.shots.join(', ')}): ${o.design}`).join('\n')}` : ''}${layout ? `\n\nThe shared layout, ${layout} (import it in your file from './layout.js'): your picture's default place and size, and every anchor it shares with the others, come from it, exactly, so the pictures line up:\n${read(path.join(project.root, layout))}` : ''}${framed ? '\n\nThe film is laid out in world/frames.json (screens.js frame()): your drawing sits in its beat\'s picture box, at the size it reads best at, balanced in it.' : ''}\n\nWhat the shots that show it need of it:\n${users.map(s => `### ${s.id}\n${read(s.notes)}`).join('\n\n')}\n\n${worldFiles(project, { docs: true })}`,
         ctx
       }))
       if (fs.existsSync(path.join(project.root, file(i)))) drawn.push(i)

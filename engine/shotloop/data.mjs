@@ -484,3 +484,26 @@ export function readTime(text) {
   const words = String(text).replace(cjk, ' ').split(/\s+/).filter(w => /[\p{L}\p{N}]/u.test(w)).length
   return chars + words ? 1 + 0.3 * words + 0.15 * chars : 0
 }
+
+// Pages (world, subtitles) are laid out in CSS px at 2/3 of the
+// film's pixel size (720×1280 for 1080×1920) and captured at 1.5x
+export const cssSize = size => ({ width: Math.round(size.width / 1.5), height: Math.round(size.height / 1.5) })
+
+// A page's layout from the film's size: its CSS size, edge margin, safe
+// area and headline box (the looks' pages, the subtitles, the rules'
+// safe area, a promo's frames)
+export function pageLayout(size) {
+  const { width: w, height: h } = cssSize(size)
+  const tall = h > w
+  const pad = Math.round(w * (tall ? 0.056 : 0.045))
+  // The safe area (engine/shotloop/rules.mjs, safe-area): on a tall
+  // frame the right edge and the bottom 20% carry the platforms' buttons
+  const safeTop = Math.round(h * (tall ? 0.086 : 0.06))
+  const safeRight = tall ? Math.round(w * 0.861) : w - pad
+  const safeBottom = Math.round(h * (tall ? 0.8 : 0.85))
+  const headSize = Math.round(tall ? w * 0.085 : h * 0.085)
+  // The kicker sits 44 px above the headline, on the safe area's top edge
+  const headTop = safeTop + 44
+  const headWidth = Math.round(tall ? safeRight - pad : w * 0.62)
+  return { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop, headWidth }
+}

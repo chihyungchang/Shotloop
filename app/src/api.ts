@@ -105,6 +105,10 @@ export interface StoryShot {
   motion: string
   // The voice-over's line for the shot
   say?: string
+  // A product promo's beat and the chips under its headline, which lay
+  // the film out (engine/shotloop/kits/promo-layout.js)
+  beat?: 'title' | 'problem' | 'screen' | 'end'
+  steps?: number
 }
 export interface Storyboard {
   target?: number

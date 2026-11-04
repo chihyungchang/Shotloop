@@ -7,10 +7,9 @@
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { DEFAULT_LOOK, DEFAULT_STYLE, HUES, lookById } from '../data.mjs'
+import { DEFAULT_LOOK, DEFAULT_STYLE, HUES, lookById, pageLayout } from '../data.mjs'
 import { EXTRAS } from './extras.mjs'
 import { KIT_CORE } from './pagekit.mjs'
-import { cssSize } from '../project/project.mjs'
 import { scenePage } from './scene.mjs'
 
 export { DEFAULT_LOOK, HUES, LOOKS, lookById } from '../data.mjs'
@@ -40,24 +39,6 @@ const TUNE = {
   bg: v => v.length < 400 && /^[a-z0-9#(),.%\s-]+$/i.test(v)
 }
 const tuned = (L, tune) => ({ ...L, ...Object.fromEntries(Object.entries(tune ?? {}).filter(([k, v]) => typeof v === 'string' && TUNE[k]?.(v.trim()))) })
-
-// Where things go on a world page of this size, in CSS px: every page
-// (each 2D style, a WebGL film) lays out its type the same way
-export function pageLayout(size) {
-  const { width: w, height: h } = cssSize(size)
-  const tall = h > w
-  const pad = Math.round(w * (tall ? 0.056 : 0.045))
-  // The safe area (engine/shotloop/rules.mjs, safe-area): on a tall
-  // frame the right edge and the bottom 20% carry the platforms' buttons
-  const safeTop = Math.round(h * (tall ? 0.086 : 0.06))
-  const safeRight = tall ? Math.round(w * 0.861) : w - pad
-  const safeBottom = Math.round(h * (tall ? 0.8 : 0.85))
-  const headSize = Math.round(tall ? w * 0.085 : h * 0.085)
-  // The kicker sits 44 px above the headline, on the safe area's top edge
-  const headTop = safeTop + 44
-  const headWidth = Math.round(tall ? safeRight - pad : w * 0.62)
-  return { w, h, pad, safeTop, safeRight, safeBottom, headSize, headTop, headWidth }
-}
 
 function templatePage(id, size, style, tune) {
   const L = tuned(lookById(id) ?? lookById(DEFAULT_LOOK), tune)

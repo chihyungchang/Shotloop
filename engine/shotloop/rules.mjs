@@ -39,7 +39,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readJson, safeId, writeJson } from './project/files.mjs'
-import { pageLayout } from './kits/looks.mjs'
+import { pageLayout } from './data.mjs'
 import { SIZES } from './project/project.mjs'
 
 const RULES = process.env.SHOTLOOP_RULES ?? path.join(os.homedir(), '.shotloop', 'rules')

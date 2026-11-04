@@ -1,4 +1,6 @@
-import { round } from '../../../../engine/shotloop/data.mjs'
+import { useMemo } from 'react'
+import { pageLayout, round } from '../../../../engine/shotloop/data.mjs'
+import { filmFrames, pageOf, planBeats, wireframe } from '../../../../engine/shotloop/kits/promo-layout.js'
 import type { Project, Storyboard as Plan, StoryShot } from '../../api'
 import { t } from '../../i18n'
 import type { Key } from '../../i18n/en'
@@ -106,6 +108,11 @@ function LookRow({ sb, edit }: { sb: Plan; edit: (next: Plan) => void }) {
 // says, shows and does
 function ShotCards({ project, sb, edit }: { project: Project; sb: Plan; edit: (next: Plan) => void }) {
   const wide = isWide(project.size)
+  // A promo's frames, laid out as the engine will lay them for its shots
+  const frames = useMemo(() => {
+    const beats = project.promo ? planBeats(sb.shots) : null
+    return beats && filmFrames(pageOf(pageLayout(project.size)), beats)
+  }, [project.promo, project.size, sb.shots])
   const setShot = (i: number, patch: Partial<StoryShot>) => edit({ ...sb, shots: sb.shots.map((s, k) => (k === i ? { ...s, ...patch } : s)) })
   const moveShot = (i: number, d: number) => {
     const shots = [...sb.shots]
@@ -117,7 +124,10 @@ function ShotCards({ project, sb, edit }: { project: Project; sb: Plan; edit: (n
     <div className="shot-cards">
       {sb.shots.map((s, i) => (
         <div key={i} className="shot-card">
-          <ShotSketch look={project.track === '2d' ? sb.look : null} text={s.text || s.title} n={i + 1} total={sb.shots.length} wide={wide} />
+          {frames
+            // Built from numbers only: no text of the plan goes into it
+            ? <span className="sketch wide wireframe" aria-hidden dangerouslySetInnerHTML={{ __html: wireframe(frames, i) }} />
+            : <ShotSketch look={project.track === '2d' ? sb.look : null} text={s.text || s.title} n={i + 1} total={sb.shots.length} wide={wide} />}
           <div className="shot-main">
             <div className="shot-card-head">
               <span className="shot-no" style={{ background: shotHue(i) }}>{i + 1}</span>

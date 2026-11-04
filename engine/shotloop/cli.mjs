@@ -23,7 +23,7 @@
 //   shotloop move     <project> --to <folder>               move a project (a draft being saved)
 //   shotloop discard  <draft>                               delete a draft (only under $SHOTLOOP_DRAFTS)
 //   shotloop preview  <project> [--draft|--final]             the whole film to watch (cached)
-//   shotloop storyboard <project> [--derive]             apply storyboard.json to the project
+//   shotloop storyboard <project> [--derive]             apply storyboard.json to the project (a promo's frames too)
 //                     (--derive: write it from the project's shots and notes instead)
 //   shotloop title    <project> <title>                  rename the project
 //   shotloop style    <project> <style id>               the visual style (styles.mjs), kept by the planner
@@ -97,6 +97,7 @@ import { voiceCues, voiceOn } from './voiceover/cues.mjs'
 import { AMBIENCE_NAMES, EFFECT_NAMES, projectSounds, setSound, soundCues } from './sound/sound.mjs'
 import { checkSubtitles, describeIssues } from './voiceover/check.mjs'
 import { readSite, siteUrl } from './promo/site.mjs'
+import { writeFrames } from './promo/frames.mjs'
 import { readRepo } from './promo/repo.mjs'
 
 const OPTIONS = {
@@ -382,9 +383,18 @@ try {
       else throw new Error('rules list|edit|remove|reset|switch|add|add-tool|remove-tool|checklist')
       break
     }
-    case 'storyboard':
-      result(values.derive ? deriveStoryboard(loadProject(args[0])) : applyStoryboard(loadProject(args[0])))
+    case 'storyboard': {
+      if (values.derive) {
+        result(deriveStoryboard(loadProject(args[0])))
+        break
+      }
+      const applied = applyStoryboard(loadProject(args[0]))
+      // A promo's frames, laid out from the plan for its shots to take
+      const project = loadProject(args[0])
+      const frames = project.config.promo ? !!writeFrames(project) : undefined
+      result(frames === undefined ? applied : { ...applied, frames })
       break
+    }
     case 'title':
       result(setTitle(loadProject(args[0]), args[1]))
       break

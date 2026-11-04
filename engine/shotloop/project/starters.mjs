@@ -8,8 +8,8 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import { DEFAULT_LOOK, HUES, lookById, round } from '../data.mjs'
-import { lookPage, pageLayout, styleFiles } from '../kits/looks.mjs'
+import { DEFAULT_LOOK, HUES, lookById, pageLayout, round } from '../data.mjs'
+import { lookPage, styleFiles } from '../kits/looks.mjs'
 import { CODE_FILE } from './project.mjs'
 import { readJson, writeAtomic } from './files.mjs'
 import { emit } from '../render/compose.mjs'
@@ -116,15 +116,19 @@ export function freshWebglPage(root) {
 // its world, and brought up to this engine's before a command reads the
 // project, so an improved kit (a camera that moves in on the whole window)
 // reaches every promo; its shots render again, as for any world change
-const SCREENS = new URL('../kits/screens.js', import.meta.url)
+// The kit's files, copied whole: the screens kit and the layout it shares
+// with the engine and the app
+const SCREENS = ['screens.js', 'promo-layout.js'].map(f => ({ f, from: new URL(`../kits/${f}`, import.meta.url) }))
 export function freshScreens(root) {
   const cfg = readJson(path.join(root, 'shotloop.json'), null)
   if (!cfg?.promo) return
-  const file = path.join(root, 'world', 'screens.js')
-  const kit = fs.readFileSync(SCREENS, 'utf8')
-  if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== kit) {
-    fs.mkdirSync(path.dirname(file), { recursive: true })
-    writeAtomic(file, kit)
+  for (const { f, from } of SCREENS) {
+    const file = path.join(root, 'world', f)
+    const kit = fs.readFileSync(from, 'utf8')
+    if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== kit) {
+      fs.mkdirSync(path.dirname(file), { recursive: true })
+      writeAtomic(file, kit)
+    }
   }
 }
 

@@ -8,10 +8,12 @@
 //
 // What there is, by job (each documented where it is defined):
 //   material   load(...files) in setup; url(file)
-//   layout     layout('auto') the beat's boxes: words, picture (the
-//              desktop beside or under the headline, whichever shows it
-//              largest), source line; words.under for what goes below a
-//              headline. screenBox(box) the 16:10 screen in a box
+//   layout     frame(): this beat's boxes as the plan set them (words,
+//              the film's one desktop or a drawing's picture box, steps,
+//              source line; a card for the title and the end), the same
+//              as the plan's wireframes. layout() works one out by hand
+//              (world/promo-layout.js, which also lays out the cards);
+//              screenBox(box) the 16:10 screen in a box
 //   the screen desktop({ box, windows, view, app, dock }) one Mac desktop,
 //              the same box every beat; a window { file, width, height,
 //              x, y, w, title, over, draw }; desktopPoint() a picture
@@ -26,7 +28,8 @@
 //              screen; cursor(t, { path, clicks }) on kit.stage
 //   words      chapter(), headline() (always: its size from layout()),
 //              steps(), bubble(), counter(), row(), compare(), source()
-//   cuts, ends wipe(), endCard()
+//   cuts, ends wipe(); titleCard() first, endCard() last, both with the
+//              product's real logo (rule: promo-open-close)
 //
 // Two layers, both drawn the same at any t:
 // - depth(...html) sets the depth layer for this frame (call it every
@@ -48,7 +51,12 @@
 // (render_stills says what it found): text over text, text cut off, the
 // desktop's size and place, empty bands, anything laid over the screen.
 
+import { cardBoxes, layoutBoxes, screenBox } from './promo-layout.js'
+export { screenBox }
+
 const kit = () => window.kit
+// The page as promo-layout.js takes it
+const page = () => ({ W: kit().W, H: kit().H, PAD: kit().PAD })
 // Output pixels per page pixel: the final film is 1080×1920 (or 1920×1080)
 // over the kit's 720×1280 page (engine/shotloop/project/project.mjs SIZES)
 const OUT = 1.5
@@ -68,7 +76,9 @@ export const url = file => new URL(`../${file}`, import.meta.url).href
 const parts = new Map()
 // Pictures decoded, live parts read and the brand's fonts (site/fonts.css)
 // loaded before the first frame: call it from setup
-export const load = (...files) => Promise.all(files.map(async f => {
+let frames = null
+const framesRead = () => (frames ??= fetch(url('world/frames.json')).then(r => (r.ok ? r.json() : null)).catch(() => null).then(f => (frames = f)))
+export const load = (...files) => Promise.all([framesRead(), ...files.map(async f => {
   if (/\.css$/i.test(f)) {
     const res = await fetch(url(f)).catch(() => null)
     if (!res?.ok) throw new Error(`world/screens.js: can't load ${f}`)
@@ -105,7 +115,7 @@ export const load = (...files) => Promise.all(files.map(async f => {
   const img = new Image()
   img.src = url(f)
   await img.decode().catch(() => { throw new Error(`world/screens.js: can't load ${f}`) })
-}))
+})])
 
 // ---- Springs: every move settles like a damped spring ----
 
@@ -386,14 +396,9 @@ function desktopWindows(windows, u) {
   })
 }
 
-// A Mac's screen is 16:10: the desktop keeps it in any box it's given,
-// the largest that fits, centred, never squashed into the box's shape.
-// Windows are placed in its px (screenBox(box).w wide)
-const SCREEN = 16 / 10
-export function screenBox(box) {
-  const w = Math.min(box.w, box.h * SCREEN), h = w / SCREEN
-  return { x: box.x + (box.w - w) / 2, y: box.y + (box.h - h) / 2, w, h }
-}
+// A Mac's screen is 16:10: the desktop keeps it in any box it's given
+// (screenBox, promo-layout.js); windows are placed in its px
+// (screenBox(box).w wide)
 
 // Where a point of a window's picture is on the desktop (desktop px),
 // to aim the camera at: follow() takes these divided by the box's size
@@ -628,54 +633,21 @@ const lin = (t, at, d) => clamp((t - at) / d)
 // The page's edge margin, and where a chapter's content starts
 const margin = () => kit().PAD ?? 56 * unit()
 
-// Where a beat's pieces go, with room between them (rule: promo-fill):
-//   layout('side')  the words in a left column, the picture right of them
-//   layout('below') the words across the top, the picture under them
-//   layout('auto', { aspect }) whichever of the two shows a picture of
-//     that width / height largest (the desktop's 16:10 unless given; a
-//     tall picture beside its words, a wide strip under them); kind says
-//     which it chose
-// lines: the headline's lines. Gives back { words: { x, y, width, size,
-// under }, picture: { x, y, w, h } (pass as a shot's box), source: { y } }
-// in page px (under: where steps or a bubble go below the headline, clear
-// of its last line)
-// px: the words start under the chapter's rule, a gap of at least 5% of
-// the frame's height parts words from picture, and a band at the bottom
-// is kept for the source line. bleed: the picture runs off the right and
-// the bottom edges instead of stopping at the margin
-export function layout(kind = 'side', { lines = 2, size, bleed = false, aspect } = {}) {
-  if (kind === 'auto') {
-    aspect ??= SCREEN
-    const shown = l => Math.min(l.picture.w, l.picture.h * aspect) ** 2 / aspect
-    const side = layout('side', { lines, size, bleed }), below = layout('below', { lines, size, bleed })
-    return shown(below) > shown(side) ? below : side
-  }
-  const { W, H } = kit()
-  const u = unit(), m = margin()
-  const fs = size ?? Math.min(W, H) * (kind === 'side' ? 0.07 : 0.083)
-  const gap = Math.max(40 * u, H * 0.05)
-  const top = 104 * u
-  const sourceBand = 44 * u
-  const bottom = H - m * 0.6 - sourceBand
-  const textH = lines * fs * 1.06
-  const under = y => y + textH + Math.max(36 * u, fs * 0.7)
-  if (kind === 'side') {
-    const width = W * 0.27
-    const x = m + width + gap
-    return {
-      kind,
-      words: { x: m, y: top + 46 * u, width, size: fs, under: under(top + 46 * u) },
-      picture: { x, y: top, w: bleed ? W - x + 40 * u : W - m - x, h: bleed ? H - top + 40 * u : bottom - gap * 0.5 - top },
-      source: { y: H - m * 0.6 - sourceBand * 0.55 }
-    }
-  }
-  const y = top + textH + gap
-  return {
-    kind,
-    words: { x: m, y: top, width: W - 2 * m, size: fs, under: under(top) },
-    picture: { x: m, y, w: bleed ? W - m + 40 * u : W - 2 * m, h: bleed ? H - y + 40 * u : bottom - gap * 0.5 - y },
-    source: { y: H - m * 0.6 - sourceBand * 0.55 }
-  }
+// Where a beat's pieces go (promo-layout.js layoutBoxes, which says how):
+//   layout('side' | 'below' | 'auto', { lines, size, bleed, aspect })
+// gives back { kind, words: { x, y, width, size, under }, picture, source }
+export const layout = (kind = 'side', opts = {}) => layoutBoxes(page(), kind, opts)
+
+// This beat's frame as the plan set it (world/frames.json, written by the
+// engine from the storyboard, the same boxes as the plan's wireframes):
+// { beat, words, lines, steps, desktop | picture, source } or, for the
+// title and the end card, { beat, card }. Use it rather than laying a
+// beat out by hand, so every beat keeps the film's one desktop
+export function frame() {
+  const id = window.__shotloop?.ctx?.id
+  const f = frames?.beats.find(b => b.id === id)
+  if (!f) throw new Error(`world/screens.js: no frame for shot ${id} in world/frames.json (it is written when the plan is applied)`)
+  return f
 }
 
 // A source line in its own band at the bottom: small mono, muted
@@ -708,7 +680,9 @@ export function headline(t, { lines, x, y, at = 0, size, width, color, step = 0.
   const list = (Array.isArray(lines) ? lines : [lines]).filter(Boolean)
   const html = list.map((line, i) => {
     const q = rise(t, at + i * step, 0.5)
-    return `<span style="display:block;overflow:hidden;padding-bottom:.08em"><span style="display:block;transform:translateY(${n((1 - q) * 110)}%);color:${i ? C.muted : color ?? C.text}">` +
+    // A line is the plan's: never wrapped here, so one too long shows as
+    // such (the layout check says it) instead of hiding its second half
+    return `<span style="display:block;overflow:hidden;padding-bottom:.08em;white-space:nowrap"><span style="display:block;transform:translateY(${n((1 - q) * 110)}%);color:${i ? C.muted : color ?? C.text}">` +
       `${esc(line).replace(/\*(.+?)\*/g, `<span style="color:${C.accent}">$1</span>`)}</span></span>`
   }).join('')
   return `<div data-kit="headline" style="position:absolute;left:${n(x ?? margin())}px;top:${n(y)}px;${width ? `width:${n(width)}px;` : `width:${n(W - 2 * margin())}px;`}` +
@@ -815,19 +789,40 @@ export function wipe(t, { duration, color, half = 0.18, enter = true, leave = tr
   return `<div style="position:absolute;top:0;left:${n((1 - p * 2) * W)}px;width:${n(W)}px;height:${n(H)}px;background:${color ?? C.text}"></div>`
 }
 
-// The end card: a field of the accent, the product's name huge at the
-// bottom left, the line to remember under it, a meta row over a rule
-// (what it costs and runs on, its address)
-export function endCard(t, { name, line, meta = [], at = 0 }) {
-  const { W, H, C } = kit()
-  const u = unit(), m = margin()
-  const ink = onAccent()
-  const big = Math.min(W * 0.155, H * 0.28)
+// The title and the end card share a lockup (promo-layout.js cardBoxes):
+// the product's real logo (a picture of the project, repo/logo.png or
+// site/logo.png) as tall as the name's capitals and centred on them, the
+// name in the product's heavy face, the line under it. slide drifts the
+// lockup left a little over the beat, so the card never sits still
+function card(t, { name, line, logo, at, color }) {
+  const u = unit()
+  const b = cardBoxes(page(), { logo: !!logo })
+  const q = rise(t, at, 0.5)
   const slide = (t - at) * 6 * u
-  return `<div style="position:absolute;inset:0;width:${W}px;height:${H}px;background:${C.accent};color:${ink}">` +
-    `<div style="position:absolute;left:${n(m - 12 * u - slide)}px;bottom:${n(H * 0.28)}px;font:900 ${n(big)}px/.78 ${HEAD()};letter-spacing:-0.05em;white-space:nowrap;` +
-    `transform:translateY(${n((1 - rise(t, at, 0.5)) * 40 * u)}px);opacity:${n(rise(t, at, 0.5))}">${esc(name)}</div>` +
-    `<div style="position:absolute;left:${n(m)}px;bottom:${n(H * 0.17)}px;font:800 ${n(38 * u)}px/1.1 ${HEAD()};letter-spacing:-0.02em;opacity:${n(rise(t, at + 0.3))}">${esc(line)}</div>` +
-    `<div style="position:absolute;left:${n(m)}px;right:${n(m)}px;bottom:${n(48 * u)}px;display:flex;justify-content:space-between;padding-top:${n(14 * u)}px;border-top:${n(RULE())}px solid ${ink};` +
+  // The logo sits on the name's baseline, 1cap tall: exactly as tall as
+  // its capitals, whatever the face
+  return `<div style="position:absolute;left:${n(b.logo?.x ?? b.name.x)}px;top:${n(b.name.y - b.big * 0.2)}px;font:900 ${n(b.big)}px/1 ${HEAD()};letter-spacing:-0.05em;white-space:nowrap;` +
+    `transform:translate(${n(-slide)}px,${n((1 - q) * 40 * u)}px);opacity:${n(q)};color:${color}">` +
+    (logo ? `<img src="${url(logo)}" style="display:inline-block;height:1cap;width:1cap;vertical-align:baseline;margin-right:.22em;object-fit:contain">` : '') +
+    `${esc(name)}</div>` +
+    (line ? `<div style="position:absolute;left:${n(b.line.x)}px;top:${n(b.line.y - b.line.size)}px;font:800 ${n(b.line.size)}px/1.1 ${HEAD()};letter-spacing:-0.02em;color:${color};opacity:${n(rise(t, at + 0.3))}">${esc(line)}</div>` : '')
+}
+
+// The film's title, the first thing seen (rule: promo-open-close): the
+// lockup and the line on the film's own ground
+export function titleCard(t, { name, line = '', logo = '', at = 0 }) {
+  return card(t, { name, line, logo, at, color: kit().C.text })
+}
+
+// The end card: a field of the accent, the lockup, the line to remember
+// under it, a meta row over a rule (what it costs and runs on, its
+// address)
+export function endCard(t, { name, line, meta = [], logo = '', at = 0 }) {
+  const { W, H, C } = kit()
+  const u = unit()
+  const ink = onAccent()
+  const b = cardBoxes(page())
+  return `<div style="position:absolute;inset:0;width:${W}px;height:${H}px;background:${C.accent};color:${ink}">` + card(t, { name, line, logo, at, color: ink }) +
+    `<div style="position:absolute;left:${n(b.meta.x)}px;top:${n(b.meta.y)}px;width:${n(b.meta.w)}px;display:flex;justify-content:space-between;padding-top:${n(14 * u)}px;border-top:${n(RULE())}px solid ${ink};box-sizing:border-box;` +
     `font:500 ${n(20 * u)}px/1.2 ${HEAD()};opacity:${n(rise(t, at + 0.55))}">${meta.map(x => `<span>${esc(x)}</span>`).join('')}</div></div>`
 }

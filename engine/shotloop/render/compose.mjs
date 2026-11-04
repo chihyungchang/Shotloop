@@ -8,7 +8,7 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { openPage } from '../../lib/chrome.mjs'
 import * as jsonl from '../../lib/jsonl.mjs'
-import { cssSize } from '../project/project.mjs'
+import { cssSize } from '../data.mjs'
 
 // ---------------------------------------------------------------- events
 

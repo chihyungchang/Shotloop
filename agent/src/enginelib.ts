@@ -29,13 +29,14 @@ export interface Look { id: string; about: string; mood: string; scene?: unknown
 // A look of the voice-over's subtitles (null: none burned)
 export interface SubtitleLook { words: 'line' | 'follow' | 'one' | 'single'; use: string }
 
-export const { STYLES, styleById, lookFits, LOOKS, readTime, SUBTITLE_STYLES } = await load<{
+export const { STYLES, styleById, lookFits, LOOKS, readTime, SUBTITLE_STYLES, pageLayout } = await load<{
   STYLES: Style[]
   styleById: (id: string) => Style | null
   lookFits: (style: string | null | undefined, look: string) => boolean
   LOOKS: Look[]
   readTime: (text: string) => number
   SUBTITLE_STYLES: Record<string, SubtitleLook | null>
+  pageLayout: (size: { width: number; height: number }) => { w: number; h: number; pad: number }
 }>('data.mjs')
 export const { styleStills } = await load<{ styleStills: (id: string) => string[] }>('kits/styles.mjs')
 export const { SUBTITLE_BAND, VOICE_HOLD, VOICE_LEAD, VOICE_TAIL } = await load<{
@@ -70,6 +71,12 @@ export const { STILLS } = await load<{ STILLS: readonly string[] }>('project/cac
 // A product promo's pictures, with their sizes
 export interface PromoImage { file: string; width: number; height: number; from: 'person' | 'site'; live?: boolean; fields?: string[] }
 export const { promoImages } = await load<{ promoImages: (root: string) => PromoImage[] }>('promo/images.mjs')
+// A promo's plan, held to the frames it will be laid out in
+// (kits/promo-layout.js, the layout the kit and the app run)
+export const { planIssues, pageOf } = await load<{
+  planIssues: (page: { W: number; H: number; PAD: number }, shots: unknown[]) => string[]
+  pageOf: (layout: { w: number; h: number; pad: number }) => { W: number; H: number; PAD: number }
+}>('kits/promo-layout.js')
 // A line of text in a picture, its box in the picture's pixels (promo/text.mjs)
 export interface TextLine { text: string; x: number; y: number; w: number; h: number }
 export const { findText, pictureText } = await load<{

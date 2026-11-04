@@ -20,9 +20,7 @@ import path from 'node:path'
 import { cachedFile, engineCode } from '../project/cache.mjs'
 import { ffmpeg, openRenderPage, pageGeometry, progress, QUALITY, renderPageFrames } from '../render/compose.mjs'
 import { SUBTITLE_BAND, subtitleStyle, voiceLang } from './cues.mjs'
-import { SUBTITLE_STYLES, subtitleRules } from '../data.mjs'
-import { pageLayout } from '../kits/looks.mjs'
-import { cssSize } from '../project/project.mjs'
+import { cssSize, pageLayout, SUBTITLE_STYLES, subtitleRules } from '../data.mjs'
 import { FRAME, isCjk, splitWords, timeWords, wordsHtml } from './words.mjs'
 
 // A sentence cut into chunks short enough to read at a glance (max:
