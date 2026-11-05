@@ -166,7 +166,10 @@ export interface Settings {
   apiUrl: string
   apiKeys: Record<string, string>
   cli: string
+  // api or cli: the model ('' for the default); cli: for complex tasks
+  // (plans, shots, fixes), and modelSimple for simple ones (checks, posts)
   model: string
+  modelSimple: string
   localUrl: string
   localModel: string
   localKey: string
@@ -269,7 +272,7 @@ export interface About {
 // What the agent finds on this Mac (agent/src/providers.ts detect): every
 // CLI agent it knows, installed or not, and every local server it looks for
 export interface Detected {
-  clis: { id: string; name: string; bin: string; vendor: string; note?: string; models: string[]; install: string; url: string; path: string | null; version: string | null }[]
+  clis: { id: string; name: string; bin: string; vendor: string; note?: string; models: string[]; tiers: { complex: string; simple: string }; install: string; url: string; path: string | null; version: string | null }[]
   servers: { id: string; name: string; url: string; running: boolean; models: string[] }[]
 }
 

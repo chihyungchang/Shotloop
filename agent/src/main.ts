@@ -641,7 +641,8 @@ async function publishTask() {
   const docs = ['copy.md', 'script.md', 'publish.json']
     .map(f => `${f}:\n${read(path.join(project.root, f))}`)
     .join('\n\n')
-  const summary = await runAgent('code', {
+  // Posts from the plan's copy: a simple task
+  const summary = await runAgent('routine', {
     step: { kind: 'publish' },
     effort: 'high',
     system: publishSystem() + postLanguage(values.lang),

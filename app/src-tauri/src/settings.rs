@@ -25,8 +25,12 @@ pub struct Settings {
     pub api_key: String,
     /// cli: "claude", "codex" or "gemini"
     pub cli: String,
-    /// anthropic or cli: a model name; empty for the default
+    /// anthropic or cli: a model name; empty for the default. cli: the
+    /// one for complex tasks (plans, shots, fixes)
     pub model: String,
+    /// cli: the model for simple tasks (checks, posts); empty for the
+    /// CLI's default for them
+    pub model_simple: String,
     /// local: OpenAI-compatible base URL (…/v1), model, optional key
     pub local_url: String,
     pub local_model: String,
@@ -214,6 +218,7 @@ impl Settings {
             ("SHOTLOOP_API_URL", &api(&self.api_url)),
             ("SHOTLOOP_CLI", &self.cli),
             ("SHOTLOOP_MODEL", &self.model),
+            ("SHOTLOOP_MODEL_SIMPLE", &self.model_simple),
             ("SHOTLOOP_LOCAL_URL", &self.local_url),
             ("SHOTLOOP_LOCAL_MODEL", &self.local_model),
             ("SHOTLOOP_LOCAL_KEY", &self.local_key),

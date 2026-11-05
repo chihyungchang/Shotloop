@@ -115,7 +115,7 @@ export function AiSettings({ settings, update }: { settings: Settings; update: U
 
   const choosePreset = (p: Preset) =>
     update({ provider: 'api', apiPreset: p.id, apiProtocol: p.protocol, apiUrl: p.url, model: p.id === 'anthropic' ? '' : p.models[0] ?? '' })
-  const chooseMode = (m: Provider) => (m === 'api' ? choosePreset(preset) : update({ provider: m, model: '' }))
+  const chooseMode = (m: Provider) => (m === 'api' ? choosePreset(preset) : update({ provider: m, model: '', modelSimple: '' }))
 
   return (
     <section className="settings-block ai-settings">
@@ -156,7 +156,7 @@ function CliPane({ settings, update, detected, probes, openLink }: { settings: S
           const on = settings.cli === c.id
           return (
             <div key={c.id} className={`cli-card${on ? ' on' : ''}`}>
-              <button role="radio" aria-checked={on} className="cli-card-head" onClick={() => update({ provider: 'cli', cli: c.id, model: on ? settings.model : '' })}>
+              <button role="radio" aria-checked={on} className="cli-card-head" onClick={() => update({ provider: 'cli', cli: c.id, ...(on ? {} : { model: '', modelSimple: '' }) })}>
                 <span className="cli-logo"><BrandIcon id={`cli:${c.id}`} size={22} /></span>
                 <span className="cli-name">
                   <strong>{c.name} <span className="muted">· {c.vendor}</span></strong>
@@ -165,16 +165,11 @@ function CliPane({ settings, update, detected, probes, openLink }: { settings: S
                 {c.note && <span className="tag">{t('ai.experimental')}</span>}
                 {on && <span className="tag on"><Icon name="check" size={11} /> {t('ai.inUse')}</span>}
               </button>
-              <span className="cli-test">{probes.testButton({ provider: 'cli', cli: c.id, model: on ? settings.model : '' }, c.id)}</span>
+              <span className="cli-test">{probes.testButton({ provider: 'cli', cli: c.id, ...(on ? {} : { model: '', modelSimple: '' }) }, c.id)}</span>
               {on && (
-                <div className="cli-body">
-                  <label className="field">
-                    <span>{t('ai.model')} <span className="muted">· {t('ai.builtInList')}</span></span>
-                    <select value={settings.model} onChange={e => update({ model: e.target.value })}>
-                      <option value="">{t('ai.cliDefault')}</option>
-                      {unique([...c.models, settings.model]).map(m => <option key={m} value={m}>{m}</option>)}
-                    </select>
-                  </label>
+                <div className="cli-body cli-models">
+                  <TierPicker label={t('ai.modelComplex')} note={t('ai.modelComplexNote')} value={settings.model} fallback={c.tiers.complex} models={c.models} pick={model => update({ model })} />
+                  <TierPicker label={t('ai.modelSimple')} note={t('ai.modelSimpleNote')} value={settings.modelSimple} fallback={c.tiers.simple} models={c.models} pick={modelSimple => update({ modelSimple })} />
                 </div>
               )}
             </div>
@@ -199,6 +194,20 @@ function CliPane({ settings, update, detected, probes, openLink }: { settings: S
         </details>
       )}
     </div>
+  )
+}
+
+// The model one kind of task runs on: the CLI's default for it ('') or
+// one the person picks; one saved that the list no longer has stays shown
+function TierPicker({ label, note, value, fallback, models, pick }: { label: string; note: string; value: string; fallback: string; models: string[]; pick: (m: string) => void }) {
+  return (
+    <label className="field">
+      <span>{label} <span className="muted">· {note}</span></span>
+      <select value={value} onChange={e => pick(e.target.value)}>
+        <option value="">{t('ai.defaultModel', { model: fallback })}</option>
+        {unique([...models.filter(m => m !== fallback), value]).map(m => <option key={m} value={m}>{m}</option>)}
+      </select>
+    </label>
   )
 }
 
@@ -257,17 +266,25 @@ function ApiPane({ settings, update, preset, choosePreset, probes, openLink }: {
       <div className="field">
         <span>{t('ai.model')}</span>
         <div className="row gap">
-          <input list="api-models" value={settings.model}
-            placeholder={preset.id === 'anthropic' ? t('ai.anthropicDefault') : t('ai.modelPick')}
-            onChange={e => update({ model: e.target.value })} />
-          <datalist id="api-models">
-            {unique([...preset.models, ...(probes.models ?? [])]).map(m => <option key={m} value={m} />)}
-          </datalist>
-          {probes.fetchButton(() => probes.listModels(settings.apiUrl, key, settings.apiProtocol || preset.protocol), !key && preset.id !== 'custom')}
+          {preset.id === 'custom'
+            ? (
+              <>
+                <input list="api-models" value={settings.model} placeholder={t('ai.modelPick')} aria-label={t('ai.model')} onChange={e => update({ model: e.target.value })} />
+                <datalist id="api-models">{(probes.models ?? []).map(m => <option key={m} value={m} />)}</datalist>
+                {probes.fetchButton(() => probes.listModels(settings.apiUrl, key, settings.apiProtocol || preset.protocol), false)}
+              </>
+            )
+            // A provider's suitable models only; one saved before it left
+            // the list stays shown, as it is still the one in use
+            : (
+              <select value={settings.model} aria-label={t('ai.model')} onChange={e => update({ model: e.target.value })}>
+                {preset.id === 'anthropic' && <option value="">{t('ai.anthropicDefault')}</option>}
+                {unique([...preset.models, settings.model]).map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            )}
           {probes.testButton()}
         </div>
         <ProbeLine probe={probes.probe} />
-        {preset.vision === false && <small className="warn-note">{t('ai.noVision')}</small>}
       </div>
     </div>
   )

@@ -7,7 +7,9 @@
 //   SHOTLOOP_API_URL      api: base URL; empty for Anthropic's own API
 //   SHOTLOOP_API_KEY      api: the user's key (or ANTHROPIC_API_KEY)
 //   SHOTLOOP_CLI          cli: claude | codex | gemini
-//   SHOTLOOP_MODEL        api or cli: a model name (optional for Anthropic)
+//   SHOTLOOP_MODEL        api or cli: a model name (optional for Anthropic);
+//                         cli: the one for complex tasks (plans, shots, fixes)
+//   SHOTLOOP_MODEL_SIMPLE cli: the one for simple tasks (checks, posts)
 //   SHOTLOOP_LOCAL_URL    local: OpenAI-compatible base URL (…/v1)
 //   SHOTLOOP_LOCAL_MODEL  local: model name
 //   SHOTLOOP_LOCAL_KEY    local: API key, if the server wants one
@@ -20,7 +22,7 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { CLIS, findBin, runCli, type CliId } from './cli.ts'
+import { CLIS, findBin, runCli, type CliDef } from './cli.ts'
 import { checkContext, listModels as listOpenAiModels, measureSpeed, runLocal, type LocalModel } from './local.ts'
 import type { AiMeter, AiStep } from '../../engine/shotloop/protocol.d.ts'
 import { meter, record } from './ledger.ts'
@@ -54,8 +56,10 @@ export const isLoopback = (url: string) => {
 
 export function describe() {
   switch (provider()) {
-    case 'cli':
-      return `${CLIS.find(c => c.id === process.env.SHOTLOOP_CLI)?.name ?? 'CLI'}${process.env.SHOTLOOP_MODEL ? ` (${process.env.SHOTLOOP_MODEL})` : ''}`
+    case 'cli': {
+      const cli = CLIS.find(c => c.id === process.env.SHOTLOOP_CLI)
+      return cli ? `${cli.name} (${cliModel(cli, 'code')} / ${cliModel(cli, 'routine')})` : 'CLI'
+    }
     case 'local':
       return `${process.env.SHOTLOOP_LOCAL_MODEL} @ ${process.env.SHOTLOOP_LOCAL_URL}`
     default: {
@@ -115,6 +119,14 @@ export async function runAgent(task: Task, { step, ...given }: Omit<AgentOptions
   }
 }
 
+// The model a CLI runs a task on: the person's pick for its kind (simple:
+// routine tasks; complex: the rest), else the CLI's default for that kind
+function cliModel(cli: CliDef, task: Task) {
+  return task === 'routine'
+    ? process.env.SHOTLOOP_MODEL_SIMPLE || cli.tiers.simple
+    : process.env.SHOTLOOP_MODEL || cli.tiers.complex
+}
+
 // Whether a local model thinks on a task: as Settings says, else on all
 // but routine steps, where thinking only costs time on a slow machine
 function thinks(task: Task) {
@@ -131,9 +143,10 @@ const local = (): LocalModel => ({
 
 async function dispatch(task: Task, opts: Omit<AgentOptions, 'model' | 'meter'>, m: AiMeter): Promise<string> {
   switch (provider()) {
-    case 'cli':
-      // The CLI's own default model (its strongest) unless one is chosen
-      return runCli(process.env.SHOTLOOP_CLI as CliId, { ...opts, model: process.env.SHOTLOOP_MODEL || undefined, maxTurns: opts.maxTurns ?? MAX_TURNS, meter: m })
+    case 'cli': {
+      const cli = CLIS.find(c => c.id === process.env.SHOTLOOP_CLI)!
+      return runCli(cli.id, { ...opts, model: cliModel(cli, task), maxTurns: opts.maxTurns ?? MAX_TURNS, meter: m })
+    }
     case 'local':
       await checkContext(local())
       return runLocal(local(), opts.system, opts.prompt, opts.ctx, { maxTurns: opts.maxTurns, meter: m, think: thinks(task) })

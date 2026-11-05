@@ -16,23 +16,37 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { emit } from './events.ts'
-import { MODELS } from './loop.ts'
 import { failure, spawnLines, type Run } from './spawn.ts'
 import { codeOf, loadSession, type ToolContext } from './tools.ts'
 import type { AiMeter } from '../../engine/shotloop/protocol.d.ts'
 
 export type CliId = 'claude' | 'codex' | 'gemini'
 
-// Each CLI with its maker, a few models for the picker (the CLI's own
-// default when none is chosen) and how to install it
-export const CLIS: { id: CliId; name: string; bin: string; vendor: string; note?: string; models: string[]; install: string; url: string }[] = [
+// Each CLI with its maker, the models that suit Shotloop (images, tools,
+// code), the one each kind of task gets unless the person picks another
+// (complex: plans, shots, fixes; simple: checks, posts) and how to
+// install it. Codex: developers.openai.com/codex/models.md
+export interface CliDef {
+  id: CliId
+  name: string
+  bin: string
+  vendor: string
+  note?: string
+  models: string[]
+  tiers: { complex: string; simple: string }
+  install: string
+  url: string
+}
+export const CLIS: CliDef[] = [
   { id: 'claude', name: 'Claude Code', bin: 'claude', vendor: 'Anthropic',
-    models: ['opus', 'sonnet', 'haiku', ...new Set(Object.values(MODELS))],
+    models: ['opus', 'sonnet'], tiers: { complex: 'opus', simple: 'sonnet' },
     install: 'npm install -g @anthropic-ai/claude-code', url: 'https://docs.anthropic.com/en/docs/claude-code' },
   { id: 'codex', name: 'Codex CLI', bin: 'codex', vendor: 'OpenAI', note: 'experimental',
-    models: ['gpt-5.5', 'gpt-5.2'], install: 'npm install -g @openai/codex', url: 'https://github.com/openai/codex' },
+    models: ['gpt-6-astra', 'gpt-6.1-sol', 'gpt-6.1-terra'], tiers: { complex: 'gpt-6-astra', simple: 'gpt-6.1-terra' },
+    install: 'npm install -g @openai/codex', url: 'https://github.com/openai/codex' },
   { id: 'gemini', name: 'Gemini CLI', bin: 'gemini', vendor: 'Google', note: 'experimental',
-    models: ['gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-2.5-pro'], install: 'npm install -g @google/gemini-cli', url: 'https://github.com/google-gemini/gemini-cli' }
+    models: ['gemini-4-argon', 'gemini-3.8-flash'], tiers: { complex: 'gemini-4-argon', simple: 'gemini-3.8-flash' },
+    install: 'npm install -g @google/gemini-cli', url: 'https://github.com/google-gemini/gemini-cli' }
 ]
 
 const MCP = fileURLToPath(new URL('./mcp.ts', import.meta.url))

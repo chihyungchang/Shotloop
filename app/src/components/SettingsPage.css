@@ -55,6 +55,9 @@ h4 { margin: 0; font-size: 13px; font-weight: 600; color: var(--text-strong); }
 .cli-name strong { font-weight: 600; color: var(--text-strong); }
 .cli-name strong .muted { font-weight: 500; }
 .cli-body { padding: 0 14px 14px 60px; }
+/* A CLI's two models, one for each kind of task, side by side */
+.cli-models { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+@media (max-width: 640px) { .cli-models { grid-template-columns: 1fr; } }
 .install-list { border-radius: var(--r-lg); background: var(--surface-2); padding: 0 14px; }
 .install-list summary { min-height: 44px; display: flex; align-items: center; color: var(--text); }
 .install-list[open] summary { margin-bottom: 4px; }
@@ -101,7 +104,7 @@ details .field + .field { margin-top: 10px; }
 /* A local server's or a model's settings, and the reasoning, each a card */
 .ai-group { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px 16px; border: 1px solid var(--border); border-radius: var(--r-lg); }
 .ai-fields { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 12px; }
-.ai-group .row.gap > input { flex: 1; min-width: 0; }
+.provider-body .row.gap > input, .provider-body .row.gap > select { flex: 1; min-width: 0; }
 /* A choice with its name and what it does on the left, the switch on the right */
 .ai-pref { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .ai-pref > div:first-child { display: flex; flex-direction: column; gap: 3px; min-width: 0; }

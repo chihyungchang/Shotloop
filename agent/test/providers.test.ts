@@ -11,7 +11,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { checkContext, contextLength, MIN_CONTEXT, runLocal } from '../src/local.ts'
 import { newContext } from '../src/tools.ts'
-import { isLoopback, listModels } from '../src/providers.ts'
+import { describe, isLoopback, listModels } from '../src/providers.ts'
 
 async function serve(handler: http.RequestListener) {
   const server = http.createServer(handler)
@@ -97,7 +97,7 @@ test('context check: a window known too small fails before the run, an unknown o
 const sse = (chunks: object[]) => chunks.map(c => `data: ${JSON.stringify(c)}\n\n`).join('') + 'data: [DONE]\n\n'
 const delta = (d: object) => ({ choices: [{ index: 0, delta: d }] })
 
-test('streamed reply: thinking, a tool call in pieces and the usage put back together; thinking off retried without reasoning_effort', async () => {
+test('streamed reply: thinking (sent back with its turn), a tool call in pieces and the usage put back together; thinking off retried without reasoning_effort', async () => {
   const bodies: any[] = []
   const s = await serve((req, res) => {
     let body = ''
@@ -136,6 +136,8 @@ test('streamed reply: thinking, a tool call in pieces and the usage put back tog
     assert.equal(sent[0].stream, true)
     // The tool call went back whole, answered
     assert.deepEqual(sent[1].messages[2].tool_calls, [{ id: 'c1', type: 'function', function: { name: 'list_files', arguments: '{"dir":"."}' } }])
+    // The thinking went back with its turn
+    assert.equal(sent[1].messages[2].reasoning_content, 'Let me look.')
     assert.equal(sent[1].messages[3].role, 'tool')
     assert.match(sent[1].messages[3].content, /a\.txt/)
     assert.equal(meter.input, 100)
@@ -143,5 +145,22 @@ test('streamed reply: thinking, a tool call in pieces and the usage put back tog
   } finally {
     s.close()
     fs.rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('a CLI runs complex tasks and simple ones on their own models: its defaults, or the person\'s picks', () => {
+  const saved = { ...process.env }
+  try {
+    Object.assign(process.env, { SHOTLOOP_PROVIDER: 'cli', SHOTLOOP_CLI: 'claude' })
+    delete process.env.SHOTLOOP_MODEL
+    delete process.env.SHOTLOOP_MODEL_SIMPLE
+    assert.equal(describe(), 'Claude Code (opus / sonnet)')
+    process.env.SHOTLOOP_MODEL_SIMPLE = 'opus'
+    assert.equal(describe(), 'Claude Code (opus / opus)')
+    Object.assign(process.env, { SHOTLOOP_CLI: 'codex', SHOTLOOP_MODEL: 'gpt-6.1-sol' })
+    delete process.env.SHOTLOOP_MODEL_SIMPLE
+    assert.equal(describe(), 'Codex CLI (gpt-6.1-sol / gpt-6.1-terra)')
+  } finally {
+    process.env = saved
   }
 })

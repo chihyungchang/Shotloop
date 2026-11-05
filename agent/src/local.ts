@@ -19,7 +19,7 @@ export interface LocalModel {
 
 type Message =
   | { role: 'system' | 'user'; content: string | Part[] }
-  | { role: 'assistant'; content: string | null; tool_calls?: ToolCall[] }
+  | { role: 'assistant'; content: string | null; tool_calls?: ToolCall[]; reasoning_content?: string }
   | { role: 'tool'; tool_call_id: string; content: string }
 type Part = { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }
 interface ToolCall {
@@ -38,7 +38,8 @@ const auth = (apiKey?: string): Record<string, string> => (apiKey ? { authorizat
 const REQUEST_TIMEOUT_MIN = 30
 
 interface Usage { prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: { cached_tokens?: number } }
-interface Reply { content: string | null; tool_calls?: ToolCall[]; usage?: Usage }
+// reasoning: the model's thinking, when the server sends it
+interface Reply { content: string | null; tool_calls?: ToolCall[]; reasoning_content?: string; usage?: Usage }
 // What the model is doing as a reply streams in: reading the prompt (no
 // token yet), thinking, or writing its answer; n: its tokens so far
 export type Stage = 'read' | 'think' | 'write'
@@ -103,6 +104,7 @@ async function chat(m: LocalModel, body: Record<string, unknown>, on: (stage: St
 class StreamedReply {
   private buffer = ''
   private content = ''
+  private reasoning = ''
   private calls: ToolCall[] = []
   private usage: Usage | undefined
   private thought = 0
@@ -124,7 +126,10 @@ class StreamedReply {
       if (ev.usage) this.usage = ev.usage
       const delta = ev.choices?.[0]?.delta
       if (!delta) continue
-      if (delta.reasoning_content || delta.reasoning) this.on('think', ++this.thought)
+      if (delta.reasoning_content || delta.reasoning) {
+        this.reasoning += delta.reasoning_content || delta.reasoning
+        this.on('think', ++this.thought)
+      }
       if (delta.content) this.content += delta.content
       for (const piece of delta.tool_calls ?? []) {
         const call = (this.calls[piece.index ?? 0] ??= { id: '', type: 'function', function: { name: '', arguments: '' } })
@@ -139,7 +144,7 @@ class StreamedReply {
   done(): Reply {
     // Some servers leave a call's id out: the tool message needs one
     const calls = this.calls.filter(Boolean).map((c, i) => ({ ...c, id: c.id || `call_${i}` }))
-    return { content: this.content || null, tool_calls: calls.length ? calls : undefined, usage: this.usage }
+    return { content: this.content || null, tool_calls: calls.length ? calls : undefined, reasoning_content: this.reasoning || undefined, usage: this.usage }
   }
 }
 
@@ -271,7 +276,9 @@ export async function runLocal(m: LocalModel, system: string, prompt: string, ct
       meter.model = m.model
     }
     say(msg.content)
-    messages.push({ role: 'assistant', content: msg.content ?? null, tool_calls: msg.tool_calls })
+    // The thinking goes back with the turn: models that always think
+    // (Kimi K3, DeepSeek) want it in a tool loop
+    messages.push({ role: 'assistant', content: msg.content ?? null, tool_calls: msg.tool_calls, ...(msg.reasoning_content ? { reasoning_content: msg.reasoning_content } : {}) })
     if (!msg.tool_calls?.length) return false
 
     const images: Part[] = []
